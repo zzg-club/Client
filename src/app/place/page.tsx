@@ -20,30 +20,23 @@ export default function Home() {
 
   return (
     <div className="container">
-      {/* 검색창 */}
-      <div className="search-bar">
-        <input
-          type="text"
-          placeholder="원하는 곳을 검색해보세요!"
-        />
+      {/* 검색창과 버튼 */}
+      <div className="search-container">
+        <div className="search-bar">
+          <img src="/search.svg" alt="search" className="search-icon" />
+          <input type="text" placeholder="원하는 곳을 검색해봐요!" />
+        </div>
+        <button className="vector-button">
+          <img
+            src="/vector.svg"
+            alt="vector"
+            className="vector-icon"
+          />
+        </button>
       </div>
-
-      {/* 오른쪽 버튼 */}
-      <button className="vector-button">
-        <img
-          src="/vector.svg"
-          alt="vector"
-          style={{
-            width: '32px',
-            height: '32px',
-            padding: '0 8px 0 16px',
-          }}
-        />
-      </button>
 
       {/* 지도 */}
       <KakaoMap selectedPlace={selectedPlace} />
-
 
       <style jsx>{`
         .container {
@@ -56,48 +49,60 @@ export default function Home() {
           position: relative;
         }
 
-        /* 검색창 스타일 */
-        .search-bar {
+        /* 검색창과 버튼 컨테이너 */
+        .search-container {
           position: absolute;
           top: 10px;
-          left: 10px;
-          right: 60px; /* 오른쪽 버튼과 겹치지 않도록 여백 */
+          left: 50%;
+          transform: translateX(-50%);
+          display: flex;
+          align-items: center; /* 세로 가운데 정렬 */
+          gap: 8px;
+          z-index: 10;
+        }
+
+        /* 검색창 스타일 */
+        .search-bar {
+          display: flex;
+          align-items: center;
+          width: 312px; /* 가로 크기 */
+          height: 42px; /* 세로 크기 */
           background: white;
-          border-radius: 25px;
+          border-radius: 16px; /* border-radius 16px */
           box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-          padding: 5px 15px;
-          z-index: 10; /* 지도 위에 표시 */
+          padding: 9px 16px;
+        }
+
+        .search-icon {
+          width: 24px;
+          height: 24px;
         }
 
         .search-bar input {
-          width: 100%;
+          flex: 1; /* 남은 공간을 모두 차지 */
           border: none;
           outline: none;
-          padding: 10px;
-          font-size: 18px;
-          border-radius: 25px;
+          font-size: 18px; /* 텍스트 크기 18px */
+          padding: 0 0 0 8px; 
         }
 
         /* 오른쪽 버튼 스타일 */
         .vector-button {
-          position: absolute;
-          top: 10px;
-          right: 10px;
+          width: 42px; /* 버튼 크기 */
+          height: 42px; /* 버튼 크기 */
           background: white;
           border: none;
-          border-radius: 50%;
+          border-radius: 16px; /* border-radius 16px */
           box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-          width: 50px;
-          height: 50px;
           display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 10;
+          align-items: center; /* 이미지 수직 가운데 정렬 */
+          justify-content: center; /* 이미지 가로 가운데 정렬 */
           cursor: pointer;
         }
 
-        .vector-button img {
-          display: block;
+        .vector-icon {
+          width: 32px; /* 이미지 크기 */
+          height: 32px; /* 이미지 크기 */
         }
 
         /* 하단 장소 버튼 */
