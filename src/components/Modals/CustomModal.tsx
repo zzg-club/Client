@@ -1,0 +1,42 @@
+'use client'
+
+import { ReactNode } from 'react'
+import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
+import { DialogClose, DialogTitle } from '@radix-ui/react-dialog'
+import { X } from 'lucide-react'
+
+interface ModalProps {
+  open: boolean
+  onOpenChange: () => void
+  children: ReactNode
+  onNext: () => void // '다음으로' 버튼 클릭 시 실행
+}
+
+export default function CustomModal({
+  open,
+  onOpenChange,
+  children,
+  onNext,
+}: ModalProps) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="bg-[#f5f6f8] rounded-3xl w-auto p-0 gap-0 [&>button]:hidden">
+        <div className="relative p-6">
+          <DialogClose className="absolute right-6">
+            <X></X>
+          </DialogClose>
+          <DialogTitle></DialogTitle>
+          {children}
+        </div>
+        <DialogFooter className="flex flex-col items-center w-full border-t border-[#afafaf] w-full">
+          <button
+            onClick={onNext}
+            className="text-center text-[#9562fa] font-medium text-lg py-5 w-full rounded-b-3xl hover:bg-gray-100"
+          >
+            다음으로
+          </button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
