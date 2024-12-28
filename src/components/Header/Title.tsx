@@ -2,9 +2,8 @@
 
 import { MdArrowBackIos } from 'react-icons/md'
 import { IoShareSocialOutline } from 'react-icons/io5'
-import { GoPencil } from 'react-icons/go'
-import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import EditTitle from '@/components/Header/EditTitle'
 
 interface TitleProps {
   buttonText: string
@@ -22,21 +21,10 @@ export default function Title({
   isPurple,
 }: TitleProps) {
   const router = useRouter()
-  const [title, setTitle] = useState(initialTitle) // 컴포넌트 내에서 제목 상태 관리
 
   // 뒤로 가기 버튼 클릭 핸들러
   const handleBackClick = () => {
     router.back() // 브라우저의 뒤로 가기 기능
-  }
-
-  // 제목 수정 버튼 클릭 핸들러
-  const handleEditClick = () => {
-    // 제목을 수정할 수 있는 입력창을 띄우거나 다른 방법으로 수정 가능
-    const newTitle = prompt('제목을 수정하세요:', title)
-    if (newTitle) {
-      setTitle(newTitle) // 수정된 제목을 컴포넌트 내 상태에 반영
-      onTitleChange(newTitle) // 상위 컴포넌트로 수정된 제목 전달
-    }
   }
 
   // 다음, 완료, 확정 버튼 클릭 핸들러
@@ -49,12 +37,7 @@ export default function Title({
       <button onClick={handleBackClick}>
         <MdArrowBackIos className=" w-7 h-7 text-[#1e1e1e]" />
       </button>
-      <div className="text-center text-[#afafaf] text-2xl font-semibold font-['Pretendard'] leading-[17px] tracking-tight ">
-        {title}
-      </div>
-      <button onClick={handleEditClick}>
-        <GoPencil className="w-6 h-6 text-[#afafaf] mb-0.5 " strokeWidth={1} />
-      </button>
+      <EditTitle initialTitle={initialTitle} onTitleChange={onTitleChange} />
       <div className="flex ml-auto gap-5">
         <button>
           <IoShareSocialOutline className="w-8 h-8 text-[#1e1e1e]" />
