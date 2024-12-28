@@ -32,7 +32,7 @@ const KakaoMap = ({ selectedPlace }) => {
           const markerImage = new window.kakao.maps.MarkerImage(
             '/myLocation.svg',
             new window.kakao.maps.Size(32, 32), // 이미지 크기 설정
-            { offset: new window.kakao.maps.Point(16, 32) } // 중심점 설정
+            { offset: new window.kakao.maps.Point(16, 32) }, // 중심점 설정
           )
 
           const marker = new window.kakao.maps.Marker({
@@ -79,7 +79,7 @@ const KakaoMap = ({ selectedPlace }) => {
         enableHighAccuracy: true, // 고정밀도 위치 사용
         maximumAge: 0, // 캐시된 위치 정보 사용 안 함
         timeout: 5000, // 5초 이상 대기 시 오류 처리
-      }
+      },
     )
 
     return () => {
