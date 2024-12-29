@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 
-const Navbar: React.FC = () => {
+const NavBar: React.FC = () => {
   const [selectNav, setSelectNav] = useState('스케줄')
 
   const navs = [
@@ -33,4 +33,4 @@ const Navbar: React.FC = () => {
   )
 }
 
-export default Navbar
+export default NavBar
