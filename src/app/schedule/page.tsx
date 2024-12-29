@@ -6,13 +6,19 @@ import CustomModal from '@/components/Modals/CustomModal'
 import CustomCalendar from '@/components/CustomCalendar'
 import Button from '@/components/Buttons/Floating/Button'
 import { DateRange } from 'react-day-picker'
+import Navbar from '@/components/Navigate/NavBar'
 
 export default function ScheduleLanding() {
   const [isOpen, setIsOpen] = useState(false)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [selectedDate, setSelectedDate] = useState<DateRange>()
-  console.log('from', selectedDate?.from)
-  console.log('to', selectedDate?.to)
+  const [selectedDates, setSelectedDates] = useState<
+    DateRange | Date[] | undefined
+  >()
+
+  const handleSelect = (selection: DateRange | Date[] | undefined) => {
+    setSelectedDates(selection)
+    console.log('Selected:', selection)
+  }
 
   const handleToggle = () => {
     setIsOpen(!isOpen)
@@ -23,6 +29,7 @@ export default function ScheduleLanding() {
   return (
     <div>
       {/* Add Moim Button */}
+      <Navbar />
       <ScheduleOptions
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
@@ -43,7 +50,11 @@ export default function ScheduleLanding() {
         onOpenChange={handleOpenDialog}
         onNext={() => alert('다음으로')}
       >
-        <CustomCalendar selected={selectedDate} onSelect={setSelectedDate} />
+        <CustomCalendar
+          initialMode="range"
+          selected={selectedDates}
+          onSelect={handleSelect}
+        />
       </CustomModal>
     </div>
   )
