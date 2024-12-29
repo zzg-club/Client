@@ -4,6 +4,7 @@ import { ReactNode } from 'react'
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
 import { DialogClose, DialogTitle } from '@radix-ui/react-dialog'
 import { X } from 'lucide-react'
+import '../../styles/CustomModal.css'
 
 interface ModalProps {
   open: boolean
@@ -28,10 +29,10 @@ export default function CustomModal({
           <DialogTitle></DialogTitle>
           {children}
         </div>
-        <DialogFooter className="flex flex-col items-center w-full border-t border-[#afafaf] w-full">
+        <DialogFooter className="flex flex-col items-center w-full border-t border-[#afafaf]">
           <button
             onClick={onNext}
-            className="text-center text-[#9562fa] font-medium text-lg py-5 w-full rounded-b-3xl hover:bg-gray-100"
+            className="text-center text-[#9562fa] font-medium rounded-3xl text-lg py-5 w-full"
           >
             다음으로
           </button>
