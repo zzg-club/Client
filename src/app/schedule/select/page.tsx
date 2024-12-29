@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import Title from '@/components/Header/Title' // 하위 컴포넌트
+import Title from '@/components/Header/Title'
+import SelectedDays from '@/components/Header/SelectedDays'
 
 export default function Page() {
   const [title, setTitle] = useState('제목 없는 일정') // 제목 상태 관리
@@ -21,6 +22,7 @@ export default function Page() {
         onTitleChange={handleTitleChange} // 제목 수정 함수 전달
         isPurple={isPurple}
       />
+      <SelectedDays />
     </div>
   )
 }
