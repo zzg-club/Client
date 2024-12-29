@@ -18,6 +18,9 @@ body {
   width: 100vw;
   min-width: 320px; /* 최소 너비는 min-width */
   height: 100%;
+  width: 100vw;
+  min-width: 320px; /* 최소 너비는 min-width */
+  height: 100%;
   background: #ffffff;
   border: 1px solid #ddd;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
