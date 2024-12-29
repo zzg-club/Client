@@ -35,7 +35,7 @@ export default function EditTitle({
     <div>
       {/* 수정 모드일 때 오버레이 */}
       {isEditing && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-10"></div>
+        <div className="absolute inset-0 bg-black bg-opacity-50 z-10"></div>
       )}
 
       {/* 제목과 수정 버튼 */}
@@ -60,7 +60,7 @@ export default function EditTitle({
           </span>
         )}
         {!isEditing && ( // 수정 모드일 때는 연필 아이콘 숨기기
-          <button onClick={() => setIsEditing(true)} className="z-20 mh-2">
+          <button onClick={() => setIsEditing(true)} className="z-20">
             <GoPencil className="w-6 h-6 text-[#afafaf]" strokeWidth={1} />
           </button>
         )}
