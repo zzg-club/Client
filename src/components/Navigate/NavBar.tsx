@@ -3,8 +3,12 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 
-const Navbar: React.FC = () => {
-  const [selectNav, setSelectNav] = useState('스케줄')
+interface NavbarProps {
+  onSelectNav?: (selectedNav: string) => void
+}
+
+const Navbar: React.FC<NavbarProps> = ({ onSelectNav }) => {
+  const [selectedNav, setSelectedNav] = useState('스케줄')
 
   const navs = [
     { name: '스케줄', path: '/schedule' },
@@ -12,21 +16,28 @@ const Navbar: React.FC = () => {
     { name: '플레이스', path: '/place' },
   ]
 
+  const handleNavClick = (navName: string) => {
+    setSelectedNav(navName)
+    if (onSelectNav) {
+      onSelectNav(navName) // 부모 컴포넌트로 선택된 네비게이션 전달
+    }
+  }
+
   return (
-    <nav className="w-full h-16 justify-start flex items-center bg-white pl-[20px] py-5 rounded-bl-3xl rounded-br-3xl shadow-[0px_0px_10px_0px_rgba(30,30,30,0.10)] gap-[12px]">
+    <nav className="w-full h-16 flex items-center bg-white pl-5 shadow-lg gap-4">
       {navs.map((nav) => (
         <Link
           key={nav.name}
           href={nav.path}
-          onClick={() => setSelectNav(nav.name)}
-          className={`relative text-xl font-semibold leading-[17px] ${
-            selectNav === nav.name ? 'text-[#9562fa]' : 'text-[#afafaf]'
+          onClick={(e) => {
+            e.preventDefault() // 기본 페이지 이동 방지
+            handleNavClick(nav.name)
+          }}
+          className={`text-lg font-semibold ${
+            selectedNav === nav.name ? 'text-purple-600' : 'text-gray-500'
           }`}
         >
           {nav.name}
-          {selectNav === nav.name && (
-            <span className="absolute left-1/2 transform -translate-x-1/2 -bottom-[12px] w-[52px] h-1 bg-[#9562fa] rounded"></span>
-          )}
         </Link>
       ))}
     </nav>
