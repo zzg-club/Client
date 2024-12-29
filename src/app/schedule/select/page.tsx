@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Title from '@/components/Header/Title'
 import SelectedDays from '@/components/Header/SelectedDays'
+import TimeStamp from '@/components/Body/TimeStamp'
 
 export default function Page() {
   const [title, setTitle] = useState('제목 없는 일정') // 제목 상태 관리
@@ -10,7 +11,7 @@ export default function Page() {
 
   // 제목 수정 함수
   const handleTitleChange = (newTitle: string) => {
-    setTitle(newTitle) // 수정된 제목으로 상태 업데이트
+    setTitle(newTitle)
   }
 
   return (
@@ -23,6 +24,7 @@ export default function Page() {
         isPurple={isPurple}
       />
       <SelectedDays />
+      <TimeStamp />
     </div>
   )
 }
