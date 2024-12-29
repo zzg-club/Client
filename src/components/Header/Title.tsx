@@ -35,7 +35,7 @@ export default function Title({
   }
 
   return (
-    <div className=" w-full h-16 px-6 py-5 bg-white rounded-bl-3xl rounded-br-3xl shadow-[0px_0px_10px_0px_rgba(30,30,30,0.10)] flex items-center gap-1">
+    <div className=" w-full h-16 px-6 py-5 bg-white  flex items-center gap-1">
       <button onClick={handleBackClick}>
         <MdArrowBackIos className=" w-7 h-7 text-[#1e1e1e]" />
       </button>
