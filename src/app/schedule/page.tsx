@@ -6,7 +6,7 @@ import CustomModal from '@/components/Modals/CustomModal'
 import CustomCalendar from '@/components/CustomCalendar'
 import Button from '@/components/Buttons/Floating/Button'
 import { DateRange } from 'react-day-picker'
-import Navbar from '@/components/Navigate/NavBar'
+import NavBar from '@/components/Navigate/NavBar'
 
 export default function ScheduleLanding() {
   const [isOpen, setIsOpen] = useState(false)
@@ -29,7 +29,7 @@ export default function ScheduleLanding() {
   return (
     <div>
       {/* Add Moim Button */}
-      <Navbar />
+      <NavBar />
       <ScheduleOptions
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
@@ -49,6 +49,7 @@ export default function ScheduleLanding() {
         open={isDialogOpen}
         onOpenChange={handleOpenDialog}
         onNext={() => alert('다음으로')}
+        isFooter={true}
       >
         <CustomCalendar
           initialMode="range"
