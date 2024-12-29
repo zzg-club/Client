@@ -1,0 +1,102 @@
+/* 페이지 컨테이너 */
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  height: 100vh;
+  background-color: #f5f5f5; /* 배경색 */
+  padding-top: 0;
+}
+
+/* 검색 입력 컨테이너 */
+.searchInputContainer {
+  width: 280px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1; /* 입력 컨테이너 크기 확장 */
+  border-radius: 24px;
+  border: 1px solid var(--NavBarColor, #afafaf);
+  padding: 9px 16px;
+}
+
+/* 돋보기 아이콘 */
+.searchIcon {
+  width: 24px;
+  height: 24px;
+  fill: #afafaf; /* 돋보기 색상 */
+}
+
+/* 검색창 */
+.searchBar {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 64px;
+  padding: 11px 12px;
+  border-radius: 0px 0px 24px 24px; /* 아래쪽 둥근 모서리 */
+  background: var(--Grays-White, #fff);
+  box-shadow: 0px 0px 10px 0px rgba(30, 30, 30, 0.1);
+  gap: 6px;
+}
+
+/* 왼쪽 아이콘 */
+.arrowIcon {
+  width: 24px;
+  height: 24px;
+  fill: #8e8d8d; /* 아이콘 색상 */
+}
+
+/* 입력창 */
+.searchInput {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 18px;
+  color: #afafaf; /* 텍스트 색상 */
+  background-color: transparent;
+}
+
+/* 검색 버튼 */
+.searchButton {
+  color: #9562fb; /* 버튼 텍스트 색상 */
+  text-align: center;
+  font-family: Pretendard, sans-serif;
+  font-size: 20px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 17px;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+}
+
+/* 내 위치 불러오기 버튼 */
+.locationButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 356px;
+  height: 42px;
+  border: 1px solid #9562fb; /* 테두리 색상 */
+  border-radius: 24px;
+  color: #9562fb; /* 텍스트 색상 */
+  font-family: Pretendard, sans-serif;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 17px; /* 85% */
+  letter-spacing: -0.5px;
+  cursor: pointer;
+  gap: 4px; /* 아이콘과 텍스트 간격 */
+  padding: 12px 108px;
+  margin-top: 13px;
+}
+
+/* 위치 아이콘 */
+.locationIcon {
+  width: 28px;
+  height: 28px;
+}
