@@ -1,10 +1,10 @@
 'use client'
 
-import React, { useState } from 'react'
-import { useRouter } from 'next/navigation' // useRouter 훅 사용
+import React, { useState, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import KakaoMap from '@/components/Map/KakaoMap'
 import Navbar from '@/components/Navigate/Navbar'
-import styles from '@/app/place/styles/Home.module.css' // CSS 모듈 임포트
+import styles from '@/app/place/styles/Home.module.css'
 
 interface Place {
   lat: number
@@ -12,50 +12,92 @@ interface Place {
   name: string
 }
 
+const tabs = [
+  { id: 'food', label: '음식점' },
+  { id: 'cafe', label: '카페' },
+  { id: 'play', label: '놀이' },
+]
+
 export default function Home() {
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null)
-  const router = useRouter() // Next.js 라우터 훅
-
-  const places: Place[] = [
-    { name: '풍경 한우', lat: 37.5665, lng: 126.978 },
-    { name: '서울 카페', lat: 37.5675, lng: 126.979 },
-    { name: '코인노래방', lat: 37.5655, lng: 126.977 },
-  ]
+  const [isExpanded, setIsExpanded] = useState(false)
+  const [selectedTab, setSelectedTab] = useState<string>(tabs[0].id)
+  const startY = useRef<number | null>(null)
+  const currentY = useRef<number | null>(null)
+  const threshold = 50
+  const router = useRouter()
 
   const handleSearchClick = () => {
-    // 검색창 클릭 시 페이지 이동
-    router.push('/search') // '/search' 페이지로 이동
+    router.push('/search')
+  }
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    startY.current = e.touches[0].clientY
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    currentY.current = e.touches[0].clientY
+  }
+
+  const handleTouchEnd = () => {
+    if (startY.current !== null && currentY.current !== null) {
+      const delta = startY.current - currentY.current
+      if (delta > threshold) setIsExpanded(true)
+      else if (delta < -threshold) setIsExpanded(false)
+    }
+    startY.current = null
+    currentY.current = null
   }
 
   return (
-    <div className={styles.container}>
+    <div className={styles['mobile-container']}>
       <Navbar />
       <div className={styles['search-container']}>
         <div
           className={styles['search-bar']}
-          onClick={handleSearchClick} // 클릭 이벤트 추가
-          style={{ cursor: 'pointer' }} // 클릭 가능한 UI 표시
+          onClick={handleSearchClick}
+          style={{ cursor: 'pointer' }}
         >
-          <img
-            src="/search.svg"
-            alt="search"
-            className={styles['search-icon']}
-          />
-          <input
-            type="text"
-            placeholder="원하는 곳을 검색해봐요!"
-            readOnly // 검색창 입력 비활성화 (클릭만 가능하게)
-          />
+          <img src="/search.svg" alt="search" className={styles['search-icon']} />
+          <input type="text" placeholder="원하는 곳을 검색해봐요!" readOnly />
         </div>
         <button className={styles['vector-button']}>
-          <img
-            src="/vector.svg"
-            alt="vector"
-            className={styles['vector-icon']}
-          />
+          <img src="/vector.svg" alt="vector" className={styles['vector-icon']} />
         </button>
       </div>
       <KakaoMap selectedPlace={selectedPlace} />
+
+      {/* Tabs */}
+      <div
+        className={`${styles.tabs} ${isExpanded ? styles.expandedTabs : ''}`}
+      >
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            className={`${styles.tab} ${
+              selectedTab === tab.id ? styles.selected : ''
+            }`}
+            onClick={() => setSelectedTab(tab.id)}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Bottom Sheet */}
+      <div
+        className={`${styles.bottomSheet} ${
+          isExpanded ? styles.expanded : styles.collapsed
+        }`}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        <div className={styles.dragHandle}></div>
+        <div className={styles.content}>
+          <p>{isExpanded ? 'Bottom Sheet Expanded' : 'Bottom Sheet Collapsed'}</p>
+        </div>
+      </div>
     </div>
   )
 }
