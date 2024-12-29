@@ -6,6 +6,10 @@
   width: 100%;
 }
 
+.calendar-month:first-child {
+  padding: 0;
+}
+
 .calendar-table {
   width: 100%;
   border-spacing: 0;
@@ -17,7 +21,7 @@
 }
 
 .calendar-head-cell {
-  padding: 8px;
+  padding: 0;
   text-align: center;
   font-size: 0.875rem;
   text-transform: uppercase;
@@ -49,6 +53,23 @@
 
 .calendar-day-selected {
   color: #000;
+  background-color: #d3beff;
+}
+
+[data-mode='multiple'] .calendar-row:first-child .calendar-day-selected {
+  border-radius: 50% 50% 0 0;
+}
+
+[data-mode='multiple'] .calendar-row:last-child .calendar-day-selected {
+  border-radius: 0 0 50% 50%;
+}
+
+[data-mode='range'] .calendar-cell:last-child .calendar-day-range-middle {
+  border-radius: 0 50% 50% 0;
+}
+
+[data-mode='range'] .calendar-cell:first-child .calendar-day-range-middle {
+  border-radius: 50% 0 0 50%;
 }
 
 .calendar-day-today {
