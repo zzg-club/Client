@@ -1,3 +1,5 @@
+'use client'
+
 import { GoPencil } from 'react-icons/go'
 import { useState } from 'react'
 
