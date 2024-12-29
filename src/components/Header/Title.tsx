@@ -27,6 +27,8 @@ export default function Title({
     router.back() // 브라우저의 뒤로 가기 기능
   }
 
+  const handleShareClick = () => {}
+
   // 다음, 완료, 확정 버튼 클릭 핸들러
   const handleButtonClick = () => {
     router.push(buttonLink) // 지정된 페이지로 이동
@@ -37,9 +39,11 @@ export default function Title({
       <button onClick={handleBackClick}>
         <MdArrowBackIos className=" w-7 h-7 text-[#1e1e1e]" />
       </button>
-      <EditTitle initialTitle={initialTitle} onTitleChange={onTitleChange} />
+      <div className="w-[60%]">
+        <EditTitle initialTitle={initialTitle} onTitleChange={onTitleChange} />
+      </div>
       <div className="flex ml-auto gap-5">
-        <button>
+        <button onClick={handleShareClick}>
           <IoShareSocialOutline className="w-8 h-8 text-[#1e1e1e]" />
         </button>
         <button
