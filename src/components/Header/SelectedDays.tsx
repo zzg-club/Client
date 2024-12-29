@@ -65,10 +65,13 @@ export default function SelectedDays({
         }`}
       >
         <div className="text-[#1e1e1e] text-3xl font-['Pretendard'] leading-[17px] tracking-tight pl-5 pt-3 pb-5">
+          {' '}
+          {/* 월 & 참여인원 컴포넌트 */}
           {month}
         </div>
       </div>
       <div className="w-full px-0 pb-3 bg-white rounded-bl-3xl rounded-br-3xl shadow-[0_4px_6px_-1px_rgba(30,30,30,0.1),0_2px_4px_-2px_rgba(30,30,30,0.1)] flex items-center">
+        {/* 캘린더 헤더 컨테이너 */}
         <button
           onClick={handlePrevPage}
           className={`flex items-center justify-center ${
@@ -81,7 +84,7 @@ export default function SelectedDays({
           <ChevronLeft className="w-7 h-7" />
         </button>
         <div className="flex-1 px-0 pb-4 ">
-          {isFullWeek ? (
+          {isFullWeek ? ( // 7일이 다 채워졌을 때
             <div className="grid grid-cols-7 gap-0 ">
               {currentDates.map(({ date, weekday }) => (
                 <div key={date} className="flex flex-col items-center w-full">
@@ -91,6 +94,7 @@ export default function SelectedDays({
               ))}
             </div>
           ) : (
+            // 표시할 일 수가 7일 미만일 때
             <div
               className="flex justify-between w-full "
               style={{
@@ -119,6 +123,8 @@ export default function SelectedDays({
           <ChevronRight className="w-7 h-7" />
         </button>
       </div>
+
+      {/* 헤더 영역 확장/축소 핸들들 */}
       <div onClick={toggleExpand} className="flex items-center justify-center">
         {isExpanded ? (
           <FaCaretUp className="w-4 h-4 text-purple-600 absolute bottom-2" />
