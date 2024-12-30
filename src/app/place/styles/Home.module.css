@@ -113,16 +113,8 @@
   border-radius: 24px 24px 0 0;
   transition: transform 0.3s ease-in-out;
   z-index: 10;
-}
-
-.expanded {
-  transform: translateY(0);
-  height: 70vh;
-}
-
-.collapsed {
-  transform: translateY(calc(100% - 100px));
-  height: auto;
+  max-height: 300px; /* Bottom Sheet 높이 제한 */
+  overflow-y: auto; /* 내부에서 스크롤 가능 */
 }
 
 .dragHandle {
@@ -134,42 +126,63 @@
   cursor: pointer;
 }
 
+.bottomSheet.expanded {
+  transform: translateY(-300px); /* 350px만큼 위로 올라감 */
+}
+
+.collapsed {
+  transform: translateY(calc(100% - 100px));
+  height: auto;
+}
+
 /* Tabs */
 .tabs {
   position: absolute;
-  bottom: calc(100% - 100px); /* Bottom Sheet 축소 시 적당히 떠있는 위치 */
+  bottom: 48px;
   left: 0;
   width: 100%;
   display: flex;
-  justify-content: space-around;
   transition: transform 0.3s ease-in-out;
-  z-index: 15; /* Bottom Sheet 위에 표시 */
+  z-index: 5; /* Bottom Sheet 위에 표시 */
 }
 
 .expandedTabs {
-  transform: translateY(-70vh); /* Bottom Sheet 확장 시 따라 올라감 */
+  transform: translateY(
+    -300px
+  ); /* Bottom Sheet 확장 시 탭도 함께 350px 올라감 */
 }
 
 .tab {
   display: flex;
-  width: 80px;
-  height: 40px;
+  width: 81px;
+  height: 91px;
+  padding: 12px 16px;
   background-color: #ffffff;
-  border: 1px solid #d9d9d9;
   border-radius: 12px;
-  color: var(--NavBarColor, #AFAFAF);
-  font-size: 14px;
-  font-weight: 500;
-  align-items: center;
+  color: var(--NavBarColor, #afafaf);
+  font-size: 18px;
+  font-weight: 600;
   justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 24px;
+  box-shadow: 0px 0px 10px 0px rgba(30, 30, 30, 0.1);
+  line-height: 17px; /* 94.444% */
+
+  position: relative; /* 겹침을 위해 relative 사용 */
+  margin-right: -10px; /* 탭 간의 겹침 정도 설정 */
+  z-index: 1; /* 겹칠 때 순서 조정 */
 }
 
 .tab.selected {
-  color: var(--MainColor, #9562FB);
+  color: var(--MainColor, #9562fb);
+  font-family: Pretendard;
+  font-size: 18px;
+  font-style: normal;
   font-weight: 600;
-  border-color: var(--MainColor, #9562FB);
+  line-height: 17px; /* 94.444% */
+  letter-spacing: -0.5px;
+  font-weight: 600;
+  z-index: 2; /* 선택된 탭이 위로 올라오도록 */
+  transform: scale(1.1); /* 선택된 탭을 약간 확대 */
 }
 
 /* 버튼 컨테이너 */
@@ -177,7 +190,6 @@
   display: flex;
   flex-wrap: wrap; /* 여러 줄로 배치 */
   gap: 12px; /* 버튼 간 간격 */
-  justify-content: center; /* 버튼 가운데 정렬 */
   padding: 16px; /* 콘텐츠 여백 */
 }
 
@@ -185,7 +197,7 @@
 .actionButton {
   width: 64px;
   height: 36px;
-  border: 2px solid var(--MainColor, #9562FB); /* 테두리 색상 */
+  border: 2px solid var(--MainColor, #9562fb); /* 테두리 색상 */
   background: none;
   border-radius: 8px; /* 버튼 모서리 둥글게 */
   font-family: Pretendard, sans-serif;
@@ -194,15 +206,216 @@
   font-weight: 500;
   line-height: 17px;
   letter-spacing: -0.5px;
-  color: var(--MainColor, #9562FB); /* 텍스트 색상 */
+  color: var(--MainColor, #9562fb); /* 텍스트 색상 */
   text-align: center; /* 텍스트 가운데 정렬 */
   cursor: pointer;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+  border-radius: 24px;
 }
 
 /* 호버 효과 */
 .actionButton:hover {
-  background-color: var(--MainColor, #9562FB);
+  background-color: var(--MainColor, #9562fb);
   color: #ffffff; /* 호버 시 텍스트 색상 변경 */
 }
 
+/* MOIM-Pick 컨테이너 */
+.moimPickContainer {
+  display: flex;
+  align-items: center; /* 수직 정렬 */
+  gap: 8px; /* MOIM-Pick과 선 사이 간격 */
+  margin-bottom: 8px; /* 아래 텍스트와 간격 */
+}
+
+/* MOIM-Pick 텍스트 */
+.moimPickText {
+  color: var(--MainColor, #9562fb);
+  font-family: Pretendard, sans-serif;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 17px; /* 106.25% */
+  letter-spacing: -0.5px;
+  margin-right: 8px; /* 선과의 간격 */
+  margin-left: 20px;
+}
+
+/* 선 스타일 */
+.moimPickLine {
+  width: 265px; /* 선의 길이 */
+  height: 1px;
+  background-color: var(--MainColor, #9562fb);
+}
+
+/* 서브 텍스트 */
+.moimPickSubText {
+  color: var(--glassmorph-black, #1e1e1e);
+  font-family: Pretendard, sans-serif;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 17px; /* 106.25% */
+  letter-spacing: -0.5px;
+  margin-left: 20px;
+  margin-bottom: 13px;
+}
+
+/* 강조 텍스트 */
+.highlight {
+  color: var(--MainColor, #9562fb);
+  font-family: Pretendard, sans-serif;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 17px; /* 106.25% */
+  letter-spacing: -0.5px;
+}
+
+/* 카드 스타일 */
+.card {
+  display: flex;
+  flex-direction: row; /* 콘텐츠를 가로로 배치 */
+  align-items: flex-start; /* 콘텐츠 상단 정렬 */
+  background: white;
+  border-radius: 24px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  margin: 0 auto 16px auto; /* 카드가 중앙 정렬되도록 설정 */
+  width: 375px;
+  height: 168px;
+  box-sizing: border-box; /* 패딩 포함 너비 계산 */
+}
+
+/* 카드 이미지 (패딩 없음) */
+.cardImage {
+  margin: 0; /* 이미지에 패딩 및 여백 없음 */
+  flex-shrink: 0; /* 이미지 크기가 줄어들지 않도록 설정 */
+}
+
+.cardImage img {
+  width: 126px;
+  height: 168px;
+  object-fit: cover; /* 이미지 비율 유지 */
+  border-radius: 16px; /* 이미지 둥근 모서리 */
+  display: block; /* inline-block의 여백 제거 */
+}
+
+.cardContent {
+  flex: 1; /* 남은 공간 채움 */
+  padding: 20px 12px; /* 카드 내부 패딩 */
+  box-sizing: border-box; /* 패딩 포함 크기 계산 */
+  display: flex;
+  flex-direction: column; /* 요소를 수직 정렬 */
+  gap: 8px; /* 요소 간 간격 */
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between; /* 제목과 좋아요 아이콘을 양끝으로 배치 */
+  align-items: center; /* 세로 중앙 정렬 */
+  margin: 0; /* 초기 여백 제거 */
+}
+
+
+.cardTitle {
+  font-family: Pretendard, sans-serif;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 24px;
+  letter-spacing: -0.5px;
+  color: #1E1E1E;
+  margin: 0; /* 제목 자체의 마진 제거 */
+  flex-shrink: 1; /* 제목이 가로 공간을 적게 차지하도록 설정 */
+  max-width: calc(100% - 100px); /* 제목이 좋아요 영역을 침범하지 않도록 제한 */
+  white-space: nowrap; /* 텍스트가 줄바꿈되지 않도록 설정 */
+  overflow: hidden; /* 넘치는 텍스트를 숨김 */
+  text-overflow: ellipsis; /* 말줄임 표시 */
+}
+
+.likes {
+  display: flex;
+  align-items: center;
+  flex-direction: column; /* 아이콘과 텍스트를 수직으로 배치 */
+  gap: 4px;
+  font-size: 12px;
+  color: #61C56C;
+  font-weight: 500;
+  flex-shrink: 0; /* 좋아요 영역 크기 고정 */
+}
+
+.likeBackground {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: #A9F3B2; /* 배경 색상 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.likeIcon {
+  width: 28px;
+  height: 28px;
+  background: url('/like-icon.svg') no-repeat center center;
+  background-size: contain;
+}
+
+
+.likes span {
+  font-size: 14px;
+  color: #61C56C;
+}
+
+
+/* 태그 섹션 */
+.tags {
+  display: flex;
+  gap: 8px; /* 태그 간 간격 */
+  margin: 0; /* 초기 마진 제거 */
+  padding: 0; /* 초기 패딩 제거 */
+}
+
+.tag {
+  justify-content: center; /* 텍스트 가로 중앙 정렬 */
+  align-items: center; /* 텍스트 세로 중앙 정렬 */
+  background: rgba(212, 190, 255, 0.5); /* 연보라색 배경 */
+  border: 1px solid #9562fb; /* 태그 테두리 색상 */
+  border-radius: 24px; /* 둥근 모서리 */
+  width: 40px;
+  height: 24px;
+  font-family: Pretendard, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 17px;
+  color: #9562fb; /* 태그 텍스트 색상 */
+}
+
+/* 설명 */
+.description {
+  background: #9562fb;
+  color: white;
+  font-size: 12px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  border-radius: 24px 24px 24px 0px;
+  width: 225px;
+  height: 42px;
+}
+
+/* 푸터 */
+.footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #8e8d8d;
+  letter-spacing: -0.5px;
+  font-weight: 600;
+  font-family: Pretendard, sans-serif;
+}
+
+.clockIcon {
+  height: 14px;
+  width: 14px;
+}
