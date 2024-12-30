@@ -5,13 +5,38 @@ import Title from '@/components/Header/Title'
 import SelectedDays from '@/components/Header/SelectedDays'
 import TimeStamp from '@/components/Body/TimeStamp'
 
-export default function Page() {
-  const [title, setTitle] = useState('제목 없는 일정') // 제목 상태 관리
-  const isPurple = false
+interface SelectedDate {
+  date: number
+  weekday: string
+}
 
-  // 제목 수정 함수
+export default function Page() {
+  const [title, setTitle] = useState('제목 없는 일정')
+  const isPurple = false
+  const [currentPage, setCurrentPage] = useState(0)
+
   const handleTitleChange = (newTitle: string) => {
     setTitle(newTitle)
+  }
+
+  const selectedDates: SelectedDate[] = [
+    { date: 3, weekday: '금' },
+    { date: 4, weekday: '토' },
+    { date: 5, weekday: '일' },
+    { date: 6, weekday: '월' },
+    { date: 7, weekday: '화' },
+    { date: 8, weekday: '수' },
+    { date: 9, weekday: '목' },
+    { date: 10, weekday: '금' },
+    { date: 11, weekday: '토' },
+    { date: 12, weekday: '일' },
+    // { date: 13, weekday: '월' },
+  ]
+
+  const month = '3월'
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage)
   }
 
   return (
@@ -19,12 +44,21 @@ export default function Page() {
       <Title
         buttonText="완료"
         buttonLink="/"
-        initialTitle={title} // 하위 컴포넌트에 제목 전달
-        onTitleChange={handleTitleChange} // 제목 수정 함수 전달
+        initialTitle={title}
+        onTitleChange={handleTitleChange}
         isPurple={isPurple}
       />
-      <SelectedDays />
-      <TimeStamp />
+      <SelectedDays
+        selectedDates={selectedDates}
+        month={month}
+        currentPage={currentPage}
+        onPageChange={handlePageChange}
+      />
+      <TimeStamp
+        selectedDates={selectedDates}
+        currentPage={currentPage}
+        onPageChange={handlePageChange}
+      />
     </div>
   )
 }
