@@ -22,7 +22,7 @@ export default function TimeStamp({
   selectedDates,
   currentPage,
 }: TimeStampProps) {
-  const [selections, setSelections] = useState<Selection[]>([])
+  const [selections] = useState<Selection[]>([])
   const [isResizing, setIsResizing] = useState(false)
   const [activeSelection, setActiveSelection] = useState<Selection | null>(null)
   const [resizingPoint, setResizingPoint] = useState<'start' | 'end' | null>(
@@ -135,27 +135,38 @@ export default function TimeStamp({
     ],
   )
 
+  const [selectionsByPage, setSelectionsByPage] = useState<{
+    [key: number]: Selection[]
+  }>({})
+
   const handleMouseUp = useCallback(() => {
     if (activeSelection) {
       if (isResizing) {
-        setSelections((prev) =>
-          prev.map((sel) =>
+        setSelectionsByPage((prev) => ({
+          ...prev,
+          [currentPage]: (prev[currentPage] || []).map((sel) =>
             sel === activeSelection
               ? { ...activeSelection, isConfirmed: true }
               : sel,
           ),
-        )
+        }))
       } else {
-        setSelections((prev) => [
+        setSelectionsByPage((prev) => ({
           ...prev,
-          { ...activeSelection, isConfirmed: true },
-        ])
+          [currentPage]: [
+            ...(prev[currentPage] || []),
+            { ...activeSelection, isConfirmed: true },
+          ],
+        }))
       }
     }
     setIsResizing(false)
     setActiveSelection(null)
     setResizingPoint(null)
-  }, [activeSelection, isResizing])
+  }, [activeSelection, isResizing, currentPage])
+
+  // 현재 페이지에 해당하는 선택만 보여줌
+  const currentSelections = selectionsByPage[currentPage] || []
 
   useEffect(() => {
     if (activeSelection || isResizing) {
@@ -169,9 +180,7 @@ export default function TimeStamp({
   }, [activeSelection, isResizing, handleMouseMove, handleMouseUp])
 
   const getCellStatus = (row: number, col: number) => {
-    const allSelections = [...selections, activeSelection].filter(
-      Boolean,
-    ) as Selection[]
+    const allSelections = currentSelections
 
     for (const selection of allSelections) {
       const minRow = Math.min(selection.startRow, selection.endRow)
