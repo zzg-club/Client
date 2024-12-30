@@ -7,8 +7,9 @@ import {
   SelectRangeEventHandler,
 } from 'react-day-picker'
 import { useState } from 'react'
-
 import '../styles/CustomCalendarStyle.css'
+import { ChevronLeft } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 
 type Mode = 'range' | 'multiple'
 
@@ -25,10 +26,9 @@ export default function CustomCalendar({
 }: CustomCalendarProps) {
   const [month, setMonth] = useState<Date>(new Date(2024, 11))
   const [mode, setMode] = useState<Mode>(initialMode)
-  const [selectedWeekday, setSelectedWeekday] = useState<number>(0)
+  const [selectedWeekdays, setSelectedWeekdays] = useState<number[]>([])
 
-  // 현재 월 정보와 요일을 인자로 받아 현재 월에 존재하는 해당 요일의 날짜 배열을 리턴
-  const getDatesByWeekday = (weekday: number, month: Date) => {
+  const getDatesByWeekdays = (weekdays: number[], month: Date) => {
     const dates: Date[] = []
     const firstDayOfMonth = new Date(month.getFullYear(), month.getMonth(), 1)
     const lastDayOfMonth = new Date(
@@ -42,7 +42,7 @@ export default function CustomCalendar({
       day <= lastDayOfMonth;
       day.setDate(day.getDate() + 1)
     ) {
-      if (day.getDay() === weekday) {
+      if (weekdays.includes(day.getDay())) {
         dates.push(new Date(day))
       }
     }
@@ -50,27 +50,34 @@ export default function CustomCalendar({
   }
 
   const handleWeekdayClick = (weekday: number) => {
-    const dates = getDatesByWeekday(weekday, month)
-    setSelectedWeekday(weekday)
-    if (dates.length > 0 && mode === 'range') {
-      // 처음 요일을 선택할 경우
+    let newSelectedWeekdays: number[]
+
+    if (selectedWeekdays.includes(weekday)) {
+      // 이미 선택된 요일을 클릭한 경우 제거
+      newSelectedWeekdays = selectedWeekdays.filter((day) => day !== weekday)
+    } else {
+      // 새로운 요일을 선택한 경우 추가
+      newSelectedWeekdays = [...selectedWeekdays, weekday]
+    }
+
+    setSelectedWeekdays(newSelectedWeekdays)
+
+    if (newSelectedWeekdays.length > 0) {
+      // 요일이 하나라도 선택된 경우
       setMode('multiple')
+      const dates = getDatesByWeekdays(newSelectedWeekdays, month)
       onSelect?.(dates)
-    } else if (selectedWeekday === weekday) {
-      // 같은 요일을 두 번 클릭할 경우 multiple mode 취소
+    } else {
+      // 모든 요일 선택이 해제된 경우
       setMode('range')
       onSelect?.({ from: undefined, to: undefined })
-    } else {
-      // 요일을 선택했다가, 바로 다른 요일을 선택할 경우
-      setMode('multiple')
-      onSelect?.(dates)
     }
   }
 
   const handleDayClick = (day: Date) => {
     if (mode === 'multiple') {
-      console.log('hdc')
       setMode('range')
+      setSelectedWeekdays([])
       onSelect?.({ from: day, to: undefined })
     }
   }
@@ -116,13 +123,43 @@ export default function CustomCalendar({
     },
     components: {
       Caption: ({ displayMonth }: { displayMonth: Date }) => (
-        <div className="flex items-center justify-between px-4 py-3">
+        <div className="flex items-center px-1 py-3 gap-2">
           <span className="text-xl font-semibold">
             {displayMonth.toLocaleDateString('en-US', {
               month: 'short',
               year: 'numeric',
             })}
           </span>
+          <div className="flex gap-0">
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                setMonth(
+                  new Date(
+                    displayMonth.getFullYear(),
+                    displayMonth.getMonth() - 1,
+                  ),
+                )
+              }}
+              className="text-[#3b82f6] hover:text-blue-700 w-6"
+            >
+              <ChevronLeft />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                setMonth(
+                  new Date(
+                    displayMonth.getFullYear(),
+                    displayMonth.getMonth() + 1,
+                  ),
+                )
+              }}
+              className="text-[#3b82f6] hover:text-blue-700 w-6"
+            >
+              <ChevronRight />
+            </button>
+          </div>
         </div>
       ),
       Head: () => (
@@ -132,7 +169,9 @@ export default function CustomCalendar({
               (day, index) => (
                 <th
                   key={index}
-                  className="calendar-head-cell cursor-pointer"
+                  className={`calendar-head-cell cursor-pointer ${
+                    selectedWeekdays.includes(index) ? 'text-[#9562fa]' : ''
+                  }`}
                   onClick={() => handleWeekdayClick(index)}
                 >
                   {day}
