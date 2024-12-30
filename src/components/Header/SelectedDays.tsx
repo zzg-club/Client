@@ -77,9 +77,7 @@ export default function SelectedDays({
         <button
           onClick={handlePrevPage}
           className={`flex items-center justify-center ${
-            currentPage === 0
-              ? 'text-gray-400'
-              : 'text-[#9562FB] hover:bg-[#9562FB]'
+            currentPage === 0 ? 'text-gray-400' : 'text-[#9562FB]'
           }`}
           disabled={currentPage === 0}
         >
@@ -133,9 +131,7 @@ export default function SelectedDays({
         <button
           onClick={handleNextPage}
           className={`flex items-center justify-center ${
-            currentPage >= totalPages - 1
-              ? 'text-gray-400'
-              : 'text-[#9562FB] hover:bg-[#9562FB]'
+            currentPage >= totalPages - 1 ? 'text-gray-400' : 'text-[#9562FB]'
           }`}
           disabled={currentPage >= totalPages - 1}
         >
