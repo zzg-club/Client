@@ -3,7 +3,7 @@
 import React, { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import KakaoMap from '@/components/Map/KakaoMap'
-import Navbar from '@/components/Navigate/Navbar'
+import Navbar from '@/components/Navigate/NavBar'
 import styles from '@/app/place/styles/Home.module.css'
 
 interface Place {
