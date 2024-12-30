@@ -25,7 +25,7 @@ export default function CustomModal({
 }: ModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[#f5f6f8] rounded-3xl w-80 p-0 gap-0 [&>button]:hidden">
+      <DialogContent className="bg-[#ffffff] rounded-3xl w-80 p-0 gap-0 [&>button]:hidden">
         <div className="relative p-6">
           <DialogClose className="absolute right-6">
             <X></X>
