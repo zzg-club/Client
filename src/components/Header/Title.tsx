@@ -4,6 +4,9 @@ import { MdArrowBackIos } from 'react-icons/md'
 import { IoShareSocialOutline } from 'react-icons/io5'
 import { useRouter } from 'next/navigation'
 import EditTitle from '@/components/Header/EditTitle'
+import { useState } from 'react'
+import CustomModal from '../Modals/CustomModal'
+import ScheduleSelectShareModal from '../Modals/ScheduleSelectShareModal'
 
 interface TitleProps {
   buttonText: string
@@ -21,6 +24,7 @@ export default function Title({
   isPurple,
 }: TitleProps) {
   const router = useRouter()
+  const [isShareOpen, setIsShareOpen] = useState(false)
 
   // 뒤로 가기 버튼 클릭 핸들러
   const handleBackClick = () => {
@@ -32,6 +36,10 @@ export default function Title({
     router.push(buttonLink) // 지정된 페이지로 이동
   }
 
+  const handleOpenDdialg = () => {
+    setIsShareOpen(!isShareOpen)
+  }
+
   return (
     <div className=" w-full h-16 px-6 py-5 bg-white rounded-bl-3xl rounded-br-3xl shadow-[0px_0px_10px_0px_rgba(30,30,30,0.10)] flex items-center gap-1">
       <button onClick={handleBackClick}>
@@ -39,7 +47,7 @@ export default function Title({
       </button>
       <EditTitle initialTitle={initialTitle} onTitleChange={onTitleChange} />
       <div className="flex ml-auto gap-5">
-        <button>
+        <button onClick={handleOpenDdialg}>
           <IoShareSocialOutline className="w-8 h-8 text-[#1e1e1e]" />
         </button>
         <button
@@ -50,6 +58,14 @@ export default function Title({
           {buttonText}
         </button>
       </div>
+
+      <CustomModal
+        open={isShareOpen}
+        onOpenChange={handleOpenDdialg}
+        isFooter={false}
+      >
+        <ScheduleSelectShareModal inviteUrl="https://moim.team/" />
+      </CustomModal>
     </div>
   )
 }
