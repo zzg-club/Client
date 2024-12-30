@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { FaCaretUp, FaCaretDown } from 'react-icons/fa'
+import { LuDot } from 'react-icons/lu'
 
 interface SelectedDate {
   date: number
@@ -30,12 +31,14 @@ export default function SelectedDays({
     { date: 12, weekday: '일' },
     { date: 13, weekday: '월' },
   ],
+
   month = '3월',
 }: SelectedDaysProps) {
   const [currentPage, setCurrentPage] = useState(0)
   const [isExpanded, setIsExpanded] = useState(true)
 
   const totalPages = Math.ceil(selectedDates.length / DAYS_PER_PAGE)
+  const isSingleDate = selectedDates.length === 1
 
   const getCurrentPageDates = () => {
     const start = currentPage * DAYS_PER_PAGE
@@ -65,7 +68,6 @@ export default function SelectedDays({
         }`}
       >
         <div className="text-[#1e1e1e] text-3xl font-['Pretendard'] leading-[17px] tracking-tight pl-5 pt-3 pb-5">
-          {' '}
           {/* 월 & 참여인원 컴포넌트 */}
           {month}
         </div>
@@ -77,35 +79,52 @@ export default function SelectedDays({
           className={`flex items-center justify-center ${
             currentPage === 0
               ? 'text-gray-400'
-              : 'text-purple-600 hover:bg-purple-100'
+              : 'text-[#9562FB] hover:bg-[#9562FB]'
           }`}
           disabled={currentPage === 0}
         >
-          <ChevronLeft className="w-7 h-7" />
+          <ChevronLeft className="w-7 h-7 mb-4" />
         </button>
-        <div className="flex-1 px-0 pb-4 ">
-          {isFullWeek ? ( // 7일이 다 채워졌을 때
-            <div className="grid grid-cols-7 gap-0 ">
+        <div className="flex-1 px-0 pb-4">
+          {isSingleDate ? (
+            // Single date view
+            <div className="grid grid-cols-7 gap-0 items-center w-full">
+              <LuDot className="ml-3 text-[#AFAFAF] w-7 h-7" />
+              <LuDot className="ml-3 text-[#AFAFAF] w-7 h-7" />
+              <LuDot className="ml-3 text-[#AFAFAF] w-7 h-7" />
+              <div className="flex flex-col items-center w-full">
+                <span className="text-3xl font-medium mb-1">
+                  {selectedDates[0].date}
+                </span>
+                <span className="text-s mt-0">{selectedDates[0].weekday}</span>
+              </div>
+              <LuDot className="ml-3 text-[#AFAFAF] w-7 h-7" />
+              <LuDot className="ml-3 text-[#AFAFAF] w-7 h-7" />
+              <LuDot className="ml-3 text-[#AFAFAF] w-7 h-7" />
+            </div>
+          ) : isFullWeek ? (
+            // Full week view
+            <div className="grid grid-cols-7 gap-0">
               {currentDates.map(({ date, weekday }) => (
                 <div key={date} className="flex flex-col items-center w-full">
                   <span className="text-3xl font-medium">{date}</span>
-                  <span className="text-s mt-1">{weekday}</span>
+                  <span className="text-s mt-0">{weekday}</span>
                 </div>
               ))}
             </div>
           ) : (
-            // 표시할 일 수가 7일 미만일 때
+            // Partial week view
             <div
-              className="flex justify-between w-full "
+              className="flex justify-between w-full"
               style={{
                 width: `calc(100% - ${currentDates.length}px)`,
                 margin: '0 auto',
               }}
             >
               {currentDates.map(({ date, weekday }) => (
-                <div key={date} className="flex flex-col items-center w-full ">
+                <div key={date} className="flex flex-col items-center w-full">
                   <span className="text-3xl font-medium">{date}</span>
-                  <span className="text-s mt-1">{weekday}</span>
+                  <span className="text-s mt-0">{weekday}</span>
                 </div>
               ))}
             </div>
@@ -113,25 +132,24 @@ export default function SelectedDays({
         </div>
         <button
           onClick={handleNextPage}
-          className={`flex items-center justify-center  ${
+          className={`flex items-center justify-center ${
             currentPage >= totalPages - 1
               ? 'text-gray-400'
-              : 'text-purple-600 hover:bg-purple-100'
+              : 'text-[#9562FB] hover:bg-[#9562FB]'
           }`}
           disabled={currentPage >= totalPages - 1}
         >
-          <ChevronRight className="w-7 h-7" />
+          <ChevronRight className="w-7 h-7 mb-4" />
         </button>
       </div>
-
-      {/* 헤더 영역 확장/축소 핸들들 */}
+      {/* 헤더 영역 확장/축소 핸들 */}
       <div onClick={toggleExpand} className="flex items-center justify-center">
         {isExpanded ? (
-          <FaCaretUp className="w-4 h-4 text-purple-600 absolute bottom-2" />
+          <FaCaretUp className="w-4 h-4 text-[#9562FB] absolute bottom-2" />
         ) : (
-          <FaCaretDown className="w-4 h-4 text-purple-600 absolute bottom-2" />
+          <FaCaretDown className="w-4 h-4 text-[#9562FB] absolute bottom-2" />
         )}
-        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 w-[80px] h-2 bg-purple-600 border-b-red rounded-full flex items-center justify-center"></div>
+        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 w-[80px] h-2 bg-[#9562FB] border-b-red rounded-full flex items-center justify-center"></div>
       </div>
     </div>
   )
