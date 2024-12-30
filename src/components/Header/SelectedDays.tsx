@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { FaCaretUp, FaCaretDown } from 'react-icons/fa'
+import { GoTriangleUp, GoTriangleDown } from 'react-icons/go'
 import { LuDot } from 'react-icons/lu'
 
 interface SelectedDate {
@@ -145,9 +145,9 @@ export default function SelectedDays({
       {/* 헤더 영역 확장/축소 핸들 */}
       <div onClick={toggleExpand} className="flex items-center justify-center">
         {isExpanded ? (
-          <FaCaretUp className="w-4 h-4 text-[#9562FB] absolute bottom-2" />
+          <GoTriangleUp className="w-5 h-5 text-[#9562FB] absolute bottom-1" />
         ) : (
-          <FaCaretDown className="w-4 h-4 text-[#9562FB] absolute bottom-2" />
+          <GoTriangleDown className="w-5 h-5 text-[#9562FB] absolute bottom-1" />
         )}
         <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 w-[80px] h-2 bg-[#9562FB] border-b-red rounded-full flex items-center justify-center"></div>
       </div>
