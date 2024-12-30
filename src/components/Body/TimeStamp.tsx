@@ -35,27 +35,30 @@ export default function TimeStamp({
     (currentPage + 1) * COLUMNS_PER_PAGE,
   )
 
-  const isOverlapping = (selection: Selection) => {
-    const { startRow, endRow, startCol, endCol } = selection
-    const minRow = Math.min(startRow, endRow)
-    const maxRow = Math.max(startRow, endRow)
-    const minCol = Math.min(startCol, endCol)
-    const maxCol = Math.max(startCol, endCol)
+  const isOverlapping = useCallback(
+    (selection: Selection) => {
+      const { startRow, endRow, startCol, endCol } = selection
+      const minRow = Math.min(startRow, endRow)
+      const maxRow = Math.max(startRow, endRow)
+      const minCol = Math.min(startCol, endCol)
+      const maxCol = Math.max(startCol, endCol)
 
-    return selections.some((existing) => {
-      const existingMinRow = Math.min(existing.startRow, existing.endRow)
-      const existingMaxRow = Math.max(existing.startRow, existing.endRow)
-      const existingMinCol = Math.min(existing.startCol, existing.endCol)
-      const existingMaxCol = Math.max(existing.startCol, existing.endCol)
+      return selections.some((existing) => {
+        const existingMinRow = Math.min(existing.startRow, existing.endRow)
+        const existingMaxRow = Math.max(existing.startRow, existing.endRow)
+        const existingMinCol = Math.min(existing.startCol, existing.endCol)
+        const existingMaxCol = Math.max(existing.startCol, existing.endCol)
 
-      return !(
-        maxRow < existingMinRow ||
-        minRow > existingMaxRow ||
-        maxCol < existingMinCol ||
-        minCol > existingMaxCol
-      )
-    })
-  }
+        return !(
+          maxRow < existingMinRow ||
+          minRow > existingMaxRow ||
+          maxCol < existingMinCol ||
+          minCol > existingMaxCol
+        )
+      })
+    },
+    [selections],
+  )
 
   const handleMouseDown = (
     rowIndex: number,
@@ -180,7 +183,11 @@ export default function TimeStamp({
   }, [activeSelection, isResizing, handleMouseMove, handleMouseUp])
 
   const getCellStatus = (row: number, col: number) => {
-    const allSelections = currentSelections
+    const allSelections = [
+      ...currentSelections, // 현재 페이지의 선택
+      ...selections, // 전역 선택 목록
+      activeSelection, // 현재 활성 선택
+    ].filter(Boolean) as Selection[]
 
     for (const selection of allSelections) {
       const minRow = Math.min(selection.startRow, selection.endRow)
@@ -189,18 +196,37 @@ export default function TimeStamp({
       const maxCol = Math.max(selection.startCol, selection.endCol)
 
       if (row >= minRow && row <= maxRow && col >= minCol && col <= maxCol) {
+        const isStartCell =
+          row === selection.startRow && col === selection.startCol
+        const isEndCell = row === selection.endRow && col === selection.endCol
+
+        // 선택이 완료되었으면 isStartCell과 isEndCell을 false로 설정
+        if (selection.isConfirmed) {
+          return {
+            isSelected: true,
+            isConfirmed: selection.isConfirmed,
+            isStartCell: false,
+            isEndCell: false,
+            selection,
+          }
+        }
+
         return {
           isSelected: true,
           isConfirmed: selection.isConfirmed,
-          isEndpoint:
-            (row === selection.startRow && col === selection.startCol) ||
-            (row === selection.endRow && col === selection.endCol),
+          isStartCell,
+          isEndCell,
           selection,
         }
       }
     }
 
-    return { isSelected: false, isConfirmed: false, isEndpoint: false }
+    return {
+      isSelected: false,
+      isConfirmed: false,
+      isStartCell: false,
+      isEndCell: false,
+    }
   }
 
   return (
@@ -250,13 +276,16 @@ export default function TimeStamp({
                     handleMouseDown(
                       rowIndex,
                       colIndex,
-                      cellStatus.isEndpoint,
+                      cellStatus.isStartCell || cellStatus.isEndCell,
                       cellStatus.selection,
                     )
                   }
                 >
-                  {cellStatus.isEndpoint && (
-                    <div className="absolute -top-1 -left-1 w-2 h-2 bg-purple-500 rounded-full cursor-move" />
+                  {cellStatus.isStartCell && (
+                    <div className="absolute -top-1 left-0 w-2 h-2 bg-purple-500 rounded-full cursor-move" />
+                  )}
+                  {cellStatus.isEndCell && (
+                    <div className="absolute -bottom-1 right-0 w-2 h-2 bg-purple-500 rounded-full cursor-move" />
                   )}
                 </div>
               )
