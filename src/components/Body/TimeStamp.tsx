@@ -11,23 +11,16 @@ interface Selection {
 }
 
 interface TimeStampProps {
-  dates?: { date: number; weekday: string }[]
+  selectedDates: { date: number; weekday: string }[]
+  currentPage: number
+  onPageChange: (newPage: number) => void
 }
 
+const COLUMNS_PER_PAGE = 7
+
 export default function TimeStamp({
-  dates = [
-    { date: 3, weekday: '금' },
-    { date: 4, weekday: '토' },
-    { date: 5, weekday: '일' },
-    { date: 6, weekday: '월' },
-    { date: 7, weekday: '화' },
-    { date: 8, weekday: '수' },
-    { date: 9, weekday: '목' },
-    { date: 10, weekday: '금' },
-    { date: 11, weekday: '토' },
-    { date: 12, weekday: '일' },
-    { date: 13, weekday: '월' },
-  ],
+  selectedDates,
+  currentPage,
 }: TimeStampProps) {
   const [selections, setSelections] = useState<Selection[]>([])
   const [isResizing, setIsResizing] = useState(false)
@@ -37,7 +30,11 @@ export default function TimeStamp({
   )
   const gridRef = useRef<HTMLDivElement>(null)
 
-  // 선택 영역이 겹치는지 확인
+  const currentDates = selectedDates.slice(
+    currentPage * COLUMNS_PER_PAGE,
+    (currentPage + 1) * COLUMNS_PER_PAGE,
+  )
+
   const isOverlapping = (selection: Selection) => {
     const { startRow, endRow, startCol, endCol } = selection
     const minRow = Math.min(startRow, endRow)
@@ -60,7 +57,6 @@ export default function TimeStamp({
     })
   }
 
-  // 초기 선택 시작
   const handleMouseDown = (
     rowIndex: number,
     colIndex: number,
@@ -68,7 +64,6 @@ export default function TimeStamp({
     selection?: Selection,
   ) => {
     if (isEndpoint && selection) {
-      // 끝점을 클릭한 경우 리사이징 시작
       setIsResizing(true)
       setActiveSelection(selection)
       setResizingPoint(
@@ -77,7 +72,6 @@ export default function TimeStamp({
           : 'end',
       )
     } else if (!isEndpoint && !activeSelection) {
-      // 새로운 선택 시작
       const newSelection: Selection = {
         startRow: rowIndex,
         startCol: colIndex,
@@ -92,18 +86,17 @@ export default function TimeStamp({
     }
   }
 
-  // 드래그 중
   const handleMouseMove = useCallback(
     (e: MouseEvent) => {
       if (!gridRef.current || !activeSelection) return
 
       const rect = gridRef.current.getBoundingClientRect()
-      const cellWidth = (rect.width - 80) / dates.length
+      const cellWidth = (rect.width - 80) / currentDates.length
       const cellHeight = rect.height / 48
 
       const col = Math.min(
         Math.max(Math.floor((e.clientX - rect.left - 80) / cellWidth), 0),
-        dates.length - 1,
+        currentDates.length - 1,
       )
       const row = Math.min(
         Math.max(Math.floor((e.clientY - rect.top) / cellHeight), 0),
@@ -133,14 +126,18 @@ export default function TimeStamp({
         })
       }
     },
-    [activeSelection, isResizing, resizingPoint, dates.length],
+    [
+      activeSelection,
+      isResizing,
+      resizingPoint,
+      currentDates.length,
+      isOverlapping,
+    ],
   )
 
-  // 드래그 종료
   const handleMouseUp = useCallback(() => {
     if (activeSelection) {
       if (isResizing) {
-        // 리사이징 종료
         setSelections((prev) =>
           prev.map((sel) =>
             sel === activeSelection
@@ -149,7 +146,6 @@ export default function TimeStamp({
           ),
         )
       } else {
-        // 새로운 선택 확인
         setSelections((prev) => [
           ...prev,
           { ...activeSelection, isConfirmed: true },
@@ -161,7 +157,6 @@ export default function TimeStamp({
     setResizingPoint(null)
   }, [activeSelection, isResizing])
 
-  // 마우스 이벤트 리스너
   useEffect(() => {
     if (activeSelection || isResizing) {
       window.addEventListener('mousemove', handleMouseMove)
@@ -173,7 +168,6 @@ export default function TimeStamp({
     }
   }, [activeSelection, isResizing, handleMouseMove, handleMouseUp])
 
-  // 셀이 선택 영역에 포함되어 있는지 확인
   const getCellStatus = (row: number, col: number) => {
     const allSelections = [...selections, activeSelection].filter(
       Boolean,
@@ -201,47 +195,40 @@ export default function TimeStamp({
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto bg-white p-4">
-      {/* 타임 그리드 */}
+    <div className="w-full max-w-4xl mx-auto bg-white pl-0 pr-8 py-5">
       <div
         ref={gridRef}
-        className="relative grid mt-2"
+        className="relative grid z-100 border border-r-[#d9d9d9] "
         style={{
-          gridTemplateColumns: `35px repeat(${dates.length}, 1fr)`,
-          background: 'linear-gradient(#06ff7e 1px, transparent 1px)',
-          backgroundSize: `100% ${16}px`,
+          gridTemplateColumns: `40px repeat(${currentDates.length}, 1fr)`,
+          backgroundImage: 'linear-gradient(#d9d9d9 1px, transparent 1px)',
+          backgroundSize: `100% ${36}px`,
         }}
       >
-        {/* 시간 레이블 */}
-        <div className="relative">
-          {Array.from({ length: 23 }, (_, i) => (
-            <div
-              key={i}
-              className="h-8 flex items-center justify-end pr-1 text-xs text-gray-500"
-            >
-              {`${String(i + 1).padStart(2, '0')}시`}
-            </div>
-          ))}
+        <div className="relative pt-8 bg-white overflow-hidden z-10">
+          {Array.from(
+            { length: 23 },
+            (
+              _,
+              i, //시간 몇개로 나눌 건지
+            ) => (
+              <div key={i} className="h-9 pl-3 text-[8px] text-[#d9d9d9]-500">
+                {`${String(i + 1).padStart(2, '0')}시`}
+              </div>
+            ),
+          )}
         </div>
 
-        {/* 선택 가능한 그리드 */}
-        {dates.map((_, colIndex) => (
-          <div
-            key={colIndex}
-            className="relative border border-[#ff0606]"
-            style={{
-              gridTemplateColumns: `80px repeat(${dates.length}, fr)`,
-              background: 'linear-gradient(#2d00f7 1px, transparent 1px)',
-              backgroundSize: `100% ${16}px`,
-            }}
-          >
-            {Array.from({ length: 40 }, (_, rowIndex) => {
+        {currentDates.map((_, colIndex) => (
+          <div key={colIndex} className="relative border-l border-gray-200">
+            {Array.from({ length: 48 }, (_, rowIndex) => {
+              // 선택 가능한 세로 길이 범위
               const cellStatus = getCellStatus(rowIndex, colIndex)
               return (
                 <div
                   key={rowIndex}
                   className={`
-                    h-12 relative cursor-pointer
+                    h-[18px] relative cursor-pointer 
                     ${
                       cellStatus.isSelected
                         ? cellStatus.isConfirmed
@@ -249,11 +236,7 @@ export default function TimeStamp({
                           : 'bg-purple-100'
                         : ''
                     }
-                  `}
-                  style={{
-                    height: cellStatus.isSelected ? '16px' : '16px', // 선택된 경우 높이를 줄임
-                    marginBottom: cellStatus.isSelected ? '0px' : '0px', // 선택된 셀 간격 추가
-                  }}
+                  `} // 색칠된 보라색 1칸
                   onMouseDown={() =>
                     handleMouseDown(
                       rowIndex,
@@ -264,7 +247,7 @@ export default function TimeStamp({
                   }
                 >
                   {cellStatus.isEndpoint && (
-                    <div className="absolute -top-1 -left-1 w-3 h-2 bg-purple-500 rounded-full cursor-move" />
+                    <div className="absolute -top-1 -left-1 w-2 h-2 bg-purple-500 rounded-full cursor-move" />
                   )}
                 </div>
               )
