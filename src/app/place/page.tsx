@@ -95,7 +95,29 @@ export default function Home() {
       >
         <div className={styles.dragHandle}></div>
         <div className={styles.content}>
-          <p>{isExpanded ? 'Bottom Sheet Expanded' : 'Bottom Sheet Collapsed'}</p>
+          {/* Dynamic Buttons */}
+          <div className={styles.buttonsContainer}>
+            {selectedTab === 'food' &&
+              ['24시', '학교', '주점', '룸'].map((button, index) => (
+                <button key={index} className={styles.actionButton}>
+                  {button}
+                </button>
+              ))}
+            {selectedTab === 'cafe' &&
+              ['24시', '학교', '스터디', '콘센트'].map((button, index) => (
+                <button key={index} className={styles.actionButton}>
+                  {button}
+                </button>
+              ))}
+            {selectedTab === 'play' &&
+              ['노래방', 'PC방', '볼링장', '당구장', '파티룸'].map(
+                (button, index) => (
+                  <button key={index} className={styles.actionButton}>
+                    {button}
+                  </button>
+                )
+              )}
+          </div>
         </div>
       </div>
     </div>
