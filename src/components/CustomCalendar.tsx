@@ -10,6 +10,7 @@ import { useState } from 'react'
 import '../styles/CustomCalendarStyle.css'
 import { ChevronLeft } from 'lucide-react'
 import { ChevronRight } from 'lucide-react'
+import { isBefore } from 'date-fns' // 날짜 비교를 위한 date-fns 라이브러리 사용
 
 type Mode = 'range' | 'multiple'
 
@@ -27,6 +28,8 @@ export default function CustomCalendar({
   const [month, setMonth] = useState<Date>(new Date(2024, 11))
   const [mode, setMode] = useState<Mode>(initialMode)
   const [selectedWeekdays, setSelectedWeekdays] = useState<number[]>([])
+  const today = new Date()
+  today.setHours(0, 0, 0, 0) // 오늘 날짜의 시간을 초기화
 
   const getDatesByWeekdays = (weekdays: number[], month: Date) => {
     const dates: Date[] = []
@@ -42,7 +45,7 @@ export default function CustomCalendar({
       day <= lastDayOfMonth;
       day.setDate(day.getDate() + 1)
     ) {
-      if (weekdays.includes(day.getDay())) {
+      if (weekdays.includes(day.getDay()) && !isBefore(day, today)) {
         dates.push(new Date(day))
       }
     }
@@ -99,6 +102,7 @@ export default function CustomCalendar({
     onMonthChange: setMonth,
     showOutsideDays: false,
     onDayClick: handleDayClick,
+    disabled: (date: Date) => isBefore(date, today), // 오늘 이전 날짜를 비활성화
     classNames: {
       months: 'calendar-months',
       month: 'calendar-month',
@@ -120,6 +124,7 @@ export default function CustomCalendar({
       day_range_start: 'calendar-day-range-start',
       day_range_middle: 'calendar-day-range-middle',
       day_range_end: 'calendar-day-range-end',
+      day_disabled: 'calendar-day-disabled', // 비활성화된 날짜의 클래스
     },
     components: {
       Caption: ({ displayMonth }: { displayMonth: Date }) => (
