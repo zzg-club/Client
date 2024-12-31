@@ -240,7 +240,7 @@ export default function TimeStamp({
           backgroundSize: `100% ${36}px`,
         }}
       >
-        <div className="relative pt-8 bg-white overflow-hidden z-10">
+        <div className="relative pt-8 bg-white overflow-hidden z-200">
           {Array.from(
             { length: 23 },
             (
