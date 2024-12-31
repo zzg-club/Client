@@ -25,8 +25,8 @@ export default function CustomModal({
 }: ModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[#ffffff] rounded-3xl w-80 p-0 gap-0 [&>button]:hidden">
-        <div className="relative p-6">
+      <DialogContent className="bg-[#ffffff] rounded-3xl w-[280px] p-0 gap-0 [&>button]:hidden">
+        <div className="relative p-6 w-[280px]">
           <DialogClose className="absolute right-6">
             <X></X>
           </DialogClose>
@@ -34,7 +34,7 @@ export default function CustomModal({
           {children}
         </div>
         {isFooter && (
-          <DialogFooter className="flex flex-col items-center w-full border-t border-[#afafaf]">
+          <DialogFooter className="flex flex-col items-center w-[280px] border-t border-[#afafaf]">
             <button
               onClick={onNext}
               className="text-center text-[#9562fa] font-medium rounded-3xl text-lg py-5 w-full"
