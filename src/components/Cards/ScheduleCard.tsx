@@ -1,6 +1,9 @@
 import { WhiteButton } from '../Buttons/WhiteButtton'
 import { ProfileSelected } from '../Profiles/ProfileSelected'
-import React from 'react'
+import React, { useState } from 'react'
+import CustomModal from '@/components/Modals/CustomModal'
+// import MembersDefault from '../Modals/MembersDefault'
+import MembersVariant from '../Modals/MembersVariant'
 
 export interface ScheduleCardProps {
   date: string
@@ -19,6 +22,12 @@ export function ScheduleCard({
   location,
   participants,
 }: ScheduleCardProps) {
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+
+  const handleOpenDialog = () => {
+    setIsDialogOpen(!isDialogOpen)
+  }
+
   return (
     <div className="px-4 mb-5">
       <div className="text-[#1e1e1e] text-xs font-medium leading-[17px] ml-[12px]">
@@ -37,7 +46,10 @@ export function ScheduleCard({
               </div>
 
               {/* 모임원 프로필 */}
-              <ProfileSelected profiles={participants} />
+              <ProfileSelected
+                profiles={participants}
+                onClick={handleOpenDialog}
+              />
             </div>
 
             {/* 약속 시간, 장소 */}
@@ -55,12 +67,34 @@ export function ScheduleCard({
                   className={
                     'border-[#9562fa] text-[#9562fa] group-hover:border-white group-hover:text-white'
                   }
+                  onClick={() => alert('장소를 선정할까요')}
                 />
               )}
             </div>
           </div>
         </div>
       </div>
+      <CustomModal
+        open={isDialogOpen}
+        onOpenChange={handleOpenDialog}
+        isFooter={false}
+        isUserPlus={true}
+        onPlus={() => alert('친구추가')}
+      >
+        {/* <MembersDefault
+          date={date}
+          title={title}
+          subtitle={participants.length}
+          members={participants}
+        /> */}
+        <MembersVariant
+          date={date}
+          location={location}
+          startTime={startTime}
+          endTime={endTime}
+          members={participants}
+        />
+      </CustomModal>
     </div>
   )
 }
