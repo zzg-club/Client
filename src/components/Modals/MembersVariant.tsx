@@ -5,8 +5,8 @@ import Image from 'next/image'
 export interface ModalProps {
   date: string
   location?: string
-  startTime: string
-  endTime: string
+  startTime?: string
+  endTime?: string
   members: {
     id: number
     name: string

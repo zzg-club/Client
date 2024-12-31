@@ -3,7 +3,6 @@ import { FiMoreHorizontal } from 'react-icons/fi'
 import { MdArrowDropDown } from 'react-icons/md'
 
 export interface ProfileGroupProps {
-  onClick: () => void
   profiles: {
     id: number
     name: string
@@ -13,7 +12,6 @@ export interface ProfileGroupProps {
 }
 
 export function ProfileSelected({
-  onClick,
   profiles,
   maxDisplay = 5,
 }: ProfileGroupProps) {
@@ -25,7 +23,7 @@ export function ProfileSelected({
   const viewMore = displayProfiles.length < totalCount
 
   return (
-    <div className="flex items-center gap-1" onClick={onClick}>
+    <div className="flex items-center gap-1">
       <div className="flex -space-x-[14px]">
         {displayProfiles.map((profile, index) => (
           <div
