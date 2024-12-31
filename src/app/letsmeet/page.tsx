@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import { useRouter } from 'next/navigation' // useRouter 훅 사용
 import NavBar from '@/components/Navigate/NavBar'
 import Button from '@/components/Buttons/Floating/Button'
 import { ScheduleOptions } from '@/components/Buttons/Floating/Options'
@@ -8,10 +9,12 @@ import { ScheduleOptions } from '@/components/Buttons/Floating/Options'
 const LetsMeetPage: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false) // 버튼 상태 관리
   const [isOptionsOpen, setIsOptionsOpen] = useState(false) // 옵션 모달 상태 관리
+  const router = useRouter() // Next.js 라우터 훅
 
   // 옵션 선택 핸들러
   const handleFindMidpoint = () => {
-    alert('중간지점 찾기 선택됨!')
+    // 중간지점 찾기 클릭 시 middle 페이지로 이동
+    router.push('letsmeet/middle')
   }
 
   const handleDirectInput = () => {
