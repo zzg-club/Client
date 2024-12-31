@@ -13,8 +13,8 @@ const LetsMeetPage: React.FC = () => {
 
   // 옵션 선택 핸들러
   const handleFindMidpoint = () => {
-    // 중간지점 찾기 클릭 시 middle 페이지로 이동
-    router.push('letsmeet/middle')
+    // 중간지점 찾기 클릭 시 search 페이지로 이동
+    router.push('/search')
   }
 
   const handleDirectInput = () => {

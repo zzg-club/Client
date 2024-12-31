@@ -2,31 +2,28 @@
 
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation' // useRouter 훅 사용
-import { usePathname } from 'next/navigation' // 현재 경로 확인 훅
 import KakaoMap from '@/components/Map/KakaoMap'
 import NavBar from '@/components/Navigate/NavBar'
 import styles from '@/app/place/styles/Home.module.css' // CSS 모듈 임포트
 
-interface Middle {
+interface Search {
   lat: number
   lng: number
   name: string
 }
 
 export default function Home() {
-  const [selectedPlace, setSelectedPlace] = useState<Middle | null>(null)
+  const [selectedPlace, setSelectedPlace] = useState<Search | null>(null)
   const router = useRouter() // Next.js 라우터 훅
-  const pathname = usePathname() // 현재 경로 가져오기
 
   const handleSearchClick = () => {
-    router.push('/search')
+    // 검색창 클릭 시 페이지 이동
+    router.push('/letsmeet/middle') // '/search' 페이지로 이동
   }
 
   return (
     <div className={styles.container}>
-      {/* 네비게이션 바: 특정 경로에서 숨기기 */}
-      {pathname !== '/search' && <NavBar />}
-
+      <NavBar />
       <div className={styles['search-container']}>
         <div
           className={styles['search-bar']}
@@ -44,7 +41,7 @@ export default function Home() {
             readOnly // 검색창 입력 비활성화 (클릭만 가능하게)
           />
         </div>
-        <button className={styles['vector-button']} onClick={handleSearchClick}>
+        <button className={styles['vector-button']}>
           <img
             src="/vector.svg"
             alt="vector"
