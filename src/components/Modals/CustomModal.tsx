@@ -14,6 +14,7 @@ interface ModalProps {
   isFooter: boolean // 하단 버튼 이용 여부
   isUserPlus?: boolean // '친구추가' 버튼 이용 여부
   onPlus?: () => void // '친구추가' 버튼 클릭 시 실행
+  footerText?: string // 하단 버튼 이용 시 버튼 텍스트
 }
 
 export default function CustomModal({
@@ -24,6 +25,7 @@ export default function CustomModal({
   isFooter,
   isUserPlus,
   onPlus,
+  footerText,
 }: ModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -44,12 +46,12 @@ export default function CustomModal({
           {children}
         </div>
         {isFooter && (
-          <DialogFooter className="flex flex-col items-center w-full border-t border-[#afafaf]">
+          <DialogFooter className="flex flex-col items-center w-[280px] border-t border-[#afafaf]">
             <button
               onClick={onNext}
               className="text-center text-[#9562fa] font-medium rounded-3xl text-lg py-5 w-full"
             >
-              다음으로
+              {footerText}
             </button>
           </DialogFooter>
         )}
