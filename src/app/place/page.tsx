@@ -20,7 +20,7 @@ const tabs = [
 
 export default function Home() {
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null)
-  const [isExpanded, setIsExpanded] = useState(false)
+  const [bottomSheetState, setBottomSheetState] = useState<'collapsed' | 'middle' | 'expanded'>('collapsed')
   const [selectedTab, setSelectedTab] = useState<string>(tabs[0].id)
   const startY = useRef<number | null>(null)
   const currentY = useRef<number | null>(null)
@@ -42,8 +42,18 @@ export default function Home() {
   const handleTouchEnd = () => {
     if (startY.current !== null && currentY.current !== null) {
       const delta = startY.current - currentY.current
-      if (delta > threshold) setIsExpanded(true)
-      else if (delta < -threshold) setIsExpanded(false)
+
+      if (delta > threshold) {
+        // 확장 상태로 변경
+        setBottomSheetState((prevState) =>
+          prevState === 'collapsed' ? 'middle' : 'expanded'
+        )
+      } else if (delta < -threshold) {
+        // 축소 상태로 변경
+        setBottomSheetState((prevState) =>
+          prevState === 'expanded' ? 'middle' : 'collapsed'
+        )
+      }
     }
     startY.current = null
     currentY.current = null
@@ -68,9 +78,7 @@ export default function Home() {
       <KakaoMap selectedPlace={selectedPlace} />
 
       {/* Tabs */}
-      <div
-        className={`${styles.tabs} ${isExpanded ? styles.expandedTabs : ''}`}
-      >
+      <div className={`${styles.tabs} ${styles[bottomSheetState]}`}>
         {tabs.map((tab) => (
           <button
             key={tab.id}
@@ -86,9 +94,7 @@ export default function Home() {
 
       {/* Bottom Sheet */}
       <div
-        className={`${styles.bottomSheet} ${
-          isExpanded ? styles.expanded : styles.collapsed
-        }`}
+        className={`${styles.bottomSheet} ${styles[bottomSheetState]}`}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -160,6 +166,8 @@ export default function Home() {
             </div>
           </div>
         </div>
+        {/* 선 추가 */}
+      <div className={styles.bottomSheetLine}></div>
       </div>
     </div>
   )

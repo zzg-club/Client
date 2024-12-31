@@ -113,9 +113,21 @@
   border-radius: 24px 24px 0 0;
   transition: transform 0.3s ease-in-out;
   z-index: 10;
-  max-height: 300px; /* Bottom Sheet 높이 제한 */
-  overflow-y: auto; /* 내부에서 스크롤 가능 */
+  overflow-y: auto;
 }
+
+.bottomSheet.collapsed {
+  transform: translateY(calc(100% - 100px));
+}
+
+.bottomSheet.middle {
+  transform: translateY(calc(100% - 260px));
+}
+
+.bottomSheet.expanded {
+  transform: translateY(calc(100% - 500px));
+}
+
 
 .dragHandle {
   width: 64px;
@@ -126,31 +138,17 @@
   cursor: pointer;
 }
 
-.bottomSheet.expanded {
-  transform: translateY(-300px); /* 350px만큼 위로 올라감 */
-}
-
-.collapsed {
-  transform: translateY(calc(100% - 100px));
-  height: auto;
-}
-
 /* Tabs */
 .tabs {
   position: absolute;
-  bottom: 48px;
   left: 0;
   width: 100%;
   display: flex;
-  transition: transform 0.3s ease-in-out;
-  z-index: 5; /* Bottom Sheet 위에 표시 */
+  transition: bottom 0.3s ease-in-out;
+  z-index: 5;
 }
 
-.expandedTabs {
-  transform: translateY(
-    -300px
-  ); /* Bottom Sheet 확장 시 탭도 함께 350px 올라감 */
-}
+
 
 .tab {
   display: flex;
@@ -184,6 +182,20 @@
   z-index: 2; /* 선택된 탭이 위로 올라오도록 */
   transform: scale(1.1); /* 선택된 탭을 약간 확대 */
 }
+
+.tabs.collapsed {
+  bottom: 52px; /* Bottom Sheet가 collapsed일 때 */
+}
+
+.tabs.middle {
+  bottom: 212px; /* Bottom Sheet가 middle일 때 */
+}
+
+.tabs.expanded {
+  bottom: 452px; /* Bottom Sheet가 expanded일 때 */
+}
+
+
 
 /* 버튼 컨테이너 */
 .buttonsContainer {
@@ -421,3 +433,13 @@
   width: 14px;
   height: 14px;
 }
+
+.bottomSheetLine {
+  width: 352px; /* 라인의 길이 */
+  height: 1px; /* 라인의 두께 */
+  background-color: var(--MainColor, #9562FB); /* 라인의 색상 */
+  margin: 16px auto; /* 중앙 정렬과 간격 */
+  display: block; /* 요소가 화면에 표시되도록 강제 설정 */
+}
+
+
