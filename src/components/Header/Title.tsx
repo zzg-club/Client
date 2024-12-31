@@ -4,6 +4,9 @@ import { MdArrowBackIos } from 'react-icons/md'
 import { IoShareSocialOutline } from 'react-icons/io5'
 import { useRouter } from 'next/navigation'
 import EditTitle from '@/components/Header/EditTitle'
+import { useState } from 'react'
+import CustomModal from '../Modals/CustomModal'
+import ScheduleSelectShareModal from '../Modals/ScheduleSelectShareModal'
 
 interface TitleProps {
   buttonText: string
@@ -21,15 +24,18 @@ export default function Title({
   isPurple,
 }: TitleProps) {
   const router = useRouter()
+  const [isShareOpen, setIsShareOpen] = useState(false)
 
   const handleBackClick = () => {
     router.back()
   }
 
-  const handleShareClick = () => {}
-
   const handleButtonClick = () => {
-    router.push(buttonLink)
+    router.push(buttonLink) // 지정된 페이지로 이동
+  }
+
+  const handleOpenDdialg = () => {
+    setIsShareOpen(!isShareOpen)
   }
 
   return (
@@ -53,6 +59,14 @@ export default function Title({
           {buttonText}
         </button>
       </div>
+
+      <CustomModal
+        open={isShareOpen}
+        onOpenChange={handleOpenDdialg}
+        isFooter={false}
+      >
+        <ScheduleSelectShareModal inviteUrl="https://moim.team/" />
+      </CustomModal>
     </div>
   )
 }
