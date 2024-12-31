@@ -1,27 +1,22 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
-interface NavbarProps {
-  onSelectNav?: (selectedNav: string) => void
+export interface Nav {
+  name: string
+  path: string
 }
 
-const Navbar: React.FC<NavbarProps> = ({ onSelectNav }) => {
-  const [selectedNav, setSelectedNav] = useState('스케줄')
+const Navbar: React.FC = () => {
+  const [selectNav, setSelectNav] = useState('스케줄')
 
   const navs = [
     { name: '스케줄', path: '/schedule' },
     { name: '렛츠밋', path: '/letsmeet' },
     { name: '플레이스', path: '/place' },
   ]
-
-  const handleNavClick = (navName: string) => {
-    setSelectedNav(navName)
-    if (onSelectNav) {
-      onSelectNav(navName) // 부모 컴포넌트로 선택된 네비게이션 전달
-    }
-  }
 
   return (
     <nav className="w-full h-16 flex items-center bg-white pl-5 shadow-lg gap-4">
@@ -44,4 +39,4 @@ const Navbar: React.FC<NavbarProps> = ({ onSelectNav }) => {
   )
 }
 
-export default Navbar
+export default NavBar

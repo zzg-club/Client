@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation' // useRouter 훅 사용
 import KakaoMap from '@/components/Map/KakaoMap'
-import Navbar from '@/components/Navigate/Navbar'
+import NavBar from '@/components/Navigate/NavBar'
 import styles from '@/app/place/styles/Home.module.css' // CSS 모듈 임포트
 
 interface Place {
@@ -29,7 +29,7 @@ export default function Home() {
 
   return (
     <div className={styles.container}>
-      <Navbar />
+      <NavBar />
       <div className={styles['search-container']}>
         <div
           className={styles['search-bar']}
