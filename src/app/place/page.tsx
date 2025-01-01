@@ -68,7 +68,7 @@ export default function Home() {
 
   return (
     <div className={styles['mobile-container']}>
-      <Navbar activeTab="플레이스" />
+      <Navbar />
       <div className={styles['search-container']}>
         <div
           className={styles['search-bar']}

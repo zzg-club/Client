@@ -1,12 +1,17 @@
 'use client'
 
 import React from 'react'
-import { useRouter } from 'next/navigation' // useRouter 훅 임포트
+import { useRouter } from 'next/navigation' // useRouter 훅 사용
 import styles from '@/app/search/styles/SearchBar.module.css' // CSS 모듈 임포트
 
 export default function SearchPage() {
-  const router = useRouter() // useRouter 훅 사용
-  
+  const router = useRouter() // Next.js 라우터 훅
+
+  const handleLocationClick = () => {
+    // 내 위치 불러오기 버튼 클릭 시 location 페이지로 이동
+    router.push('/search/location')
+  }
+
   return (
     <div className={styles.container}>
       {/* 검색창 */}
@@ -33,7 +38,10 @@ export default function SearchPage() {
         <button className={styles.searchButton}>검색</button>
       </div>
       {/* 내 위치 불러오기 버튼 */}
-      <button className={styles.locationButton}>
+      <button
+        className={styles.locationButton}
+        onClick={handleLocationClick} // 클릭 이벤트 추가
+      >
         <img
           src="/vector.svg"
           alt="위치 아이콘"
