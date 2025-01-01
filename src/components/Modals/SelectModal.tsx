@@ -28,7 +28,7 @@ export default function SelectModal({
 }: SelectModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-white rounded-3xl w-[280px] p-0 gap-0 [&>button]:hidden border-0">
+      <DialogContent className="bg-white w-[280px] p-0 gap-0 [&>button]:hidden border-0 radius-3xl">
         {/* 상단 타이틀 영역 */}
         <div className="flex item-center justify-center p-5 text-center">
           <DialogClose className="absolute right-4 focus:outline-none">
