@@ -26,14 +26,12 @@ export default function Title({
   const router = useRouter()
   const [isShareOpen, setIsShareOpen] = useState(false)
 
-  // 뒤로 가기 버튼 클릭 핸들러
   const handleBackClick = () => {
-    router.back() // 브라우저의 뒤로 가기 기능
+    router.back()
   }
 
-  // 다음, 완료, 확정 버튼 클릭 핸들러
   const handleButtonClick = () => {
-    router.push(buttonLink) // 지정된 페이지로 이동
+    router.push(buttonLink)
   }
 
   const handleOpenDdialg = () => {
@@ -41,17 +39,20 @@ export default function Title({
   }
 
   return (
-    <div className=" w-full h-16 px-6 py-5 bg-white rounded-bl-3xl rounded-br-3xl shadow-[0px_0px_10px_0px_rgba(30,30,30,0.10)] flex items-center gap-1">
+    <div className="w-full h-16 px-4 py-5 bg-white flex items-center gap-1">
       <button onClick={handleBackClick}>
-        <MdArrowBackIos className=" w-7 h-7 text-[#1e1e1e]" />
+        <MdArrowBackIos className="w-7 h-7 text-[#1e1e1e]" />
       </button>
-      <EditTitle initialTitle={initialTitle} onTitleChange={onTitleChange} />
-      <div className="flex ml-auto gap-5">
+      <div className="w-[60%] max-w-[300px] overflow-hidden">
+        {/* 부모 컨테이너의 최대 가로 길이 제한 */}
+        <EditTitle initialTitle={initialTitle} onTitleChange={onTitleChange} />
+      </div>
+      <div className="flex ml-auto gap-4">
         <button onClick={handleOpenDdialg}>
           <IoShareSocialOutline className="w-8 h-8 text-[#1e1e1e]" />
         </button>
         <button
-          className={`text-center text-xl font-medium font-['Pretendard'] leading-[17px] 
+          className={`text-center text-xl font-medium font-['Pretendard'] leading-[25px] 
           ${isPurple ? 'text-purple-500' : 'text-[#afafaf]'}`}
           onClick={handleButtonClick}
         >
