@@ -33,7 +33,7 @@ export default function ScheduleSelectShareModal({
           </div>
         </div>
 
-        <p className="text-[#afafaf] text-center text-base font-normal pt-3">
+        <p className="text-[#afafaf] text-center text-base font-normal pt-3 font-['Pretendard']">
           링크는 24시간 동안 유효해요!
         </p>
 
@@ -57,7 +57,7 @@ export default function ScheduleSelectShareModal({
         <div className="flex w-full items-center space-x-2">
           <div className="flex-1 relative">
             <button
-              className="w-full flex px-3.5 py-[5px] items-center gap-2 border border-[#afafaf] rounded-3xl text-[#afafaf] hover:text-[#d9d9d9]"
+              className="w-full flex px-3.5 py-[5px] items-center gap-2 border border-[#afafaf] rounded-3xl text-[#afafaf] hover:text-[#d9d9d9] font-['Pretendard']"
               onClick={() => alert('카카오톡으로 공유하기')}
             >
               카카오톡으로 공유하기

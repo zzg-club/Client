@@ -37,7 +37,7 @@ body {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     overflow: hidden;
     margin: 0 auto;
-    position: relative; /* 부모컨테이너이므로 relative 설정 */
+    position: relative;
   }
 }
 @layer base {
