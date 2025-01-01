@@ -60,7 +60,10 @@ const KakaoMap = ({ selectedPlace, onMoveToCurrentLocation }) => {
   const moveToCurrentLocation = async () => {
     try {
       const location = await getCurrentLocation()
-      const newLocation = new window.kakao.maps.LatLng(location.lat, location.lng)
+      const newLocation = new window.kakao.maps.LatLng(
+        location.lat,
+        location.lng,
+      )
 
       // 지도와 마커 위치 업데이트
       if (map) map.setCenter(newLocation)

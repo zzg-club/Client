@@ -20,7 +20,9 @@ const tabs = [
 
 export default function Home() {
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null)
-  const [bottomSheetState, setBottomSheetState] = useState<'collapsed' | 'middle' | 'expanded'>('collapsed')
+  const [bottomSheetState, setBottomSheetState] = useState<
+    'collapsed' | 'middle' | 'expanded'
+  >('collapsed')
   const [selectedTab, setSelectedTab] = useState<string>(tabs[0].id)
   const startY = useRef<number | null>(null)
   const currentY = useRef<number | null>(null)
@@ -53,12 +55,12 @@ export default function Home() {
       if (delta > threshold) {
         // 확장 상태로 변경
         setBottomSheetState((prevState) =>
-          prevState === 'collapsed' ? 'middle' : 'expanded'
+          prevState === 'collapsed' ? 'middle' : 'expanded',
         )
       } else if (delta < -threshold) {
         // 축소 상태로 변경
         setBottomSheetState((prevState) =>
-          prevState === 'expanded' ? 'middle' : 'collapsed'
+          prevState === 'expanded' ? 'middle' : 'collapsed',
         )
       }
     }
@@ -68,26 +70,36 @@ export default function Home() {
 
   return (
     <div className={styles['mobile-container']}>
-      <Navbar />
+      <Navbar activeTab="플레이스" />
       <div className={styles['search-container']}>
         <div
           className={styles['search-bar']}
           onClick={handleSearchClick}
           style={{ cursor: 'pointer' }}
         >
-          <img src="/search.svg" alt="search" className={styles['search-icon']} />
+          <img
+            src="/search.svg"
+            alt="search"
+            className={styles['search-icon']}
+          />
           <input type="text" placeholder="원하는 곳을 검색해봐요!" readOnly />
         </div>
-        <button 
-          className={styles['vector-button']} 
+        <button
+          className={styles['vector-button']}
           onClick={handleVectorButtonClick}
         >
-          <img src="/vector.svg" alt="vector" className={styles['vector-icon']} />
+          <img
+            src="/vector.svg"
+            alt="vector"
+            className={styles['vector-icon']}
+          />
         </button>
       </div>
-      <KakaoMap 
-        selectedPlace={selectedPlace} 
-        onMoveToCurrentLocation={(moveToCurrentLocation) => (mapRef.current = moveToCurrentLocation)}
+      <KakaoMap
+        selectedPlace={selectedPlace}
+        onMoveToCurrentLocation={(moveToCurrentLocation) =>
+          (mapRef.current = moveToCurrentLocation)
+        }
       />
 
       {/* Tabs */}
@@ -134,7 +146,7 @@ export default function Home() {
                   <button key={index} className={styles.actionButton}>
                     {button}
                   </button>
-                )
+                ),
               )}
           </div>
           <div className={styles.moimPickContainer}>
@@ -142,7 +154,8 @@ export default function Home() {
             <div className={styles.moimPickLine}></div>
           </div>
           <div className={styles.moimPickSubText}>
-            <span className={styles.highlight}>박진우</span>님을 위해 선배들이 픽 했어요!
+            <span className={styles.highlight}>박진우</span>님을 위해 선배들이
+            픽 했어요!
           </div>
           <div className={styles.card}>
             <div className={styles.cardImage}>
@@ -173,7 +186,11 @@ export default function Home() {
 
               {/* 푸터 */}
               <div className={styles.footer}>
-                <img src="/clock-icon.svg" alt="시계 아이콘" className={styles.clockIcon} />
+                <img
+                  src="/clock-icon.svg"
+                  alt="시계 아이콘"
+                  className={styles.clockIcon}
+                />
                 <span>영업시간 00:00 - 24:00</span>
               </div>
             </div>
