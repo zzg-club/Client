@@ -300,8 +300,8 @@
   overflow: hidden; /* 카드 내부 컨텐츠가 넘치지 않도록 설정 */
 }
 
-.cardTitle{
-  color: #1E1E1E;
+.cardTitle {
+  color: #1e1e1e;
   font-family: Pretendard, sans-serif;
   font-size: 20px;
   font-style: normal;
