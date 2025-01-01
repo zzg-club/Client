@@ -54,11 +54,13 @@ export default function Page() {
         currentPage={currentPage}
         onPageChange={handlePageChange}
       />
-      <TimeStamp
-        selectedDates={selectedDates}
-        currentPage={currentPage}
-        onPageChange={handlePageChange}
-      />
+      <div className="flex-grow overflow-hidden mt-2">
+        <TimeStamp
+          selectedDates={selectedDates}
+          currentPage={currentPage}
+          onPageChange={handlePageChange}
+        />
+      </div>
     </div>
   )
 }

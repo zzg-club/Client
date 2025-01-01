@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useCallback, useEffect } from 'react'
+import '../../styles/TimeStamp.css'
 
 interface Selection {
   startRow: number
@@ -230,38 +231,40 @@ export default function TimeStamp({
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto bg-white pl-2 pr-8 py-5 flex">
-      <div className="relative pt-8 w-7 pr-1">
-        {Array.from(
-          { length: 23 },
-          (
-            _,
-            i, //시간 몇개로 나눌 건지
-          ) => (
-            <div key={i} className="h-9 text-[10px] text-[#afafaf]">
-              {`${String(i + 1).padStart(2, '0')}시`}{' '}
-            </div>
-          ),
-        )}
-      </div>
-      <div
-        ref={gridRef}
-        className=" w-full relative grid z-100 border-[1px] border-[#d9d9d9] rounded-3xl overflow-hidden"
-        style={{
-          gridTemplateColumns: `repeat(${currentDates.length}, 1fr)`,
-          backgroundImage: 'linear-gradient(#d9d9d9 1px, transparent 1px)',
-          backgroundSize: `100% ${36}px`,
-        }}
-      >
-        {currentDates.map((_, colIndex) => (
-          <div key={colIndex} className="relative border border-[#d9d9d9]">
-            {Array.from({ length: 48 }, (_, rowIndex) => {
-              // 선택 가능한 세로 길이 범위
-              const cellStatus = getCellStatus(rowIndex, colIndex)
-              return (
-                <div
-                  key={rowIndex}
-                  className={`
+    <div className="timestamp-container">
+      <div className="timestamp-content">
+        <div className="w-full max-w-4xl mx-auto bg-white pl-2 pr-8 pt-3 pb-8 flex grid grid-cols-[auto_1fr]">
+          <div className="relative pt-8 w-7 pr-1">
+            {Array.from(
+              { length: 23 },
+              (
+                _,
+                i, //시간 몇개로 나눌 건지
+              ) => (
+                <div key={i} className="h-9 text-[10px] text-[#afafaf]">
+                  {`${String(i + 1).padStart(2, '0')}시`}{' '}
+                </div>
+              ),
+            )}
+          </div>
+          <div
+            ref={gridRef}
+            className=" w-full relative grid z-100 border-[1px] border-[#d9d9d9] rounded-3xl overflow-hidden"
+            style={{
+              gridTemplateColumns: `repeat(${currentDates.length}, 1fr)`,
+              backgroundImage: 'linear-gradient(#d9d9d9 1px, transparent 1px)',
+              backgroundSize: `100% ${36}px`,
+            }}
+          >
+            {currentDates.map((_, colIndex) => (
+              <div key={colIndex} className="relative border border-[#d9d9d9]">
+                {Array.from({ length: 48 }, (_, rowIndex) => {
+                  // 선택 가능한 세로 길이 범위
+                  const cellStatus = getCellStatus(rowIndex, colIndex)
+                  return (
+                    <div
+                      key={rowIndex}
+                      className={`
                     h-[18px] relative cursor-pointer 
                     ${
                       cellStatus.isSelected
@@ -271,26 +274,28 @@ export default function TimeStamp({
                         : ''
                     }
                   `} // 색칠된 보라색 1칸
-                  onMouseDown={() =>
-                    handleMouseDown(
-                      rowIndex,
-                      colIndex,
-                      cellStatus.isStartCell || cellStatus.isEndCell,
-                      cellStatus.selection,
-                    )
-                  }
-                >
-                  {cellStatus.isStartCell && (
-                    <div className="absolute -top-1 left-0 w-2 h-2 bg-[#9562fa] rounded-full cursor-move" />
-                  )}
-                  {cellStatus.isEndCell && (
-                    <div className="absolute -bottom-1 right-0 w-2 h-2 bg-[#9562fa] rounded-full cursor-move" />
-                  )}
-                </div>
-              )
-            })}
+                      onMouseDown={() =>
+                        handleMouseDown(
+                          rowIndex,
+                          colIndex,
+                          cellStatus.isStartCell || cellStatus.isEndCell,
+                          cellStatus.selection,
+                        )
+                      }
+                    >
+                      {cellStatus.isStartCell && (
+                        <div className="absolute -top-1 left-0 w-2 h-2 bg-[#9562fa] rounded-full cursor-move" />
+                      )}
+                      {cellStatus.isEndCell && (
+                        <div className="absolute -bottom-1 right-0 w-2 h-2 bg-[#9562fa] rounded-full cursor-move" />
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
       </div>
     </div>
   )
