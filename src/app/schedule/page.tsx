@@ -17,7 +17,7 @@ const mockSchedules = [
     title: '제목 없는 일정',
     startTime: '13:00',
     endTime: '15:00',
-    // location: '서울역',
+    location: '',
     participants: [
       {
         id: 1,
@@ -52,7 +52,7 @@ const mockSchedules = [
     title: '팀 미팅',
     startTime: '15:00',
     endTime: '16:30',
-    location: '강남역',
+    location: '',
     participants: [
       {
         id: 1,
