@@ -300,6 +300,16 @@
   overflow: hidden; /* 카드 내부 컨텐츠가 넘치지 않도록 설정 */
 }
 
+.cardTitle{
+  color: #1E1E1E;
+  font-family: Pretendard, sans-serif;
+  font-size: 20px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 17px; /* 85% */
+  letter-spacing: -0.5px;
+}
+
 .cardImage {
   flex-shrink: 0; /* 크기 고정 */
   width: 126px; /* 고정된 너비 */
@@ -365,7 +375,6 @@
   width: 28px;
   height: 28px;
   background: url('/like-icon.svg') no-repeat center center;
-  background-size: contain;
 }
 
 /* 좋아요 숫자 */
@@ -375,11 +384,10 @@
 }
 
 /* 태그 섹션 */
-/* 태그 스타일 */
-/* 태그 섹션 */
 .tags {
   display: flex; /* Flexbox로 가로 정렬 */
   gap: 8px; /* 태그 간 간격 */
+  margin-top: 10px;
   margin-bottom: 8px;
 }
 
