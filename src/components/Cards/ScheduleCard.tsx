@@ -22,9 +22,19 @@ export function ScheduleCard({
   participants,
 }: ScheduleCardProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isSelectModalOpen, setIsSelectModalOpen] = useState(false)
 
   const handleOpenDialog = () => {
     setIsDialogOpen(!isDialogOpen)
+  }
+
+  const handleOpenSelectModal = (e: React.MouseEvent) => {
+    e.stopPropagation() // 이벤트 버블링 방지
+    setIsSelectModalOpen(true)
+  }
+
+  const handleCloseSelectModal = () => {
+    setIsSelectModalOpen(false)
   }
 
   return (
@@ -66,13 +76,14 @@ export function ScheduleCard({
                   className={
                     'border-[#9562fa] text-[#9562fa] group-hover:border-white group-hover:text-white'
                   }
-                  onClick={() => alert('장소를 선정할까요')}
+                  onClick={handleOpenSelectModal}
                 />
               )}
             </div>
           </div>
         </div>
       </div>
+      {/* MembersVariant 모달 */}
       <CustomModal
         open={isDialogOpen}
         onOpenChange={handleOpenDialog}
@@ -81,12 +92,23 @@ export function ScheduleCard({
         onPlus={() => alert('친구추가')}
       >
         <MembersVariant
+          onRemove={() => alert('정말로 삭제')}
           date={date}
           location={location}
           startTime={startTime}
           endTime={endTime}
           members={participants}
         />
+      </CustomModal>
+
+      {/* SelectModal 모달 */}
+      <CustomModal
+        open={isSelectModalOpen}
+        onOpenChange={handleCloseSelectModal}
+        isFooter={false}
+        isUserPlus={false}
+      >
+        <div>장소 선택 모달 내용 ~~</div>
       </CustomModal>
     </div>
   )
