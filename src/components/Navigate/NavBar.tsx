@@ -1,11 +1,13 @@
 'use client'
 
-import React, { useState } from 'react'
+import React from 'react'
 import Link from 'next/link'
 
-const Navbar: React.FC = () => {
-  const [selectNav, setSelectNav] = useState('스케줄')
+interface NavbarProps {
+  activeTab: string // 현재 활성화된 탭
+}
 
+const Navbar: React.FC<NavbarProps> = ({ activeTab }) => {
   const navs = [
     { name: '스케줄', path: '/schedule' },
     { name: '렛츠밋', path: '/letsmeet' },
@@ -18,13 +20,12 @@ const Navbar: React.FC = () => {
         <Link
           key={nav.name}
           href={nav.path}
-          onClick={() => setSelectNav(nav.name)}
           className={`relative text-xl font-semibold leading-[17px] ${
-            selectNav === nav.name ? 'text-[#9562fa]' : 'text-[#afafaf]'
+            activeTab === nav.name ? 'text-[#9562fa]' : 'text-[#afafaf]'
           }`}
         >
           {nav.name}
-          {selectNav === nav.name && (
+          {activeTab === nav.name && (
             <span className="absolute left-1/2 transform -translate-x-1/2 -bottom-[12px] w-[52px] h-1 bg-[#9562fa] rounded"></span>
           )}
         </Link>
