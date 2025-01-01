@@ -147,7 +147,7 @@ export default function ScheduleLanding() {
     setIsDdialogOpen(!isDdialogOpen)
   }
   return (
-    <div>
+    <div className="flex flex-col min-h-screen">
       {/* Add Moim Button */}
       <NavBar />
       {mockSchedules.length > 0 ? (
@@ -174,8 +174,10 @@ export default function ScheduleLanding() {
           ))}
         </>
       ) : (
-        <div className="pt-[267px] text-center text-zinc-400 text-base font-medium leading-[17px]">
-          모임 일정을 추가해봐요!
+        <div className="flex flex-col items-center justify-center flex-1">
+          <div className="text-center text-zinc-400 text-base font-medium leading-[17px]">
+            모임 일정을 추가해봐요!
+          </div>
         </div>
       )}
       <ScheduleOptions
