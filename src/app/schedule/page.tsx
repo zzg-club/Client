@@ -13,87 +13,67 @@ import EditTitle from '@/components/Header/EditTitle'
 const mockSchedules = [
   {
     id: 1,
-    date: '12월 5일',
-    title: '제목 없는 일정',
-    startTime: '13:00',
-    endTime: '15:00',
-    // location: '서울역',
+    date: '12월 6일 금요일',
+    title: '팀 미팅',
+    startTime: '15:00',
+    endTime: '16:30',
+    location: '',
     participants: [
       {
         id: 1,
-        name: 'User 1',
+        name: '나',
         image: '/globe.svg',
       },
       {
         id: 2,
-        name: 'User 2',
+        name: '김태엽',
         image: '/globe.svg',
       },
       {
         id: 3,
-        name: 'User 3',
+        name: '지유진',
         image: '/globe.svg',
       },
       {
         id: 4,
-        name: 'User 4',
+        name: '이소룡',
         image: '/globe.svg',
       },
       {
         id: 5,
-        name: 'User 5',
+        name: '박진우',
+        image: '/globe.svg',
+      },
+      {
+        id: 6,
+        name: '이예지',
+        image: '/globe.svg',
+      },
+      {
+        id: 7,
+        name: '조성하',
+        image: '/globe.svg',
+      },
+      {
+        id: 8,
+        name: '성윤정',
+        image: '/globe.svg',
+      },
+      {
+        id: 9,
+        name: '김나영',
+        image: '/globe.svg',
+      },
+      {
+        id: 10,
+        name: '이채연',
         image: '/globe.svg',
       },
     ],
   },
   {
     id: 2,
-    date: '12월 6일',
-    title: '팀 미팅',
-    startTime: '15:00',
-    endTime: '16:30',
-    location: '강남역',
-    participants: [
-      {
-        id: 1,
-        name: 'User 1',
-        image: '/globe.svg',
-      },
-      {
-        id: 2,
-        name: 'User 2',
-        image: '/globe.svg',
-      },
-      {
-        id: 3,
-        name: 'User 3',
-        image: '/globe.svg',
-      },
-      {
-        id: 4,
-        name: 'User 4',
-        image: '/globe.svg',
-      },
-      {
-        id: 5,
-        name: 'User 5',
-        image: '/globe.svg',
-      },
-      {
-        id: 6,
-        name: 'User 6',
-        image: '/globe.svg',
-      },
-      {
-        id: 7,
-        name: 'User 7',
-        image: '/globe.svg',
-      },
-    ],
-  },
-  {
-    id: 3,
-    date: '12월 5일',
+    date: '12월 28일 토요일',
     title: '프로젝트 미팅',
     startTime: '13:00',
     endTime: '15:00',
@@ -101,17 +81,17 @@ const mockSchedules = [
     participants: [
       {
         id: 1,
-        name: 'User 1',
+        name: '나',
         image: '/globe.svg',
       },
       {
         id: 2,
-        name: 'User 2',
+        name: '김태엽',
         image: '/globe.svg',
       },
       {
         id: 3,
-        name: 'User 3',
+        name: '지유진',
         image: '/globe.svg',
       },
     ],
@@ -147,9 +127,9 @@ export default function ScheduleLanding() {
     setIsDdialogOpen(!isDdialogOpen)
   }
   return (
-    <div>
+    <div className="flex flex-col min-h-screen">
       {/* Add Moim Button */}
-      <NavBar />
+      <NavBar activeTab="스케줄" />
       {mockSchedules.length > 0 ? (
         <>
           <div className="w-full h-[34px] px-4 my-[8px] flex justify-start items-center gap-[2px]">
@@ -174,8 +154,10 @@ export default function ScheduleLanding() {
           ))}
         </>
       ) : (
-        <div className="pt-[267px] text-center text-zinc-400 text-base font-medium leading-[17px]">
-          모임 일정을 추가해봐요!
+        <div className="flex flex-col items-center justify-center flex-1">
+          <div className="text-center text-zinc-400 text-base font-medium leading-[17px]">
+            모임 일정을 추가해봐요!
+          </div>
         </div>
       )}
       <ScheduleOptions
