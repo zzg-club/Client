@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { X } from 'lucide-react'
+import { X, UserPlus } from 'lucide-react'
 import Image from 'next/image'
 import ModalNotification from '../Notification/ModalNotification'
 
@@ -52,13 +52,21 @@ export default function MembersVariant({
 
   return (
     <div>
-      {/* 헤더 부분: 날짜, 친구 추가 버튼, 엑스 버튼 */}
+      {/* 헤더 부분: 날짜, 친구 추가 버튼, 엑스 버튼
       <div className="mb-[6px]">
         <div className="text-black text-base font-medium leading-snug">
           {date}
         </div>
+      </div> */}
+      {/* 헤더 부분: 날짜, 친구 추가 버튼, 엑스 버튼 */}
+      <div className="flex justify-between items-center mb-[6px]">
+        <div className="text-black text-base font-medium leading-snug">
+          {date}
+        </div>
+        <button className="text-[#9562fa] mr-[32px]">
+          <UserPlus size={24} />
+        </button>
       </div>
-
       {/* 제목, 부제목 부분*/}
       <div className="mb-4">
         <div className="flex items-center gap-1">
