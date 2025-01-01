@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
 import { DialogClose, DialogTitle } from '@radix-ui/react-dialog'
 import { X } from 'lucide-react'
 import '../../styles/CustomModal.css'
+import '../../styles/SelectModal.css'
 
 export interface SelectModalProps {
   open: boolean
@@ -41,14 +42,14 @@ export default function SelectModal({
         <DialogFooter className="flex flex-row w-full border-t border-[#afafaf]">
           <button
             onClick={onClickLeft}
-            className="text-center text-[#9562fa] font-medium text-base py-4 w-full"
+            className="text-center text-[#9562fa] font-medium text-base py-4 w-full marginzero-button"
           >
             {leftText}
           </button>
-          <div className="w-[2px] bg-[#afafaf]"></div>
+          <div className="w-[2px] bg-[#afafaf] marginzero-button"></div>
           <button
             onClick={onClickRight}
-            className="text-center text-[#9562fa] font-medium text-base py-4 w-full"
+            className="text-center text-[#9562fa] font-medium text-base py-4 w-full marginzero-button"
           >
             {rightText}
           </button>
