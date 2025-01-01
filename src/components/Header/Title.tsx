@@ -31,7 +31,7 @@ export default function Title({
   }
 
   const handleButtonClick = () => {
-    router.push(buttonLink) // 지정된 페이지로 이동
+    router.push(buttonLink)
   }
 
   const handleOpenDdialg = () => {
@@ -48,7 +48,7 @@ export default function Title({
         <EditTitle initialTitle={initialTitle} onTitleChange={onTitleChange} />
       </div>
       <div className="flex ml-auto gap-4">
-        <button onClick={handleShareClick}>
+        <button onClick={handleOpenDdialg}>
           <IoShareSocialOutline className="w-8 h-8 text-[#1e1e1e]" />
         </button>
         <button
