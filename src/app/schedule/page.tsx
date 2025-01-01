@@ -13,41 +13,6 @@ import EditTitle from '@/components/Header/EditTitle'
 const mockSchedules = [
   {
     id: 1,
-    date: '12월 5일 목요일',
-    title: '제목 없는 일정',
-    startTime: '13:00',
-    endTime: '15:00',
-    location: '',
-    participants: [
-      {
-        id: 1,
-        name: '나',
-        image: '/globe.svg',
-      },
-      {
-        id: 2,
-        name: '김태엽',
-        image: '/globe.svg',
-      },
-      {
-        id: 3,
-        name: '지유진',
-        image: '/globe.svg',
-      },
-      {
-        id: 4,
-        name: '이소룡',
-        image: '/globe.svg',
-      },
-      {
-        id: 5,
-        name: '박진우',
-        image: '/globe.svg',
-      },
-    ],
-  },
-  {
-    id: 2,
     date: '12월 6일 금요일',
     title: '팀 미팅',
     startTime: '15:00',
@@ -81,18 +46,33 @@ const mockSchedules = [
       },
       {
         id: 6,
-        name: '링크',
+        name: '이예지',
         image: '/globe.svg',
       },
       {
         id: 7,
-        name: '버스',
+        name: '조성하',
+        image: '/globe.svg',
+      },
+      {
+        id: 8,
+        name: '성윤정',
+        image: '/globe.svg',
+      },
+      {
+        id: 9,
+        name: '김나영',
+        image: '/globe.svg',
+      },
+      {
+        id: 10,
+        name: '이채연',
         image: '/globe.svg',
       },
     ],
   },
   {
-    id: 3,
+    id: 2,
     date: '12월 28일 토요일',
     title: '프로젝트 미팅',
     startTime: '13:00',
