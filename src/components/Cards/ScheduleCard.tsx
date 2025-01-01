@@ -24,17 +24,28 @@ export function ScheduleCard({
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isSelectModalOpen, setIsSelectModalOpen] = useState(false)
 
+  // membersVariant 모달 핸들
   const handleOpenDialog = () => {
     setIsDialogOpen(!isDialogOpen)
   }
 
+  // 정말로 삭제하시겠습니까 경고 컴포넌트 open 핸들
   const handleOpenSelectModal = (e: React.MouseEvent) => {
     e.stopPropagation() // 이벤트 버블링 방지
     setIsSelectModalOpen(true)
   }
 
+  // 정말로 삭제하시겠습니까 경고 컴포넌트 close 핸들
   const handleCloseSelectModal = () => {
     setIsSelectModalOpen(false)
+  }
+
+  // 선택된 멤버의 id값 전달을 위한 상태추적
+  const [selectedMember, setSelectedMember] = useState(participants)
+
+  // 실제 삭제 api 여기에 연동
+  const handleRemoveMember = (id: number) => {
+    setSelectedMember((prev) => prev.filter((member) => member.id !== id))
   }
 
   return (
@@ -92,12 +103,12 @@ export function ScheduleCard({
         onPlus={() => alert('친구추가')}
       >
         <MembersVariant
-          onRemove={() => alert('정말로 삭제')}
+          onClickX={handleRemoveMember}
           date={date}
           location={location}
           startTime={startTime}
           endTime={endTime}
-          members={participants}
+          members={selectedMember}
         />
       </CustomModal>
 
