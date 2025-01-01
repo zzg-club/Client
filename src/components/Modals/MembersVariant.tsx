@@ -89,7 +89,11 @@ export default function MembersVariant({
       <div className="grid grid-cols-3 gap-[20px]">
         {members.map((member) => (
           <div key={member.id} className="flex flex-col items-center">
-            <div className="w-12 h-12 rounded-3xl border-2 border-[#9562fa] relative">
+            <div
+              className={`w-12 h-12 rounded-3xl border-2 border-[#9562fa] relative ${
+                selectedMemberId === member.id ? 'bg-[#afafaf]/80' : ''
+              }`}
+            >
               <Image
                 src={member.image}
                 alt={member.name}
