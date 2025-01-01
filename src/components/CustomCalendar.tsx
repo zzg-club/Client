@@ -25,7 +25,7 @@ export default function CustomCalendar({
   selected,
   onSelect,
 }: CustomCalendarProps) {
-  const [month, setMonth] = useState<Date>(new Date(2024, 11))
+  const [month, setMonth] = useState<Date>(new Date())
   const [mode, setMode] = useState<Mode>(initialMode)
   const [selectedWeekdays, setSelectedWeekdays] = useState<number[]>([])
   const today = new Date()
@@ -103,6 +103,40 @@ export default function CustomCalendar({
     showOutsideDays: false,
     onDayClick: handleDayClick,
     disabled: (date: Date) => isBefore(date, today), // 오늘 이전 날짜를 비활성화
+    modifiers: {
+      firstWeekday: (date: Date) => {
+        // 요일별 첫번째 날짜 찾기
+        const weekdayToFirstDateMap = selectedWeekdays.reduce(
+          (acc, weekday) => {
+            const dates = getDatesByWeekdays([weekday], month)
+            if (dates.length > 0) {
+              acc[weekday] = dates[0].getTime() // 요일별 첫 번째 날짜
+            }
+            return acc
+          },
+          {} as Record<number, number>,
+        )
+        return Object.values(weekdayToFirstDateMap).includes(date.getTime())
+      },
+      lastWeekday: (date: Date) => {
+        // 요일별 마지막 날짜 찾기
+        const weekdayToLastDateMap = selectedWeekdays.reduce(
+          (acc, weekday) => {
+            const dates = getDatesByWeekdays([weekday], month)
+            if (dates.length > 0) {
+              acc[weekday] = dates[dates.length - 1].getTime() // 요일별 마지막 날짜
+            }
+            return acc
+          },
+          {} as Record<number, number>,
+        )
+        return Object.values(weekdayToLastDateMap).includes(date.getTime())
+      },
+    },
+    modifiersClassNames: {
+      firstWeekday: 'weekday-first',
+      lastWeekday: 'weekday-last',
+    },
     classNames: {
       months: 'calendar-months',
       month: 'calendar-month',

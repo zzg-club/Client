@@ -65,6 +65,14 @@
   border-radius: 50% 50% 0 0;
 }
 
+.weekday-first {
+  border-radius: 50% 50% 0 0;
+}
+
+.weekday-last {
+  border-radius: 0 0 50% 50%;
+}
+
 [data-mode='multiple']
   .calendar-row:has(.calendar-day-selected):last-child
   .calendar-day-selected {
