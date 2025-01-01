@@ -37,9 +37,9 @@ export async function GET(request: Request, context: { params: { id: string } })
       additionalInfo: '풍경한우? 가족 생일마다 가는 단골 맛집! 고기가 정말 최고야!',
     },
     '2': {
-      name: '아늑한 카페',
+      name: '알베르',
       type: 'cafe', // 카페
-      address: '서울 강남구 강남대로 123',
+      address: '서울 강남구 강남대로102길 34',
       description: '편안한 분위기에서 커피를 즐길 수 있는 곳',
       tags: ['스터디', '콘센트'],
       operatingHours: '09:00 - 23:00',
@@ -53,9 +53,9 @@ export async function GET(request: Request, context: { params: { id: string } })
       additionalInfo: '아늑한 공간에서 집중하며 커피 한 잔의 여유를 즐기세요.',
     },
     '3': {
-      name: '재미난 노래방',
+      name: '슈퍼스타 코인노래방',
       type: 'play', // 오락
-      address: '부산 해운대구 해운대로 456',
+      address: '서울 양천구 목동동로 65',
       description: '최신 음악과 최고의 음향을 즐길 수 있는 노래방',
       tags: ['노래방', '24시'],
       operatingHours: '24시간 영업',
