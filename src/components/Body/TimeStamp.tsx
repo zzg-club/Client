@@ -230,32 +230,31 @@ export default function TimeStamp({
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto bg-white pl-0 pr-8 py-5">
+    <div className="w-full max-w-4xl mx-auto bg-white pl-2 pr-8 py-5 flex">
+      <div className="relative pt-8 w-7 pr-1">
+        {Array.from(
+          { length: 23 },
+          (
+            _,
+            i, //시간 몇개로 나눌 건지
+          ) => (
+            <div key={i} className="h-9 text-[10px] text-[#afafaf]">
+              {`${String(i + 1).padStart(2, '0')}시`}{' '}
+            </div>
+          ),
+        )}
+      </div>
       <div
         ref={gridRef}
-        className="relative grid z-100 border border-r-[#d9d9d9] "
+        className=" w-full relative grid z-100 border-[1px] border-[#d9d9d9] rounded-3xl overflow-hidden"
         style={{
-          gridTemplateColumns: `40px repeat(${currentDates.length}, 1fr)`,
+          gridTemplateColumns: `repeat(${currentDates.length}, 1fr)`,
           backgroundImage: 'linear-gradient(#d9d9d9 1px, transparent 1px)',
           backgroundSize: `100% ${36}px`,
         }}
       >
-        <div className="relative pt-8 bg-white overflow-hidden z-200">
-          {Array.from(
-            { length: 23 },
-            (
-              _,
-              i, //시간 몇개로 나눌 건지
-            ) => (
-              <div key={i} className="h-9 pl-3 text-[8px] text-[#d9d9d9]-500">
-                {`${String(i + 1).padStart(2, '0')}시`}
-              </div>
-            ),
-          )}
-        </div>
-
         {currentDates.map((_, colIndex) => (
-          <div key={colIndex} className="relative border-l border-gray-200">
+          <div key={colIndex} className="relative border border-[#d9d9d9]">
             {Array.from({ length: 48 }, (_, rowIndex) => {
               // 선택 가능한 세로 길이 범위
               const cellStatus = getCellStatus(rowIndex, colIndex)
@@ -267,8 +266,8 @@ export default function TimeStamp({
                     ${
                       cellStatus.isSelected
                         ? cellStatus.isConfirmed
-                          ? 'bg-purple-400'
-                          : 'bg-purple-100'
+                          ? 'bg-[#9562fa]/70'
+                          : 'bg-[#9562fa]/20'
                         : ''
                     }
                   `} // 색칠된 보라색 1칸
@@ -282,10 +281,10 @@ export default function TimeStamp({
                   }
                 >
                   {cellStatus.isStartCell && (
-                    <div className="absolute -top-1 left-0 w-2 h-2 bg-purple-500 rounded-full cursor-move" />
+                    <div className="absolute -top-1 left-0 w-2 h-2 bg-[#9562fa] rounded-full cursor-move" />
                   )}
                   {cellStatus.isEndCell && (
-                    <div className="absolute -bottom-1 right-0 w-2 h-2 bg-purple-500 rounded-full cursor-move" />
+                    <div className="absolute -bottom-1 right-0 w-2 h-2 bg-[#9562fa] rounded-full cursor-move" />
                   )}
                 </div>
               )
