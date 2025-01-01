@@ -29,8 +29,14 @@ export default function EditTitle({
       handleSave()
     }
   }
-
-  const truncateTitle = (text: string, maxLength: number) => {
+  const truncateTitle = (
+    text: string | undefined | null,
+    maxLength: number,
+  ): string => {
+    if (!text) {
+      // text가 undefined, null, 또는 빈 문자열인 경우
+      return '' // 기본값 반환
+    }
     return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text
   }
 
