@@ -3,9 +3,8 @@
 import Image from 'next/image'
 
 export interface ModalProps {
-  date: string
   title: string
-  subtitle?: number
+  memberCount?: number
   members: {
     id: number
     name: string
@@ -14,18 +13,17 @@ export interface ModalProps {
 }
 
 export default function MembersDefault({
-  date,
   title,
-  subtitle,
+  memberCount,
   members,
   //   onClose,
 }: ModalProps) {
   return (
     <div>
-      {/* 헤더 부분: 날짜, 친구 추가 버튼, 엑스 버튼 */}
+      {/* 헤더 부분: 모임 이름, 엑스 버튼 */}
       <div className="mb-[6px]">
         <div className="text-black text-base font-medium leading-snug">
-          {date}
+          {title}
         </div>
       </div>
 
@@ -33,11 +31,11 @@ export default function MembersDefault({
       <div className="mb-8">
         <div className="flex items-center gap-1">
           <span className="text-[#8e8d8d] text-base font-medium leading-snug">
-            {title}
+            참여 인원
           </span>
-          {subtitle && (
+          {memberCount && (
             <span className="text-[#9562fa] text-base font-semibold leading-snug">
-              {subtitle}
+              {memberCount}
             </span>
           )}
         </div>
