@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { getCurrentLocation } from './getCurrentLocation'
 
-const KakaoMap = ({ selectedPlace }) => {
+const KakaoMap = ({ selectedPlace, onMoveToCurrentLocation }) => {
   const mapContainerRef = useRef(null)
   const [currentLocation, setCurrentLocation] = useState(null)
   const [map, setMap] = useState(null)
   const [currentMarker, setCurrentMarker] = useState(null)
 
+  // 지도 초기화
   useEffect(() => {
     const initializeMap = async () => {
       const location = await getCurrentLocation()
@@ -28,11 +29,10 @@ const KakaoMap = ({ selectedPlace }) => {
 
           const kakaoMap = new window.kakao.maps.Map(mapContainer, mapOption)
 
-          // 사용자 정의 마커 이미지 (32x32 크기 설정)
           const markerImage = new window.kakao.maps.MarkerImage(
             '/myLocation.svg',
-            new window.kakao.maps.Size(32, 32), // 이미지 크기 설정
-            { offset: new window.kakao.maps.Point(16, 32) }, // 중심점 설정
+            new window.kakao.maps.Size(32, 32),
+            { offset: new window.kakao.maps.Point(16, 32) },
           )
 
           const marker = new window.kakao.maps.Marker({
@@ -56,36 +56,31 @@ const KakaoMap = ({ selectedPlace }) => {
     initializeMap()
   }, [])
 
-  useEffect(() => {
-    if (!map || !currentMarker) return
+  // 현재 위치로 이동
+  const moveToCurrentLocation = async () => {
+    try {
+      const location = await getCurrentLocation()
+      const newLocation = new window.kakao.maps.LatLng(
+        location.lat,
+        location.lng,
+      )
 
-    const watchId = navigator.geolocation.watchPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords
-        const newLocation = new window.kakao.maps.LatLng(latitude, longitude)
+      // 지도와 마커 위치 업데이트
+      if (map) map.setCenter(newLocation)
+      if (currentMarker) currentMarker.setPosition(newLocation)
 
-        // 마커 위치 업데이트
-        currentMarker.setPosition(newLocation)
-
-        // 지도 중심 업데이트
-        map.setCenter(newLocation)
-
-        setCurrentLocation({ lat: latitude, lng: longitude })
-      },
-      (error) => {
-        console.error('위치 추적 중 오류 발생:', error)
-      },
-      {
-        enableHighAccuracy: true, // 고정밀도 위치 사용
-        maximumAge: 0, // 캐시된 위치 정보 사용 안 함
-        timeout: 5000, // 5초 이상 대기 시 오류 처리
-      },
-    )
-
-    return () => {
-      navigator.geolocation.clearWatch(watchId) // 위치 추적 중지
+      setCurrentLocation(location)
+    } catch (error) {
+      console.error('현재 위치로 이동 중 오류:', error)
     }
-  }, [map, currentMarker])
+  }
+
+  // 외부 이벤트와 연동
+  useEffect(() => {
+    if (onMoveToCurrentLocation) {
+      onMoveToCurrentLocation(moveToCurrentLocation)
+    }
+  }, [onMoveToCurrentLocation, moveToCurrentLocation])
 
   return (
     <div
