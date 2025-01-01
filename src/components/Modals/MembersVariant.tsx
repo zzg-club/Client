@@ -1,5 +1,6 @@
 'use client'
 
+import { X } from 'lucide-react'
 import Image from 'next/image'
 
 export interface ModalProps {
@@ -12,6 +13,7 @@ export interface ModalProps {
     name: string
     image: string
   }[]
+  onRemove: (id: number) => void
 }
 
 export default function MembersVariant({
@@ -20,6 +22,7 @@ export default function MembersVariant({
   startTime,
   endTime,
   members,
+  onRemove,
 }: ModalProps) {
   return (
     <div>
@@ -48,14 +51,22 @@ export default function MembersVariant({
       <div className="grid grid-cols-3 gap-[20px]">
         {members.map((member) => (
           <div key={member.id} className="flex flex-col items-center">
-            <div className="w-12 h-12 rounded-3xl border-2 border-[#9562fa] overflow-hidden">
+            <div className="w-12 h-12 rounded-3xl border-2 border-[#9562fa] relative">
               <Image
                 src={member.image}
                 alt={member.name}
                 width={48}
                 height={48}
-                objectFit="cover" // 비율 유지하며 채우기
+                objectFit="cover"
+                className="rounded-3xl"
               />
+              {/* X 버튼 */}
+              <button
+                className="absolute top-0.5 right-0.5 transform translate-x-1/2 -translate-y-1/2 w-5 h-5 p-0.5 opacity-80 bg-[#afafaf] rounded-full border-2 border-[#8e8d8d] flex items-center justify-center"
+                onClick={() => onRemove(member.id)}
+              >
+                <X className="w-4 h-4 text-[#1e1e1e]" />
+              </button>
             </div>
             <span className="self-stretch text-center text-[#8e8d8d] text-base font-normal leading-[17px]">
               {member.name}
