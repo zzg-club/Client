@@ -13,7 +13,7 @@ import EditTitle from '@/components/Header/EditTitle'
 const mockSchedules = [
   {
     id: 1,
-    date: '12월 5일',
+    date: '12월 5일 목요일',
     title: '제목 없는 일정',
     startTime: '13:00',
     endTime: '15:00',
@@ -48,7 +48,7 @@ const mockSchedules = [
   },
   {
     id: 2,
-    date: '12월 6일',
+    date: '12월 6일 금요일',
     title: '팀 미팅',
     startTime: '15:00',
     endTime: '16:30',
@@ -93,7 +93,7 @@ const mockSchedules = [
   },
   {
     id: 3,
-    date: '12월 5일',
+    date: '12월 28일 토요일',
     title: '프로젝트 미팅',
     startTime: '13:00',
     endTime: '15:00',
