@@ -1,10 +1,10 @@
 'use client'
 
-import React, { useState } from 'react'
-import { useRouter } from 'next/navigation' // useRouter 훅 사용
+import React, { useState, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import KakaoMap from '@/components/Map/KakaoMap'
-import NavBar from '@/components/Navigate/NavBar'
-import styles from '@/app/place/styles/Home.module.css' // CSS 모듈 임포트
+import Navbar from '@/components/Navigate/NavBar'
+import styles from '@/app/place/styles/Home.module.css'
 
 interface Place {
   lat: number
@@ -12,42 +12,82 @@ interface Place {
   name: string
 }
 
+const tabs = [
+  { id: 'food', label: '음식점' },
+  { id: 'cafe', label: '카페' },
+  { id: 'play', label: '놀이' },
+]
+
 export default function Home() {
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null)
-  const router = useRouter() // Next.js 라우터 훅
+  const [bottomSheetState, setBottomSheetState] = useState<
+    'collapsed' | 'middle' | 'expanded'
+  >('collapsed')
+  const [selectedTab, setSelectedTab] = useState<string>(tabs[0].id)
+  const startY = useRef<number | null>(null)
+  const currentY = useRef<number | null>(null)
+  const threshold = 50
+  const router = useRouter()
+  const mapRef = useRef<() => void | null>(null)
 
-  const places: Place[] = [
-    { name: '풍경 한우', lat: 37.5665, lng: 126.978 },
-    { name: '서울 카페', lat: 37.5675, lng: 126.979 },
-    { name: '코인노래방', lat: 37.5655, lng: 126.977 },
-  ]
+  const handleVectorButtonClick = () => {
+    if (mapRef.current) {
+      mapRef.current() // KakaoMap의 moveToCurrentLocation 호출
+    }
+  }
 
   const handleSearchClick = () => {
-    // 검색창 클릭 시 페이지 이동
-    router.push('/search') // '/search' 페이지로 이동
+    router.push('/search')
+  }
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    startY.current = e.touches[0].clientY
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    currentY.current = e.touches[0].clientY
+  }
+
+  const handleTouchEnd = () => {
+    if (startY.current !== null && currentY.current !== null) {
+      const delta = startY.current - currentY.current
+
+      if (delta > threshold) {
+        // 확장 상태로 변경
+        setBottomSheetState((prevState) =>
+          prevState === 'collapsed' ? 'middle' : 'expanded',
+        )
+      } else if (delta < -threshold) {
+        // 축소 상태로 변경
+        setBottomSheetState((prevState) =>
+          prevState === 'expanded' ? 'middle' : 'collapsed',
+        )
+      }
+    }
+    startY.current = null
+    currentY.current = null
   }
 
   return (
-    <div className={styles.container}>
-      <NavBar />
+    <div className={styles['mobile-container']}>
+      <Navbar activeTab="플레이스" />
       <div className={styles['search-container']}>
         <div
           className={styles['search-bar']}
-          onClick={handleSearchClick} // 클릭 이벤트 추가
-          style={{ cursor: 'pointer' }} // 클릭 가능한 UI 표시
+          onClick={handleSearchClick}
+          style={{ cursor: 'pointer' }}
         >
           <img
             src="/search.svg"
             alt="search"
             className={styles['search-icon']}
           />
-          <input
-            type="text"
-            placeholder="원하는 곳을 검색해봐요!"
-            readOnly // 검색창 입력 비활성화 (클릭만 가능하게)
-          />
+          <input type="text" placeholder="원하는 곳을 검색해봐요!" readOnly />
         </div>
-        <button className={styles['vector-button']}>
+        <button
+          className={styles['vector-button']}
+          onClick={handleVectorButtonClick}
+        >
           <img
             src="/vector.svg"
             alt="vector"
@@ -55,7 +95,147 @@ export default function Home() {
           />
         </button>
       </div>
-      <KakaoMap selectedPlace={selectedPlace} />
+      <KakaoMap
+        selectedPlace={selectedPlace}
+        onMoveToCurrentLocation={(moveToCurrentLocation) =>
+          (mapRef.current = moveToCurrentLocation)
+        }
+      />
+
+      {/* Tabs */}
+      <div className={`${styles.tabs} ${styles[bottomSheetState]}`}>
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            className={`${styles.tab} ${
+              selectedTab === tab.id ? styles.selected : ''
+            }`}
+            onClick={() => setSelectedTab(tab.id)}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Bottom Sheet */}
+      <div
+        className={`${styles.bottomSheet} ${styles[bottomSheetState]}`}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        <div className={styles.dragHandle}></div>
+        <div className={styles.content}>
+          {/* Dynamic Buttons */}
+          <div className={styles.buttonsContainer}>
+            {selectedTab === 'food' &&
+              ['24시', '학교', '주점', '룸'].map((button, index) => (
+                <button key={index} className={styles.actionButton}>
+                  {button}
+                </button>
+              ))}
+            {selectedTab === 'cafe' &&
+              ['24시', '학교', '스터디', '콘센트'].map((button, index) => (
+                <button key={index} className={styles.actionButton}>
+                  {button}
+                </button>
+              ))}
+            {selectedTab === 'play' &&
+              ['노래방', 'PC방', '볼링장', '당구장', '파티룸'].map(
+                (button, index) => (
+                  <button key={index} className={styles.actionButton}>
+                    {button}
+                  </button>
+                ),
+              )}
+          </div>
+          <div className={styles.moimPickContainer}>
+            <span className={styles.moimPickText}>MOIM-Pick</span>
+            <div className={styles.moimPickLine}></div>
+          </div>
+          <div className={styles.moimPickSubText}>
+            <span className={styles.highlight}>박진우</span>님을 위해 선배들이
+            픽 했어요!
+          </div>
+          <div className={styles.card}>
+            <div className={styles.cardImage}>
+              <img src="/sample-cafe.svg" alt="카페 이미지" />
+            </div>
+            <div className={styles.cardContent}>
+              {/* 카드 헤더 */}
+              <div className={styles.cardHeader}>
+                <h3 className={styles.cardTitle}>서울 공덕 구로토</h3>
+                <div className={styles.likes}>
+                  <div className={styles.likeBackground}>
+                    <div className={styles.likeIcon}></div>
+                  </div>
+                  <span>323명</span>
+                </div>
+              </div>
+
+              {/* 태그 */}
+              <div className={styles.tags}>
+                <span className={styles.tag}>24시</span>
+                <span className={styles.tag}>학교</span>
+              </div>
+
+              {/* 설명 */}
+              <div className={styles.description}>
+                "인테리어가 신선하고 사진 찍기 딱 좋더라, 꼭 가봐!✨"
+              </div>
+
+              {/* 푸터 */}
+              <div className={styles.footer}>
+                <img
+                  src="/clock-icon.svg"
+                  alt="시계 아이콘"
+                  className={styles.clockIcon}
+                />
+                <span>영업시간 00:00 - 24:00</span>
+              </div>
+            </div>
+          </div>
+          <div className={styles.bottomSheetLine}></div>
+          <div className={styles.card}>
+            <div className={styles.cardImage}>
+              <img src="/sample-cafe.svg" alt="카페 이미지" />
+            </div>
+            <div className={styles.cardContent}>
+              {/* 카드 헤더 */}
+              <div className={styles.cardHeader}>
+                <h3 className={styles.cardTitle}>서울 공덕 구로토</h3>
+                <div className={styles.likes}>
+                  <div className={styles.likeBackground}>
+                    <div className={styles.likeIcon}></div>
+                  </div>
+                  <span>323명</span>
+                </div>
+              </div>
+
+              {/* 태그 */}
+              <div className={styles.tags}>
+                <span className={styles.tag}>24시</span>
+                <span className={styles.tag}>학교</span>
+              </div>
+
+              {/* 설명 */}
+              <div className={styles.description}>
+                "인테리어가 신선하고 사진 찍기 딱 좋더라, 꼭 가봐!✨"
+              </div>
+
+              {/* 푸터 */}
+              <div className={styles.footer}>
+                <img
+                  src="/clock-icon.svg"
+                  alt="시계 아이콘"
+                  className={styles.clockIcon}
+                />
+                <span>영업시간 00:00 - 24:00</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
