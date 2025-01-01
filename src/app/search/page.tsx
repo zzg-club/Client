@@ -20,8 +20,7 @@ export default function SearchPage() {
           src="/arrow_back.svg"
           alt="뒤로 가기"
           className={styles.arrowIcon}
-          onClick={() => router.back()} // 뒤로 가기 버튼 클릭 시 이전 페이지로 이동
-          style={{ cursor: 'pointer' }}
+          onClick={() => router.push('/place')} // 클릭 시 'place' 페이지로 이동
         />
         <div className={styles.searchInputContainer}>
           <img
