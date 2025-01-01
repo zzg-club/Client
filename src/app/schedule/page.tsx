@@ -21,27 +21,27 @@ const mockSchedules = [
     participants: [
       {
         id: 1,
-        name: 'User 1',
+        name: '나',
         image: '/globe.svg',
       },
       {
         id: 2,
-        name: 'User 2',
+        name: '김태엽',
         image: '/globe.svg',
       },
       {
         id: 3,
-        name: 'User 3',
+        name: '지유진',
         image: '/globe.svg',
       },
       {
         id: 4,
-        name: 'User 4',
+        name: '이소룡',
         image: '/globe.svg',
       },
       {
         id: 5,
-        name: 'User 5',
+        name: '박진우',
         image: '/globe.svg',
       },
     ],
@@ -56,37 +56,37 @@ const mockSchedules = [
     participants: [
       {
         id: 1,
-        name: 'User 1',
+        name: '나',
         image: '/globe.svg',
       },
       {
         id: 2,
-        name: 'User 2',
+        name: '김태엽',
         image: '/globe.svg',
       },
       {
         id: 3,
-        name: 'User 3',
+        name: '지유진',
         image: '/globe.svg',
       },
       {
         id: 4,
-        name: 'User 4',
+        name: '이소룡',
         image: '/globe.svg',
       },
       {
         id: 5,
-        name: 'User 5',
+        name: '박진우',
         image: '/globe.svg',
       },
       {
         id: 6,
-        name: 'User 6',
+        name: '링크',
         image: '/globe.svg',
       },
       {
         id: 7,
-        name: 'User 7',
+        name: '버스',
         image: '/globe.svg',
       },
     ],
@@ -101,17 +101,17 @@ const mockSchedules = [
     participants: [
       {
         id: 1,
-        name: 'User 1',
+        name: '나',
         image: '/globe.svg',
       },
       {
         id: 2,
-        name: 'User 2',
+        name: '김태엽',
         image: '/globe.svg',
       },
       {
         id: 3,
-        name: 'User 3',
+        name: '지유진',
         image: '/globe.svg',
       },
     ],
