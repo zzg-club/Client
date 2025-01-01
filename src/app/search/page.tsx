@@ -1,9 +1,12 @@
 'use client'
 
 import React from 'react'
+import { useRouter } from 'next/navigation' // useRouter 훅 임포트
 import styles from '@/app/search/styles/SearchBar.module.css' // CSS 모듈 임포트
 
 export default function SearchPage() {
+  const router = useRouter() // useRouter 훅 사용
+  
   return (
     <div className={styles.container}>
       {/* 검색창 */}
@@ -12,6 +15,7 @@ export default function SearchPage() {
           src="/arrow_back.svg"
           alt="뒤로 가기"
           className={styles.arrowIcon}
+          onClick={() => router.push('/place')} // 클릭 시 'place' 페이지로 이동
         />
         <div className={styles.searchInputContainer}>
           <img
