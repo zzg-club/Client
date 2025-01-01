@@ -149,7 +149,7 @@ export default function ScheduleLanding() {
   return (
     <div className="flex flex-col min-h-screen">
       {/* Add Moim Button */}
-      <NavBar />
+      <NavBar activeTab="스케줄" />
       {mockSchedules.length > 0 ? (
         <>
           <div className="w-full h-[34px] px-4 my-[8px] flex justify-start items-center gap-[2px]">
