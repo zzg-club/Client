@@ -1,8 +1,10 @@
 import { WhiteButton } from '../Buttons/WhiteButtton'
 import { ProfileSelected } from '../Profiles/ProfileSelected'
 import React, { useState } from 'react'
+import { useRouter } from 'next/navigation' // useRouter 훅 사용
 import CustomModal from '@/components/Modals/CustomModal'
 import MembersVariant from '../Modals/MembersVariant'
+import SelectModal from '../Modals/SelectModal'
 
 export interface ScheduleCardProps {
   date: string
@@ -23,6 +25,8 @@ export function ScheduleCard({
 }: ScheduleCardProps) {
   const [isMembersModalOpen, setIsMembersModalOpen] = useState(false)
   const [isSelectedPlace, setIsSelectedPlace] = useState(false)
+
+  const router = useRouter()
 
   // membersVariant 모달 핸들
   const handleMembersModalOpen = () => {
@@ -110,14 +114,21 @@ export function ScheduleCard({
         />
       </CustomModal>
 
-      {/* SelectModal 모달 */}
-      <CustomModal
+      {/* SelectModal 모달 - 장소 선정 */}
+      <SelectModal
         open={isSelectedPlace}
         onOpenChange={handleCloseSelectedPlace}
-        isFooter={false}
+        leftText={'직접 입력'}
+        rightText={'장소선정'}
+        onClickLeft={() => alert('직접 입력 모달 연결')}
+        onClickRight={() => router.push('/search')}
       >
-        <div>장소 선택 모달 내용 ~~</div>
-      </CustomModal>
+        <div className="flex item-center justify-center text-[#1e1e1e] text-xl font-medium leading-snug py-4 mt-3">
+          장소를
+          <br />
+          선정할까요?
+        </div>
+      </SelectModal>
     </div>
   )
 }
