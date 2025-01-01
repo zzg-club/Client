@@ -7,7 +7,7 @@ import MembersVariant from '../Modals/MembersVariant'
 export interface ScheduleCardProps {
   date: string
   title: string
-  startTime?: string
+  startTime: string
   endTime?: string
   location?: string
   participants: { id: number; name: string; image: string }[]
@@ -21,23 +21,23 @@ export function ScheduleCard({
   location,
   participants,
 }: ScheduleCardProps) {
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [isSelectModalOpen, setIsSelectModalOpen] = useState(false)
+  const [isMembersModalOpen, setIsMembersModalOpen] = useState(false)
+  const [isSelectedPlace, setIsSelectedPlace] = useState(false)
 
   // membersVariant 모달 핸들
-  const handleOpenDialog = () => {
-    setIsDialogOpen(!isDialogOpen)
+  const handleMembersModalOpen = () => {
+    setIsMembersModalOpen(!isMembersModalOpen)
   }
 
   // 정말로 삭제하시겠습니까 경고 컴포넌트 open 핸들
-  const handleOpenSelectModal = (e: React.MouseEvent) => {
+  const handleOpenSelectedPlace = (e: React.MouseEvent) => {
     e.stopPropagation() // 이벤트 버블링 방지
-    setIsSelectModalOpen(true)
+    setIsSelectedPlace(true)
   }
 
   // 정말로 삭제하시겠습니까 경고 컴포넌트 close 핸들
-  const handleCloseSelectModal = () => {
-    setIsSelectModalOpen(false)
+  const handleCloseSelectedPlace = () => {
+    setIsSelectedPlace(false)
   }
 
   // 선택된 멤버의 id값 전달을 위한 상태추적
@@ -55,7 +55,7 @@ export function ScheduleCard({
       </div>
       <div
         className="group w-full h-[114px] max-w-full rounded-3xl border-2 border-[#9562fa] px-6 py-[18px] cursor-pointer bg-white border-[#9562fa] hover:bg-[#9562fa] hover:text-[#fff]"
-        onClick={handleOpenDialog}
+        onClick={handleMembersModalOpen}
       >
         <div className="flex flex-col gap-4">
           {/* 내용 정렬 */}
@@ -87,7 +87,7 @@ export function ScheduleCard({
                   className={
                     'border-[#9562fa] text-[#9562fa] group-hover:border-white group-hover:text-white'
                   }
-                  onClick={handleOpenSelectModal}
+                  onClick={handleOpenSelectedPlace}
                 />
               )}
             </div>
@@ -96,11 +96,9 @@ export function ScheduleCard({
       </div>
       {/* MembersVariant 모달 */}
       <CustomModal
-        open={isDialogOpen}
-        onOpenChange={handleOpenDialog}
+        open={isMembersModalOpen}
+        onOpenChange={handleMembersModalOpen}
         isFooter={false}
-        isUserPlus={true}
-        onPlus={() => alert('친구추가')}
       >
         <MembersVariant
           onClickX={handleRemoveMember}
@@ -114,10 +112,9 @@ export function ScheduleCard({
 
       {/* SelectModal 모달 */}
       <CustomModal
-        open={isSelectModalOpen}
-        onOpenChange={handleCloseSelectModal}
+        open={isSelectedPlace}
+        onOpenChange={handleCloseSelectedPlace}
         isFooter={false}
-        isUserPlus={false}
       >
         <div>장소 선택 모달 내용 ~~</div>
       </CustomModal>

@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { X, UserPlus } from 'lucide-react'
 import Image from 'next/image'
 import ModalNotification from '../Notification/ModalNotification'
+import CustomModal from './CustomModal'
+import ScheduleSelectShareModal from './ScheduleSelectShareModal'
 
 export interface ModalProps {
   date: string
@@ -29,11 +31,13 @@ export default function MembersVariant({
   const [showNotification, setShowNotification] = useState(false)
   const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null)
 
+  // 멤버 프로필 이미지위의 X버튼 클릭 핸들러
   const handleRemoveClick = (id: number) => {
     setSelectedMemberId(id)
     setShowNotification(true)
   }
 
+  // Notification 컴포넌트로 넘기는 클릭 핸들러
   const handleConfirm = () => {
     if (selectedMemberId !== null) {
       onClickX(selectedMemberId)
@@ -50,20 +54,22 @@ export default function MembersVariant({
     console.log('취소')
   }
 
+  // 친구 추가 버튼 클릭 핸들러
+  const [isUserPlusOpen, setIsUserPlusOpen] = useState(false)
+  const handleOpenUserPlus = () => {
+    setIsUserPlusOpen(!isUserPlusOpen)
+  }
+
   return (
     <div>
-      {/* 헤더 부분: 날짜, 친구 추가 버튼, 엑스 버튼
-      <div className="mb-[6px]">
-        <div className="text-black text-base font-medium leading-snug">
-          {date}
-        </div>
-      </div> */}
-      {/* 헤더 부분: 날짜, 친구 추가 버튼, 엑스 버튼 */}
       <div className="flex justify-between items-center mb-[6px]">
         <div className="text-black text-base font-medium leading-snug">
           {date}
         </div>
-        <button className="text-[#9562fa] mr-[32px]">
+        <button
+          className="text-[#9562fa] mr-[32px]"
+          onClick={handleOpenUserPlus}
+        >
           <UserPlus size={24} />
         </button>
       </div>
@@ -124,6 +130,14 @@ export default function MembersVariant({
           </div>
         ))}
       </div>
+
+      <CustomModal
+        open={isUserPlusOpen}
+        onOpenChange={handleOpenUserPlus}
+        isFooter={false}
+      >
+        <ScheduleSelectShareModal inviteUrl="https://moim.team/" />
+      </CustomModal>
     </div>
   )
 }
