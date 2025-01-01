@@ -77,7 +77,7 @@ export function ScheduleCard({
             </div>
 
             {/* 약속 시간, 장소 */}
-            <div className="flex flex-col items-end gap-2 py-[4px]">
+            <div className="flex flex-col justify-center items-end gap-2">
               <span className="text-xl font-medium text-[#9562fa] group-hover:text-[#fff]">
                 {startTime} - {endTime}
               </span>
