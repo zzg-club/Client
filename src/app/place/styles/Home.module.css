@@ -102,7 +102,6 @@
   z-index: 10;
 }
 
-/* Bottom Sheet */
 .bottomSheet {
   position: absolute;
   bottom: 0;
@@ -110,22 +109,22 @@
   width: 100%;
   background-color: #ffffff;
   border-radius: 24px 24px 0 0;
-  transition: transform 0.3s ease-in-out;
+  overflow-y: auto; /* 스크롤 활성화 */
+  transition: height 0.3s ease-in-out;
+  height: var(--bottomSheetHeight); /* 변수로 높이 설정 */
   z-index: 10;
-  overflow-y: auto; /* 세로 스크롤 활성화 */
-  max-height: calc(100vh - 100px); /* 최대 높이 설정 */
 }
 
 .bottomSheet.collapsed {
-  transform: translateY(calc(100% - 100px));
+  --bottomSheetHeight: 100px;
 }
 
 .bottomSheet.middle {
-  transform: translateY(calc(100% - 260px));
+  --bottomSheetHeight: 260px;
 }
 
 .bottomSheet.expanded {
-  transform: translateY(calc(100% - 500px));
+  --bottomSheetHeight: calc(70vh); /* 최대 높이 */
 }
 
 .dragHandle {
@@ -189,7 +188,7 @@
 }
 
 .tabs.expanded {
-  bottom: 452px; /* Bottom Sheet가 expanded일 때 */
+  bottom: calc(70vh - 46px); /* Bottom Sheet가 expanded일 때 */
 }
 
 /* 버튼 컨테이너 */

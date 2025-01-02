@@ -234,6 +234,82 @@ export default function Home() {
               </div>
             </div>
           </div>
+          <div className={styles.card}>
+            <div className={styles.cardImage}>
+              <img src="/sample-cafe.svg" alt="카페 이미지" />
+            </div>
+            <div className={styles.cardContent}>
+              {/* 카드 헤더 */}
+              <div className={styles.cardHeader}>
+                <h3 className={styles.cardTitle}>서울 공덕 구로토</h3>
+                <div className={styles.likes}>
+                  <div className={styles.likeBackground}>
+                    <div className={styles.likeIcon}></div>
+                  </div>
+                  <span>323명</span>
+                </div>
+              </div>
+
+              {/* 태그 */}
+              <div className={styles.tags}>
+                <span className={styles.tag}>24시</span>
+                <span className={styles.tag}>학교</span>
+              </div>
+
+              {/* 설명 */}
+              <div className={styles.description}>
+                "인테리어가 신선하고 사진 찍기 딱 좋더라, 꼭 가봐!✨"
+              </div>
+
+              {/* 푸터 */}
+              <div className={styles.footer}>
+                <img
+                  src="/clock-icon.svg"
+                  alt="시계 아이콘"
+                  className={styles.clockIcon}
+                />
+                <span>영업시간 00:00 - 24:00</span>
+              </div>
+            </div>
+          </div>
+          <div className={styles.card}>
+            <div className={styles.cardImage}>
+              <img src="/sample-cafe.svg" alt="카페 이미지" />
+            </div>
+            <div className={styles.cardContent}>
+              {/* 카드 헤더 */}
+              <div className={styles.cardHeader}>
+                <h3 className={styles.cardTitle}>서울 공덕 구로토</h3>
+                <div className={styles.likes}>
+                  <div className={styles.likeBackground}>
+                    <div className={styles.likeIcon}></div>
+                  </div>
+                  <span>323명</span>
+                </div>
+              </div>
+
+              {/* 태그 */}
+              <div className={styles.tags}>
+                <span className={styles.tag}>24시</span>
+                <span className={styles.tag}>학교</span>
+              </div>
+
+              {/* 설명 */}
+              <div className={styles.description}>
+                "인테리어가 신선하고 사진 찍기 딱 좋더라, 꼭 가봐!✨"
+              </div>
+
+              {/* 푸터 */}
+              <div className={styles.footer}>
+                <img
+                  src="/clock-icon.svg"
+                  alt="시계 아이콘"
+                  className={styles.clockIcon}
+                />
+                <span>영업시간 00:00 - 24:00</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
