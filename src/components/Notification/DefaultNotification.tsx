@@ -32,7 +32,7 @@ export default function DefaultNotification({
             onClick={onLeftBtn}
             className="w-[120px] h-[42px] px-2.5 py-3 rounded-3xl border border-white justify-center items-center flex"
           >
-            <div className="text-center text-white text-base font-normal font-['Pretendard'] leading-[17px]">
+            <div className="text-center text-white text-base font-normal leading-[17px]">
               {leftBtnText}
             </div>
           </button>
@@ -41,7 +41,7 @@ export default function DefaultNotification({
             onClick={onRightBtn}
             className="w-[120px] h-[42px] px-2.5 py-3 rounded-3xl border border-white justify-center items-center flex"
           >
-            <div className="text-center text-white text-base font-normal font-['Pretendard'] leading-[17px]">
+            <div className="text-center text-white text-base font-medium leading-[17px]">
               {RightBtnText}
             </div>
           </button>
