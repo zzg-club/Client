@@ -8,6 +8,7 @@ interface Selection {
   startCol: number
   endRow: number
   endCol: number
+  isSelected: boolean
   isConfirmed: boolean
 }
 
@@ -61,13 +62,37 @@ export default function TimeStamp({
     [selections],
   )
 
+  const handleMouseClick = (rowIndex: number, colIndex: number) => {
+    setSelectionsByPage((prev) => {
+      // Ensure newSelections is always an array, even if prev[currentPage] doesn't exist
+      const newSelections = (prev[currentPage] || [])
+        .map((selection) => (selection.isConfirmed ? selection : null))
+        .filter(Boolean) as Selection[]
+
+      const newSelection: Selection = {
+        startRow: rowIndex,
+        startCol: colIndex,
+        endRow: rowIndex,
+        endCol: colIndex,
+        isSelected: true,
+        isConfirmed: false,
+      }
+
+      // Add the new selection
+      return {
+        ...prev,
+        [currentPage]: [...newSelections, newSelection],
+      }
+    })
+  }
+
   const handleMouseDown = (
     rowIndex: number,
     colIndex: number,
     isEndpoint: boolean,
     selection?: Selection,
   ) => {
-    if (isEndpoint && selection) {
+    if (selection) {
       setIsResizing(true)
       setActiveSelection(selection)
       setResizingPoint(
@@ -75,18 +100,6 @@ export default function TimeStamp({
           ? 'start'
           : 'end',
       )
-    } else if (!isEndpoint && !activeSelection) {
-      const newSelection: Selection = {
-        startRow: rowIndex,
-        startCol: colIndex,
-        endRow: rowIndex,
-        endCol: colIndex,
-        isConfirmed: false,
-      }
-
-      if (!isOverlapping(newSelection)) {
-        setActiveSelection(newSelection)
-      }
     }
   }
 
@@ -107,28 +120,22 @@ export default function TimeStamp({
         47,
       )
 
-      if (isResizing) {
-        setActiveSelection((prev) => {
-          if (!prev) return null
-          const newSelection = {
-            ...prev,
-            ...(resizingPoint === 'start'
-              ? { startRow: row, startCol: col }
-              : { endRow: row, endCol: col }),
-          }
-          return !isOverlapping(newSelection) ? newSelection : prev
-        })
-      } else {
-        setActiveSelection((prev) => {
-          if (!prev) return null
-          const newSelection = {
-            ...prev,
-            endRow: row,
-            endCol: col,
-          }
-          return !isOverlapping(newSelection) ? newSelection : prev
-        })
-      }
+      // 드래그 중에는 활성 선택을 업데이트
+      setActiveSelection((prev) => {
+        if (!prev) return null
+
+        const newSelection = isResizing
+          ? {
+              ...prev,
+              ...(resizingPoint === 'start'
+                ? { startRow: row, startCol: col }
+                : { endRow: row, endCol: col }),
+            }
+          : prev
+
+        // 선택 영역이 겹치지 않으면 업데이트
+        return !isOverlapping(newSelection) ? newSelection : prev
+      })
     },
     [
       activeSelection,
@@ -145,31 +152,39 @@ export default function TimeStamp({
 
   const handleMouseUp = useCallback(() => {
     if (activeSelection) {
-      if (isResizing) {
-        setSelectionsByPage((prev) => ({
-          ...prev,
-          [currentPage]: (prev[currentPage] || []).map((sel) =>
+      // 드래그 후, 선택 영역을 isConfirmed로 설정
+      setSelectionsByPage((prev) => {
+        const updatedSelections =
+          prev[currentPage]?.map((sel) =>
             sel === activeSelection
-              ? { ...activeSelection, isConfirmed: true }
+              ? { ...sel, isConfirmed: true } // 드래그된 영역을 isConfirmed로 설정
               : sel,
-          ),
-        }))
-      } else {
-        setSelectionsByPage((prev) => ({
+          ) || []
+
+        // 기존의 클릭된 부분도 선택 영역에 포함되었을 때 isConfirmed로 설정
+        const newSelectionConfirmed = updatedSelections.map((selection) =>
+          selection.isSelected
+            ? { ...selection, isConfirmed: true }
+            : selection,
+        )
+
+        if (!updatedSelections.some((sel) => sel === activeSelection)) {
+          newSelectionConfirmed.push({ ...activeSelection, isConfirmed: true })
+        }
+
+        return {
           ...prev,
-          [currentPage]: [
-            ...(prev[currentPage] || []),
-            { ...activeSelection, isConfirmed: true },
-          ],
-        }))
-      }
+          [currentPage]: newSelectionConfirmed,
+        }
+      })
     }
+
+    // 상태 초기화
     setIsResizing(false)
     setActiveSelection(null)
     setResizingPoint(null)
   }, [activeSelection, isResizing, currentPage])
 
-  // 현재 페이지에 해당하는 선택만 보여줌
   const currentSelections = selectionsByPage[currentPage] || []
 
   useEffect(() => {
@@ -185,9 +200,9 @@ export default function TimeStamp({
 
   const getCellStatus = (row: number, col: number) => {
     const allSelections = [
-      ...currentSelections, // 현재 페이지의 선택
-      ...selections, // 전역 선택 목록
-      activeSelection, // 현재 활성 선택
+      ...currentSelections,
+      ...selections,
+      activeSelection,
     ].filter(Boolean) as Selection[]
 
     for (const selection of allSelections) {
@@ -201,7 +216,6 @@ export default function TimeStamp({
           row === selection.startRow && col === selection.startCol
         const isEndCell = row === selection.endRow && col === selection.endCol
 
-        // 선택이 완료되었으면 isStartCell과 isEndCell을 false로 설정
         if (selection.isConfirmed) {
           return {
             isSelected: true,
@@ -264,23 +278,22 @@ export default function TimeStamp({
                   return (
                     <div
                       key={rowIndex}
-                      className={`
-                    h-[18px] relative cursor-pointer 
-                    ${
-                      cellStatus.isSelected
-                        ? cellStatus.isConfirmed
-                          ? 'bg-[#9562fa]/70'
-                          : 'bg-[#9562fa]/20'
-                        : ''
-                    }
-                  `} // 색칠된 보라색 1칸
+                      className={`h-[18px] relative cursor-pointer ${
+                        cellStatus.isSelected
+                          ? cellStatus.isConfirmed
+                            ? 'bg-[#9562fa]/70'
+                            : 'bg-[#9562fa]/20'
+                          : ''
+                      }`}
                       onMouseDown={() =>
-                        handleMouseDown(
-                          rowIndex,
-                          colIndex,
-                          cellStatus.isStartCell || cellStatus.isEndCell,
-                          cellStatus.selection,
-                        )
+                        cellStatus.isStartCell || cellStatus.isEndCell
+                          ? handleMouseDown(
+                              rowIndex,
+                              colIndex,
+                              true,
+                              cellStatus.selection,
+                            )
+                          : handleMouseClick(rowIndex, colIndex)
                       }
                     >
                       {cellStatus.isStartCell && (
