@@ -78,6 +78,8 @@ export default function TimeStamp({
         isConfirmed: false,
       }
 
+      console.log('Block selected:', newSelection)
+
       // Add the new selection
       return {
         ...prev,
@@ -100,6 +102,8 @@ export default function TimeStamp({
           ? 'start'
           : 'end',
       )
+
+      console.log('Resizing started on:', selection)
     }
   }
 
@@ -171,6 +175,10 @@ export default function TimeStamp({
         if (!updatedSelections.some((sel) => sel === activeSelection)) {
           newSelectionConfirmed.push({ ...activeSelection, isConfirmed: true })
         }
+
+        console.log(
+          `Selection completed from [Row: ${activeSelection.startRow}, Col: ${activeSelection.startCol}] to [Row: ${activeSelection.endRow}, Col: ${activeSelection.endCol}]`,
+        )
 
         return {
           ...prev,
