@@ -1,132 +1,102 @@
-'use client';
+'use client'
 
-import React, { useEffect, useState, useRef } from 'react';
-import KakaoMap from '@/components/Map/KakaoMap';
-import styles from '@/app/place/styles/Detail.module.css';
-import { Place } from '@/types/place';
+import React, { useState, useRef } from 'react'
+import { useRouter } from 'next/navigation'
+import KakaoMap from '@/components/Map/KakaoMap'
+import styles from '@/app/place/styles/Detail.module.css'
 
-interface PlaceDetailProps {
-  id: string;
-}
 
-const PlaceDetail = ({ id }: PlaceDetailProps) => {
-  const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-  const [bottomSheetState, setBottomSheetState] = useState<'collapsed' | 'middle' | 'expanded'>('collapsed');
-  const startY = useRef<number | null>(null);
-  const currentY = useRef<number | null>(null);
-  const threshold = 50;
+export default function Home() {
+  const [selectedPlace, setSelectedPlace] = useState<Place | null>(null)
+  const [bottomSheetState, setBottomSheetState] = useState<
+    'collapsed' | 'middle' | 'expanded'
+  >('collapsed')
+  const startY = useRef<number | null>(null)
+  const currentY = useRef<number | null>(null)
+  const threshold = 50
+  const router = useRouter()
+  const mapRef = useRef<() => void | null>(null)
 
-  useEffect(() => {
-    const fetchPlaceData = async () => {
-      try {
-        const response = await fetch(`/api/place/${id}`, { cache: 'no-store' });
-        if (!response.ok) {
-          throw new Error('Failed to fetch place data');
-        }
-        const data = await response.json();
-        setSelectedPlace(data);
-      } catch (err) {
-        console.error(err);
-        setError(true);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const handleVectorButtonClick = () => {
+    if (mapRef.current) {
+      mapRef.current() // KakaoMap의 moveToCurrentLocation 호출
+    }
+  }
 
-    fetchPlaceData();
-  }, [id]);
+  const handleSearchClick = () => {
+    router.push('/search')
+  }
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    startY.current = e.touches[0].clientY;
-  };
+    startY.current = e.touches[0].clientY
+  }
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    currentY.current = e.touches[0].clientY;
-  };
+    currentY.current = e.touches[0].clientY
+  }
 
   const handleTouchEnd = () => {
     if (startY.current !== null && currentY.current !== null) {
-      const delta = startY.current - currentY.current;
+      const delta = startY.current - currentY.current
 
       if (delta > threshold) {
+        // 확장 상태로 변경
         setBottomSheetState((prevState) =>
-          prevState === 'collapsed' ? 'middle' : 'expanded'
-        );
+          prevState === 'collapsed' ? 'middle' : 'expanded',
+        )
       } else if (delta < -threshold) {
+        // 축소 상태로 변경
         setBottomSheetState((prevState) =>
-          prevState === 'expanded' ? 'middle' : 'collapsed'
-        );
+          prevState === 'expanded' ? 'middle' : 'collapsed',
+        )
       }
     }
-    startY.current = null;
-    currentY.current = null;
-  };
-
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (error || !selectedPlace) {
-    return <div>Failed to load place details.</div>;
+    startY.current = null
+    currentY.current = null
   }
 
   return (
-    <div className={styles['detail-container']}>
+    <div className={styles['mobile-container']}>
+
       <div className={styles['map-container']}>
         <KakaoMap selectedPlace={selectedPlace} />
       </div>
 
+
       {/* Bottom Sheet */}
       <div
-        className={`${styles['bottom-sheet']} ${styles[bottomSheetState]}`}
+        className={`${styles.bottomSheet} ${styles[bottomSheetState]}`}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        <div className={styles['drag-handle']}></div>
-        <div className={styles['content']}>
-          <div className={styles['images']}>
-            {selectedPlace.images.map((img, idx) => (
-              <img key={idx} src={img} alt={`${selectedPlace.name} ${idx}`} />
-            ))}
-          </div>
+        <div className={styles.dragHandle}></div>
+        <div className={styles.content}>
+            <div className={styles.cardContent}>
+              {/* 카드 헤더 */}
+              <div className={styles.cardHeader}>
+                <h3 className={styles.cardTitle}>풍경 한우</h3>
+                <div className={styles.likes}>
+                  <div className={styles.likeBackground}>
+                    <div className={styles.likeIcon}></div>
+                  </div>
+                  <span>323명</span>
+                </div>
+              </div>
 
-          <div className={styles['info']}>
-            <h1>{selectedPlace.name}</h1>
-            <p>{selectedPlace.description}</p>
-            <div className={styles['tags']}>
-              {selectedPlace.tags.map((tag, idx) => (
-                <span key={idx} className={styles['tag']}>
-                  {tag}
-                </span>
-              ))}
-            </div>
-            <div className={styles['additional-info']}>
-              {selectedPlace.additionalInfo}
-            </div>
-          </div>
+              {/* 태그 */}
+              <div className={styles.tags}>
+                <span className={styles.tag}>24시</span>
+                <span className={styles.tag}>학교</span>
+              </div>
 
-          <div className={styles['details']}>
-            <div>
-              <img src="/clock-icon.svg" alt="영업시간" />
-              <span>영업시간: {selectedPlace.operatingHours}</span>
+              {/* 설명 */}
+              <div className={styles.description}>
+                "풍경한우? 가족 생일마다 가는 단골 맛집! 길이 험하고 반찬 줄어든 건 아쉽지만, 고기가 정말 최고야!"
+              </div>
             </div>
-            <div>
-              <img src="/people-icon.svg" alt="최대 인원" />
-              <span>최대 인원: {selectedPlace.maxGuests}명</span>
-            </div>
-          </div>
-
-          <div className={styles['likes']}>
-            <div className={styles['like-icon']}></div>
-            <span>{selectedPlace.likes}명</span>
-          </div>
         </div>
       </div>
     </div>
-  );
-};
-
-export default PlaceDetail;
+  )
+}
