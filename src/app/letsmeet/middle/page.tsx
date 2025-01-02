@@ -87,7 +87,12 @@ export default function Middle() {
       {/* 카카오 지도 */}
       <div className="absolute inset-0 z-0">
         {selectedPlace ? (
-          <KakaoMap selectedPlace={selectedPlace} />
+          <KakaoMap
+            selectedPlace={selectedPlace}
+            onMoveToCurrentLocation={() =>
+              console.log('Move to current location')
+            }
+          />
         ) : (
           <p className="text-center text-gray-500">
             현재 위치를 가져오는 중입니다...
@@ -96,11 +101,16 @@ export default function Middle() {
       </div>
 
       {/* 헤더 */}
-      <header className="absolute top-0 left-0 right-0 z-10 bg-white shadow-md">
+      <header
+        className="absolute top-0 left-0 right-0 z-10 bg-white shadow-md"
+        style={{
+          borderRadius: '0px 0px 24px 24px',
+        }}
+      >
         <Title
           buttonText="확정"
           buttonLink="/next-page"
-          initialTitle="이름 없는 일정"
+          initialTitle="제목 없는 일정"
           onTitleChange={(newTitle) => console.log(newTitle)}
           isPurple={true}
         />
