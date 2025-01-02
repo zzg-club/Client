@@ -9,6 +9,7 @@ import { DateRange } from 'react-day-picker'
 import NavBar from '@/components/Navigate/NavBar'
 import { ScheduleCard } from '@/components/Cards/ScheduleCard'
 import EditTitle from '@/components/Header/EditTitle'
+import DefaultNotification from '@/components/Notification/DefaultNotification'
 
 const mockSchedules = [
   {
@@ -130,6 +131,15 @@ export default function ScheduleLanding() {
     <div className="flex flex-col min-h-screen">
       {/* Add Moim Button */}
       <NavBar activeTab="스케줄" />
+
+      {/* <div className="mt-4">
+        <DefaultNotification
+          isVisible={true}
+          onLeftBtn={() => alert('이어서 하기')}
+          onRightBtn={() => alert('새로 만들기')}
+        />
+      </div> */}
+
       {mockSchedules.length > 0 ? (
         <>
           <div className="w-full h-[34px] px-4 my-[8px] flex justify-start items-center gap-[2px]">
