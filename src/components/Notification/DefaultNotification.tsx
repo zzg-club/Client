@@ -4,8 +4,8 @@ interface DefaultNotificationProps {
   isVisible: boolean
   onLeftBtn: () => void
   onRightBtn: () => void
-  leftBtnText?: string // 확인 버튼 텍스트
-  RightBtnText?: string // 취소 버튼 텍스트
+  leftBtnText?: string // 왼쪽 버튼 텍스트
+  RightBtnText?: string // 오른쪽 버튼 텍스트
   notiMessage?: string // 알림 메시지 텍스트
 }
 
@@ -27,7 +27,7 @@ export default function DefaultNotification({
           {notiMessage}
         </div>
         <div className="justify-center items-center gap-6 inline-flex">
-          {/* 확인 버튼 */}
+          {/* 왼쪽 버튼 */}
           <button
             onClick={onLeftBtn}
             className="w-[120px] h-[42px] px-2.5 py-3 rounded-3xl border border-white justify-center items-center flex"
@@ -36,7 +36,7 @@ export default function DefaultNotification({
               {leftBtnText}
             </div>
           </button>
-          {/* 취소 버튼 */}
+          {/* 오른쪽 버튼 */}
           <button
             onClick={onRightBtn}
             className="w-[120px] h-[42px] px-2.5 py-3 rounded-3xl border border-white justify-center items-center flex"
