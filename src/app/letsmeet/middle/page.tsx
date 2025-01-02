@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import KakaoMap from '@/components/Map/KakaoMap'
 import { getCurrentLocation } from '@/components/Map/getCurrentLocation'
-import Title from '@/components/Header/Title'
+import Title from '@/components/Header/TitleMiddle'
 import BottomSheet from './BottomSheet'
 
 interface Location {
