@@ -38,7 +38,7 @@ export default function CarouselNotification({
           <div key={notification.id}>
             <div className="w-full h-full bg-[#9562fa] px-4 py-6 flex flex-col justify-center items-center gap-4">
               {/* 메시지 */}
-              <div className="text-white text-xl font-medium text-center leading-[17px]">
+              <div className="text-white text-xl font-medium text-center">
                 {notification.notiMessage || '생성하던 일정이 있습니다!'}
               </div>
               {/* 버튼 그룹 */}
