@@ -20,7 +20,7 @@ export default function DefaultNotification({
   if (!isVisible) return null
 
   return (
-    <div className="w-full h-[119px] bg-[#9562fa] px-16 py-5 flex-col justify-center items-center gap-5 inline-flex">
+    <div className="w-full h-[119px] bg-[#9562fa] px-16 py-5 flex-col justify-center items-center gap-5 inline-flex mt-4">
       <div className="flex-col justify-center items-center gap-5 flex">
         {/* 메시지 텍스트 */}
         <div className="text-white text-xl font-medium leading-[17px]">
