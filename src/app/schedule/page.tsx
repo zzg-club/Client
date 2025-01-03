@@ -9,6 +9,7 @@ import { DateRange } from 'react-day-picker'
 import NavBar from '@/components/Navigate/NavBar'
 import { ScheduleCard } from '@/components/Cards/ScheduleCard'
 import EditTitle from '@/components/Header/EditTitle'
+import DateTimeModal from '@/components/Modals/DirectSelect/DateTimeModal'
 
 const mockSchedules = [
   {
@@ -198,6 +199,7 @@ export default function ScheduleLanding() {
         footerText={'입력완료'}
       >
         <EditTitle initialTitle={title} onTitleChange={handleTitleChange} />
+        <DateTimeModal />
       </CustomModal>
     </div>
   )
