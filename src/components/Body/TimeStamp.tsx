@@ -191,7 +191,7 @@ export default function TimeStamp({
     setIsResizing(false)
     setActiveSelection(null)
     setResizingPoint(null)
-  }, [activeSelection, isResizing, currentPage])
+  }, [activeSelection, currentPage])
 
   const currentSelections = selectionsByPage[currentPage] || []
 
@@ -270,6 +270,7 @@ export default function TimeStamp({
             )}
           </div>
           <div
+            // 세로줄
             ref={gridRef}
             className=" w-full relative grid z-100 border-[1px] border-[#d9d9d9] rounded-3xl overflow-hidden"
             style={{
@@ -280,8 +281,62 @@ export default function TimeStamp({
           >
             {currentDates.map((_, colIndex) => (
               <div key={colIndex} className="relative border border-[#d9d9d9]">
+                {(() => {
+                  const groupedCells: {
+                    start: number
+                    end: number
+                    isConfirmed: boolean
+                  }[] = []
+                  let startIndex: number | null = null
+                  let isConfirmedGroup = true
+
+                  // 1. isSelected 상태와 isConfirmed 상태를 기준으로 그룹화
+                  Array.from({ length: 48 }).forEach((_, rowIndex) => {
+                    const cellStatus = getCellStatus(rowIndex, colIndex)
+                    if (cellStatus.isSelected) {
+                      if (startIndex === null) {
+                        startIndex = rowIndex
+                      }
+                      if (!cellStatus.isConfirmed) {
+                        isConfirmedGroup = false // 그룹 내에 하나라도 isConfirmed가 false면 false로 설정
+                      }
+                    } else if (startIndex !== null) {
+                      groupedCells.push({
+                        start: startIndex,
+                        end: rowIndex - 1,
+                        isConfirmed: isConfirmedGroup,
+                      })
+                      startIndex = null
+                      isConfirmedGroup = true // 다음 그룹 초기화
+                    }
+                  })
+                  // 마지막 그룹 추가
+                  if (startIndex !== null) {
+                    groupedCells.push({
+                      start: startIndex,
+                      end: 47,
+                      isConfirmed: isConfirmedGroup,
+                    })
+                  }
+
+                  // 2. 그룹화된 셀 렌더링
+                  return groupedCells.map((group, groupIndex) => (
+                    <div
+                      key={`group-${groupIndex}`}
+                      className={`absolute w-full ${
+                        group.isConfirmed
+                          ? 'bg-[#9562fa]/70'
+                          : 'bg-[#9562fa]/20 border-[2px] border-[#9562fa]'
+                      }`}
+                      style={{
+                        top: `${group.start * 18}px`,
+                        height: `${(group.end - group.start + 1) * 18}px`,
+                      }}
+                    />
+                  ))
+                })()}
+
                 {Array.from({ length: 48 }, (_, rowIndex) => {
-                  // 선택 가능한 세로 길이 범위
                   const cellStatus = getCellStatus(rowIndex, colIndex)
                   return (
                     <div
@@ -289,8 +344,8 @@ export default function TimeStamp({
                       className={`h-[18px] relative cursor-pointer ${
                         cellStatus.isSelected
                           ? cellStatus.isConfirmed
-                            ? 'bg-[#9562fa]/70'
-                            : 'bg-[#9562fa]/20'
+                            ? ''
+                            : ''
                           : ''
                       }`}
                       onMouseDown={() =>
@@ -305,10 +360,10 @@ export default function TimeStamp({
                       }
                     >
                       {cellStatus.isStartCell && (
-                        <div className="absolute -top-1 left-0 w-2 h-2 bg-[#9562fa] rounded-full cursor-move" />
+                        <div className="absolute -top-[3px] left-1 w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move" />
                       )}
                       {cellStatus.isEndCell && (
-                        <div className="absolute -bottom-1 right-0 w-2 h-2 bg-[#9562fa] rounded-full cursor-move" />
+                        <div className="absolute -bottom-[3px] right-1 w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move" />
                       )}
                     </div>
                   )
