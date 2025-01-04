@@ -11,7 +11,7 @@ import { ScheduleCard } from '@/components/Cards/ScheduleCard'
 import EditTitle from '@/components/Header/EditTitle'
 import CarouselNotification from '@/components/Notification/CarouselNotification'
 
-// 스케줄카드 목데이터
+// 스케줄 카드 목데이터
 const mockSchedules = [
   {
     id: 1,
@@ -152,11 +152,11 @@ export default function ScheduleLanding() {
   ]
   // 캐러셀 알림 버튼 클릭 이벤트
   const handleLeftBtn = () => {
-    console.log('왼쪽 버튼 클릭')
+    alert('왼쪽 버튼 클릭')
   }
 
   const handleRightBtn = () => {
-    console.log('오른쪽 버튼 클릭')
+    alert('오른쪽 버튼 클릭')
   }
 
   return (
@@ -164,7 +164,7 @@ export default function ScheduleLanding() {
       {/* Add Moim Button */}
       <NavBar activeTab="스케줄" />
 
-      {/* 캐러셀 알림 컴포넌트 */}
+      {/* 캐로셀 알림 컴포넌트 */}
       <div className="flex justify-center items-center overflew-hidden">
         <CarouselNotification
           notifications={notifications}
