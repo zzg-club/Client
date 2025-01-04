@@ -7,6 +7,7 @@ import { Place } from '@/types/place';
 import Menu from '@/components/Place/Menu'; // 메뉴 컴포넌트 임포트
 import StoreInfo from '@/components/Place/StoreInfo'; // 영업 정보 컴포넌트 임포트
 import VisitorPhoto from '@/components/Place/VisitorPhoto'; // 방문자 사진 컴포넌트 임포트
+import SectionTitle from '@/components/Place/SectionTitle'; // 방문자 사진 컴포넌트 임포트
 
 interface PlaceDetailProps {
   id: string;
@@ -154,11 +155,18 @@ const PlaceDetail = ({ id }: PlaceDetailProps) => {
         <div className={styles.tabContent}>
           {activeTab === '상세' && (
             <>
-              <div className={styles.cardContainer}>
+              <div className={styles.cardContainer} style={{ marginBottom: '10px' }}>
                 <StoreInfo selectedPlace={selectedPlace} />
+                <div style={{ marginTop: '40px' }}>
+                  <SectionTitle title="인기 메뉴" />
+                </div>
                 <Menu selectedPlace={selectedPlace} />
               </div>
-              <VisitorPhoto selectedPlace={selectedPlace} />
+
+              <div className={styles.cardContainer} style={{ marginTop: '10px' }}>
+                <SectionTitle title="방문자 사진" />
+                <VisitorPhoto selectedPlace={selectedPlace} />
+              </div>
             </>
           )}
           {activeTab === '메뉴' && <Menu selectedPlace={selectedPlace} />}

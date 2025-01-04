@@ -13,7 +13,7 @@ const Menu = () => {
     <div
       style={{
         backgroundColor: '#F5F6F8',
-        padding: '16px 22px', // 양옆 22px 패딩 추가
+        padding: '16px 14px', // 양옆 22px 패딩 추가
       }}
     >
       <div>
