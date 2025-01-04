@@ -1,0 +1,68 @@
+{
+  "participants": [
+    {
+      "name": "Alice",
+      "time": "24분",
+      "icon": "/globe.svg",
+      "lat": 37.5665,
+      "lng": 126.978,
+      "transportIcon": "/subway.svg"
+    },
+    {
+      "name": "Bob",
+      "time": "18분",
+      "icon": "/globe.svg",
+      "lat": 37.5651,
+      "lng": 126.98955,
+      "transportIcon": "/subway.svg"
+    },
+    {
+      "name": "Charlie",
+      "time": "15분",
+      "icon": "/globe.svg",
+      "lat": 37.5642,
+      "lng": 126.9931,
+      "transportIcon": "/subway.svg"
+    },
+    {
+      "name": "Dave",
+      "time": "20분",
+      "icon": "/globe.svg",
+      "lat": 37.5623,
+      "lng": 126.9825,
+      "transportIcon": "/subway.svg"
+    },
+    {
+      "name": "Eve",
+      "time": "22분",
+      "icon": "/globe.svg",
+      "lat": 37.5678,
+      "lng": 126.9865,
+      "transportIcon": "/subway.svg"
+    },
+    {
+      "name": "Frank",
+      "time": "25분",
+      "icon": "/globe.svg",
+      "lat": 37.5689,
+      "lng": 126.9774,
+      "transportIcon": "/subway.svg"
+    },
+    {
+      "name": "Grace",
+      "time": "30분",
+      "icon": "/globe.svg",
+      "lat": 37.5695,
+      "lng": 126.9752,
+      "transportIcon": "/subway.svg"
+    },
+    {
+      "name": "Hank",
+      "time": "35분",
+      "icon": "/globe.svg",
+      "lat": 37.5701,
+      "lng": 126.9769,
+      "transportIcon": "/subway.svg"
+    }
+  ]
+}
