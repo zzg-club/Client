@@ -29,6 +29,83 @@
   flex-direction: column;
 }
 
+.dragHandle {
+  width: 64px;
+  height: 5px;
+  background-color: #AFAFAF;
+  border-radius: 4px;
+  margin: 0 auto;
+  cursor: pointer;
+  position: relative; /* z-index 적용을 위해 */
+  z-index: 2; /* image-gallery보다 우선순위를 높게 설정 */
+  margin-top: 4px;
+}
+
+.image-gallery {
+  display: flex;
+  gap: 1px; /* 큰 이미지와 작은 이미지 간 간격 */
+  margin-top: -20px; /* content와 겹치도록 위로 이동 */
+  position: relative; /* dragHandle과의 겹침 컨텍스트 설정 */
+  z-index: 1; /* dragHandle 아래로 설정 */
+}
+
+
+/* 왼쪽 큰 이미지 */
+.gallery-large {
+  flex: 1; /* 전체의 50% 차지 */
+  border-radius: 8px;
+  overflow: hidden;
+  z-index: 1; /* dragHandle 아래로 설정 */
+}
+
+.gallery-large img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 1; /* dragHandle 아래로 설정 */
+}
+
+/* 오른쪽 작은 이미지 컨테이너 */
+.gallery-small-container {
+  flex: 1; /* 전체의 50% 차지 */
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* 2열 그리드 */
+  grid-template-rows: repeat(2, 1fr); /* 2행 그리드 */
+  gap: 1px; /* 이미지 간 간격 */
+  z-index: 1; /* dragHandle 아래로 설정 */
+}
+
+/* 작은 이미지 스타일 */
+.gallery-small {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  z-index: 1; /* dragHandle 아래로 설정 */
+}
+
+.gallery-small img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 1; /* dragHandle 아래로 설정 */
+}
+
+/* 추가 이미지 표시 오버레이 */
+.more-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 18px;
+  font-weight: bold;
+  border-radius: 8px;
+}
 
 
 /* Bottom Sheet 전체 */
@@ -37,7 +114,7 @@
   bottom: 0;
   left: 0;
   width: 100%;
-  background-color: #f7f7f7; /* 연한 회색 배경 */
+  background-color: #F5F6F8; /* 연한 회색 배경 */
   border-radius: 24px 24px 0 0;
   overflow-y: auto; /* 스크롤 활성화 */
   transition: height 0.3s ease-in-out;
@@ -91,8 +168,12 @@
 
 /* Bottom Sheet 내용 */
 .content {
-  background-color: #ffffff; /* 하얀색 배경 */
+  background: #fff;
   border-radius: 24px;
+  z-index: 2; /* 이미지 갤러리 위로 표시 */
+  position: relative;
+  margin-top: -20px; /* 갤러리와 겹침 조정 */
+  box-shadow: 0px -4px 10px rgba(0, 0, 0, 0.1);
 }
 
 /* Bottom Sheet 하단 영역 */
@@ -348,3 +429,13 @@
   margin: 16px auto;
   display: block;
 }
+
+.cardContainer {
+  background-color: #f5f5f5; /* 연한 회색 */
+  border-radius: 24px; /* 둥근 모서리 */
+  padding: 16px; /* 내부 여백 */
+  margin-top: 16px; /* 상단 여백 */
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); /* 약간의 그림자 */
+  overflow: hidden; /* 내용물이 넘치지 않도록 설정 */
+}
+

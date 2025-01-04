@@ -30,9 +30,11 @@ export async function GET(request: Request, context: { params: { id: string } })
       maxGuests: 6,
       likes: 323,
       images: [
-        '/images/meat1.png',
-        '/images/meat2.png',
-        '/images/meat3.png',
+        '/meat1.png',
+        '/meat2.png',
+        '/meat3.png',
+        '/meat4.png',
+        '/meat5.png'
       ],
       additionalInfo: '풍경한우? 가족 생일마다 가는 단골 맛집! 고기가 정말 최고야!',
     },

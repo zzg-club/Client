@@ -4,6 +4,9 @@ import React, { useEffect, useState, useRef } from 'react';
 import KakaoMap from '@/components/Map/KakaoMap';
 import styles from '@/app/place/styles/Detail.module.css';
 import { Place } from '@/types/place';
+import Menu from '@/components/Place/Menu'; // 메뉴 컴포넌트 임포트
+import StoreInfo from '@/components/Place/StoreInfo'; // 영업 정보 컴포넌트 임포트
+import VisitorPhoto from '@/components/Place/VisitorPhoto'; // 방문자 사진 컴포넌트 임포트
 
 interface PlaceDetailProps {
   id: string;
@@ -75,7 +78,6 @@ const PlaceDetail = ({ id }: PlaceDetailProps) => {
       <div className={styles['map-container']}>
         <KakaoMap selectedPlace={selectedPlace} />
       </div>
-
       {/* Bottom Sheet */}
       <div
         className={`${styles.bottomSheet} ${styles[bottomSheetState]}`}
@@ -84,6 +86,31 @@ const PlaceDetail = ({ id }: PlaceDetailProps) => {
         onTouchEnd={handleTouchEnd}
       >
         <div className={styles.dragHandle}></div>
+       {/* Image Gallery */}
+        <div className={styles['image-gallery']}>
+          {/* Left: Large Image */}
+          <div className={styles['gallery-large']}>
+            <img
+              src={selectedPlace.images[0]}
+              alt="Large Gallery"
+              className={styles['gallery-image']}
+            />
+          </div>
+
+          {/* Right: Four Smaller Images */}
+          <div className={styles['gallery-small-container']}>
+            {selectedPlace.images.slice(1, 5).map((image, index) => (
+              <div key={index} className={styles['gallery-small']}>
+                <img src={image} alt={`Small Gallery ${index}`} className={styles['gallery-image']} />
+                {index === 3 && selectedPlace.images.length > 5 && (
+                  <div className={styles['more-overlay']}>
+                    +{selectedPlace.images.length - 5}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
 
         {/* Content */}
         <div className={styles.content}>
@@ -122,6 +149,20 @@ const PlaceDetail = ({ id }: PlaceDetailProps) => {
               ))}
             </div>
           </div>
+        </div>
+        {/* Tab Content */}
+        <div className={styles.tabContent}>
+          {activeTab === '상세' && (
+            <>
+              <div className={styles.cardContainer}>
+                <StoreInfo selectedPlace={selectedPlace} />
+                <Menu selectedPlace={selectedPlace} />
+              </div>
+              <VisitorPhoto selectedPlace={selectedPlace} />
+            </>
+          )}
+          {activeTab === '메뉴' && <Menu selectedPlace={selectedPlace} />}
+          {activeTab === '사진' && <VisitorPhoto selectedPlace={selectedPlace} />}
         </div>
       </div>
     </div>
