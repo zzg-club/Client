@@ -37,6 +37,12 @@ export default function TimeStamp({
     (currentPage + 1) * COLUMNS_PER_PAGE,
   )
 
+  const [selectionsByPage, setSelectionsByPage] = useState<{
+    [key: number]: Selection[]
+  }>({})
+
+  const currentSelections = selectionsByPage[currentPage] || []
+
   const isOverlapping = useCallback(
     (selection: Selection) => {
       const { startRow, endRow, startCol, endCol } = selection
@@ -63,24 +69,27 @@ export default function TimeStamp({
   )
 
   const handleMouseClick = (rowIndex: number, colIndex: number) => {
+    const pairStartRow = Math.floor(rowIndex / 2) * 2
+    const pairEndRow = pairStartRow + 1
+
+    if (pairStartRow === pairEndRow) return
+
     setSelectionsByPage((prev) => {
-      // Ensure newSelections is always an array, even if prev[currentPage] doesn't exist
       const newSelections = (prev[currentPage] || [])
         .map((selection) => (selection.isConfirmed ? selection : null))
         .filter(Boolean) as Selection[]
 
       const newSelection: Selection = {
-        startRow: rowIndex,
+        startRow: pairStartRow,
         startCol: colIndex,
-        endRow: rowIndex,
+        endRow: pairEndRow,
         endCol: colIndex,
         isSelected: true,
         isConfirmed: false,
       }
 
-      console.log('Block selected:', newSelection)
+      console.log('Block selected (Click):', newSelection)
 
-      // Add the new selection
       return {
         ...prev,
         [currentPage]: [...newSelections, newSelection],
@@ -103,7 +112,7 @@ export default function TimeStamp({
           : 'end',
       )
 
-      console.log('Resizing started on:', selection)
+      console.log('Resizing started on (Down):', selection)
     }
   }
 
@@ -112,19 +121,17 @@ export default function TimeStamp({
       if (!gridRef.current || !activeSelection) return
 
       const rect = gridRef.current.getBoundingClientRect()
-      const cellWidth = (rect.width - 80) / currentDates.length
       const cellHeight = rect.height / 48
-
-      const col = Math.min(
-        Math.max(Math.floor((e.clientX - rect.left - 80) / cellWidth), 0),
-        currentDates.length - 1,
-      )
+      // const cellWidth = (rect.width - 80) / currentDates.length
+      // const col = Math.min(
+      //   Math.max(Math.floor((e.clientX - rect.left - 80) / cellWidth), 0),
+      //   currentDates.length - 1,
+      // )
       const row = Math.min(
         Math.max(Math.floor((e.clientY - rect.top) / cellHeight), 0),
         47,
       )
 
-      // 드래그 중에는 활성 선택을 업데이트
       setActiveSelection((prev) => {
         if (!prev) return null
 
@@ -132,40 +139,25 @@ export default function TimeStamp({
           ? {
               ...prev,
               ...(resizingPoint === 'start'
-                ? { startRow: row, startCol: col }
-                : { endRow: row, endCol: col }),
+                ? { startRow: row }
+                : { endRow: row }),
             }
           : prev
 
-        // 선택 영역이 겹치지 않으면 업데이트
         return !isOverlapping(newSelection) ? newSelection : prev
       })
     },
-    [
-      activeSelection,
-      isResizing,
-      resizingPoint,
-      currentDates.length,
-      isOverlapping,
-    ],
+    [activeSelection, isResizing, resizingPoint, isOverlapping],
   )
-
-  const [selectionsByPage, setSelectionsByPage] = useState<{
-    [key: number]: Selection[]
-  }>({})
 
   const handleMouseUp = useCallback(() => {
     if (activeSelection) {
-      // 드래그 후, 선택 영역을 isConfirmed로 설정
       setSelectionsByPage((prev) => {
         const updatedSelections =
           prev[currentPage]?.map((sel) =>
-            sel === activeSelection
-              ? { ...sel, isConfirmed: true } // 드래그된 영역을 isConfirmed로 설정
-              : sel,
+            sel === activeSelection ? { ...sel, isConfirmed: true } : sel,
           ) || []
 
-        // 기존의 클릭된 부분도 선택 영역에 포함되었을 때 isConfirmed로 설정
         const newSelectionConfirmed = updatedSelections.map((selection) =>
           selection.isSelected
             ? { ...selection, isConfirmed: true }
@@ -177,7 +169,7 @@ export default function TimeStamp({
         }
 
         console.log(
-          `Selection completed from [Row: ${activeSelection.startRow}, Col: ${activeSelection.startCol}] to [Row: ${activeSelection.endRow}, Col: ${activeSelection.endCol}]`,
+          `Selection completed (Up) from [Row: ${activeSelection.startRow}, Col: ${activeSelection.startCol}] to [Row: ${activeSelection.endRow}, Col: ${activeSelection.endCol}]`,
         )
 
         return {
@@ -187,13 +179,10 @@ export default function TimeStamp({
       })
     }
 
-    // 상태 초기화
     setIsResizing(false)
     setActiveSelection(null)
     setResizingPoint(null)
   }, [activeSelection, currentPage])
-
-  const currentSelections = selectionsByPage[currentPage] || []
 
   useEffect(() => {
     if (activeSelection || isResizing) {
@@ -222,7 +211,7 @@ export default function TimeStamp({
       if (row >= minRow && row <= maxRow && col >= minCol && col <= maxCol) {
         const isStartCell =
           row === selection.startRow && col === selection.startCol
-        const isEndCell = row === selection.endRow && col === selection.endCol
+        const isEndCell = row === selection.startRow && col === selection.endCol
 
         if (selection.isConfirmed) {
           return {
@@ -290,7 +279,6 @@ export default function TimeStamp({
                   let startIndex: number | null = null
                   let isConfirmedGroup = true
 
-                  // 1. isSelected 상태와 isConfirmed 상태를 기준으로 그룹화
                   Array.from({ length: 48 }).forEach((_, rowIndex) => {
                     const cellStatus = getCellStatus(rowIndex, colIndex)
                     if (cellStatus.isSelected) {
@@ -298,7 +286,7 @@ export default function TimeStamp({
                         startIndex = rowIndex
                       }
                       if (!cellStatus.isConfirmed) {
-                        isConfirmedGroup = false // 그룹 내에 하나라도 isConfirmed가 false면 false로 설정
+                        isConfirmedGroup = false
                       }
                     } else if (startIndex !== null) {
                       groupedCells.push({
@@ -307,10 +295,9 @@ export default function TimeStamp({
                         isConfirmed: isConfirmedGroup,
                       })
                       startIndex = null
-                      isConfirmedGroup = true // 다음 그룹 초기화
+                      isConfirmedGroup = true
                     }
                   })
-                  // 마지막 그룹 추가
                   if (startIndex !== null) {
                     groupedCells.push({
                       start: startIndex,
@@ -318,8 +305,6 @@ export default function TimeStamp({
                       isConfirmed: isConfirmedGroup,
                     })
                   }
-
-                  // 2. 그룹화된 셀 렌더링
                   return groupedCells.map((group, groupIndex) => (
                     <div
                       key={`group-${groupIndex}`}
@@ -332,7 +317,24 @@ export default function TimeStamp({
                         top: `${group.start * 18}px`,
                         height: `${(group.end - group.start + 1) * 18}px`,
                       }}
-                    />
+                    >
+                      {!group.isConfirmed && (
+                        <>
+                          <div
+                            className="absolute -top-[5px] left-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move"
+                            onMouseDown={() => {
+                              handleMouseDown(group.start, groupIndex, true)
+                            }}
+                          />
+                          <div
+                            className="absolute -bottom-[5px] right-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move"
+                            onMouseDown={() => {
+                              handleMouseDown(group.end, groupIndex, true)
+                            }}
+                          />
+                        </>
+                      )}
+                    </div>
                   ))
                 })()}
 
@@ -341,13 +343,7 @@ export default function TimeStamp({
                   return (
                     <div
                       key={rowIndex}
-                      className={`h-[18px] relative cursor-pointer ${
-                        cellStatus.isSelected
-                          ? cellStatus.isConfirmed
-                            ? ''
-                            : ''
-                          : ''
-                      }`}
+                      className="h-[18px] relative cursor-pointer"
                       onMouseDown={() =>
                         cellStatus.isStartCell || cellStatus.isEndCell
                           ? handleMouseDown(
@@ -358,14 +354,7 @@ export default function TimeStamp({
                             )
                           : handleMouseClick(rowIndex, colIndex)
                       }
-                    >
-                      {cellStatus.isStartCell && (
-                        <div className="absolute -top-[3px] left-1 w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move" />
-                      )}
-                      {cellStatus.isEndCell && (
-                        <div className="absolute -bottom-[3px] right-1 w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move" />
-                      )}
-                    </div>
+                    ></div>
                   )
                 })}
               </div>
