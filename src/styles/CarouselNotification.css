@@ -1,0 +1,28 @@
+/* slick-dots을 알림 카드 안쪽에 배치 */
+.slick-dots {
+  display: block !important; /* dots를 표시 */
+  position: absolute;
+  bottom: 3px; /* 캐로셀 내부에서 dots의 위치 */
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+}
+
+/* slick-dots li 요소 스타일 */
+.slick-dots li {
+  margin: 0 3px; /* dots 간격 조정 */
+}
+
+/* 기본 dot 색상 */
+.slick-dots li button:before {
+  color: #afafaf;
+  font-size: 10px;
+  opacity: 1;
+}
+
+/* 활성화된 dot 색상 */
+.slick-dots li.slick-active button:before {
+  color: white;
+  font-size: 10px;
+  opacity: 1;
+}
