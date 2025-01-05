@@ -6,8 +6,7 @@
       "icon": "/globe.svg",
       "lat": 37.521598,
       "lng": 126.924469,
-      "transportIcon": "/subway.svg",
-      "station": "여의도역"
+      "transport": "/subway.svg"
     },
     {
       "name": "김태엽",
@@ -15,8 +14,7 @@
       "icon": "/globe.svg",
       "lat": 37.497175,
       "lng": 127.027926,
-      "transportIcon": "/subway.svg",
-      "station": "강남역"
+      "transport": "/subway.svg"
     },
     {
       "name": "박진우",
@@ -24,8 +22,7 @@
       "icon": "/globe.svg",
       "lat": 37.566295,
       "lng": 126.982684,
-      "transportIcon": "/subway.svg",
-      "station": "을지로입구역"
+      "transport": "/subway.svg"
     },
     {
       "name": "이채연",
@@ -33,8 +30,7 @@
       "icon": "/globe.svg",
       "lat": 37.589066,
       "lng": 126.943736,
-      "transportIcon": "/subway.svg",
-      "station": "홍제역"
+      "transport": "/subway.svg"
     },
     {
       "name": "성유진",
@@ -42,8 +38,7 @@
       "icon": "/globe.svg",
       "lat": 37.476847,
       "lng": 126.981675,
-      "transportIcon": "/subway.svg",
-      "station": "사당역"
+      "transport": "/subway.svg"
     },
     {
       "name": "김나영",
@@ -51,8 +46,7 @@
       "icon": "/globe.svg",
       "lat": 37.534488,
       "lng": 126.994302,
-      "transportIcon": "/subway.svg",
-      "station": "이태원역"
+      "transport": "/subway.svg"
     }
   ]
 }

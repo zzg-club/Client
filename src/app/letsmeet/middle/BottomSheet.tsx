@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useEffect, useState, useRef } from 'react'
 
 interface Participant {
   name: string
@@ -20,12 +20,21 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
   participants,
   totalParticipants,
 }) => {
-  const [isExpanded, setIsExpanded] = useState(false) // 확장 상태 관리
-  const startYRef = useRef<number | null>(null)
+  const [isExpanded, setIsExpanded] = useState(false)
   const [translateY, setTranslateY] = useState(0)
+  const [maxHeight, setMaxHeight] = useState(400)
+  const minHeight = 229
+  const paddingBottom = 21
 
-  const minHeight = 229 // 기본 높이
-  const maxHeight = 400 // 확장 높이
+  const sheetRef = useRef<HTMLDivElement>(null)
+  const startYRef = useRef<number | null>(null)
+
+  useEffect(() => {
+    if (sheetRef.current) {
+      const contentHeight = sheetRef.current.scrollHeight
+      setMaxHeight(contentHeight + paddingBottom)
+    }
+  }, [participants])
 
   const handleTouchStart = (event: React.TouchEvent) => {
     startYRef.current = event.touches[0].clientY
@@ -59,11 +68,13 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
 
   return (
     <div
-      className={`absolute bottom-0 left-0 w-full bg-white rounded-t-2xl shadow-lg transition-transform duration-300`}
+      ref={sheetRef}
+      className="absolute bottom-0 left-0 w-full bg-white rounded-t-2xl shadow-lg transition-transform duration-300"
       style={{
         height: isExpanded ? `${maxHeight}px` : `${minHeight}px`,
         transform: `translateY(${translateY}px)`,
-        padding: '10px 40px 40px 40px',
+        padding: `10px 40px ${paddingBottom}px 40px`,
+        boxSizing: 'border-box',
       }}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
@@ -72,21 +83,19 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
       <div className="w-16 h-1 bg-gray-300 rounded-full mx-auto mb-4"></div>
       <div className="flex flex-col items-center gap-7">
         <div className="flex justify-between items-center w-full">
-          <p className="text-black text-2xl font-semibold font-['Pretendard'] leading-[30px] tracking-tight">
-            {placeName}
-          </p>
-          <p className="text-sm font-['Pretendard'] font-medium font-[16px]">
+          <p className="text-black text-2xl font-semibold">{placeName}</p>
+          <p className="text-sm">
             참여 인원:{' '}
-            <span className="text-purple-500 text-base">
-              {totalParticipants}명
-            </span>
+            <span className="text-purple-500">{totalParticipants}명</span>
           </p>
         </div>
         <div className="grid grid-cols-2 gap-x-7 gap-y-7 justify-center">
           {participants.map((participant, index) => (
             <div
               key={index}
-              className="flex items-center justify-center gap-2"
+              className={`flex items-center justify-center gap-2 ${
+                index === 0 ? 'bg-purple-100' : ''
+              }`} // 내 정보 강조를 위해 스타일 추가
               style={{
                 width: '130px',
                 height: '47px',
@@ -97,7 +106,11 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
                 alt={`${participant.name} 아이콘`}
                 className="rounded-full w-8 h-8"
               />
-              <p className="text-purple-500 text-lg font-medium font-['Pretendard']">
+              <p
+                className={`text-lg font-medium ${
+                  index === 0 ? 'text-purple-700' : 'text-purple-500'
+                }`}
+              >
                 {participant.time}
               </p>
               <img

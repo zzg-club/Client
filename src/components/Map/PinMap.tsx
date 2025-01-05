@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import ReactDOMServer from 'react-dom/server'
 import CustomPin from '@/components/Pin/CustomPin'
 
-const PinMap = ({ kakaoMap, selectedPlace, participants }) => {
+const PinMap = ({ kakaoMap, participants }) => {
   useEffect(() => {
     if (!kakaoMap) {
       console.error('Kakao map is not initialized')
@@ -11,16 +11,16 @@ const PinMap = ({ kakaoMap, selectedPlace, participants }) => {
 
     const bounds = new window.kakao.maps.LatLngBounds()
 
-    // 내 위치 핀 추가
-    if (selectedPlace) {
+    // 내 위치 핀 추가 (participants 배열의 첫 번째 항목)
+    if (participants.length > 0) {
       const myPinHtml = ReactDOMServer.renderToString(
-        <CustomPin imagePath="/globe.svg" isMine={true} />,
+        <CustomPin imagePath={participants[0].icon} isMine={true} />,
       )
 
       const myOverlay = new window.kakao.maps.CustomOverlay({
         position: new window.kakao.maps.LatLng(
-          selectedPlace.lat,
-          selectedPlace.lng,
+          participants[0].lat,
+          participants[0].lng,
         ),
         content: myPinHtml,
         clickable: true,
@@ -28,12 +28,12 @@ const PinMap = ({ kakaoMap, selectedPlace, participants }) => {
 
       myOverlay.setMap(kakaoMap)
       bounds.extend(
-        new window.kakao.maps.LatLng(selectedPlace.lat, selectedPlace.lng),
+        new window.kakao.maps.LatLng(participants[0].lat, participants[0].lng),
       )
     }
 
-    // 참여자 핀 추가
-    participants.forEach((participant) => {
+    // 나머지 참여자 핀 추가
+    participants.slice(1).forEach((participant) => {
       const participantPinHtml = ReactDOMServer.renderToString(
         <CustomPin imagePath={participant.icon} isMine={false} />,
       )
@@ -54,7 +54,7 @@ const PinMap = ({ kakaoMap, selectedPlace, participants }) => {
     })
 
     kakaoMap.setBounds(bounds)
-  }, [kakaoMap, selectedPlace, participants])
+  }, [kakaoMap, participants])
 
   return null
 }

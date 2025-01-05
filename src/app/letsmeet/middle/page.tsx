@@ -17,7 +17,6 @@ interface Location {
 
 export default function Middle() {
   const [kakaoMap, setKakaoMap] = useState<kakao.maps.Map | null>(null) // 공유된 지도 상태
-  const [selectedPlace, setSelectedPlace] = useState<Location | null>(null) // 내 위치 상태
   const mapContainerRef = useRef<HTMLDivElement | null>(null) // 지도 컨테이너 참조
 
   const Destination: Location = {
@@ -62,16 +61,32 @@ export default function Middle() {
     const fetchCurrentLocation = async () => {
       try {
         const location = await getCurrentLocation() // 현재 위치 가져오기
-        setSelectedPlace({ ...location, name: '내 위치' }) // 상태 업데이트
-        console.log('현재 위치 가져오기 성공:', location)
+        const myInfo = {
+          name: '내 위치',
+          time: '현재 위치',
+          icon: '/globe.svg',
+          lat: location.lat,
+          lng: location.lng,
+          transportIcon: '/subway.svg',
+          station: '내 주변역',
+        }
+
+        // 내 정보를 participants 배열의 맨 앞에 추가
+        dummyData.participants = [myInfo, ...dummyData.participants]
+        console.log('현재 위치 및 내 정보 추가:', myInfo)
       } catch (error) {
         console.error('현재 위치를 가져오지 못했습니다:', error)
-        // 기본 위치로 설정
-        setSelectedPlace({
+        const fallbackInfo = {
+          name: '기본 위치',
+          time: '기본 시간',
+          icon: '/globe.svg',
           lat: 37.5665, // 기본값 (서울 중심)
           lng: 126.978,
-          name: '기본 위치',
-        })
+          transportIcon: '/subway.svg',
+          station: '서울역',
+        }
+        dummyData.participants = [fallbackInfo, ...dummyData.participants]
+        console.log('기본 위치 설정:', fallbackInfo)
       }
     }
 
@@ -81,29 +96,30 @@ export default function Middle() {
 
   return (
     <div className="flex flex-col h-screen relative">
+      {/* 지도 컨테이너 */}
       <div
         className="absolute inset-0 z-0"
         ref={mapContainerRef}
         style={{ width: '100%', height: '100%' }}
       ></div>
 
-      {kakaoMap && selectedPlace && (
+      {/* 지도 및 참가자 정보 */}
+      {kakaoMap && dummyData.participants.length > 0 && (
         <>
           <PinMap
             kakaoMap={kakaoMap} // 공유된 지도 전달
-            selectedPlace={selectedPlace} // 현재 위치 전달
-            participants={dummyData.participants}
+            participants={dummyData.participants} // participants로 전달
           />
 
           <RouteMap
             kakaoMap={kakaoMap}
             destination={Destination}
-            participants={dummyData.participants}
-            selectedPlace={selectedPlace} // 내 위치 전달
+            participants={dummyData.participants} // 내 위치 포함한 participants 전달
           />
         </>
       )}
 
+      {/* 헤더 */}
       <header
         className="absolute top-0 left-0 right-0 z-10 bg-white shadow-md"
         style={{
@@ -117,9 +133,10 @@ export default function Middle() {
         />
       </header>
 
+      {/* BottomSheet */}
       <BottomSheet
-        placeName="성복역"
-        participants={dummyData.participants}
+        placeName="신촌역"
+        participants={dummyData.participants} // 수정된 participants 배열 전달
         totalParticipants={dummyData.participants.length}
       />
     </div>
