@@ -122,11 +122,6 @@ export default function TimeStamp({
 
       const rect = gridRef.current.getBoundingClientRect()
       const cellHeight = rect.height / 48
-      // const cellWidth = (rect.width - 80) / currentDates.length
-      // const col = Math.min(
-      //   Math.max(Math.floor((e.clientX - rect.left - 80) / cellWidth), 0),
-      //   currentDates.length - 1,
-      // )
       const row = Math.min(
         Math.max(Math.floor((e.clientY - rect.top) / cellHeight), 0),
         47,
@@ -240,6 +235,29 @@ export default function TimeStamp({
       isEndCell: false,
     }
   }
+
+  useEffect(() => {
+    const confirmedSelections = currentSelections.filter(
+      (selection) => selection.isConfirmed,
+    )
+
+    const getTimeLabel = (rowIndex: number) => {
+      const hours = Math.floor(rowIndex / 2)
+      const minutes = (rowIndex % 2) * 30
+      const formattedHour = String(hours).padStart(2, '0')
+      const formattedMinute = String(minutes).padStart(2, '0')
+      return `${formattedHour}:${formattedMinute}`
+    }
+
+    console.log(`Confirmed selections for page ${currentPage}:`)
+    confirmedSelections.forEach((selection) => {
+      const startTime = getTimeLabel(selection.startRow)
+      const endTime = getTimeLabel(selection.endRow)
+      console.log(
+        `Date: ${selectedDates[currentPage]?.date}, Time: ${startTime} - ${endTime}`,
+      )
+    })
+  }, [currentPage, currentSelections, selectedDates, selectionsByPage])
 
   return (
     <div className="timestamp-container">
