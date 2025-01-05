@@ -4,22 +4,25 @@
   align-items: center;
   justify-content: center;
   position: relative;
+  transform: translateY(-30%); /* 컨테이너를 폴리곤 아래 꼭지점 기준으로 이동 */
 }
 
 .pin-globe {
   display: flex;
-  width: 28px;
-  height: 28px;
+  width: 44px;
+  height: 44px;
   padding: 6px;
   justify-content: center;
   align-items: center;
   border-radius: 24px;
   border: 2px solid;
   background: lightgray center / cover no-repeat;
+  z-index: 2;
 }
 
 .pin-polygon {
-  margin-top: -6px; /* Slight overlap for visual effect */
+  margin-top: -10px; /* 폴리곤의 꼭지점이 글로브와 시각적으로 자연스럽게 연결되도록 조정 */
+  z-index: 1;
 }
 
 .pin-purple .pin-globe {
@@ -27,5 +30,5 @@
 }
 
 .pin-yellow .pin-globe {
-  border-color: #ffd700; /* 다른 사람 핀: 노란색 테두리 */
+  border-color: #ffcf33; /* 다른 사람 핀: 노란색 테두리 */
 }

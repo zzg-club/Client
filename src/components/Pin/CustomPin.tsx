@@ -22,8 +22,8 @@ const CustomPin: React.FC<CustomPinProps> = ({ imagePath, isMine = false }) => {
         src={isMine ? '/Polygon2Purple.svg' : '/Polygon2Yellow.svg'}
         className="pin-polygon"
         alt="Polygon shape"
-        width="28"
-        height="21"
+        width="32"
+        height="43"
       />
     </div>
   )

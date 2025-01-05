@@ -1,68 +1,58 @@
 {
   "participants": [
     {
-      "name": "Alice",
+      "name": "지유진",
       "time": "24분",
       "icon": "/globe.svg",
-      "lat": 37.5665,
-      "lng": 126.978,
-      "transportIcon": "/subway.svg"
+      "lat": 37.521598,
+      "lng": 126.924469,
+      "transportIcon": "/subway.svg",
+      "station": "여의도역"
     },
     {
-      "name": "Bob",
+      "name": "김태엽",
       "time": "18분",
       "icon": "/globe.svg",
-      "lat": 37.5651,
-      "lng": 126.98955,
-      "transportIcon": "/subway.svg"
+      "lat": 37.497175,
+      "lng": 127.027926,
+      "transportIcon": "/subway.svg",
+      "station": "강남역"
     },
     {
-      "name": "Charlie",
+      "name": "박진우",
       "time": "15분",
       "icon": "/globe.svg",
-      "lat": 37.5642,
-      "lng": 126.9931,
-      "transportIcon": "/subway.svg"
+      "lat": 37.566295,
+      "lng": 126.982684,
+      "transportIcon": "/subway.svg",
+      "station": "을지로입구역"
     },
     {
-      "name": "Dave",
+      "name": "이채연",
       "time": "20분",
       "icon": "/globe.svg",
-      "lat": 37.5623,
-      "lng": 126.9825,
-      "transportIcon": "/subway.svg"
+      "lat": 37.589066,
+      "lng": 126.943736,
+      "transportIcon": "/subway.svg",
+      "station": "홍제역"
     },
     {
-      "name": "Eve",
+      "name": "성유진",
       "time": "22분",
       "icon": "/globe.svg",
-      "lat": 37.5678,
-      "lng": 126.9865,
-      "transportIcon": "/subway.svg"
+      "lat": 37.476847,
+      "lng": 126.981675,
+      "transportIcon": "/subway.svg",
+      "station": "사당역"
     },
     {
-      "name": "Frank",
+      "name": "김나영",
       "time": "25분",
       "icon": "/globe.svg",
-      "lat": 37.5689,
-      "lng": 126.9774,
-      "transportIcon": "/subway.svg"
-    },
-    {
-      "name": "Grace",
-      "time": "30분",
-      "icon": "/globe.svg",
-      "lat": 37.5695,
-      "lng": 126.9752,
-      "transportIcon": "/subway.svg"
-    },
-    {
-      "name": "Hank",
-      "time": "35분",
-      "icon": "/globe.svg",
-      "lat": 37.5701,
-      "lng": 126.9769,
-      "transportIcon": "/subway.svg"
+      "lat": 37.534488,
+      "lng": 126.994302,
+      "transportIcon": "/subway.svg",
+      "station": "이태원역"
     }
   ]
 }
