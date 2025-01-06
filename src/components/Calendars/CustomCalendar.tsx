@@ -5,19 +5,20 @@ import {
   DayPicker,
   SelectMultipleEventHandler,
   SelectRangeEventHandler,
+  SelectSingleEventHandler,
 } from 'react-day-picker'
 import { useState } from 'react'
-import '../styles/CustomCalendarStyle.css'
+import '../../styles/CustomCalendarStyle.css'
 import { ChevronLeft } from 'lucide-react'
 import { ChevronRight } from 'lucide-react'
 import { isBefore } from 'date-fns' // 날짜 비교를 위한 date-fns 라이브러리 사용
 
-type Mode = 'range' | 'multiple'
+type Mode = 'range' | 'multiple' | 'single'
 
 interface CustomCalendarProps {
   initialMode?: Mode
-  selected?: DateRange | Date[]
-  onSelect?: (date: DateRange | Date[] | undefined) => void
+  selected?: DateRange | Date[] | Date
+  onSelect?: (date: DateRange | Date[] | Date | undefined) => void
 }
 
 export default function CustomCalendar({
@@ -94,6 +95,12 @@ export default function CustomCalendar({
   const handleMultipleSelect: SelectMultipleEventHandler = (dates) => {
     if (mode === 'multiple') {
       onSelect?.(dates || [])
+    }
+  }
+
+  const handleSingleSelect: SelectSingleEventHandler = (date) => {
+    if (mode === 'single') {
+      onSelect?.(date)
     }
   }
 
@@ -238,6 +245,14 @@ export default function CustomCalendar({
           mode="multiple"
           selected={selected as Date[] | undefined}
           onSelect={handleMultipleSelect}
+          {...commonProps}
+        />
+      )}
+      {mode === 'single' && (
+        <DayPicker
+          mode="single"
+          selected={selected as Date | undefined}
+          onSelect={handleSingleSelect}
           {...commonProps}
         />
       )}
