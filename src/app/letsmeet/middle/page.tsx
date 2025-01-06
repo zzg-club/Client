@@ -1,5 +1,6 @@
 'use client'
 
+import { useRouter } from 'next/navigation' // Next.js Router 사용
 import React, { useEffect, useState, useRef } from 'react'
 import PinMap from '@/components/Map/PinMap'
 import RouteMap from '@/components/Map/RouteMap'
@@ -8,6 +9,7 @@ import BottomSheet from './BottomSheet'
 import dummyData from '@/data/dummyData.json'
 import { loadKakaoMaps } from '@/utils/kakaoLoader'
 import { getCurrentLocation } from '@/components/Map/getCurrentLocation'
+import MiddleBackButton from '@/components/Buttons/MiddleBackButton'
 
 interface Location {
   lat: number
@@ -15,9 +17,21 @@ interface Location {
   name: string
 }
 
+interface Participant {
+  name: string
+  time: string
+  icon: string
+  lat: number
+  lng: number
+  transport: string
+  transportIcon: string
+}
+
 export default function Middle() {
   const [kakaoMap, setKakaoMap] = useState<kakao.maps.Map | null>(null) // 공유된 지도 상태
+  const [participants, setParticipants] = useState<Participant[]>([]) // 상태로 관리
   const mapContainerRef = useRef<HTMLDivElement | null>(null) // 지도 컨테이너 참조
+  const router = useRouter() // Next.js Router
 
   const Destination: Location = {
     lat: 37.555134,
@@ -61,32 +75,51 @@ export default function Middle() {
     const fetchCurrentLocation = async () => {
       try {
         const location = await getCurrentLocation() // 현재 위치 가져오기
-        const myInfo = {
+        const myTransport = 'subway' // 내 이동수단 (동적으로 설정 가능)
+
+        const myInfo: Participant = {
           name: '내 위치',
-          time: '현재 위치',
+          time: '50분',
           icon: '/globe.svg',
           lat: location.lat,
           lng: location.lng,
-          transportIcon: '/subway.svg',
-          station: '내 주변역',
+          transport: myTransport,
+          transportIcon: `/${myTransport}Purple.svg`, // 본인은 항상 Purple
         }
 
-        // 내 정보를 participants 배열의 맨 앞에 추가
-        dummyData.participants = [myInfo, ...dummyData.participants]
-        console.log('현재 위치 및 내 정보 추가:', myInfo)
+        const updatedParticipants = [
+          myInfo, // 내 정보는 맨 앞
+          ...dummyData.participants.map((participant) => ({
+            ...participant,
+            transportIcon: `/${participant.transport}Yellow.svg`, // 타인은 Yellow
+          })),
+        ]
+
+        setParticipants(updatedParticipants)
+        console.log('Updated participants:', updatedParticipants)
       } catch (error) {
         console.error('현재 위치를 가져오지 못했습니다:', error)
-        const fallbackInfo = {
+
+        const fallbackTransport = 'subway' // 기본 이동수단
+        const fallbackInfo: Participant = {
           name: '기본 위치',
           time: '기본 시간',
           icon: '/globe.svg',
           lat: 37.5665, // 기본값 (서울 중심)
           lng: 126.978,
-          transportIcon: '/subway.svg',
-          station: '서울역',
+          transport: fallbackTransport,
+          transportIcon: `/${fallbackTransport}Purple.svg`, // 기본 위치도 Purple
         }
-        dummyData.participants = [fallbackInfo, ...dummyData.participants]
-        console.log('기본 위치 설정:', fallbackInfo)
+
+        const updatedParticipants = [
+          fallbackInfo,
+          ...dummyData.participants.map((participant) => ({
+            ...participant,
+            transportIcon: `/${participant.transport}Yellow.svg`,
+          })),
+        ]
+
+        setParticipants(updatedParticipants)
       }
     }
 
@@ -104,17 +137,17 @@ export default function Middle() {
       ></div>
 
       {/* 지도 및 참가자 정보 */}
-      {kakaoMap && dummyData.participants.length > 0 && (
+      {kakaoMap && participants.length > 0 && (
         <>
           <PinMap
             kakaoMap={kakaoMap} // 공유된 지도 전달
-            participants={dummyData.participants} // participants로 전달
+            participants={participants} // participants로 전달
           />
 
           <RouteMap
             kakaoMap={kakaoMap}
             destination={Destination}
-            participants={dummyData.participants} // 내 위치 포함한 participants 전달
+            participants={participants} // 내 위치 포함한 participants 전달
           />
         </>
       )}
@@ -133,11 +166,22 @@ export default function Middle() {
         />
       </header>
 
+      {/* 뒤로 가기 버튼 */}
+      <MiddleBackButton
+        onClick={() => router.push('/search')} // Next.js Router로 이동
+        style={{
+          position: 'relative',
+          top: '72px', // 헤더 높이(56px) + 아래 간격(8px)
+          left: '10px', // 왼쪽 거리
+          zIndex: 2, // 헤더 아래 요소와의 계층 명확히
+        }}
+      />
+
       {/* BottomSheet */}
       <BottomSheet
         placeName="신촌역"
-        participants={dummyData.participants} // 수정된 participants 배열 전달
-        totalParticipants={dummyData.participants.length}
+        participants={participants} // 수정된 participants 배열 전달
+        totalParticipants={participants.length}
       />
     </div>
   )

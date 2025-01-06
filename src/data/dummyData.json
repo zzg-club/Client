@@ -6,7 +6,7 @@
       "icon": "/globe.svg",
       "lat": 37.521598,
       "lng": 126.924469,
-      "transport": "/subway.svg"
+      "transport": "subway"
     },
     {
       "name": "김태엽",
@@ -14,7 +14,7 @@
       "icon": "/globe.svg",
       "lat": 37.497175,
       "lng": 127.027926,
-      "transport": "/subway.svg"
+      "transport": "subway"
     },
     {
       "name": "박진우",
@@ -22,7 +22,7 @@
       "icon": "/globe.svg",
       "lat": 37.566295,
       "lng": 126.982684,
-      "transport": "/subway.svg"
+      "transport": "subway"
     },
     {
       "name": "이채연",
@@ -30,7 +30,7 @@
       "icon": "/globe.svg",
       "lat": 37.589066,
       "lng": 126.943736,
-      "transport": "/subway.svg"
+      "transport": "subway"
     },
     {
       "name": "성유진",
@@ -38,7 +38,7 @@
       "icon": "/globe.svg",
       "lat": 37.476847,
       "lng": 126.981675,
-      "transport": "/subway.svg"
+      "transport": "subway"
     },
     {
       "name": "김나영",
@@ -46,7 +46,7 @@
       "icon": "/globe.svg",
       "lat": 37.534488,
       "lng": 126.994302,
-      "transport": "/subway.svg"
+      "transport": "subway"
     }
   ]
 }
