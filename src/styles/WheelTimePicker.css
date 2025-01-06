@@ -3,13 +3,12 @@
   overflow: hidden;
   border-radius: 24px;
   background-color: #ffffff;
-  padding: 1.5rem;
 }
 
 .wheel-time-picker-content {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.25rem;
 }
 
 .wheel-time-picker-separator {
@@ -21,12 +20,12 @@
 .wheel-time-picker-selection {
   position: absolute;
   pointer-events: none;
-  left: 1rem;
-  right: 1rem;
+  left: 0; /* Changed to 0 */
+  right: 0; /* Changed to 0 */
   top: 50%;
-  height: 44px;
+  height: 40px;
   transform: translateY(-50%);
-  border-radius: 11px;
+  border-radius: 0; /* Removed border radius for full width */
   background-color: rgba(120, 120, 128, 0.08);
 }
 
@@ -55,6 +54,7 @@
   font-size: 1.125rem;
   color: #b2b2b2;
   transition: all 0.2s ease-out;
+  height: 40px;
 }
 
 .wheel-picker-item-selected {

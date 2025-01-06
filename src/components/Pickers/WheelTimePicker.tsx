@@ -15,8 +15,8 @@ interface WheelOption {
   value: string
 }
 
-const ITEM_HEIGHT = 44
-const VISIBLE_ITEMS = 5
+const ITEM_HEIGHT = 40 // Reduced from 44
+const VISIBLE_ITEMS = 5 // 2개 위 + 선택된 항목 + 2개 아래
 
 const WheelPicker: React.FC<{
   options: WheelOption[]
@@ -99,6 +99,7 @@ const WheelPicker: React.FC<{
         <div style={{ height: `${(height - itemHeight) / 2}px` }} />
         {options.map((option, index) => {
           const distance = Math.abs(selectedIndex - index)
+          const scale = 1 - distance * 0.1
           return (
             <div
               key={option.value}
@@ -108,8 +109,11 @@ const WheelPicker: React.FC<{
               )}
               style={{
                 height: `${itemHeight}px`,
-                transform: `scale(${1 - distance * 0.1})`,
-                opacity: Math.max(0, 1 - distance * 0.3),
+                opacity: 1 - Math.min(distance * 0.3, 0.7),
+                transform: `
+                  scale(${scale})
+                  translateY(${distance * -1}px)
+                `,
               }}
             >
               {option.label}
