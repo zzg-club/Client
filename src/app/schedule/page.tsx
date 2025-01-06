@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import { ScheduleOptions } from '@/components/Buttons/Floating/Options'
 import CustomModal from '@/components/Modals/CustomModal'
-import CustomCalendar from '@/components/CustomCalendar'
+import CustomCalendar from '@/components/Calendars/CustomCalendar'
 import Button from '@/components/Buttons/Floating/Button'
 import { DateRange } from 'react-day-picker'
 import NavBar from '@/components/Navigate/NavBar'
