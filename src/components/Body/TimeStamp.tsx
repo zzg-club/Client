@@ -72,10 +72,8 @@ export default function TimeStamp({
     const pairStartRow = Math.floor(rowIndex / 2) * 2
     const pairEndRow = pairStartRow + 1
 
-    if (pairStartRow === pairEndRow) return
-
     setSelectionsByPage((prev) => {
-      const newSelections = (prev[currentPage] || [])
+      const prevSelections = (prev[currentPage] || [])
         .map((selection) => (selection.isConfirmed ? selection : null))
         .filter(Boolean) as Selection[]
 
@@ -84,15 +82,16 @@ export default function TimeStamp({
         startCol: colIndex,
         endRow: pairEndRow,
         endCol: colIndex,
-        isSelected: true,
+        isSelected: false,
         isConfirmed: false,
       }
 
-      console.log('Block selected (Click):', newSelection)
+      // console.log('Block selected (Prev):', prevSelections)
+      // console.log('Block selected (Click):', newSelection)
 
       return {
         ...prev,
-        [currentPage]: [...newSelections, newSelection],
+        [currentPage]: [...prevSelections, newSelection],
       }
     })
   }
@@ -108,11 +107,11 @@ export default function TimeStamp({
       setActiveSelection(selection)
       setResizingPoint(
         rowIndex === selection.startRow && colIndex === selection.startCol
-          ? 'start'
-          : 'end',
+          ? 'end'
+          : 'start',
       )
 
-      console.log('Resizing started on (Down):', selection)
+      // console.log('Resizing started on (Down):', selection)
     }
   }
 
@@ -126,6 +125,8 @@ export default function TimeStamp({
         Math.max(Math.floor((e.clientY - rect.top) / cellHeight), 0),
         47,
       )
+
+      // console.log('ActiveSelection', activeSelection)
 
       setActiveSelection((prev) => {
         if (!prev) return null
@@ -163,9 +164,11 @@ export default function TimeStamp({
           newSelectionConfirmed.push({ ...activeSelection, isConfirmed: true })
         }
 
-        console.log(
-          `Selection completed (Up) from [Row: ${activeSelection.startRow}, Col: ${activeSelection.startCol}] to [Row: ${activeSelection.endRow}, Col: ${activeSelection.endCol}]`,
-        )
+        console.log('newSelectionConfirmed', newSelectionConfirmed)
+
+        // console.log(
+        //   `Selection completed (Up) from [Row: ${activeSelection.startRow}, Col: ${activeSelection.startCol}] to [Row: ${activeSelection.endRow}, Col: ${activeSelection.endCol}]`,
+        // )
 
         return {
           ...prev,
@@ -236,28 +239,28 @@ export default function TimeStamp({
     }
   }
 
-  useEffect(() => {
-    const confirmedSelections = currentSelections.filter(
-      (selection) => selection.isConfirmed,
-    )
+  // useEffect(() => {
+  //   const confirmedSelections = currentSelections.filter(
+  //     (selection) => selection.isConfirmed,
+  //   )
 
-    const getTimeLabel = (rowIndex: number) => {
-      const hours = Math.floor(rowIndex / 2)
-      const minutes = (rowIndex % 2) * 30
-      const formattedHour = String(hours).padStart(2, '0')
-      const formattedMinute = String(minutes).padStart(2, '0')
-      return `${formattedHour}:${formattedMinute}`
-    }
+  //   const getTimeLabel = (rowIndex: number) => {
+  //     const hours = Math.floor(rowIndex / 2)
+  //     const minutes = ((rowIndex + 1) % 2) * 30
+  //     const formattedHour = String(hours).padStart(2, '0')
+  //     const formattedMinute = String(minutes).padStart(2, '0')
+  //     return `${formattedHour}:${formattedMinute}`
+  //   }
 
-    console.log(`Confirmed selections for page ${currentPage}:`)
-    confirmedSelections.forEach((selection) => {
-      const startTime = getTimeLabel(selection.startRow)
-      const endTime = getTimeLabel(selection.endRow)
-      console.log(
-        `Date: ${selectedDates[currentPage]?.date}, Time: ${startTime} - ${endTime}`,
-      )
-    })
-  }, [currentPage, currentSelections, selectedDates, selectionsByPage])
+  //   console.log(`Confirmed selections for page ${currentPage}:`)
+  //   confirmedSelections.forEach((selection) => {
+  //     const startTime = getTimeLabel(selection.startRow)
+  //     const endTime = getTimeLabel(selection.endRow)
+  //     console.log(
+  //       `Date: ${selectedDates[currentPage]?.date}, Time: ${startTime} - ${endTime}`,
+  //     )
+  //   })
+  // }, [currentPage, currentSelections, selectedDates, selectionsByPage])
 
   return (
     <div className="timestamp-container">
@@ -361,7 +364,7 @@ export default function TimeStamp({
                   return (
                     <div
                       key={rowIndex}
-                      className="h-[18px] relative cursor-pointer"
+                      className={`h-[18px] relative cursor-pointer ${cellStatus.isSelected ? (cellStatus.isConfirmed ? 'bg-[#9562fa]/70' : 'bg-[#9562fa]/20') : ''}`}
                       onMouseDown={() =>
                         cellStatus.isStartCell || cellStatus.isEndCell
                           ? handleMouseDown(
@@ -372,7 +375,14 @@ export default function TimeStamp({
                             )
                           : handleMouseClick(rowIndex, colIndex)
                       }
-                    ></div>
+                    >
+                      {cellStatus.isStartCell && (
+                        <div className="absolute -top-1 left-0 w-2 h-2 bg-[#9562fa] rounded-full cursor-move" />
+                      )}
+                      {cellStatus.isEndCell && (
+                        <div className="absolute -bottom-1 right-0 w-2 h-2 bg-[#9562fa] rounded-full cursor-move" />
+                      )}
+                    </div>
                   )
                 })}
               </div>
