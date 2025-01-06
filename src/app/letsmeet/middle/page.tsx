@@ -1,121 +1,87 @@
 'use client'
 
-import { useRouter } from 'next/navigation' // Next.js Router 사용
+import { useRouter } from 'next/navigation'
 import React, { useEffect, useState, useRef } from 'react'
 import PinMap from '@/components/Map/PinMap'
 import RouteMap from '@/components/Map/RouteMap'
 import Title from '@/components/Header/TitleMiddle'
 import BottomSheet from './BottomSheet'
-import dummyData from '@/data/dummyData.json'
+import dummyDataArray from '@/data/dummyDataArray.json'
 import { loadKakaoMaps } from '@/utils/kakaoLoader'
 import { getCurrentLocation } from '@/components/Map/getCurrentLocation'
-import MiddleBackButton from '@/components/Buttons/MiddleBackButton'
-
-interface Location {
-  lat: number
-  lng: number
-  name: string
-}
-
-interface Participant {
-  name: string
-  time: string
-  icon: string
-  lat: number
-  lng: number
-  transport: string
-  transportIcon: string
-}
+import BackButton from '@/components/Buttons/Middle/BackButton'
 
 export default function Middle() {
-  const [kakaoMap, setKakaoMap] = useState<kakao.maps.Map | null>(null) // 공유된 지도 상태
-  const [participants, setParticipants] = useState<Participant[]>([]) // 상태로 관리
-  const mapContainerRef = useRef<HTMLDivElement | null>(null) // 지도 컨테이너 참조
-  const router = useRouter() // Next.js Router
+  const [kakaoMap, setKakaoMap] = useState<kakao.maps.Map | null>(null)
+  const [currentIndex, setCurrentIndex] = useState(0) // 현재 인덱스
+  const [participants, setParticipants] = useState([])
+  const [destination, setDestination] = useState(dummyDataArray[0].destination)
 
-  const Destination: Location = {
-    lat: 37.555134,
-    lng: 126.936893,
-    name: '신촌역',
-  }
+  const mapContainerRef = useRef<HTMLDivElement | null>(null)
+  const router = useRouter()
 
   useEffect(() => {
     const initializeMap = async () => {
       try {
         await loadKakaoMaps()
-          .then(() => console.log('Kakao Maps loaded successfully'))
-          .catch((error) => console.error('Kakao Maps failed to load:', error))
-
-        if (!window.kakao || !window.kakao.maps) {
-          console.error('Kakao maps API not loaded')
-          return
-        }
-
         const mapContainer = mapContainerRef.current
-        if (!mapContainer) {
-          console.error('Map container not found')
-          return
-        }
+        if (!mapContainer) return
 
         const kakaoMapInstance = new window.kakao.maps.Map(mapContainer, {
           center: new window.kakao.maps.LatLng(
-            Destination.lat,
-            Destination.lng,
+            dummyDataArray[currentIndex].destination.lat,
+            dummyDataArray[currentIndex].destination.lng,
           ),
           level: 4,
         })
 
         setKakaoMap(kakaoMapInstance)
-        console.log('Kakao Map initialized:', kakaoMapInstance)
+        setDestination(dummyDataArray[currentIndex].destination)
       } catch (error) {
         console.error('Error initializing Kakao Maps:', error)
       }
     }
 
-    const fetchCurrentLocation = async () => {
+    const updateParticipants = async () => {
       try {
-        const location = await getCurrentLocation() // 현재 위치 가져오기
-        const myTransport = 'subway' // 내 이동수단 (동적으로 설정 가능)
-
-        const myInfo: Participant = {
+        const location = await getCurrentLocation()
+        const myInfo = {
           name: '내 위치',
           time: '50분',
           icon: '/globe.svg',
           lat: location.lat,
           lng: location.lng,
-          transport: myTransport,
-          transportIcon: `/${myTransport}Purple.svg`, // 본인은 항상 Purple
+          transport: 'subway',
+          transportIcon: '/subwayPurple.svg',
         }
 
         const updatedParticipants = [
-          myInfo, // 내 정보는 맨 앞
-          ...dummyData.participants.map((participant) => ({
+          myInfo,
+          ...dummyDataArray[currentIndex].participants.map((participant) => ({
             ...participant,
-            transportIcon: `/${participant.transport}Yellow.svg`, // 타인은 Yellow
+            transportIcon: '/subwayYellow.svg',
           })),
         ]
 
         setParticipants(updatedParticipants)
-        console.log('Updated participants:', updatedParticipants)
       } catch (error) {
         console.error('현재 위치를 가져오지 못했습니다:', error)
 
-        const fallbackTransport = 'subway' // 기본 이동수단
-        const fallbackInfo: Participant = {
+        const fallbackInfo = {
           name: '기본 위치',
           time: '기본 시간',
           icon: '/globe.svg',
-          lat: 37.5665, // 기본값 (서울 중심)
+          lat: 37.5665,
           lng: 126.978,
-          transport: fallbackTransport,
-          transportIcon: `/${fallbackTransport}Purple.svg`, // 기본 위치도 Purple
+          transport: 'subway',
+          transportIcon: '/subwayPurple.svg',
         }
 
         const updatedParticipants = [
           fallbackInfo,
-          ...dummyData.participants.map((participant) => ({
+          ...dummyDataArray[currentIndex].participants.map((participant) => ({
             ...participant,
-            transportIcon: `/${participant.transport}Yellow.svg`,
+            transportIcon: '/subwayYellow.svg',
           })),
         ]
 
@@ -124,35 +90,42 @@ export default function Middle() {
     }
 
     initializeMap()
-    fetchCurrentLocation()
-  }, [])
+    updateParticipants()
+  }, [currentIndex])
+
+  const handleSlideChange = (direction: 'left' | 'right') => {
+    setCurrentIndex((prevIndex) => {
+      if (direction === 'left') {
+        return prevIndex > 0 ? prevIndex - 1 : dummyDataArray.length - 1
+      } else {
+        return prevIndex < dummyDataArray.length - 1 ? prevIndex + 1 : 0
+      }
+    })
+  }
 
   return (
     <div className="flex flex-col h-screen relative">
-      {/* 지도 컨테이너 */}
       <div
         className="absolute inset-0 z-0"
         ref={mapContainerRef}
         style={{ width: '100%', height: '100%' }}
       ></div>
 
-      {/* 지도 및 참가자 정보 */}
-      {kakaoMap && participants.length > 0 && (
+      {kakaoMap && destination && participants.length > 0 && (
         <>
           <PinMap
-            kakaoMap={kakaoMap} // 공유된 지도 전달
-            participants={participants} // participants로 전달
+            kakaoMap={kakaoMap}
+            participants={participants}
+            destination={destination}
           />
-
           <RouteMap
             kakaoMap={kakaoMap}
-            destination={Destination}
-            participants={participants} // 내 위치 포함한 participants 전달
+            participants={participants}
+            destination={destination}
           />
         </>
       )}
 
-      {/* 헤더 */}
       <header
         className="absolute top-0 left-0 right-0 z-10 bg-white shadow-md"
         style={{
@@ -166,22 +139,21 @@ export default function Middle() {
         />
       </header>
 
-      {/* 뒤로 가기 버튼 */}
-      <MiddleBackButton
-        onClick={() => router.push('/search')} // Next.js Router로 이동
+      <BackButton
+        onClick={() => router.push('/search')}
         style={{
           position: 'relative',
-          top: '72px', // 헤더 높이(56px) + 아래 간격(8px)
-          left: '10px', // 왼쪽 거리
-          zIndex: 2, // 헤더 아래 요소와의 계층 명확히
+          top: '72px',
+          left: '10px',
+          zIndex: 2,
         }}
       />
 
-      {/* BottomSheet */}
       <BottomSheet
-        placeName="신촌역"
-        participants={participants} // 수정된 participants 배열 전달
+        placeName={destination.name}
+        participants={participants}
         totalParticipants={participants.length}
+        onSlideChange={handleSlideChange}
       />
     </div>
   )
