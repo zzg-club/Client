@@ -10,7 +10,7 @@ export interface ScheduleCardProps {
   date: string
   title: string
   startTime: string
-  endTime?: string
+  endTime: string
   location?: string
   participants: { id: number; name: string; image: string }[]
 }
