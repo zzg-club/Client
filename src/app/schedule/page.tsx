@@ -9,8 +9,10 @@ import { DateRange } from 'react-day-picker'
 import NavBar from '@/components/Navigate/NavBar'
 import { ScheduleCard } from '@/components/Cards/ScheduleCard'
 import EditTitle from '@/components/Header/EditTitle'
+import CarouselNotification from '@/components/Notification/CarouselNotification'
 import DateTimeModal from '@/components/Modals/DirectSelect/DateTimeModal'
 
+// 스케줄 카드 목데이터
 const mockSchedules = [
   {
     id: 1,
@@ -127,10 +129,51 @@ export default function ScheduleLanding() {
   const handleOpenDdialg = () => {
     setIsDdialogOpen(!isDdialogOpen)
   }
+
+  // 캐러셀 알림 목데이터
+  const notifications = [
+    {
+      id: 1,
+      notiMessage: '생성하던 일정이 있습니다!',
+      leftBtnText: '이어서 하기',
+      RightBtnText: '새로 만들기',
+    },
+    {
+      id: 2,
+      notiMessage: '생성하던 일정이 있습니다!!',
+      leftBtnText: '이어서 하기',
+      RightBtnText: '새로 만들기',
+    },
+    {
+      id: 3,
+      notiMessage: '생성하던 일정이 있습니다~!',
+      leftBtnText: '이어서 하기',
+      RightBtnText: '새로 만들기',
+    },
+  ]
+  // 캐러셀 알림 버튼 클릭 이벤트
+  const handleLeftBtn = () => {
+    alert('왼쪽 버튼 클릭')
+  }
+
+  const handleRightBtn = () => {
+    alert('오른쪽 버튼 클릭')
+  }
+
   return (
     <div className="flex flex-col min-h-screen">
       {/* Add Moim Button */}
       <NavBar activeTab="스케줄" />
+
+      {/* 캐로셀 알림 컴포넌트 */}
+      <div className="flex justify-center items-center overflew-hidden">
+        <CarouselNotification
+          notifications={notifications}
+          onLeftBtn={handleLeftBtn}
+          onRightBtn={handleRightBtn}
+        />
+      </div>
+      {/* 스케줄 카드 컴포넌트 */}
       {mockSchedules.length > 0 ? (
         <>
           <div className="w-full h-[34px] px-4 my-[8px] flex justify-start items-center gap-[2px]">
@@ -155,6 +198,7 @@ export default function ScheduleLanding() {
           ))}
         </>
       ) : (
+        // 스케줄 정보 없는 경우 렌더링 화면
         <div className="flex flex-col items-center justify-center flex-1">
           <div className="text-center text-zinc-400 text-base font-medium leading-[17px]">
             모임 일정을 추가해봐요!

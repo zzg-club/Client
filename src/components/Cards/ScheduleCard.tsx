@@ -58,20 +58,17 @@ export function ScheduleCard({
         {date}
       </div>
       <div
-        className="group w-full h-[114px] max-w-full rounded-3xl border-2 border-[#9562fa] px-6 py-[18px] cursor-pointer bg-white border-[#9562fa] hover:bg-[#9562fa] hover:text-[#fff]"
+        className="group w-full h-full rounded-3xl border-2 border-[#9562fa] px-6 py-[18px] cursor-pointer bg-white border-[#9562fa] hover:bg-[#9562fa] hover:text-[#fff]"
         onClick={handleMembersModalOpen}
       >
         <div className="flex flex-col gap-4">
           {/* 내용 정렬 */}
-          <div className="flex items-center justify-between">
-            <div className="flex flex-col gap-4">
-              {/* 일정 제목 */}
-              <div className="flex items-center gap-2">
-                <span className="text-xl font-medium leading-[17px] text-[#8e8d8d] group-hover:text-[#fff]">
-                  {title}
-                </span>
-              </div>
-
+          <div className="flex justify-between">
+            {/* 일정 제목 */}
+            <div className="flex flex-col justify-between gap-2">
+              <span className="text-xl font-medium leading-[17px] text-[#8e8d8d] group-hover:text-[#fff]">
+                {title}
+              </span>
               {/* 모임원 프로필 */}
               <ProfileSelected profiles={participants} />
             </div>
@@ -82,7 +79,7 @@ export function ScheduleCard({
                 {startTime} - {endTime}
               </span>
               {location ? (
-                <span className="text-xl font-medium text-[#9562fa] group-hover:text-[#fff]">
+                <span className="text-xl font-medium text-[#9562fa] group-hover:text-[#fff] my-1">
                   {location}
                 </span>
               ) : (
