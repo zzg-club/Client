@@ -1,10 +1,12 @@
 'use client'
 
 import React, { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import styles from './LocationPage.module.css'
 import SearchBar from '@/components/SearchBar/SearchBar'
 
 const LocationPage: React.FC = () => {
+  const router = useRouter()
   const [locations, setLocations] = useState([
     {
       name: '성북역 롯데골드타운아파트',
@@ -23,14 +25,11 @@ const LocationPage: React.FC = () => {
       address: '경기 용인시 수지구 성북로 10',
     },
   ])
-  const handleSearchClick = () => {
-    if (onSearch) {
-      const inputValue = (
-        document.getElementById('searchInput') as HTMLInputElement
-      )?.value
-      onSearch(inputValue)
-    }
+
+  const handleBack = () => {
+    router.push('/place') // 'place' 페이지로 이동
   }
+
   return (
     <div className={styles.container}>
       {/* 검색창 */}
@@ -40,18 +39,15 @@ const LocationPage: React.FC = () => {
           src="/arrow_back.svg"
           alt="뒤로 가기"
           className={styles.arrowIcon}
-          onClick={() => {
-            if (onBack) {
-              onBack()
-            } else {
-              router.push('/place') // 기본적으로 'place'로 이동
-            }
-          }}
+          onClick={handleBack} // 함수 호출로 변경
         />
 
-        <SearchBar />
+        <SearchBar placeholder="출발지를 입력해주세요!" />
         {/* 검색 버튼 */}
-        <button className={styles.searchButton} onClick={handleSearchClick}>
+        <button
+          className={styles.searchButton}
+          onClick={() => console.log('검색 버튼 클릭')}
+        >
           검색
         </button>
       </div>
