@@ -3,6 +3,7 @@
   overflow: hidden;
   border-radius: 24px;
   background-color: #ffffff;
+  padding: 0 25px;
 }
 
 .wheel-time-picker-content {
@@ -51,7 +52,7 @@
   justify-content: center;
   text-align: center;
   user-select: none;
-  font-size: 1.125rem;
+  font-size: 1.5rem;
   color: #b2b2b2;
   transition: all 0.2s ease-out;
   height: 40px;
