@@ -121,16 +121,6 @@
   z-index: -1;
 }
 
-/* .calendar-cell:has(.calendar-day-range-start) .calendar-day::before {
-  border-radius: 50% 0 0 50%;
-  left: 0;
-}
-
-.calendar-cell:has(.calendar-day-range-end) .calendar-day::before {
-  border-top-right-radius: 20px;
-  border-bottom-right-radius: 20px;
-  right: 0;
-} */
 .calendar-day-range-start {
   border-radius: 50% 0 0 50%;
 }
@@ -139,5 +129,9 @@
 }
 
 .calendar-day-range-end.calendar-day-range-start {
+  border-radius: 50%;
+}
+
+[data-mode='single'] .calendar-day-selected {
   border-radius: 50%;
 }
