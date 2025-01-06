@@ -82,7 +82,7 @@ export default function TimeStamp({
         startCol: colIndex,
         endRow: pairEndRow,
         endCol: colIndex,
-        isSelected: false,
+        isSelected: true,
         isConfirmed: false,
       }
 
@@ -107,8 +107,8 @@ export default function TimeStamp({
       setActiveSelection(selection)
       setResizingPoint(
         rowIndex === selection.startRow && colIndex === selection.startCol
-          ? 'end'
-          : 'start',
+          ? 'start'
+          : 'end',
       )
 
       // console.log('Resizing started on (Down):', selection)
@@ -148,27 +148,29 @@ export default function TimeStamp({
 
   const handleMouseUp = useCallback(() => {
     if (activeSelection) {
+      const finalizedSelection = {
+        ...activeSelection,
+        isSelected: false,
+        isConfirmed: true,
+      }
+
       setSelectionsByPage((prev) => {
         const updatedSelections =
           prev[currentPage]?.map((sel) =>
-            sel === activeSelection ? { ...sel, isConfirmed: true } : sel,
+            sel === activeSelection ? finalizedSelection : sel,
           ) || []
 
         const newSelectionConfirmed = updatedSelections.map((selection) =>
           selection.isSelected
-            ? { ...selection, isConfirmed: true }
+            ? { ...selection, isSelected: false, isConfirmed: true }
             : selection,
         )
 
         if (!updatedSelections.some((sel) => sel === activeSelection)) {
-          newSelectionConfirmed.push({ ...activeSelection, isConfirmed: true })
+          newSelectionConfirmed.push(finalizedSelection)
         }
 
         console.log('newSelectionConfirmed', newSelectionConfirmed)
-
-        // console.log(
-        //   `Selection completed (Up) from [Row: ${activeSelection.startRow}, Col: ${activeSelection.startCol}] to [Row: ${activeSelection.endRow}, Col: ${activeSelection.endCol}]`,
-        // )
 
         return {
           ...prev,
@@ -194,11 +196,31 @@ export default function TimeStamp({
   }, [activeSelection, isResizing, handleMouseMove, handleMouseUp])
 
   const getCellStatus = (row: number, col: number) => {
-    const allSelections = [
-      ...currentSelections,
-      ...selections,
-      activeSelection,
-    ].filter(Boolean) as Selection[]
+    const allSelections = [...currentSelections, ...selections].filter(
+      Boolean,
+    ) as Selection[]
+
+    if (activeSelection) {
+      const minRow = Math.min(activeSelection.startRow, activeSelection.endRow)
+      const maxRow = Math.max(activeSelection.startRow, activeSelection.endRow)
+      const minCol = Math.min(activeSelection.startCol, activeSelection.endCol)
+      const maxCol = Math.min(activeSelection.startCol, activeSelection.endCol)
+
+      if (row >= minRow && row <= maxRow && col >= minCol && col <= maxCol) {
+        const isStartCell =
+          row === activeSelection.startRow && col === activeSelection.startCol
+        const isEndCell =
+          row === activeSelection.endRow && col === activeSelection.endCol
+
+        return {
+          isSelected: true,
+          isConfirmed: false,
+          isStartCell,
+          isEndCell,
+          selection: activeSelection,
+        }
+      }
+    }
 
     for (const selection of allSelections) {
       const minRow = Math.min(selection.startRow, selection.endRow)
@@ -209,17 +231,7 @@ export default function TimeStamp({
       if (row >= minRow && row <= maxRow && col >= minCol && col <= maxCol) {
         const isStartCell =
           row === selection.startRow && col === selection.startCol
-        const isEndCell = row === selection.startRow && col === selection.endCol
-
-        if (selection.isConfirmed) {
-          return {
-            isSelected: true,
-            isConfirmed: selection.isConfirmed,
-            isStartCell: false,
-            isEndCell: false,
-            selection,
-          }
-        }
+        const isEndCell = row === selection.endRow && col === selection.endCol
 
         return {
           isSelected: true,
@@ -239,48 +251,112 @@ export default function TimeStamp({
     }
   }
 
-  // useEffect(() => {
-  //   const confirmedSelections = currentSelections.filter(
-  //     (selection) => selection.isConfirmed,
-  //   )
+  const getCellBorder = (row: number, col: number) => {
+    const allSelections = [...currentSelections, ...selections].filter(
+      Boolean,
+    ) as Selection[]
 
-  //   const getTimeLabel = (rowIndex: number) => {
-  //     const hours = Math.floor(rowIndex / 2)
-  //     const minutes = ((rowIndex + 1) % 2) * 30
-  //     const formattedHour = String(hours).padStart(2, '0')
-  //     const formattedMinute = String(minutes).padStart(2, '0')
-  //     return `${formattedHour}:${formattedMinute}`
-  //   }
+    const cellStatus = getCellStatus(row, col)
+    if (!cellStatus.isSelected || cellStatus.isConfirmed) return {}
 
-  //   console.log(`Confirmed selections for page ${currentPage}:`)
-  //   confirmedSelections.forEach((selection) => {
-  //     const startTime = getTimeLabel(selection.startRow)
-  //     const endTime = getTimeLabel(selection.endRow)
-  //     console.log(
-  //       `Date: ${selectedDates[currentPage]?.date}, Time: ${startTime} - ${endTime}`,
-  //     )
-  //   })
-  // }, [currentPage, currentSelections, selectedDates, selectionsByPage])
+    const isSelected = (r: number, c: number) =>
+      allSelections.some(
+        (selection) =>
+          Math.min(selection.startRow, selection.endRow) <= r &&
+          Math.max(selection.startRow, selection.endRow) >= r &&
+          Math.min(selection.startCol, selection.endCol) <= c &&
+          Math.max(selection.startCol, selection.endCol) >= c,
+      )
+
+    const isActiveSelection = (r: number, c: number) =>
+      activeSelection &&
+      Math.min(activeSelection.startRow, activeSelection.endRow) <= r &&
+      Math.max(activeSelection.startRow, activeSelection.endRow) >= r &&
+      Math.min(activeSelection.startCol, activeSelection.endCol) <= c &&
+      Math.max(activeSelection.startCol, activeSelection.endCol) >= c
+
+    return {
+      borderTop:
+        !isSelected(row - 1, col) && !isActiveSelection(row - 1, col)
+          ? '2px solid #9562fa'
+          : 'none',
+      borderBottom:
+        !isSelected(row + 1, col) && !isActiveSelection(row + 1, col)
+          ? '2px solid #9562fa'
+          : 'none',
+      borderLeft: '2px solid #9562fa',
+      borderRight: '2px solid #9562fa',
+    }
+  }
+
+  useEffect(() => {
+    const confirmedSelections = currentSelections.filter(
+      (selection) => selection.isConfirmed,
+    )
+
+    // 선택된 셀들을 rowIndex 기준으로 정렬
+    const sortedSelections = confirmedSelections.sort(
+      (a, b) => a.startRow - b.startRow,
+    )
+
+    // 시간 범위를 그룹화
+    const timeRanges: { start: string; end: string }[] = []
+
+    let currentRangeStart: string | null = null
+    let currentRangeEnd: string | null = null
+
+    const getTimeLabel = (rowIndex: number) => {
+      const hours = Math.floor(rowIndex / 2)
+      const minutes = (rowIndex % 2) * 30
+      const formattedHour = String(hours).padStart(2, '0')
+      const formattedMinute = String(minutes).padStart(2, '0')
+      return `${formattedHour}:${formattedMinute}`
+    }
+
+    sortedSelections.forEach((selection) => {
+      const startTime = getTimeLabel(selection.startRow)
+      const endTime = getTimeLabel(selection.endRow)
+
+      // 연속된 시간 범위인지 확인
+      if (currentRangeStart === null) {
+        currentRangeStart = startTime
+      }
+
+      if (currentRangeEnd === null || currentRangeEnd === startTime) {
+        currentRangeEnd = endTime
+      } else {
+        // 연속적인 시간 범위가 끊어진 경우
+        if (currentRangeStart && currentRangeEnd) {
+          timeRanges.push({ start: currentRangeStart, end: currentRangeEnd })
+        }
+        currentRangeStart = startTime
+        currentRangeEnd = endTime
+      }
+    })
+
+    // 마지막 남은 범위 추가
+    if (currentRangeStart && currentRangeEnd) {
+      timeRanges.push({ start: currentRangeStart, end: currentRangeEnd })
+    }
+
+    console.log(`Confirmed selections for page ${currentPage}:`)
+    timeRanges.forEach((range) => {
+      console.log(`Time: ${range.start} - ${range.end}`)
+    })
+  }, [currentPage, currentSelections])
 
   return (
     <div className="timestamp-container">
       <div className="timestamp-content">
         <div className="w-full max-w-4xl mx-auto bg-white pl-2 pr-8 pt-3 pb-8 flex grid grid-cols-[auto_1fr]">
           <div className="relative pt-8 w-7 pr-1">
-            {Array.from(
-              { length: 23 },
-              (
-                _,
-                i, //시간 몇개로 나눌 건지
-              ) => (
-                <div key={i} className="h-9 text-[10px] text-[#afafaf]">
-                  {`${String(i + 1).padStart(2, '0')}시`}{' '}
-                </div>
-              ),
-            )}
+            {Array.from({ length: 23 }, (_, i) => (
+              <div key={i} className="h-9 text-[10px] text-[#afafaf]">
+                {`${String(i + 1).padStart(2, '0')}시`}{' '}
+              </div>
+            ))}
           </div>
           <div
-            // 세로줄
             ref={gridRef}
             className=" w-full relative grid z-100 border-[1px] border-[#d9d9d9] rounded-3xl overflow-hidden"
             style={{
@@ -290,97 +366,51 @@ export default function TimeStamp({
             }}
           >
             {currentDates.map((_, colIndex) => (
-              <div key={colIndex} className="relative border border-[#d9d9d9]">
-                {(() => {
-                  const groupedCells: {
-                    start: number
-                    end: number
-                    isConfirmed: boolean
-                  }[] = []
-                  let startIndex: number | null = null
-                  let isConfirmedGroup = true
-
-                  Array.from({ length: 48 }).forEach((_, rowIndex) => {
-                    const cellStatus = getCellStatus(rowIndex, colIndex)
-                    if (cellStatus.isSelected) {
-                      if (startIndex === null) {
-                        startIndex = rowIndex
-                      }
-                      if (!cellStatus.isConfirmed) {
-                        isConfirmedGroup = false
-                      }
-                    } else if (startIndex !== null) {
-                      groupedCells.push({
-                        start: startIndex,
-                        end: rowIndex - 1,
-                        isConfirmed: isConfirmedGroup,
-                      })
-                      startIndex = null
-                      isConfirmedGroup = true
-                    }
-                  })
-                  if (startIndex !== null) {
-                    groupedCells.push({
-                      start: startIndex,
-                      end: 47,
-                      isConfirmed: isConfirmedGroup,
-                    })
-                  }
-                  return groupedCells.map((group, groupIndex) => (
-                    <div
-                      key={`group-${groupIndex}`}
-                      className={`absolute w-full ${
-                        group.isConfirmed
-                          ? 'bg-[#9562fa]/70'
-                          : 'bg-[#9562fa]/20 border-[2px] border-[#9562fa]'
-                      }`}
-                      style={{
-                        top: `${group.start * 18}px`,
-                        height: `${(group.end - group.start + 1) * 18}px`,
-                      }}
-                    >
-                      {!group.isConfirmed && (
-                        <>
-                          <div
-                            className="absolute -top-[5px] left-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move"
-                            onMouseDown={() => {
-                              handleMouseDown(group.start, groupIndex, true)
-                            }}
-                          />
-                          <div
-                            className="absolute -bottom-[5px] right-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move"
-                            onMouseDown={() => {
-                              handleMouseDown(group.end, groupIndex, true)
-                            }}
-                          />
-                        </>
-                      )}
-                    </div>
-                  ))
-                })()}
-
+              <div
+                key={colIndex}
+                className="relative border border-[#d9d9d9] z-100"
+              >
                 {Array.from({ length: 48 }, (_, rowIndex) => {
                   const cellStatus = getCellStatus(rowIndex, colIndex)
+                  const cellBorder = getCellBorder(rowIndex, colIndex)
                   return (
                     <div
                       key={rowIndex}
-                      className={`h-[18px] relative cursor-pointer ${cellStatus.isSelected ? (cellStatus.isConfirmed ? 'bg-[#9562fa]/70' : 'bg-[#9562fa]/20') : ''}`}
-                      onMouseDown={() =>
-                        cellStatus.isStartCell || cellStatus.isEndCell
-                          ? handleMouseDown(
+                      className={`h-[18px] relative cursor-pointer ${
+                        cellStatus.isSelected
+                          ? cellStatus.isConfirmed
+                            ? 'bg-[#9562fa]/70 z-200'
+                            : 'bg-[#9562fa]/20 z-200'
+                          : ''
+                      }`}
+                      style={cellBorder}
+                      onMouseDown={() => handleMouseClick(rowIndex, colIndex)}
+                    >
+                      {!cellStatus.isConfirmed && cellStatus.isStartCell && (
+                        <div
+                          className="absolute -top-[5px] left-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move"
+                          onMouseDown={() =>
+                            handleMouseDown(
                               rowIndex,
                               colIndex,
                               true,
-                              cellStatus.selection,
+                              cellStatus.selection!,
                             )
-                          : handleMouseClick(rowIndex, colIndex)
-                      }
-                    >
-                      {cellStatus.isStartCell && (
-                        <div className="absolute -top-1 left-0 w-2 h-2 bg-[#9562fa] rounded-full cursor-move" />
+                          }
+                        />
                       )}
-                      {cellStatus.isEndCell && (
-                        <div className="absolute -bottom-1 right-0 w-2 h-2 bg-[#9562fa] rounded-full cursor-move" />
+                      {!cellStatus.isConfirmed && cellStatus.isEndCell && (
+                        <div
+                          className="absolute -bottom-[5px] right-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move"
+                          onMouseDown={() =>
+                            handleMouseDown(
+                              rowIndex,
+                              colIndex,
+                              true,
+                              cellStatus.selection!,
+                            )
+                          }
+                        />
                       )}
                     </div>
                   )
