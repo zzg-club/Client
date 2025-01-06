@@ -5,12 +5,12 @@ import { ScheduleOptions } from '@/components/Buttons/Floating/Options'
 import CustomModal from '@/components/Modals/CustomModal'
 import CustomCalendar from '@/components/Calendars/CustomCalendar'
 import Button from '@/components/Buttons/Floating/Button'
-import { DateRange } from 'react-day-picker'
 import NavBar from '@/components/Navigate/NavBar'
 import { ScheduleCard } from '@/components/Cards/ScheduleCard'
 import EditTitle from '@/components/Header/EditTitle'
 import CarouselNotification from '@/components/Notification/CarouselNotification'
 import DateTimeModal from '@/components/Modals/DirectSelect/DateTimeModal'
+import { useHandleSelect } from '@/hooks/useHandleSelect'
 
 // 스케줄 카드 목데이터
 const mockSchedules = [
@@ -105,19 +105,12 @@ export default function ScheduleLanding() {
   const [isOpen, setIsOpen] = useState(false)
   const [isCdialogOpen, setIsCdialogOpen] = useState(false) // 일정 조율하기 모달 상태 C: Coordinate
   const [isDdialogOpen, setIsDdialogOpen] = useState(false) // 직접 입력하기 모달 상태 D: Direct
-  const [selectedDates, setSelectedDates] = useState<
-    DateRange | Date[] | Date | undefined
-  >()
   const [title, setTitle] = useState('제목 없는 일정') // 제목 상태 관리
+  const { selectedDates, handleSelect } = useHandleSelect() // 커스텀 훅으로 날짜 선택 기능 가져오기 (백에 보낼때 stringDates 가져오면 됨)
 
   // 제목 수정 함수
   const handleTitleChange = (newTitle: string) => {
     setTitle(newTitle) // 수정된 제목으로 상태 업데이트
-  }
-
-  const handleSelect = (selection: DateRange | Date[] | Date | undefined) => {
-    setSelectedDates(selection)
-    console.log('Selected:', selection)
   }
 
   const handleToggle = () => {
