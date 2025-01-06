@@ -106,7 +106,7 @@ export default function ScheduleLanding() {
   const [isCdialogOpen, setIsCdialogOpen] = useState(false) // 일정 조율하기 모달 상태 C: Coordinate
   const [isDdialogOpen, setIsDdialogOpen] = useState(false) // 직접 입력하기 모달 상태 D: Direct
   const [selectedDates, setSelectedDates] = useState<
-    DateRange | Date[] | undefined
+    DateRange | Date[] | Date | undefined
   >()
   const [title, setTitle] = useState('제목 없는 일정') // 제목 상태 관리
 
@@ -115,7 +115,7 @@ export default function ScheduleLanding() {
     setTitle(newTitle) // 수정된 제목으로 상태 업데이트
   }
 
-  const handleSelect = (selection: DateRange | Date[] | undefined) => {
+  const handleSelect = (selection: DateRange | Date[] | Date | undefined) => {
     setSelectedDates(selection)
     console.log('Selected:', selection)
   }
