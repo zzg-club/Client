@@ -7,7 +7,8 @@ import MembersVariant from '../Modals/MembersVariant'
 import SelectModal from '../Modals/SelectModal'
 
 export interface ScheduleCardProps {
-  date: string
+  startDate: string
+  endDate?: string
   title: string
   startTime: string
   endTime: string
@@ -16,7 +17,7 @@ export interface ScheduleCardProps {
 }
 
 export function ScheduleCard({
-  date,
+  startDate,
   title,
   startTime,
   endTime,
@@ -55,7 +56,7 @@ export function ScheduleCard({
   return (
     <div className="px-4 mb-5">
       <div className="text-[#1e1e1e] text-xs font-medium leading-[17px] ml-[12px]">
-        {date}
+        {startDate}
       </div>
       <div
         className="group w-full h-full rounded-3xl border-2 border-[#9562fa] px-6 py-[18px] cursor-pointer bg-white border-[#9562fa] hover:bg-[#9562fa] hover:text-[#fff]"
@@ -103,7 +104,7 @@ export function ScheduleCard({
       >
         <MembersVariant
           onClickX={handleRemoveMember}
-          date={date}
+          startDate={startDate}
           location={location}
           startTime={startTime}
           endTime={endTime}

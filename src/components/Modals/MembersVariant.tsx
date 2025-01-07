@@ -8,7 +8,7 @@ import CustomModal from './CustomModal'
 import ScheduleSelectShareModal from './ScheduleSelectShareModal'
 
 export interface ModalProps {
-  date: string
+  startDate: string
   location?: string
   startTime?: string
   endTime?: string
@@ -21,7 +21,7 @@ export interface ModalProps {
 }
 
 export default function MembersVariant({
-  date,
+  startDate,
   location,
   startTime,
   endTime,
@@ -64,7 +64,7 @@ export default function MembersVariant({
     <div>
       <div className="flex justify-between items-center mb-[6px]">
         <div className="text-black text-base font-medium leading-snug">
-          {date}
+          {startDate}
         </div>
         <button
           className="text-[#9562fa] mr-[32px]"

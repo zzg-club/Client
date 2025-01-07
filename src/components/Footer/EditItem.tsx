@@ -1,10 +1,10 @@
 export interface EditItemProps {
-  date: string
+  startDate: string
   startTime: string
   endTime: string
 }
 
-export function EditItem({ date, startTime, endTime }: EditItemProps) {
+export function EditItem({ startDate, startTime, endTime }: EditItemProps) {
   const onDelete = () => {
     alert('삭제하기 버튼')
   }
@@ -13,7 +13,7 @@ export function EditItem({ date, startTime, endTime }: EditItemProps) {
       <div className="flex justify-between items-center">
         <div className="flex gap-[8px]">
           <span className="text-center text-[#1e1e1e] text-xl font-normal">
-            {date}
+            {startDate}
           </span>
           <span className="text-center text-[#afafaf] text-xl font-medium">
             {startTime} - {endTime}

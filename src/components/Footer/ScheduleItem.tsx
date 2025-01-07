@@ -2,15 +2,17 @@ import { ProfileSelected } from '../Profiles/ProfileSelected'
 
 export interface ScheduleItemProps {
   number: number
-  date: string
-  time: string
+  startDate: string
+  startTime: string
+  endTime: string
   participants: { id: number; name: string; image: string }[]
 }
 
 export function ScheduleItem({
   number,
-  date,
-  time,
+  startDate,
+  startTime,
+  endTime,
   participants,
 }: ScheduleItemProps) {
   return (
@@ -18,8 +20,8 @@ export function ScheduleItem({
       <div className="flex items-center gap-2">
         <span className="text-2xl font-medium text-[#9562fa]">{number}</span>
         <span className="text-lg font-normal text-black">
-          {date} &nbsp;
-          {time}
+          {startDate} &nbsp;
+          {startTime} - {endTime}
         </span>
       </div>
       <div className="flex items-center gap-2">
