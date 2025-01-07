@@ -174,7 +174,7 @@ export default function WheelTimePicker({
     if (onChange) {
       const formattedTime = `${newTime.hour}:${newTime.minute} ${newTime.meridiem}`
       onChange(formattedTime)
-      console.log('Selected time:', formattedTime)
+      console.log('[wheel-time-picker] Selected time:', formattedTime)
     }
   }
 
