@@ -124,7 +124,7 @@
 
 /* Bottom Sheet 상태별 높이 */
 .bottomSheet.collapsed {
-  --bottomSheetHeight: 100px;
+  --bottomSheetHeight: 180px;
 }
 
 .bottomSheet.middle {
@@ -304,7 +304,7 @@
 /* 카드 콘텐츠 */
 .cardContent {
   flex: 1;
-  padding: 12px 25px; /* 텍스트와 태그 영역에만 패딩 적용 */
+  padding: 12px 24px; /* 텍스트와 태그 영역에만 패딩 적용 */
   display: flex;
   flex-direction: column;
   gap: 4px; /* 요소 간 간격 최소화 */
@@ -375,10 +375,11 @@
   background: rgba(212, 190, 255, 0.5); /* 태그 배경 색상 */
   border: 1px solid #9562fb; /* 테두리 색상 */
   border-radius: 24px; /* 둥근 모서리 */
-  padding: 0 12px; /* 좌우 여백 추가 */
-  height: 24px; /* 태그 높이 고정 */
+  padding: 8px 12px; /* 좌우 여백 추가 */
+  width: 52px;
+  height: 28px; /* 태그 높이 고정 */
   font-family: Pretendard, sans-serif;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 500;
   line-height: 17px; /* 텍스트 높이 조정 */
   color: #9562fb; /* 텍스트 색상 */

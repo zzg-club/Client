@@ -87,91 +87,171 @@ const PlaceDetail = ({ id }: PlaceDetailProps) => {
         onTouchEnd={handleTouchEnd}
       >
         <div className={styles.dragHandle}></div>
-       {/* Image Gallery */}
-        <div className={styles['image-gallery']}>
-          {/* Left: Large Image */}
-          <div className={styles['gallery-large']}>
-            <img
-              src={selectedPlace.images[0]}
-              alt="Large Gallery"
-              className={styles['gallery-image']}
-            />
-          </div>
 
-          {/* Right: Four Smaller Images */}
-          <div className={styles['gallery-small-container']}>
-            {selectedPlace.images.slice(1, 5).map((image, index) => (
-              <div key={index} className={styles['gallery-small']}>
-                <img src={image} alt={`Small Gallery ${index}`} className={styles['gallery-image']} />
-                {index === 3 && selectedPlace.images.length > 5 && (
-                  <div className={styles['more-overlay']}>
-                    +{selectedPlace.images.length - 5}
+        {/* Collapsed State Content */}
+        {bottomSheetState === 'collapsed' && (
+            <div className={styles.cardContent}>
+              <div className={styles.cardHeader}>
+                <h3 className={styles.cardTitle}>{selectedPlace.name}</h3>
+                <div className={styles.likes}>
+                  <div className={styles.likeBackground}>
+                    <div className={styles.likeIcon}></div>
                   </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className={styles.content}>
-          <div className={styles.cardContent}>
-            <div className={styles.cardHeader}>
-              <h3 className={styles.cardTitle}>{selectedPlace.name}</h3>
-              <div className={styles.likes}>
-                <div className={styles.likeBackground}>
-                  <div className={styles.likeIcon}></div>
+                  <span>{selectedPlace.likes}명</span>
                 </div>
-                <span>{selectedPlace.likes}명</span>
               </div>
-            </div>
 
-            {/* Tags */}
-            <div className={styles.tags}>
-              {selectedPlace.tags.map((tag, idx) => (
-                <span key={idx} className={styles.tag}>
-                  {tag}
-                </span>
-              ))}
-            </div>
+              <div className={styles.tags}>
+                {selectedPlace.tags.map((tag, idx) => (
+                  <span key={idx} className={styles.tag}>
+                    {tag}
+                  </span>
+                ))}
+              </div>
 
-            <div className={styles.description}>풍경한우? 가족 생일마다 가는 단골 맛집! 길이 험하고 반찬 줄어든 건 아쉽지만, 고기가 정말 최고야!</div>
+              <h3>자연에 고기로 하나 같이 맛있게 먹자</h3>
 
-            {/* Tabs */}
-            <div className={styles.tabContainer}>
-              {['상세', '메뉴', '사진'].map((tab) => (
-                <div
-                  key={tab}
-                  className={`${styles.tab} ${activeTab === tab ? styles.selected : ''}`}
-                  onClick={() => setActiveTab(tab as '상세' | '메뉴' | '사진')}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginTop: '2px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <img
+                    src="/clock-icon.svg"
+                    alt="Clock Icon"
+                    style={{ width: '18px', height: '18px' }}
+                  />
+                  <p
+                    style={{ fontSize: '16px', fontWeight: '400', color: '#AFAFAF', letterSpacing: '-0.5px' }}
+                  >
+                    영업시간
+                  </p>
+                  <p
+                    style={{ fontSize: '16px', fontWeight: '500', color: '#9562FB', letterSpacing: '-0.5px' }}
+                  >
+                    10:00 - 22:00
+                  </p>
+                </div>
+                <button
+                  style={{
+                    backgroundColor: '#61C56C',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    borderRadius: '24px',
+                    padding: '8px 16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    cursor: 'pointer',
+                    width: '92px',
+                    height: '44px',
+                  }}
                 >
-                  {tab}
-                </div>
-              ))}
+                  <img
+                    src="/call.svg"
+                    alt="Call Icon"
+                    style={{ width: '36px', height: '36px' }}
+                  />
+                </button>
+              </div>
             </div>
-          </div>
-        </div>
-        {/* Tab Content */}
-        <div className={styles.tabContent}>
-          {activeTab === '상세' && (
-            <>
-              <div className={styles.cardContainer} style={{ marginBottom: '10px' }}>
-                <StoreInfo selectedPlace={selectedPlace} />
-                <div style={{ marginTop: '40px' }}>
-                  <SectionTitle title="인기 메뉴" />
-                </div>
-                <Menu selectedPlace={selectedPlace} />
+        )}
+
+        {/* Middle and Expanded State Content */}
+        {['middle', 'expanded'].includes(bottomSheetState) && (
+          <>
+            <div className={styles['image-gallery']}>
+              <div className={styles['gallery-large']}>
+                <img
+                  src={selectedPlace.images[0]}
+                  alt="Large Gallery"
+                  className={styles['gallery-image']}
+                />
               </div>
 
-              <div className={styles.cardContainer} style={{ marginTop: '10px' }}>
-                <SectionTitle title="방문자 사진" />
-                <VisitorPhoto selectedPlace={selectedPlace} />
+              <div className={styles['gallery-small-container']}>
+                {selectedPlace.images.slice(1, 5).map((image, index) => (
+                  <div key={index} className={styles['gallery-small']}>
+                    <img
+                      src={image}
+                      alt={`Small Gallery ${index}`}
+                      className={styles['gallery-image']}
+                    />
+                    {index === 3 && selectedPlace.images.length > 5 && (
+                      <div className={styles['more-overlay']}>
+                        +{selectedPlace.images.length - 5}
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
-            </>
-          )}
-          {activeTab === '메뉴' && <Menu selectedPlace={selectedPlace} />}
-          {activeTab === '사진' && <VisitorPhoto selectedPlace={selectedPlace} />}
-        </div>
+            </div>
+
+            <div className={styles.content}>
+              <div className={styles.cardContent}>
+                <div className={styles.cardHeader}>
+                  <h3 className={styles.cardTitle}>{selectedPlace.name}</h3>
+                  <div className={styles.likes}>
+                    <div className={styles.likeBackground}>
+                      <div className={styles.likeIcon}></div>
+                    </div>
+                    <span>{selectedPlace.likes}명</span>
+                  </div>
+                </div>
+
+                <div className={styles.tags}>
+                  {selectedPlace.tags.map((tag, idx) => (
+                    <span key={idx} className={styles.tag}>
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+
+                <div className={styles.description}>
+                  풍경한우? 가족 생일마다 가는 단골 맛집! 길이 험하고 반찬 줄어든 건 아쉽지만, 고기가 정말 최고야!
+                </div>
+
+                <div className={styles.tabContainer}>
+                  {['상세', '메뉴', '사진'].map((tab) => (
+                    <div
+                      key={tab}
+                      className={`${styles.tab} ${activeTab === tab ? styles.selected : ''}`}
+                      onClick={() => setActiveTab(tab as '상세' | '메뉴' | '사진')}
+                    >
+                      {tab}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.tabContent}>
+              {activeTab === '상세' && (
+                <>
+                  <div className={styles.cardContainer} style={{ marginBottom: '10px' }}>
+                    <StoreInfo selectedPlace={selectedPlace} />
+                    <div style={{ marginTop: '40px' }}>
+                      <SectionTitle title="인기 메뉴" />
+                    </div>
+                    <Menu selectedPlace={selectedPlace} />
+                  </div>
+
+                  <div className={styles.cardContainer} style={{ marginTop: '10px' }}>
+                    <SectionTitle title="방문자 사진" />
+                    <VisitorPhoto selectedPlace={selectedPlace} />
+                  </div>
+                </>
+              )}
+              {activeTab === '메뉴' && <Menu selectedPlace={selectedPlace} />}
+              {activeTab === '사진' && <VisitorPhoto selectedPlace={selectedPlace} />}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
