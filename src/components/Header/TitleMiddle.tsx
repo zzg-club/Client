@@ -1,6 +1,5 @@
 'use client'
 
-import { MdArrowBackIos } from 'react-icons/md'
 import { IoShareSocialOutline } from 'react-icons/io5'
 import { useRouter } from 'next/navigation'
 import EditTitle from '@/components/Header/EditTitle'
@@ -13,29 +12,27 @@ interface TitleProps {
   buttonLink: string
   initialTitle: string // 초기 제목
   isPurple: boolean
-  onTitleChange: (newTitle: string) => void // 제목 수정 후 부모로 전달
+  onTitleChange?: (newTitle: string) => void // 제목 수정 후 부모로 전달 (선택적 prop)
 }
 
 export default function Title({
   buttonText,
   buttonLink,
   initialTitle,
-  onTitleChange,
+  onTitleChange = () => {}, // 기본값: 빈 함수
   isPurple,
 }: TitleProps) {
   const router = useRouter()
   const [isShareOpen, setIsShareOpen] = useState(false)
 
-  const handleBackClick = () => {
-    router.back()
-  }
-
+  // 버튼 클릭 시 라우팅 처리
   const handleButtonClick = () => {
     router.push(buttonLink)
   }
 
-  const handleOpenDdialg = () => {
-    setIsShareOpen(!isShareOpen)
+  // 공유 모달 열기/닫기
+  const toggleShareDialog = () => {
+    setIsShareOpen((prev) => !prev)
   }
 
   return (
@@ -45,29 +42,32 @@ export default function Title({
         borderRadius: '0px 0px 24px 24px',
       }}
     >
-      <button onClick={handleBackClick}>
-        <MdArrowBackIos className="w-7 h-7 text-[#1e1e1e]" />
-      </button>
+      {/* 제목 편집 컴포넌트 */}
       <div className="w-[60%] max-w-[300px] overflow-hidden">
-        {/* 부모 컨테이너의 최대 가로 길이 제한 */}
         <EditTitle initialTitle={initialTitle} onTitleChange={onTitleChange} />
       </div>
+
+      {/* 공유 및 버튼 컨테이너 */}
       <div className="flex ml-auto gap-4">
-        <button onClick={handleOpenDdialg}>
+        {/* 공유 버튼 */}
+        <button onClick={toggleShareDialog}>
           <IoShareSocialOutline className="w-8 h-8 text-[#1e1e1e]" />
         </button>
+
+        {/* 라우팅 버튼 */}
         <button
           className={`text-center text-xl font-medium font-['Pretendard'] leading-[25px] 
-          ${isPurple ? 'text-purple-500' : 'text-[#afafaf]'}`}
+          ${isPurple ? 'text-purple-500' : 'text-[#9562fb]'}`}
           onClick={handleButtonClick}
         >
           {buttonText}
         </button>
       </div>
 
+      {/* 공유 모달 */}
       <CustomModal
         open={isShareOpen}
-        onOpenChange={handleOpenDdialg}
+        onOpenChange={toggleShareDialog}
         isFooter={false}
       >
         <ScheduleSelectShareModal inviteUrl="https://moim.team/" />
