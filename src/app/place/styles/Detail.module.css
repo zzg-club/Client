@@ -128,7 +128,7 @@
 }
 
 .bottomSheet.middle {
-  --bottomSheetHeight: 260px;
+  --bottomSheetHeight: 470px;
 }
 
 .bottomSheet.expanded {
@@ -139,7 +139,7 @@
 .tabContainer {
   display: flex;
   gap: 16px; /* 탭 간격 */
-  margin-top: 16px; /* 위와의 간격 */
+  margin-top: 16px; /*위와의 간격*/
   padding-left: 0;
   width: calc(100% - 50px); /* .cardContent의 패딩(25px * 2)을 제외한 너비 */
   box-sizing: border-box; /* 패딩 포함 크기 계산 */
@@ -304,7 +304,7 @@
 /* 카드 콘텐츠 */
 .cardContent {
   flex: 1;
-  padding: 12px 24px; /* 텍스트와 태그 영역에만 패딩 적용 */
+  padding: 12px 24px 0px 24px; /* 텍스트와 태그 영역에만 패딩 적용 */
   display: flex;
   flex-direction: column;
   gap: 4px; /* 요소 간 간격 최소화 */
@@ -316,7 +316,7 @@
   justify-content: space-between; /* 제목과 좋아요를 양 끝으로 배치 */
   align-items: center;
   margin: 0;
-  padding: 0; /* 여백 제거 */
+  padding-top: 10px; /* 여백 제거 */
   position: relative; /* 좋아요 아이콘의 위치를 유지 */
 }
 
@@ -344,6 +344,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  margin-top: 10px;
 }
 
 /* 좋아요 아이콘 */
@@ -390,7 +391,7 @@
 /* 설명 */
 .description {
   display: flex;
-  padding: 8px 12px;
+  padding: 8px 30px;
   justify-content: center;
   align-items: center;
   gap: 10px;
@@ -401,9 +402,9 @@
   font-weight: 400;
   line-height: 17px; 
   letter-spacing: -0.5px;
-  margin-bottom: 4px; /* 아래 간격 축소 */
   border-radius: 24px 24px 24px 0px;
   width: auto;
+  font-size: 14px;
 }
 
 /* 푸터 */
