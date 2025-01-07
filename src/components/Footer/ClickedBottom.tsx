@@ -3,13 +3,13 @@
 import React, { useState } from 'react'
 import { motion, AnimatePresence, PanInfo } from 'framer-motion'
 
-interface SelectedBottomProps {
+interface ClickedBottomProps {
   isOpen: boolean
   onClose: () => void
   children: React.ReactNode
 }
 
-const SelectedBottom: React.FC<SelectedBottomProps> = ({
+const ClickedBottom: React.FC<ClickedBottomProps> = ({
   isOpen,
   onClose,
   children,
@@ -77,4 +77,4 @@ const SelectedBottom: React.FC<SelectedBottomProps> = ({
   )
 }
 
-export default SelectedBottom
+export default ClickedBottom
