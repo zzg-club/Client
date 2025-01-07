@@ -76,6 +76,31 @@ const WheelPicker: React.FC<{
     }
   }
 
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true)
+    setStartY(e.clientY)
+    if (containerRef.current) {
+      setScrollTop(containerRef.current.scrollTop)
+    }
+  }
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return
+    const deltaY = e.clientY - startY
+    const newScrollTop = scrollTop - deltaY * 0.8
+    if (containerRef.current) {
+      containerRef.current.scrollTop = newScrollTop
+    }
+  }
+
+  const handleMouseUp = () => {
+    setIsDragging(false)
+    if (containerRef.current) {
+      const index = Math.round(containerRef.current.scrollTop / itemHeight)
+      snapToIndex(index)
+    }
+  }
+
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault()
     if (containerRef.current) {
@@ -94,6 +119,9 @@ const WheelPicker: React.FC<{
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
         onWheel={handleWheel}
       >
         <div style={{ height: `${(height - itemHeight) / 2}px` }} />
