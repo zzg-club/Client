@@ -107,6 +107,8 @@ export default function ScheduleLanding() {
   const [isDdialogOpen, setIsDdialogOpen] = useState(false) // 직접 입력하기 모달 상태 D: Direct
   const [title, setTitle] = useState('제목 없는 일정') // 제목 상태 관리
   const { selectedDates, handleSelect } = useHandleSelect() // 커스텀 훅으로 날짜 선택 기능 가져오기 (백에 보낼때 stringDates 가져오면 됨)
+  const [startDate, setStartDate] = useState<string | null>(null) // 직접입력하기-시작날짜,시간
+  const [endDate, setEndDate] = useState<string | null>(null) // 직접입력하기-끝날짜,시간
 
   // 제목 수정 함수
   const handleTitleChange = (newTitle: string) => {
@@ -121,6 +123,12 @@ export default function ScheduleLanding() {
   }
   const handleOpenDdialg = () => {
     setIsDdialogOpen(!isDdialogOpen)
+  }
+
+  // 직접입력하기 모달에서 받아온 시작, 끝 string 저장
+  const handleDateChange = (startDate: string, endDate: string) => {
+    setStartDate(startDate)
+    setEndDate(endDate)
   }
 
   // 캐러셀 알림 목데이터
@@ -231,12 +239,12 @@ export default function ScheduleLanding() {
       <CustomModal
         open={isDdialogOpen}
         onOpenChange={handleOpenDdialg}
-        onNext={() => alert('다음으로')}
+        onNext={() => alert(`startDate: ${startDate} / endDate: ${endDate}`)}
         isFooter={true}
         footerText={'입력완료'}
       >
         <EditTitle initialTitle={title} onTitleChange={handleTitleChange} />
-        <DateTimeModal />
+        <DateTimeModal onDateChange={handleDateChange} />
       </CustomModal>
     </div>
   )

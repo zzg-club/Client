@@ -7,7 +7,11 @@ import CustomCalendar from '@/components/Calendars/CustomCalendar'
 import { useHandleSelect } from '@/hooks/useHandleSelect'
 import { format } from 'date-fns'
 
-export default function DateTimeModal() {
+interface DateTimeModalProps {
+  onDateChange: (startDate: string, endDate: string) => void
+}
+
+export default function DateTimeModal({ onDateChange }: DateTimeModalProps) {
   const [isTimePickerOpen, setIsTimePickerOpen] = useState<boolean>(false)
   const [isTimePicker2Open, setIsTimePicker2Open] = useState<boolean>(false)
   const [isCalendarOpen, setIsCalendarOpen] = useState<boolean>(false)
@@ -44,6 +48,47 @@ export default function DateTimeModal() {
   const handleCalendarOpen = () => {
     setIsCalendarOpen(!isCalendarOpen)
     setIsFinTime(false)
+  }
+
+  // 선택한 시간 포맷 변경
+  const formatTime = (time: string) => {
+    const [hour, minutePart] = time.split(':')
+    const minute = minutePart.slice(0, 2)
+    const period = minutePart.slice(3)
+
+    let hourNumber = parseInt(hour, 10)
+    if (period === 'PM' && hourNumber !== 12) {
+      hourNumber += 12
+    } else if (period === 'AM' && hourNumber === 12) {
+      hourNumber = 0
+    }
+
+    return `${String(hourNumber).padStart(2, '0')}:${minute}`
+  }
+
+  // 두번째 날짜/시간까지 입력했을 경우 부모컴포넌트로 state 전달
+  const handleConfirm = () => {
+    if (stringDates[0]) {
+      const formattedDate = stringDates[0]
+        .replace(/월|일/g, '') // 'MM월 DD일'에서 'MM DD'로 변환
+        .trim()
+        .split(' ')
+
+      const month = formattedDate[0] || '01' // 기본값 '01'
+      const day = formattedDate[1] || '01' // 기본값 '01'
+
+      const startDateString = `${month.padStart(2, '0')}-${day.padStart(2, '0')}T${formatTime(startTime)}:00.000Z`
+      const endDateString = `${month.padStart(2, '0')}-${day.padStart(2, '0')}T${formatTime(finTime)}:00.000Z`
+
+      try {
+        onDateChange(startDateString, endDateString)
+        setIsTimePicker2Open(!isTimePicker2Open)
+      } catch (error) {
+        console.error('Invalid date format:', error)
+      }
+    } else {
+      console.warn('No date selected.')
+    }
   }
 
   return (
@@ -130,7 +175,7 @@ export default function DateTimeModal() {
       <CustomModal
         open={isTimePicker2Open}
         onOpenChange={handleTimePicker2Open}
-        onNext={handleTimePicker2Open}
+        onNext={handleConfirm} // 두번째 날짜/시간까지 입력했다면 컨펌
         isFooter={true}
         footerText={'다음으로'}
         contentPadding={false}
