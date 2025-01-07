@@ -9,9 +9,12 @@ import { format } from 'date-fns'
 
 export default function DateTimeModal() {
   const [isTimePickerOpen, setIsTimePickerOpen] = useState<boolean>(false)
+  const [isTimePicker2Open, setIsTimePicker2Open] = useState<boolean>(false)
   const [isCalendarOpen, setIsCalendarOpen] = useState<boolean>(false)
-  const { selectedDates, stringDates, handleSelect } = useHandleSelect() // 커스텀 훅으로 날짜 선택 기능 가져오기 (백에 보낼때 stringDates 가져오면 됨)
-  const [selectedTime, setSelectedTime] = useState('08:00 PM')
+  const { selectedDates, stringDates, handleSelect } = useHandleSelect()
+  const [startTime, setStartTime] = useState('08:00 PM')
+  const [finTime, setFinTime] = useState('08:00 PM')
+  const [isFinTime, setIsFinTime] = useState<boolean>(false)
 
   const formattedStringDates = stringDates.map((date) => {
     const dateObject = new Date(date)
@@ -19,15 +22,28 @@ export default function DateTimeModal() {
   })
 
   const handleTimeChange = (time: string) => {
-    setSelectedTime(time) // WheelTimePicker에서 전달받은 시간 설정
+    console.log('[date-time-modal] Selected time: ', time)
+    if (isTimePickerOpen) {
+      setStartTime(time) // WheelTimePicker에서 전달받은 시간 설정
+    } else {
+      setFinTime(time)
+    }
   }
 
+  // 시작 시간 선택 모달 오픈
   const handleTimePickerOpen = () => {
     setIsCalendarOpen(false)
     setIsTimePickerOpen(!isTimePickerOpen)
   }
+  // 끝 시간 선택 모달 오픈
+  const handleTimePicker2Open = () => {
+    setIsTimePicker2Open(!isTimePicker2Open)
+    setIsFinTime(true)
+  }
+
   const handleCalendarOpen = () => {
     setIsCalendarOpen(!isCalendarOpen)
+    setIsFinTime(false)
   }
 
   return (
@@ -42,7 +58,7 @@ export default function DateTimeModal() {
               {formattedStringDates[0] ? (
                 <div className="flex space-x-1">
                   <div>{formattedStringDates[0]}</div>
-                  <div>{selectedTime}</div>
+                  <div>{startTime}</div>
                 </div>
               ) : (
                 '--월 --일 --:--'
@@ -50,12 +66,37 @@ export default function DateTimeModal() {
             </button>
           </div>
           <div>
-            <button className="text-[#1e1e1e] text-base font-normal">
-              --월 --일 --:--
+            <button
+              className="text-[#1e1e1e] text-base font-normal"
+              onClick={handleTimePicker2Open}
+            >
+              {isFinTime && formattedStringDates[0] ? (
+                <div className="flex space-x-1">
+                  <div>{formattedStringDates[0]}</div>
+                  <div>{finTime}</div>
+                </div>
+              ) : (
+                '--월 --일 --:--'
+              )}
             </button>
           </div>
         </div>
       </div>
+
+      {/* 첫번째 달력 모달 */}
+      <CustomModal
+        open={isCalendarOpen}
+        onOpenChange={handleCalendarOpen}
+        onNext={handleTimePickerOpen}
+        isFooter={true}
+        footerText={'다음으로'}
+      >
+        <CustomCalendar
+          initialMode="single"
+          selected={selectedDates}
+          onSelect={handleSelect}
+        />
+      </CustomModal>
 
       <CustomModal
         open={isCalendarOpen}
@@ -80,7 +121,22 @@ export default function DateTimeModal() {
         contentPadding={false}
       >
         <WheelTimePicker
-          value={selectedTime} // 현재 시간 전달
+          value={startTime} // 현재 시간 전달
+          onChange={handleTimeChange} // 시간 변경 핸들러 전달
+          className="w-full max-w-xs"
+        />
+      </CustomModal>
+
+      <CustomModal
+        open={isTimePicker2Open}
+        onOpenChange={handleTimePicker2Open}
+        onNext={handleTimePicker2Open}
+        isFooter={true}
+        footerText={'다음으로'}
+        contentPadding={false}
+      >
+        <WheelTimePicker
+          value={finTime} // 현재 시간 전달
           onChange={handleTimeChange} // 시간 변경 핸들러 전달
           className="w-full max-w-xs"
         />
