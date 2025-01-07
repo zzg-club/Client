@@ -100,80 +100,124 @@ export default function Home() {
         <div
           className="p-6"
           style={{
-            padding: '40px 56px', // 위아래 40px, 좌우 56px
+            padding: '40px 48px',
           }}
         >
-          <h2
+          <div
             style={{
-              color: 'var(--glassmorph-black, #1E1E1E)',
-              textAlign: 'left', // 왼쪽 정렬
-              fontFamily: 'Pretendard',
-              fontSize: '24px',
-              fontStyle: 'normal',
-              fontWeight: 500,
-              lineHeight: '17px', // 70.833%
-              letterSpacing: '-0.5px',
-              marginBottom: '24px',
-            }}
-          >
-            환영해요!
-          </h2>
-          <p
-            style={{
-              color: 'var(--glassmorph-black, #1E1E1E)',
-              textAlign: 'left', // 왼쪽 정렬
-              fontFamily: 'Pretendard',
-              fontSize: '16px',
-              fontStyle: 'normal',
-              fontWeight: 300,
-              lineHeight: '17px', // 106.25%
-              letterSpacing: '-0.5px',
               marginBottom: '48px',
             }}
           >
-            대학 새내기를 위한 캠퍼스 라이프 필수템
-          </p>
-          {/* 간편 로그인과 실선 */}
-          <div className="flex items-center justify-center mb-48">
-            <div
+            <h2
               style={{
-                width: '93px',
-                height: '0.5px',
-                backgroundColor: 'var(--NavBarColor, #AFAFAF)',
-                marginBottom: '48px',
-              }}
-            ></div>
-            <p
-              style={{
-                color: 'var(--NavBarColor, #AFAFAF)',
+                color: 'var(--glassmorph-black, #1E1E1E)',
+                textAlign: 'left', // 왼쪽 정렬
                 fontFamily: 'Pretendard',
-                fontSize: '12px',
+                fontSize: '24px',
                 fontStyle: 'normal',
-                fontWeight: 400,
-                lineHeight: 'normal',
-                margin: '0 16px',
-                marginBottom: '48px',
+                fontWeight: 500,
+                lineHeight: '28px', // 조정된 라인 높이
+                letterSpacing: '-0.5px',
+                marginBottom: '16px', // 간격 조정
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis', // 넘침 처리
               }}
             >
-              간편 로그인
-            </p>
-            <div
+              환영해요!
+            </h2>
+            <p
               style={{
-                width: '93px',
-                height: '0.5px',
-                backgroundColor: 'var(--NavBarColor, #AFAFAF)',
-                marginBottom: '48px',
+                color: 'var(--glassmorph-black, #1E1E1E)',
+                textAlign: 'left',
+                fontFamily: 'Pretendard',
+                fontSize: '16px',
+                fontStyle: 'normal',
+                fontWeight: 300,
+                lineHeight: '22px',
+                letterSpacing: '-0.5px',
+
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
               }}
-            ></div>
+            >
+              대학 새내기를 위한 캠퍼스 라이프 필수템
+            </p>
           </div>
-          <img
-            src="/kakao_login_2.png"
-            alt="카카오톡 로그인"
-            className="w-full"
+          <div
             style={{
-              cursor: 'pointer',
+              marginBottom: '48px',
             }}
-          />
+          >
+            {/* 간편 로그인과 실선 */}
+            <div className="flex items-center justify-center mb-8">
+              <div
+                style={{
+                  width: '93px',
+                  height: '0.5px',
+                  backgroundColor: 'var(--NavBarColor, #AFAFAF)',
+                }}
+              ></div>
+              <p
+                style={{
+                  color: 'var(--NavBarColor, #AFAFAF)',
+                  fontFamily: 'Pretendard',
+                  fontSize: '12px',
+                  fontStyle: 'normal',
+                  fontWeight: 400,
+                  lineHeight: 'normal',
+                  margin: '0 12px',
+                }}
+              >
+                간편 로그인
+              </p>
+              <div
+                style={{
+                  width: '93px',
+                  height: '0.5px',
+                  backgroundColor: 'var(--NavBarColor, #AFAFAF)',
+                }}
+              ></div>
+            </div>
+          </div>
+          <div
+            className="kakao_button"
+            style={{
+              display: 'flex',
+              width: '300px',
+              height: '45px',
+              padding: '10px 64px',
+              justifyContent: 'center',
+              alignItems: 'center',
+              gap: '8px',
+              flexShrink: 0,
+              borderRadius: '12px',
+              background: '#FEE500',
+              cursor: 'pointer',
+              marginBottom: '125px',
+            }}
+            onClick={() => console.log('Kakao Login Clicked')}
+          >
+            <img
+              src="/kakao.svg"
+              alt="Kakao Icon"
+              style={{
+                width: '20px',
+                height: '20px',
+              }}
+            />
+            <span
+              style={{
+                color: '#000',
+                fontSize: '16px',
+                fontFamily: 'AppleSDGothicNeoM00',
+                fontWeight: 400,
+              }}
+            >
+              카카오 로그인
+            </span>
+          </div>
         </div>
       </div>
     </div>
