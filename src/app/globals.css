@@ -25,6 +25,7 @@ body {
   border: 1px solid #ddd;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  position: relative;
 }
 
 /* PC 화면에서 스케일 조정 */
