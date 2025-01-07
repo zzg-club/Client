@@ -61,8 +61,13 @@ const SelectedBottom: React.FC<SelectedBottomProps> = ({
         >
           <div className="py-3 overflow-hidden">
             <div className="h-[4px] w-[64px] bg-[#afafaf] rounded-full mx-auto" />
-            <div className={` px-3 ${isDragging ? 'pointer-events-none' : ''}`}>
-              {/* <div className="px-3"> */}
+            <div
+              className={` px-3 ${isDragging ? 'pointer-events-none' : ''}`}
+              style={{
+                visibility: isOpen ? 'visible' : 'hidden',
+                pointerEvents: isOpen ? 'auto' : 'none',
+              }}
+            >
               {children}
             </div>
           </div>
