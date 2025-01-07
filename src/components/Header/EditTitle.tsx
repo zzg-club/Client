@@ -1,7 +1,7 @@
 'use client'
 
-import { GoPencil } from 'react-icons/go'
 import { useState } from 'react'
+import { GoPencil } from 'react-icons/go'
 
 interface EditTitleProps {
   initialTitle: string
@@ -24,48 +24,45 @@ export default function EditTitle({
     onTitleChange(title)
   }
 
+  const handleEditStart = () => {
+    setTitle('') // Clear the title when editing starts
+    setIsEditing(true)
+  }
+
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
       handleSave()
     }
   }
 
-  const truncateTitle = (text: string, maxLength: number) => {
-    return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text
-  }
-
   return (
-    <div>
-      {isEditing && (
-        <div className="absolute inset-0 bg-black bg-opacity-50 z-10"></div>
-      )}
-
-      <div
-        className={`relative flex items-center gap-2 ${
-          isEditing ? 'z-20' : ''
-        }`}
-      >
-        {isEditing ? (
-          <input
-            type="text"
-            value={title}
-            onChange={handleTitleChange}
-            onBlur={handleSave}
-            onKeyDown={handleKeyDown}
-            autoFocus
-            className="text-white text-2xl font-semibold font-['Pretendard'] leading-[17px] tracking-tight bg-transparent outline-none placeholder-white overflow-hidden whitespace-nowrap w-[250px] max-w-full" // 가로 길이 제한 추가
-          />
-        ) : (
-          <span className="text-center text-[#afafaf] text-2xl font-semibold font-['Pretendard'] leading-[30px] tracking-tight overflow-hidden whitespace-nowrap">
-            {truncateTitle(title, 10)}
-          </span>
-        )}
-        {!isEditing && (
-          <button onClick={() => setIsEditing(true)} className="z-20">
-            <GoPencil className="w-6 h-6 text-[#afafaf]" strokeWidth={1} />
+    <div className="relative">
+      {isEditing ? (
+        <input
+          type="text"
+          value={title}
+          onChange={handleTitleChange}
+          onBlur={handleSave}
+          onKeyDown={handleKeyDown}
+          autoFocus
+          placeholder=""
+          className="text-black text-2xl font-semibold font-['Pretendard'] leading-[30px] tracking-tight bg-transparent outline-none placeholder-gray-400 overflow-hidden whitespace-nowrap w-full max-w-full"
+        />
+      ) : (
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleEditStart}
+            className={`text-2xl font-semibold font-['Pretendard'] leading-[30px] tracking-tight overflow-hidden whitespace-nowrap text-left text-[#afafaf]`}
+          >
+            {title || '제목 없는 일정'}
           </button>
-        )}
-      </div>
+          {!isEditing && (
+            <button onClick={handleEditStart} className="z-20">
+              <GoPencil className="w-6 h-6 text-[#afafaf]" strokeWidth={1} />
+            </button>
+          )}
+        </div>
+      )}
     </div>
   )
 }
