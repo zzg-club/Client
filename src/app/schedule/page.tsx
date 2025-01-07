@@ -106,7 +106,7 @@ export default function ScheduleLanding() {
   const [isCdialogOpen, setIsCdialogOpen] = useState(false) // 일정 조율하기 모달 상태 C: Coordinate
   const [isDdialogOpen, setIsDdialogOpen] = useState(false) // 직접 입력하기 모달 상태 D: Direct
   const [title, setTitle] = useState('제목 없는 일정') // 제목 상태 관리
-  const { selectedDates, handleSelect } = useHandleSelect() // 커스텀 훅으로 날짜 선택 기능 가져오기 (백에 보낼때 stringDates 가져오면 됨)
+  const { selectedDates, stringDates, handleSelect } = useHandleSelect() // 커스텀 훅으로 날짜 선택 기능 가져오기 (백에 보낼때 stringDates 가져오면 됨)
   const [startDate, setStartDate] = useState<string | null>(null) // 직접입력하기-시작날짜,시간
   const [endDate, setEndDate] = useState<string | null>(null) // 직접입력하기-끝날짜,시간
 
@@ -224,7 +224,7 @@ export default function ScheduleLanding() {
       <CustomModal
         open={isCdialogOpen}
         onOpenChange={handleOpenCdialog}
-        onNext={() => alert('다음으로')}
+        onNext={() => alert(`선택한 날짜들: ${stringDates}`)}
         isFooter={true}
         footerText={'다음으로'}
       >
