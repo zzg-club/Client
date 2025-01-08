@@ -22,7 +22,6 @@ const PlaceDetail = ({ id }: PlaceDetailProps) => {
   const startY = useRef<number | null>(null);
   const currentY = useRef<number | null>(null);
   const threshold = 50;
-  const mapRef = useRef<() => void | null>(null);
 
   useEffect(() => {
     const fetchPlaceData = async () => {
@@ -78,6 +77,32 @@ const PlaceDetail = ({ id }: PlaceDetailProps) => {
     <div className={styles['detail-container']}>
       <div className={styles['map-container']}>
         <KakaoMap selectedPlace={selectedPlace} />
+        {/* 뒤로가기 버튼 */}
+        <div className={styles.backButton} onClick={() => window.history.back()}>
+          <img
+            src="/arrow_back.svg"
+            alt="뒤로가기"
+            className={styles.backIcon}
+          />
+        </div>
+        {/* 창닫기 버튼 */}
+        <div className={styles.closeButton} onClick={() => window.history.back()}>
+          <img
+            src="/close-button.svg"
+            alt="창닫기"
+            className={styles.closeIcon}
+          />
+        </div>
+      </div>
+      {/* BottomSheet 상단(지도 하단) 버튼 */}
+      <div
+  className={`${styles.bottomSheetTopRightButton} ${styles[bottomSheetState]}`}
+      >
+        <img
+          src="/path.svg"
+          alt="Path Icon"
+          className={styles.iconInsideButton}
+        />
       </div>
       {/* Bottom Sheet */}
       <div

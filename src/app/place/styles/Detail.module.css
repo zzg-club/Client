@@ -132,7 +132,7 @@
 }
 
 .bottomSheet.expanded {
-  --bottomSheetHeight: calc(70vh); /* 최대 높이 */
+  --bottomSheetHeight: calc(100vh); /* 최대 높이 */
 }
 
 /* 탭 컨테이너 */
@@ -438,4 +438,88 @@
   padding: 16px; /* 내부 여백 */
   overflow: hidden; /* 내용물이 넘치지 않도록 설정 */
 }
+
+.backButton {
+  position: absolute;
+  top: 16px; /* 지도 상단에서 간격 */
+  left: 16px; /* 지도 왼쪽에서 간격 */
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: 16px;
+  border: 1px solid var(--NavBarColor, #AFAFAF);
+  background: var(--Grays-White, #FFF);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10; /* 지도 위로 올라오도록 설정 */
+  padding-left: 13px;
+}
+
+.backIcon {
+  width: 26px;
+  height: 26px;
+  color: #1E1E1E;
+}
+
+.closeButton {
+  position: absolute;
+  top: 16px;
+  right: 16px; 
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: 16px;
+  border: 1px solid var(--NavBarColor, #AFAFAF);
+  background: var(--Grays-White, #FFF);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.closeIcon {
+  width: 26px;
+  height: 26px;
+  color: #1E1E1E;
+}
+
+.bottomSheetTopRightButton {
+  position: absolute;
+  right: 16px; /* 화면 오른쪽에서 간격 */
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: 16px;
+  background: var(--MainColor, #9562FB);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 11; /* BottomSheet 위로 표시 */
+  transition: bottom 0.3s ease, opacity 0.3s ease; /* 부드럽게 애니메이션 효과 */
+}
+
+.bottomSheetTopRightButton.collapsed {
+  bottom: calc(180px + 16px); /* BottomSheet collapsed 상태 */
+  opacity: 1;
+}
+
+.bottomSheetTopRightButton.middle {
+  bottom: calc(470px + 16px); /* BottomSheet middle 상태 */
+  opacity: 1;
+}
+
+.bottomSheetTopRightButton.expanded {
+  display: none; /* expanded 상태에서는 버튼 숨김 */
+}
+
+.iconInsideButton {
+  width: 34px;
+  height: 34px;
+}
+
 
