@@ -325,7 +325,11 @@ export default function TimeStamp({
         currentRangeStart = startTime
       }
 
-      if (currentRangeEnd === null || currentRangeEnd === startTime) {
+      if (
+        currentRangeEnd === null ||
+        (currentRangeEnd === startTime &&
+          selection.startCol === confirmedSelections[0]?.startCol)
+      ) {
         currentRangeEnd = endTime
       } else {
         // 연속적인 시간 범위가 끊어진 경우
