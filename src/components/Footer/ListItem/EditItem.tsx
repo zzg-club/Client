@@ -9,7 +9,7 @@ export function EditItem({ date, startTime, endTime }: EditItemProps) {
     alert('삭제하기 버튼')
   }
   return (
-    <div className="w-full px-6 py-4 rounded-b-3xl">
+    <div className="w-full p-4 rounded-b-3xl">
       <div className="flex justify-between items-center">
         <div className="flex gap-[8px]">
           <span className="text-center text-[#1e1e1e] text-xl font-normal">
