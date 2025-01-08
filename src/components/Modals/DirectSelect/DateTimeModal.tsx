@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import WheelTimePicker from '@/components/Pickers/WheelTimePicker'
 import CustomModal from '../CustomModal'
 import CustomCalendar from '@/components/Calendars/CustomCalendar'
-import { format } from 'date-fns'
+import { format, isBefore } from 'date-fns'
 import { DateRange } from 'react-day-picker'
 import { useDateTimeStore } from '@/store/dateTimeStore'
 
@@ -29,6 +29,7 @@ export default function DateTimeModal({ onDateChange }: DateTimeModalProps) {
   const [isTimePickerOpen, setIsTimePickerOpen] = useState(false)
   const [isEndDatePickerOpen, setIsEndDatePickerOpen] = useState(false)
   const [isEndTimePickerOpen, setIsEndTimePickerOpen] = useState(false)
+  const [warningMessage, setWarningMessage] = useState('')
 
   useEffect(() => {
     adjustEndDateTime()
@@ -58,17 +59,33 @@ export default function DateTimeModal({ onDateChange }: DateTimeModalProps) {
     } else if (selection && 'from' in selection && selection.from) {
       setStartDate(selection.from)
     }
+    setWarningMessage('')
   }
 
   const handleEndDateSelect = (
     selection: Date | DateRange | Date[] | undefined,
   ) => {
     if (selection instanceof Date) {
-      setEndDate(selection)
+      if (startDate && isBefore(selection, startDate)) {
+        setWarningMessage('시작 날짜 이후의 날짜만 선택 가능합니다.')
+      } else {
+        setEndDate(selection)
+        setWarningMessage('')
+      }
     } else if (Array.isArray(selection) && selection.length > 0) {
-      setEndDate(selection[0])
+      if (startDate && isBefore(selection[0], startDate)) {
+        setWarningMessage('시작 날짜 이후의 날짜만 선택 가능합니다.')
+      } else {
+        setEndDate(selection[0])
+        setWarningMessage('')
+      }
     } else if (selection && 'from' in selection && selection.from) {
-      setEndDate(selection.from)
+      if (startDate && isBefore(selection.from, startDate)) {
+        setWarningMessage('시작 날짜 이후의 날짜만 선택 가능합니다.')
+      } else {
+        setEndDate(selection.from)
+        setWarningMessage('')
+      }
     }
   }
 
@@ -164,6 +181,11 @@ export default function DateTimeModal({ onDateChange }: DateTimeModalProps) {
           selected={endDate}
           onSelect={handleEndDateSelect}
         />
+        {warningMessage && (
+          <div className="text-red-500 text-sm mt-2 text-center">
+            {warningMessage}
+          </div>
+        )}
       </CustomModal>
 
       <CustomModal
