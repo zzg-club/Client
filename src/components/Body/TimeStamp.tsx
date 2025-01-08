@@ -86,8 +86,8 @@ export default function TimeStamp({
         isConfirmed: false,
       }
 
-      // console.log('Block selected (Prev):', prevSelections)
-      // console.log('Block selected (Click):', newSelection)
+      console.log('Block selected (Prev):', prevSelections)
+      console.log('Block selected (Click):', newSelection)
 
       return {
         ...prev,
@@ -111,7 +111,7 @@ export default function TimeStamp({
           : 'end',
       )
 
-      // console.log('Resizing started on (Down):', selection)
+      console.log('Resizing started on (Down):', selection)
     }
   }
 
@@ -155,26 +155,29 @@ export default function TimeStamp({
       }
 
       setSelectionsByPage((prev) => {
+        // 이전 선택을 가져오기
         const updatedSelections =
-          prev[currentPage]?.map((sel) =>
-            sel === activeSelection ? finalizedSelection : sel,
+          prev[currentPage]?.filter(
+            (sel) =>
+              // 이전 선택의 startRow 또는 startCol이 확장된 선택과 겹치지 않도록 조건 추가
+              (sel.startRow !== finalizedSelection.startRow ||
+                sel.startCol !== finalizedSelection.startCol) &&
+              // startRow 확장이 반영된 선택이 없으면 추가
+              !(
+                sel.startRow >= finalizedSelection.startRow &&
+                sel.startRow <= finalizedSelection.endRow &&
+                sel.startCol === finalizedSelection.startCol
+              ),
           ) || []
 
-        const newSelectionConfirmed = updatedSelections.map((selection) =>
-          selection.isSelected
-            ? { ...selection, isSelected: false, isConfirmed: true }
-            : selection,
-        )
+        // 중복 확인 후 병합
+        const mergedSelections = [...updatedSelections, finalizedSelection]
 
-        if (!updatedSelections.some((sel) => sel === activeSelection)) {
-          newSelectionConfirmed.push(finalizedSelection)
-        }
-
-        console.log('newSelectionConfirmed', newSelectionConfirmed)
+        console.log('Merged Selections:', mergedSelections)
 
         return {
           ...prev,
-          [currentPage]: newSelectionConfirmed,
+          [currentPage]: mergedSelections,
         }
       })
     }
@@ -315,7 +318,7 @@ export default function TimeStamp({
 
     sortedSelections.forEach((selection) => {
       const startTime = getTimeLabel(selection.startRow)
-      const endTime = getTimeLabel(selection.endRow)
+      const endTime = getTimeLabel(selection.endRow + 1) // endRow에 +1 적용
 
       // 연속된 시간 범위인지 확인
       if (currentRangeStart === null) {
