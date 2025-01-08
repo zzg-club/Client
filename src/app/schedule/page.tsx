@@ -15,7 +15,7 @@ import CarouselNotification from '@/components/Notification/CarouselNotification
 const mockSchedules = [
   {
     id: 1,
-    date: '12월 6일 금요일',
+    startDate: '12월 6일 금요일',
     title: '팀 미팅',
     startTime: '15:00',
     endTime: '16:30',
@@ -75,7 +75,7 @@ const mockSchedules = [
   },
   {
     id: 2,
-    date: '12월 28일 토요일',
+    startDate: '12월 28일 토요일',
     title: '프로젝트 미팅',
     startTime: '13:00',
     endTime: '15:00',
@@ -186,7 +186,7 @@ export default function ScheduleLanding() {
           {mockSchedules.map((schedule) => (
             <div key={schedule.id}>
               <ScheduleCard
-                date={schedule.date}
+                startDate={schedule.startDate}
                 title={schedule.title}
                 startTime={schedule.startTime}
                 endTime={schedule.endTime}
