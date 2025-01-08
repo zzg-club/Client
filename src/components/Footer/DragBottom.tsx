@@ -10,11 +10,11 @@ import {
 } from 'framer-motion'
 import '../../styles/BottomSheet.css'
 
-export interface BottomSheetProps {
+export interface DragBottomProps {
   children: React.ReactNode
 }
 
-export function BottomSheet({ children }: BottomSheetProps) {
+export function DragBottom({ children }: DragBottomProps) {
   const [sheetState, setSheetState] = useState<
     'collapsed' | 'middle' | 'expanded'
   >('collapsed')
