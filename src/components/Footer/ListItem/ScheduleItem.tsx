@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { ProfileSelected } from '../Profiles/ProfileSelected'
+import { ProfileSelected } from '../../Profiles/ProfileSelected'
 import CustomModal from '@/components/Modals/CustomModal'
 import MembersDefault from '@/components/Modals/MembersDefault'
 
