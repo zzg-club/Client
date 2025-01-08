@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import WheelTimePicker from '@/components/Pickers/WheelTimePicker'
 import CustomModal from '../CustomModal'
 import CustomCalendar from '@/components/Calendars/CustomCalendar'
-import { format, addHours } from 'date-fns'
+import { format, addHours, addDays, parse, isAfter } from 'date-fns'
 import { DateRange } from 'react-day-picker'
 
 interface DateTimeModalProps {
@@ -27,6 +27,12 @@ export default function DateTimeModal({ onDateChange }: DateTimeModalProps) {
     }
   }, [dateRange?.from, startTime])
 
+  // endTime 변경시마다 adjustEndDate 호출 (endDate 변경을 위해)
+  useEffect(() => {
+    adjustEndDate()
+  }, [endTime])
+
+  // startTime 설정 시 endTime은 +1시간 뒤로 설정하기 위한 함수
   const calculateNextHour = (time: string) => {
     const [hour, minutePart] = time.split(':')
     const [minute, period] = minutePart.split(' ')
@@ -39,6 +45,21 @@ export default function DateTimeModal({ onDateChange }: DateTimeModalProps) {
     return format(nextHour, 'hh:mm a')
   }
 
+  // endTime이 하루를 기준으로 startTime보다 앞일 경우 to날짜를 from날짜 하루 뒤로 설정
+  const adjustEndDate = () => {
+    if (dateRange?.from && dateRange?.to) {
+      const startDateTime = parse(startTime, 'hh:mm a', dateRange.from)
+      const endDateTime = parse(endTime, 'hh:mm a', dateRange.to)
+
+      if (!isAfter(endDateTime, startDateTime)) {
+        setDateRange((prev) => ({
+          from: prev?.from,
+          to: addDays(prev?.to || prev?.from || new Date(), 1),
+        }))
+      }
+    }
+  }
+
   const handleCalendarOpen = () => {
     setIsCalendarOpen(!isCalendarOpen)
   }
@@ -48,6 +69,7 @@ export default function DateTimeModal({ onDateChange }: DateTimeModalProps) {
     setIsTimePickerOpen(!isTimePickerOpen)
   }
 
+  // 시작 날짜 선택 시 handle 함수 - from날짜 = to날짜로 설정
   const handleStartDateSelect = (
     selection: Date | DateRange | Date[] | undefined,
   ) => {
@@ -60,6 +82,7 @@ export default function DateTimeModal({ onDateChange }: DateTimeModalProps) {
     }
   }
 
+  // 종료 날짜 선택 시 handle 함수 - from날짜: 기존 / to날짜: 선택한 날짜로 변경
   const handleEndDateSelect = (
     selection: Date | DateRange | Date[] | undefined,
   ) => {
@@ -87,10 +110,12 @@ export default function DateTimeModal({ onDateChange }: DateTimeModalProps) {
     setEndTime(time)
   }
 
+  // Date type의 날짜 객체를 MM월 dd일 형식으로 반환
   const formatDateDisplay = (date: Date | undefined) => {
     return date ? format(date, 'MM월 dd일') : '--월 --일'
   }
 
+  // 종료 시간
   const handleConfirm = () => {
     setIsEndTimePickerOpen(false)
     if (dateRange?.from && dateRange?.to) {
