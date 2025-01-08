@@ -3,13 +3,14 @@
 import React, { useState } from 'react'
 import { ScheduleOptions } from '@/components/Buttons/Floating/Options'
 import CustomModal from '@/components/Modals/CustomModal'
-import CustomCalendar from '@/components/CustomCalendar'
+import CustomCalendar from '@/components/Calendars/CustomCalendar'
 import Button from '@/components/Buttons/Floating/Button'
-import { DateRange } from 'react-day-picker'
 import NavBar from '@/components/Navigate/NavBar'
 import { ScheduleCard } from '@/components/Cards/ScheduleCard'
 import EditTitle from '@/components/Header/EditTitle'
 import CarouselNotification from '@/components/Notification/CarouselNotification'
+import DateTimeModal from '@/components/Modals/DirectSelect/DateTimeModal'
+import { useHandleSelect } from '@/hooks/useHandleSelect'
 
 // 스케줄 카드 목데이터
 const mockSchedules = [
@@ -104,19 +105,14 @@ export default function ScheduleLanding() {
   const [isOpen, setIsOpen] = useState(false)
   const [isCdialogOpen, setIsCdialogOpen] = useState(false) // 일정 조율하기 모달 상태 C: Coordinate
   const [isDdialogOpen, setIsDdialogOpen] = useState(false) // 직접 입력하기 모달 상태 D: Direct
-  const [selectedDates, setSelectedDates] = useState<
-    DateRange | Date[] | undefined
-  >()
   const [title, setTitle] = useState('제목 없는 일정') // 제목 상태 관리
+  const { selectedDates, stringDates, handleSelect } = useHandleSelect() // 커스텀 훅으로 날짜 선택 기능 가져오기 (백에 보낼때 stringDates 가져오면 됨)
+  const [startDate, setStartDate] = useState<string | null>(null) // 직접입력하기-시작날짜,시간
+  const [endDate, setEndDate] = useState<string | null>(null) // 직접입력하기-끝날짜,시간
 
   // 제목 수정 함수
   const handleTitleChange = (newTitle: string) => {
     setTitle(newTitle) // 수정된 제목으로 상태 업데이트
-  }
-
-  const handleSelect = (selection: DateRange | Date[] | undefined) => {
-    setSelectedDates(selection)
-    console.log('Selected:', selection)
   }
 
   const handleToggle = () => {
@@ -127,6 +123,12 @@ export default function ScheduleLanding() {
   }
   const handleOpenDdialg = () => {
     setIsDdialogOpen(!isDdialogOpen)
+  }
+
+  // 직접입력하기 모달에서 받아온 시작, 끝 string 저장
+  const handleDateChange = (startDate: string, endDate: string) => {
+    setStartDate(startDate)
+    setEndDate(endDate)
   }
 
   // 캐러셀 알림 목데이터
@@ -222,7 +224,7 @@ export default function ScheduleLanding() {
       <CustomModal
         open={isCdialogOpen}
         onOpenChange={handleOpenCdialog}
-        onNext={() => alert('다음으로')}
+        onNext={() => alert(`선택한 날짜들: ${stringDates}`)}
         isFooter={true}
         footerText={'다음으로'}
       >
@@ -237,11 +239,12 @@ export default function ScheduleLanding() {
       <CustomModal
         open={isDdialogOpen}
         onOpenChange={handleOpenDdialg}
-        onNext={() => alert('다음으로')}
+        onNext={() => alert(`startDate: ${startDate} / endDate: ${endDate}`)}
         isFooter={true}
         footerText={'입력완료'}
       >
         <EditTitle initialTitle={title} onTitleChange={handleTitleChange} />
+        <DateTimeModal onDateChange={handleDateChange} />
       </CustomModal>
     </div>
   )

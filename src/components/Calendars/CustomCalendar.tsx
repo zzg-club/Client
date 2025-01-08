@@ -5,19 +5,20 @@ import {
   DayPicker,
   SelectMultipleEventHandler,
   SelectRangeEventHandler,
+  SelectSingleEventHandler,
 } from 'react-day-picker'
 import { useState } from 'react'
-import '../styles/CustomCalendarStyle.css'
+import '../../styles/CustomCalendarStyle.css'
 import { ChevronLeft } from 'lucide-react'
 import { ChevronRight } from 'lucide-react'
 import { isBefore } from 'date-fns' // 날짜 비교를 위한 date-fns 라이브러리 사용
 
-type Mode = 'range' | 'multiple'
+type Mode = 'range' | 'multiple' | 'single'
 
 interface CustomCalendarProps {
   initialMode?: Mode
-  selected?: DateRange | Date[]
-  onSelect?: (date: DateRange | Date[] | undefined) => void
+  selected?: DateRange | Date[] | Date
+  onSelect?: (date: DateRange | Date[] | Date | undefined) => void
 }
 
 export default function CustomCalendar({
@@ -25,7 +26,7 @@ export default function CustomCalendar({
   selected,
   onSelect,
 }: CustomCalendarProps) {
-  const [month, setMonth] = useState<Date>(new Date(2024, 11))
+  const [month, setMonth] = useState<Date>(new Date())
   const [mode, setMode] = useState<Mode>(initialMode)
   const [selectedWeekdays, setSelectedWeekdays] = useState<number[]>([])
   const today = new Date()
@@ -97,12 +98,52 @@ export default function CustomCalendar({
     }
   }
 
+  const handleSingleSelect: SelectSingleEventHandler = (date) => {
+    if (mode === 'single') {
+      onSelect?.(date)
+    }
+  }
+
   const commonProps = {
     month,
     onMonthChange: setMonth,
     showOutsideDays: false,
     onDayClick: handleDayClick,
     disabled: (date: Date) => isBefore(date, today), // 오늘 이전 날짜를 비활성화
+    modifiers: {
+      firstWeekday: (date: Date) => {
+        // 요일별 첫번째 날짜 찾기
+        const weekdayToFirstDateMap = selectedWeekdays.reduce(
+          (acc, weekday) => {
+            const dates = getDatesByWeekdays([weekday], month)
+            if (dates.length > 0) {
+              acc[weekday] = dates[0].getTime() // 요일별 첫 번째 날짜
+            }
+            return acc
+          },
+          {} as Record<number, number>,
+        )
+        return Object.values(weekdayToFirstDateMap).includes(date.getTime())
+      },
+      lastWeekday: (date: Date) => {
+        // 요일별 마지막 날짜 찾기
+        const weekdayToLastDateMap = selectedWeekdays.reduce(
+          (acc, weekday) => {
+            const dates = getDatesByWeekdays([weekday], month)
+            if (dates.length > 0) {
+              acc[weekday] = dates[dates.length - 1].getTime() // 요일별 마지막 날짜
+            }
+            return acc
+          },
+          {} as Record<number, number>,
+        )
+        return Object.values(weekdayToLastDateMap).includes(date.getTime())
+      },
+    },
+    modifiersClassNames: {
+      firstWeekday: 'weekday-first',
+      lastWeekday: 'weekday-last',
+    },
     classNames: {
       months: 'calendar-months',
       month: 'calendar-month',
@@ -204,6 +245,14 @@ export default function CustomCalendar({
           mode="multiple"
           selected={selected as Date[] | undefined}
           onSelect={handleMultipleSelect}
+          {...commonProps}
+        />
+      )}
+      {mode === 'single' && (
+        <DayPicker
+          mode="single"
+          selected={selected as Date | undefined}
+          onSelect={handleSingleSelect}
           {...commonProps}
         />
       )}
