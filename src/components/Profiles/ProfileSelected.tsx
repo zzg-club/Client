@@ -10,12 +10,14 @@ export interface ProfileGroupProps {
   }[]
   maxDisplayImg?: number // 선택적으로 처리할 수 있게 하기 위해 물음표 사용, 물음표 없이 number로 선언되면 무조건 props로 넘겨받아야 함
   maxDisplayNum?: number
+  onClickMore?: () => void
 }
 
 export function ProfileSelected({
   profiles,
   maxDisplayImg = 5,
   maxDisplayNum = 9,
+  onClickMore,
 }: ProfileGroupProps) {
   // 전체 프로필 개수를 계산(length)
   // 배열의 처음부터 최대 갯수까지 슬라이스, 최대 maxDisplayImg 프로필만 화면에 표시
@@ -36,7 +38,10 @@ export function ProfileSelected({
             <Image src={profile.image} alt={profile.name} fill sizes="32px" />
             {/* 다섯 번째 프로필 이미지에 회색 배경, 더보기 아이콘 */}
             {viewMore && index === maxDisplayImg - 1 && (
-              <div className="absolute inset-0 bg-[#afafaf]/80 flex items-center justify-center cursor-pointer">
+              <div
+                className="absolute inset-0 bg-[#afafaf]/80 flex items-center justify-center cursor-pointer"
+                onClick={onClickMore}
+              >
                 <FiMoreHorizontal className="w-4 h-4 text-white" />
               </div>
             )}
@@ -49,6 +54,7 @@ export function ProfileSelected({
         <MdArrowDropDown
           size="24"
           className="text-[#afafaf] group-hover:text-[#fff] cursor-pointer"
+          onClick={onClickMore}
         />
       </div>
     </div>
