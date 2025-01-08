@@ -34,13 +34,14 @@ export function ScheduleCard({
     setIsMembersModalOpen(!isMembersModalOpen)
   }
 
-  // 정말로 삭제하시겠습니까 경고 컴포넌트 open 핸들
+  // 장소 선정하기 버튼 모달 open 핸들
   const handleOpenSelectedPlace = (e: React.MouseEvent) => {
     e.stopPropagation() // 이벤트 버블링 방지
     setIsSelectedPlace(true)
+    console.log('dkdkdk')
   }
 
-  // 정말로 삭제하시겠습니까 경고 컴포넌트 close 핸들
+  // 장소 선정하기 버튼 모달 close 핸들
   const handleCloseSelectedPlace = () => {
     setIsSelectedPlace(false)
   }
