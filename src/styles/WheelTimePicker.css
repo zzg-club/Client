@@ -1,0 +1,78 @@
+.wheel-time-picker {
+  position: relative;
+  overflow: hidden;
+  border-radius: 24px;
+  background-color: #ffffff;
+  padding: 0 25px;
+}
+
+.wheel-time-picker-content {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.wheel-time-picker-separator {
+  font-size: 1.5rem;
+  color: #000000;
+  font-weight: 500;
+}
+
+.wheel-time-picker-selection {
+  position: absolute;
+  pointer-events: none;
+  left: 0; /* Changed to 0 */
+  right: 0; /* Changed to 0 */
+  top: 50%;
+  height: 40px;
+  transform: translateY(-50%);
+  border-radius: 0; /* Removed border radius for full width */
+  background-color: rgba(120, 120, 128, 0.08);
+}
+
+.wheel-picker-container {
+  position: relative;
+  flex: 1;
+}
+
+.wheel-picker-scroll {
+  position: relative;
+  overflow: auto;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.wheel-picker-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.wheel-picker-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  user-select: none;
+  font-size: 1.5rem;
+  color: #b2b2b2;
+  transition: all 0.2s ease-out;
+  height: 40px;
+}
+
+.wheel-picker-item-selected {
+  font-size: 1.5rem;
+  color: #000000;
+  font-weight: 500;
+}
+
+.wheel-picker-gradient {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    #ffffff 0%,
+    rgba(255, 255, 255, 0) 20%,
+    rgba(255, 255, 255, 0) 80%,
+    #ffffff 100%
+  );
+}
