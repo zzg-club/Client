@@ -126,20 +126,28 @@ export default function TimeStamp({
         47,
       )
 
-      // console.log('ActiveSelection', activeSelection)
+      console.log('ActiveSelection', activeSelection)
 
       setActiveSelection((prev) => {
         if (!prev) return null
 
-        const newSelection = isResizing
-          ? {
-              ...prev,
-              ...(resizingPoint === 'start'
-                ? { startRow: row }
-                : { endRow: row }),
-            }
-          : prev
+        const newSelection = { ...prev }
 
+        if (isResizing) {
+          if (resizingPoint === 'start') {
+            // 위쪽 핸들만 위쪽으로 움직일 수 있도록 제한
+            if (row < prev.endRow) {
+              newSelection.startRow = row
+            }
+          } else if (resizingPoint === 'end') {
+            // 아래쪽 핸들만 아래쪽으로 움직일 수 있도록 제한
+            if (row > prev.startRow) {
+              newSelection.endRow = row
+            }
+          }
+        }
+
+        // 겹치는 선택이 있으면 움직이지 않음
         return !isOverlapping(newSelection) ? newSelection : prev
       })
     },
