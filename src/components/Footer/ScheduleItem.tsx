@@ -1,7 +1,11 @@
+import React, { useState } from 'react'
 import { ProfileSelected } from '../Profiles/ProfileSelected'
+import CustomModal from '@/components/Modals/CustomModal'
+import MembersDefault from '@/components/Modals/MembersDefault'
 
 export interface ScheduleItemProps {
   number: number
+  title: string
   startDate: string
   startTime: string
   endTime: string
@@ -10,11 +14,19 @@ export interface ScheduleItemProps {
 
 export function ScheduleItem({
   number,
+  title,
   startDate,
   startTime,
   endTime,
   participants,
 }: ScheduleItemProps) {
+  const [isMembersModalOpen, setIsMembersModalOpen] = useState(false)
+
+  const handleMembersModalOpen = () => {
+    setIsMembersModalOpen(!isMembersModalOpen)
+    console.log('zmfflr')
+  }
+
   return (
     <div className="flex items-center justify-between py-9 h-full">
       <div className="flex items-center gap-2">
@@ -25,8 +37,22 @@ export function ScheduleItem({
         </span>
       </div>
       <div className="flex items-center gap-2">
-        <ProfileSelected profiles={participants} />
+        <ProfileSelected
+          profiles={participants}
+          onClickMore={handleMembersModalOpen}
+        />
       </div>
+      <CustomModal
+        open={isMembersModalOpen}
+        onOpenChange={handleMembersModalOpen}
+        isFooter={false}
+      >
+        <MembersDefault
+          title={title}
+          memberCount={participants.length}
+          members={participants}
+        />
+      </CustomModal>
     </div>
   )
 }
