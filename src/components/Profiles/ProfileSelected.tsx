@@ -25,7 +25,7 @@ export function ProfileSelected({
   const viewMore = displayProfiles.length < totalCount
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-1 cursor-pointer">
       <div className="flex -space-x-[14px]">
         {displayProfiles.map((profile, index) => (
           <div
@@ -36,7 +36,7 @@ export function ProfileSelected({
             <Image src={profile.image} alt={profile.name} fill sizes="32px" />
             {/* 다섯 번째 프로필 이미지에 회색 배경, 더보기 아이콘 */}
             {viewMore && index === maxDisplayImg - 1 && (
-              <div className="absolute inset-0 bg-[#afafaf]/80 flex items-center justify-center cursor-pointer">
+              <div className="absolute inset-0 bg-[#afafaf]/80 flex items-center justify-center">
                 <FiMoreHorizontal className="w-4 h-4 text-white" />
               </div>
             )}
@@ -48,7 +48,7 @@ export function ProfileSelected({
         {totalCount > maxDisplayNum ? `${maxDisplayNum}+` : totalCount}
         <MdArrowDropDown
           size="24"
-          className="cursor-pointer text-[#afafaf] group-hover:text-[#fff]"
+          className="text-[#afafaf] group-hover:text-[#fff]"
         />
       </div>
     </div>
