@@ -21,9 +21,15 @@ export function ScheduleItem({
 }: ScheduleItemProps) {
   const [isSelectDeleteOpen, setIsSelectDeleteOpen] = useState(false)
 
-  const handleSelectDelete = () => {
+  const handleDeleteModal = () => {
     setIsSelectDeleteOpen(!isSelectDeleteOpen)
-    console.log('zmfflr')
+    console.log('모달 열기')
+  }
+
+  // 실제 삭제 api 연동할 함수
+  const DeleteSchedule = () => {
+    alert('삭제되었습니다')
+    setIsSelectDeleteOpen(!isSelectDeleteOpen)
   }
 
   return (
@@ -36,15 +42,15 @@ export function ScheduleItem({
         </span>
       </div>
       <button>
-        <X onClick={handleSelectDelete} />
+        <X onClick={handleDeleteModal} />
       </button>
       <SelectModal
         open={isSelectDeleteOpen}
-        onOpenChange={handleSelectDelete}
+        onOpenChange={handleDeleteModal}
         leftText={'예'}
         rightText={'아니오'}
-        onClickLeft={() => alert('삭제')}
-        onClickRight={handleSelectDelete}
+        onClickLeft={DeleteSchedule}
+        onClickRight={handleDeleteModal}
       >
         <div className="flex item-center justify-center text-[#1e1e1e] text-xl font-medium leading-snug py-4 mt-3">
           정말로 일정을
