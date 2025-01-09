@@ -1,5 +1,5 @@
 import { WhiteButton } from '../Buttons/WhiteButtton'
-import { ProfileSelected } from '../Profiles/ProfileSelected'
+import { ProfileSmall } from '../Profiles/ProfileSmall'
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation' // useRouter 훅 사용
 import CustomModal from '@/components/Modals/CustomModal'
@@ -70,7 +70,7 @@ export function ScheduleCard({
                 {title}
               </span>
               {/* 모임원 프로필 */}
-              <ProfileSelected profiles={participants} />
+              <ProfileSmall profiles={participants} />
             </div>
 
             {/* 약속 시간, 장소 */}
