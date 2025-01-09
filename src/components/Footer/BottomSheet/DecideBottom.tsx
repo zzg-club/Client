@@ -51,7 +51,7 @@ const DecideBottom: React.FC<DecideBottomProps> = ({
         animate={{ y: isOpen ? 0 : '480px' }}
         exit={{ y: viewportHeight }}
         transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-        drag="y"
+        drag={isOpen ? 'y' : false}
         dragConstraints={{ top: 0 }}
         dragElastic={0.2}
         onDragStart={() => setIsDragging(true)}
