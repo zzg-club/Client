@@ -1,6 +1,7 @@
+import { useState } from 'react'
 import Image from 'next/image'
 import { FiMoreHorizontal } from 'react-icons/fi'
-import { MdArrowDropDown } from 'react-icons/md'
+import { MdArrowDropDown, MdArrowDropUp } from 'react-icons/md'
 
 export interface ProfileLargeProps {
   profiles: {
@@ -10,12 +11,14 @@ export interface ProfileLargeProps {
   }[]
   maxDisplayImg?: number // 선택적으로 처리할 수 있게 하기 위해 물음표 사용, 물음표 없이 number로 선언되면 무조건 props로 넘겨받아야 함
   maxDisplayNum?: number
+  onExpandChange: (newExpandState: boolean) => void
 }
 
 export function ProfileLarge({
   profiles,
   maxDisplayImg = 5,
   maxDisplayNum = 9,
+  onExpandChange,
 }: ProfileLargeProps) {
   // 전체 프로필 개수를 계산(length)
   // 배열의 처음부터 최대 갯수까지 슬라이스, 최대 maxDisplayImg 프로필만 화면에 표시
@@ -24,8 +27,15 @@ export function ProfileLarge({
   const displayProfiles = profiles.slice(0, maxDisplayImg)
   const viewMore = displayProfiles.length < totalCount
 
+  const [isExpanded, setIsExpanded] = useState(false)
+  const toggleArrow = () => {
+    const newExpandState = !isExpanded
+    setIsExpanded(newExpandState)
+    onExpandChange(newExpandState) // 상태 변경 시 부모 컴포넌트로 알림
+  }
+
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center justify-center gap-1">
       <div className="flex -space-x-[14px]">
         {displayProfiles.map((profile, index) => (
           <div
@@ -43,13 +53,24 @@ export function ProfileLarge({
           </div>
         ))}
       </div>
-      {/* 모임 인원이 9명 이상인 경우 9+로 보이게 설정 */}
-      <div className="flex items-center text-2xl font-medium text-[#9562fa] group-hover:text-[#fff]">
-        {totalCount > maxDisplayNum ? `${maxDisplayNum}+` : totalCount}
-        <MdArrowDropDown
-          size="27"
-          className="cursor-pointer text-[#afafaf] group-hover:text-[#fff]"
-        />
+      <div className="flex items-center">
+        {/* 모임 인원이 9명 이상인 경우 9+로 보이게 설정 */}
+        <div className="text-2xl font-medium text-[#9562fa] group-hover:text-[#fff]">
+          {totalCount > maxDisplayNum ? `${maxDisplayNum}+` : totalCount}
+        </div>
+        <div onClick={toggleArrow} className="cursor-pointer">
+          {isExpanded ? (
+            <MdArrowDropUp
+              size="27"
+              className="text-[#afafaf] group-hover:text-[#fff]"
+            />
+          ) : (
+            <MdArrowDropDown
+              size="27"
+              className="text-[#afafaf] group-hover:text-[#fff]"
+            />
+          )}
+        </div>
       </div>
     </div>
   )
