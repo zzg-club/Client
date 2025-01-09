@@ -47,8 +47,8 @@ const DecideBottom: React.FC<DecideBottomProps> = ({
     <AnimatePresence>
       <motion.div
         className="absolute bottom-0 w-full bg-white rounded-t-3xl shadow-[0px_0px_10px_0px_rgba(30,30,30,0.10)]"
-        initial={{ y: isOpen ? viewportHeight : '300px' }}
-        animate={{ y: isOpen ? 0 : '200px' }}
+        initial={{ y: isOpen ? viewportHeight : '500px' }}
+        animate={{ y: isOpen ? 0 : '500px' }}
         exit={{ y: viewportHeight }}
         transition={{ type: 'spring', damping: 30, stiffness: 300 }}
         drag="y"
