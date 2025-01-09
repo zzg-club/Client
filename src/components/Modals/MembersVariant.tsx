@@ -103,11 +103,11 @@ export default function MembersVariant({
       <div className="grid grid-cols-3 gap-[20px]">
         {members.map((member) => (
           <div key={member.id} className="flex flex-col items-center gap-1">
-            <div
-              className={`w-12 h-12 rounded-3xl border-2 border-[#9562fa] relative ${
-                selectedMemberId === member.id ? 'bg-[#afafaf]/80' : ''
-              }`}
-            >
+            <div className="relative w-12 h-12 rounded-3xl border-2 border-[#9562fa]">
+              {/* X 아이콘 눌린 id값 멤버 이미지 음영처리  */}
+              {selectedMemberId === member.id && (
+                <div className="absolute inset-0 bg-[#afafaf]/80 rounded-3xl z-10"></div>
+              )}
               <Image
                 src={member.image}
                 alt={member.name}
@@ -118,7 +118,7 @@ export default function MembersVariant({
               />
               {/* X 버튼 */}
               <button
-                className="absolute top-0.5 right-0.5 transform translate-x-1/2 -translate-y-1/2 w-5 h-5 p-0.5 opacity-80 bg-[#afafaf] rounded-full border-2 border-[#8e8d8d] flex items-center justify-center"
+                className="absolute top-0.5 right-0.5 transform translate-x-1/2 -translate-y-1/2 w-5 h-5 p-0.5 opacity-80 bg-[#afafaf] rounded-full border-2 border-[#8e8d8d] flex items-center justify-center z-20"
                 onClick={() => handleRemoveClick(member.id)}
               >
                 <X className="w-4 h-4 text-[#1e1e1e]" />
