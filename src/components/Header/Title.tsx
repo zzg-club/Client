@@ -39,12 +39,7 @@ export default function Title({
   }
 
   return (
-    <div
-      className="w-full h-16 px-4 py-5 bg-white flex items-center gap-1"
-      style={{
-        borderRadius: '0px 0px 24px 24px',
-      }}
-    >
+    <div className="w-full h-16 px-4 py-5 bg-white flex items-center gap-1">
       <button onClick={handleBackClick}>
         <MdArrowBackIos className="w-7 h-7 text-[#1e1e1e]" />
       </button>
