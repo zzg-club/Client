@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
-import CustomModal from '@/components/Modals/CustomModal'
 import { X } from 'lucide-react'
+import SelectModal from '@/components/Modals/SelectModal'
 
 export interface ScheduleItemProps {
   number: number
@@ -19,10 +19,10 @@ export function ScheduleItem({
   endTime,
   // participants,
 }: ScheduleItemProps) {
-  const [isMembersModalOpen, setIsMembersModalOpen] = useState(false)
+  const [isSelectDeleteOpen, setIsSelectDeleteOpen] = useState(false)
 
-  const handleMembersModalOpen = () => {
-    setIsMembersModalOpen(!isMembersModalOpen)
+  const handleSelectDelete = () => {
+    setIsSelectDeleteOpen(!isSelectDeleteOpen)
     console.log('zmfflr')
   }
 
@@ -35,22 +35,23 @@ export function ScheduleItem({
           {startTime} - {endTime}
         </span>
       </div>
-      <div className="flex items-center gap-2">
-        {/* <ProfileSmall
-          profiles={participants}
-          onClickMore={handleMembersModalOpen}
-        /> */}
-        {/* </div>
-      <div> */}
-        <X></X>
-      </div>
-      <CustomModal
-        open={isMembersModalOpen}
-        onOpenChange={handleMembersModalOpen}
-        isFooter={false}
+      <button>
+        <X onClick={handleSelectDelete} />
+      </button>
+      <SelectModal
+        open={isSelectDeleteOpen}
+        onOpenChange={handleSelectDelete}
+        leftText={'예'}
+        rightText={'아니오'}
+        onClickLeft={() => alert('삭제')}
+        onClickRight={handleSelectDelete}
       >
-        <div>삭제모달</div>
-      </CustomModal>
+        <div className="flex item-center justify-center text-[#1e1e1e] text-xl font-medium leading-snug py-4 mt-3">
+          정말로 일정을
+          <br />
+          삭제할까요?
+        </div>
+      </SelectModal>
     </div>
   )
 }
