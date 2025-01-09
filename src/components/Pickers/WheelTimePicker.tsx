@@ -8,6 +8,7 @@ interface TimePickerProps {
   value?: string
   onChange?: (time: string) => void
   className?: string
+  initialValue?: string
 }
 
 interface WheelOption {
@@ -159,11 +160,24 @@ export default function WheelTimePicker({
   value,
   onChange,
   className,
+  initialValue = '08:00 PM', // 초기값 오후 8시로 설정
 }: TimePickerProps) {
-  const [selectedTime, setSelectedTime] = useState({
-    hour: '08',
-    minute: '00',
-    meridiem: 'PM',
+  // prop으로 받아온 시간으로 초기값 설정(휠에서 처음 보여지는 시간 옵션)
+  const [selectedTime, setSelectedTime] = useState(() => {
+    if (initialValue) {
+      const [time, period] = initialValue.split(' ')
+      const [hour, minute] = time.split(':')
+      return {
+        hour,
+        minute,
+        meridiem: period,
+      }
+    }
+    return {
+      hour: '08',
+      minute: '00',
+      meridiem: 'PM',
+    }
   })
 
   const hours: WheelOption[] = Array.from({ length: 12 }, (_, i) => ({
@@ -171,10 +185,14 @@ export default function WheelTimePicker({
     value: (i + 1).toString().padStart(2, '0'),
   }))
 
-  const minutes: WheelOption[] = Array.from({ length: 60 }, (_, i) => ({
-    label: i.toString().padStart(2, '0'),
-    value: i.toString().padStart(2, '0'),
-  }))
+  // 5분 단위로 분 minutes option 변경
+  const minutes: WheelOption[] = Array.from({ length: 12 }, (_, i) => {
+    const minuteValue = i * 5
+    return {
+      label: minuteValue.toString().padStart(2, '0'),
+      value: minuteValue.toString().padStart(2, '0'),
+    }
+  })
 
   const meridiems: WheelOption[] = [
     { label: 'AM', value: 'AM' },
