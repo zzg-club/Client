@@ -10,7 +10,7 @@ import ScheduleSelectShareModal from '../Modals/ScheduleSelectShareModal'
 
 interface TitleProps {
   buttonText: string
-  onClickTitleButton: () => void
+  onClickTitleButton?: () => void
   initialTitle: string // 초기 제목
   isPurple: boolean
   onTitleChange: (newTitle: string) => void // 제목 수정 후 부모로 전달
