@@ -2,7 +2,7 @@ import Image from 'next/image'
 import { FiMoreHorizontal } from 'react-icons/fi'
 import { MdArrowDropDown } from 'react-icons/md'
 
-export interface ProfileGroupProps {
+export interface ProfileSmallProps {
   profiles: {
     id: number
     name: string
@@ -13,12 +13,12 @@ export interface ProfileGroupProps {
   onClickMore?: () => void
 }
 
-export function ProfileSelected({
+export function ProfileSmall({
   profiles,
   maxDisplayImg = 5,
   maxDisplayNum = 9,
   onClickMore,
-}: ProfileGroupProps) {
+}: ProfileSmallProps) {
   // 전체 프로필 개수를 계산(length)
   // 배열의 처음부터 최대 갯수까지 슬라이스, 최대 maxDisplayImg 프로필만 화면에 표시
   // 표시된 프로필 수가 전체 프로필 수보다 적다면 더보기 기능 필요

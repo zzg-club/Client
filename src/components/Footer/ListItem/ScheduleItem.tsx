@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { ProfileSelected } from '../../Profiles/ProfileSelected'
+import { ProfileSmall } from '../../Profiles/ProfileSmall'
 import CustomModal from '@/components/Modals/CustomModal'
 import MembersDefault from '@/components/Modals/MembersDefault'
 
@@ -37,7 +37,7 @@ export function ScheduleItem({
         </span>
       </div>
       <div className="flex items-center gap-2">
-        <ProfileSelected
+        <ProfileSmall
           profiles={participants}
           onClickMore={handleMembersModalOpen}
         />
