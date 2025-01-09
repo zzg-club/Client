@@ -9,6 +9,7 @@ export interface ModalProps {
     id: number
     name: string
     image: string
+    isScheduleSelect?: boolean
   }[]
   blackText: boolean
 }
@@ -62,7 +63,10 @@ export default function MembersDefault({
       <div className="grid grid-cols-3 gap-[32px] max-h-[170px] overflow-y-auto scrollbar-none">
         {members.map((member) => (
           <div key={member.id} className="flex flex-col items-center gap-1">
-            <div className="w-12 h-12 rounded-3xl border-2 border-[#9562fa] overflow-hidden">
+            <div className="relative w-12 h-12 rounded-3xl border-2 border-[#9562fa] overflow-hidden">
+              {!member.isScheduleSelect && (
+                <div className="absolute inset-0 bg-[#afafaf]/80 rounded-3xl z-10"></div>
+              )}
               <Image
                 src={member.image}
                 alt={member.name}
