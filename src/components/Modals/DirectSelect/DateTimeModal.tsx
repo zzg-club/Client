@@ -164,7 +164,8 @@ export default function DateTimeModal({ onDateChange }: DateTimeModalProps) {
       >
         <WheelTimePicker
           value={startTime}
-          onChange={setStartTime}
+          initialValue={startTime}
+          onChange={(time) => setStartTime(time)}
           className="w-full max-w-xs"
         />
       </CustomModal>
@@ -198,7 +199,8 @@ export default function DateTimeModal({ onDateChange }: DateTimeModalProps) {
       >
         <WheelTimePicker
           value={endTime}
-          onChange={setEndTime}
+          initialValue={endTime}
+          onChange={(time) => setEndTime(time)}
           className="w-full max-w-xs"
         />
       </CustomModal>
