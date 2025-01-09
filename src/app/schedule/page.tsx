@@ -162,18 +162,21 @@ export default function ScheduleLanding() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen h-screen">
       {/* Add Moim Button */}
       <NavBar activeTab="스케줄" />
 
       {/* 캐로셀 알림 컴포넌트 */}
-      <div className="flex justify-center items-center overflew-hidden">
-        <CarouselNotification
-          notifications={notifications}
-          onLeftBtn={handleLeftBtn}
-          onRightBtn={handleRightBtn}
-        />
-      </div>
+      {notifications.length > 0 && (
+        <div className="flex justify-center items-center overflew-hidden">
+          <CarouselNotification
+            notifications={notifications}
+            onLeftBtn={handleLeftBtn}
+            onRightBtn={handleRightBtn}
+          />
+        </div>
+      )}
+
       {/* 스케줄 카드 컴포넌트 */}
       {mockSchedules.length > 0 ? (
         <>
@@ -185,18 +188,20 @@ export default function ScheduleLanding() {
               +{mockSchedules.length}
             </div>
           </div>
-          {mockSchedules.map((schedule) => (
-            <div key={schedule.id}>
-              <ScheduleCard
-                startDate={schedule.startDate}
-                title={schedule.title}
-                startTime={schedule.startTime}
-                endTime={schedule.endTime}
-                location={schedule.location}
-                participants={schedule.participants}
-              />
-            </div>
-          ))}
+          <div className="flex-1 overflow-y-auto pb-[120px]">
+            {mockSchedules.map((schedule) => (
+              <div key={schedule.id}>
+                <ScheduleCard
+                  startDate={schedule.startDate}
+                  title={schedule.title}
+                  startTime={schedule.startTime}
+                  endTime={schedule.endTime}
+                  location={schedule.location}
+                  participants={schedule.participants}
+                />
+              </div>
+            ))}
+          </div>
         </>
       ) : (
         // 스케줄 정보 없는 경우 렌더링 화면
