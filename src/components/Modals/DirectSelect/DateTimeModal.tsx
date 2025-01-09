@@ -146,6 +146,7 @@ export default function DateTimeModal({ onDateChange }: DateTimeModalProps) {
         onNext={handleTimePickerOpen}
         isFooter={true}
         footerText={'다음으로'}
+        isDisabled={startDate ? false : true}
       >
         <CustomCalendar
           initialMode="single"

@@ -227,6 +227,7 @@ export default function ScheduleLanding() {
         onNext={() => alert(`선택한 날짜들: ${stringDates}`)}
         isFooter={true}
         footerText={'다음으로'}
+        isDisabled={stringDates[0] ? false : true}
       >
         <CustomCalendar
           initialMode="range"
