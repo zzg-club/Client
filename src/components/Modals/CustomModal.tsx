@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
 import { DialogClose, DialogTitle } from '@radix-ui/react-dialog'
 import { X } from 'lucide-react'
 import '../../styles/CustomModal.css'
+import { cn } from '@/lib/utils'
 
 interface ModalProps {
   open: boolean
@@ -13,6 +14,7 @@ interface ModalProps {
   onNext?: () => void // '다음으로' 버튼 클릭 시 실행
   isFooter: boolean // 하단 버튼 이용 여부
   footerText?: string // 하단 버튼 이용 시 버튼 텍스트
+  contentPadding?: boolean
 }
 
 export default function CustomModal({
@@ -22,12 +24,15 @@ export default function CustomModal({
   onNext,
   isFooter,
   footerText,
+  contentPadding = true,
 }: ModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[#ffffff] rounded-3xl w-[280px] p-0 gap-0 [&>button]:hidden">
-        <div className="relative p-6 w-[280px]">
-          <DialogClose className="absolute right-6">
+      <DialogContent className="bg-[#ffffff] rounded-3xl w-[280px] p-0 gap-0 [&>button]:hidden border-0">
+        <div
+          className={cn('relative w-[280px]', contentPadding ? 'p-6' : 'p-0')}
+        >
+          <DialogClose className="absolute right-6 focus:outline-none">
             <X></X>
           </DialogClose>
           <DialogTitle></DialogTitle>
