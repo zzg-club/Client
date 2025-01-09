@@ -53,7 +53,7 @@ export default function Title({
         </button>
         <button
           className={`text-center text-xl font-medium font-['Pretendard'] leading-[25px] 
-          ${isPurple ? 'text-purple-500' : 'text-[#afafaf]'}`}
+          ${isPurple ? 'text-[#9562fa]' : 'text-[#afafaf]'}`}
           onClick={handleButtonClick}
         >
           {buttonText}
