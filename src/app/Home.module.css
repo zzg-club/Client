@@ -63,7 +63,7 @@
 
 /* Bottom Sheet 내용 */
 .content {
-  padding: 40px 48px;
+  padding: 40px 40px;
 }
 
 .heading {
@@ -93,7 +93,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 48px;
+  margin-bottom: 20px;
 }
 
 .line {
@@ -109,16 +109,4 @@
   font-size: 12px;
   font-weight: 400;
   line-height: normal;
-}
-
-/* 카카오 로그인 버튼 */
-.buttonWrapper {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.kakaoButton {
-  width: 100%;
-  cursor: pointer;
 }
