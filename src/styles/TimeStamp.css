@@ -26,3 +26,7 @@
 .timestamp-container::-webkit-scrollbar-thumb:hover {
   background: #a1a1a1;
 }
+
+.timestamp-container {
+  touch-action: none; /* 터치 스크롤이나 확대/축소를 비활성화 */
+}
