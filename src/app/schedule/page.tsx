@@ -16,7 +16,7 @@ import { useHandleSelect } from '@/hooks/useHandleSelect'
 const mockSchedules = [
   {
     id: 1,
-    date: '12월 6일 금요일',
+    startDate: '12월 6일 금요일',
     title: '팀 미팅',
     startTime: '15:00',
     endTime: '16:30',
@@ -25,58 +25,58 @@ const mockSchedules = [
       {
         id: 1,
         name: '나',
-        image: '/globe.svg',
+        image: '/sampleProfile.png',
       },
       {
         id: 2,
         name: '김태엽',
-        image: '/globe.svg',
+        image: '/sampleProfile.png',
       },
       {
         id: 3,
         name: '지유진',
-        image: '/globe.svg',
+        image: '/sampleProfile.png',
       },
       {
         id: 4,
         name: '이소룡',
-        image: '/globe.svg',
+        image: '/sampleProfile.png',
       },
       {
         id: 5,
         name: '박진우',
-        image: '/globe.svg',
+        image: '/sampleProfile.png',
       },
       {
         id: 6,
         name: '이예지',
-        image: '/globe.svg',
+        image: '/sampleProfile.png',
       },
       {
         id: 7,
         name: '조성하',
-        image: '/globe.svg',
+        image: '/sampleProfile.png',
       },
       {
         id: 8,
         name: '성윤정',
-        image: '/globe.svg',
+        image: '/sampleProfile.png',
       },
       {
         id: 9,
         name: '김나영',
-        image: '/globe.svg',
+        image: '/sampleProfile.png',
       },
       {
         id: 10,
         name: '이채연',
-        image: '/globe.svg',
+        image: '/sampleProfile.png',
       },
     ],
   },
   {
     id: 2,
-    date: '12월 28일 토요일',
+    startDate: '12월 28일 토요일',
     title: '프로젝트 미팅',
     startTime: '13:00',
     endTime: '15:00',
@@ -85,17 +85,17 @@ const mockSchedules = [
       {
         id: 1,
         name: '나',
-        image: '/globe.svg',
+        image: '/sampleProfile.png',
       },
       {
         id: 2,
         name: '김태엽',
-        image: '/globe.svg',
+        image: '/sampleProfile.png',
       },
       {
         id: 3,
         name: '지유진',
-        image: '/globe.svg',
+        image: '/sampleProfile.png',
       },
     ],
   },
@@ -162,18 +162,21 @@ export default function ScheduleLanding() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen h-screen">
       {/* Add Moim Button */}
       <NavBar activeTab="스케줄" />
 
       {/* 캐로셀 알림 컴포넌트 */}
-      <div className="flex justify-center items-center overflew-hidden">
-        <CarouselNotification
-          notifications={notifications}
-          onLeftBtn={handleLeftBtn}
-          onRightBtn={handleRightBtn}
-        />
-      </div>
+      {notifications.length > 0 && (
+        <div className="flex justify-center items-center overflew-hidden">
+          <CarouselNotification
+            notifications={notifications}
+            onLeftBtn={handleLeftBtn}
+            onRightBtn={handleRightBtn}
+          />
+        </div>
+      )}
+
       {/* 스케줄 카드 컴포넌트 */}
       {mockSchedules.length > 0 ? (
         <>
@@ -185,18 +188,20 @@ export default function ScheduleLanding() {
               +{mockSchedules.length}
             </div>
           </div>
-          {mockSchedules.map((schedule) => (
-            <div key={schedule.id}>
-              <ScheduleCard
-                date={schedule.date}
-                title={schedule.title}
-                startTime={schedule.startTime}
-                endTime={schedule.endTime}
-                location={schedule.location}
-                participants={schedule.participants}
-              />
-            </div>
-          ))}
+          <div className="flex-1 overflow-y-auto pb-[120px]">
+            {mockSchedules.map((schedule) => (
+              <div key={schedule.id}>
+                <ScheduleCard
+                  startDate={schedule.startDate}
+                  title={schedule.title}
+                  startTime={schedule.startTime}
+                  endTime={schedule.endTime}
+                  location={schedule.location}
+                  participants={schedule.participants}
+                />
+              </div>
+            ))}
+          </div>
         </>
       ) : (
         // 스케줄 정보 없는 경우 렌더링 화면
