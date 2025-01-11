@@ -7,16 +7,17 @@ import MembersVariant from '../Modals/MembersVariant'
 import SelectModal from '../Modals/SelectModal'
 
 export interface ScheduleCardProps {
-  date: string
+  startDate: string
+  endDate?: string
   title: string
   startTime: string
-  endTime?: string
+  endTime: string
   location?: string
   participants: { id: number; name: string; image: string }[]
 }
 
 export function ScheduleCard({
-  date,
+  startDate,
   title,
   startTime,
   endTime,
@@ -33,13 +34,14 @@ export function ScheduleCard({
     setIsMembersModalOpen(!isMembersModalOpen)
   }
 
-  // 정말로 삭제하시겠습니까 경고 컴포넌트 open 핸들
+  // 장소 선정하기 버튼 모달 open 핸들
   const handleOpenSelectedPlace = (e: React.MouseEvent) => {
     e.stopPropagation() // 이벤트 버블링 방지
     setIsSelectedPlace(true)
+    console.log('dkdkdk')
   }
 
-  // 정말로 삭제하시겠습니까 경고 컴포넌트 close 핸들
+  // 장소 선정하기 버튼 모달 close 핸들
   const handleCloseSelectedPlace = () => {
     setIsSelectedPlace(false)
   }
@@ -55,7 +57,7 @@ export function ScheduleCard({
   return (
     <div className="px-4 mb-5">
       <div className="text-[#1e1e1e] text-xs font-medium leading-[17px] ml-[12px]">
-        {date}
+        {startDate}
       </div>
       <div
         className="group w-full h-full rounded-3xl border-2 border-[#9562fa] px-6 py-[18px] cursor-pointer bg-white border-[#9562fa] hover:bg-[#9562fa] hover:text-[#fff]"
@@ -103,7 +105,7 @@ export function ScheduleCard({
       >
         <MembersVariant
           onClickX={handleRemoveMember}
-          date={date}
+          startDate={startDate}
           location={location}
           startTime={startTime}
           endTime={endTime}

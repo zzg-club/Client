@@ -48,7 +48,7 @@ export function ProfileSmall({
         {totalCount > maxDisplayNum ? `${maxDisplayNum}+` : totalCount}
         <MdArrowDropDown
           size="24"
-          className="cursor-pointer text-[#afafaf] group-hover:text-[#fff]"
+          className="text-[#afafaf] group-hover:text-[#fff] cursor-pointer"
         />
       </div>
     </div>
