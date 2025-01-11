@@ -264,9 +264,6 @@ const PlaceDetail = ({ id }: PlaceDetailProps) => {
                       <SectionTitle title="인기 메뉴" />
                     </div>
                     <Menu selectedPlace={selectedPlace} />
-                  </div>
-
-                  <div className={styles.cardContainer} style={{ marginTop: '10px' }}>
                     <SectionTitle title="방문자 사진" />
                     <VisitorPhoto selectedPlace={selectedPlace} />
                   </div>
