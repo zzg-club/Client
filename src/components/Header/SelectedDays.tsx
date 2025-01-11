@@ -15,6 +15,7 @@ interface SelectedDaysProps {
   month: string
   currentPage: number
   onPageChange: (newPage: number) => void
+  highlightedCol: number | null
 }
 
 const DAYS_PER_PAGE = 7
@@ -24,6 +25,7 @@ export default function SelectedDays({
   month,
   currentPage,
   onPageChange,
+  highlightedCol,
 }: SelectedDaysProps) {
   const [isExpanded, setIsExpanded] = useState(true)
 
@@ -36,6 +38,7 @@ export default function SelectedDays({
   }
 
   const currentDates = getCurrentPageDates()
+
   const isFullWeek = currentDates.length === 7
 
   const handlePrevPage = () => {
@@ -64,8 +67,8 @@ export default function SelectedDays({
       <div className="w-full px-0 pb-3 bg-white rounded-bl-3xl rounded-br-3xl shadow-[0_4px_6px_-1px_rgba(30,30,30,0.1),0_2px_4px_-2px_rgba(30,30,30,0.1)] flex items-center">
         <button
           onClick={handlePrevPage}
-          className={`flex items-center justify-center ${
-            currentPage === 0 ? 'text-gray-400' : 'text-[#9562FB]'
+          className={`flex items-center justify-center ml-2 ${
+            currentPage === 0 ? 'text-gray-400' : 'text-[#9562FA]'
           }`}
           disabled={currentPage === 0}
         >
@@ -77,7 +80,11 @@ export default function SelectedDays({
               <LuDot className="ml-3 text-[#AFAFAF] w-7 h-7" />
               <LuDot className="ml-3 text-[#AFAFAF] w-7 h-7" />
               <LuDot className="ml-3 text-[#AFAFAF] w-7 h-7" />
-              <div className="flex flex-col items-center w-full">
+              <div
+                className={`flex flex-col items-center w-full ${
+                  highlightedCol === 0 ? 'text-[#9562FA]' : ''
+                }`}
+              >
                 <span className="text-3xl font-medium mb-1">
                   {currentDates[0].date}
                 </span>
@@ -89,8 +96,13 @@ export default function SelectedDays({
             </div>
           ) : isFullWeek ? (
             <div className="grid grid-cols-7 gap-0">
-              {currentDates.map(({ date, weekday }) => (
-                <div key={date} className="flex flex-col items-center w-full">
+              {currentDates.map(({ date, weekday }, index) => (
+                <div
+                  key={date}
+                  className={`flex flex-col items-center w-full ${
+                    highlightedCol === index ? 'text-[#9562FA]' : ''
+                  }`}
+                >
                   <span className="text-3xl font-medium">{date}</span>
                   <span className="text-s mt-0">{weekday}</span>
                 </div>
@@ -104,8 +116,13 @@ export default function SelectedDays({
                 margin: '0 auto',
               }}
             >
-              {currentDates.map(({ date, weekday }) => (
-                <div key={date} className="flex flex-col items-center w-full">
+              {currentDates.map(({ date, weekday }, index) => (
+                <div
+                  key={date}
+                  className={`flex flex-col items-center w-full ${
+                    highlightedCol === index ? 'text-[#9562FA]' : ''
+                  }`}
+                >
                   <span className="text-3xl font-medium">{date}</span>
                   <span className="text-s mt-0">{weekday}</span>
                 </div>
@@ -116,18 +133,18 @@ export default function SelectedDays({
         <button
           onClick={handleNextPage}
           className={`flex items-center justify-center ${
-            currentPage >= totalPages - 1 ? 'text-gray-400' : 'text-[#9562FB]'
+            currentPage >= totalPages - 1 ? 'text-gray-400' : 'text-[#9562FA]'
           }`}
           disabled={currentPage >= totalPages - 1}
         >
-          <ChevronRight className="w-7 h-7 mb-4" />
+          <ChevronRight className="w-7 h-7 mb-4 mr-2" />
         </button>
       </div>
       <div onClick={toggleExpand} className="flex items-center justify-center">
         {isExpanded ? (
-          <GoTriangleUp className="w-5 h-5 text-[#9562FB] absolute bottom-1" />
+          <GoTriangleUp className="w-5 h-5 text-[#9562FA] absolute bottom-1" />
         ) : (
-          <GoTriangleDown className="w-5 h-5 text-[#9562FB] absolute bottom-1" />
+          <GoTriangleDown className="w-5 h-5 text-[#9562FA] absolute bottom-1" />
         )}
         <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 w-[80px] h-2 bg-[#9562FB] border-b-red rounded-full flex items-center justify-center"></div>
       </div>

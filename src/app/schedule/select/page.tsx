@@ -14,9 +14,15 @@ export default function Page() {
   const [title, setTitle] = useState('제목 없는 일정')
   const isPurple = false
   const [currentPage, setCurrentPage] = useState(0)
+  const [highlightedCol, setHighlightedCol] = useState<number | null>(null)
 
   const handleTitleChange = (newTitle: string) => {
     setTitle(newTitle)
+  }
+
+  const handleSelectedCol = (colIndex: number) => {
+    setHighlightedCol(colIndex)
+    // console.log('Highlighted Col:', colIndex)
   }
 
   const selectedDates: SelectedDate[] = [
@@ -29,7 +35,7 @@ export default function Page() {
     { date: 9, weekday: '목' },
     { date: 10, weekday: '금' },
     { date: 11, weekday: '토' },
-    { date: 12, weekday: '일' },
+    // { date: 12, weekday: '일' },
     // { date: 13, weekday: '월' },
   ]
 
@@ -53,12 +59,14 @@ export default function Page() {
         month={month}
         currentPage={currentPage}
         onPageChange={handlePageChange}
+        highlightedCol={highlightedCol}
       />
       <div className="flex-grow overflow-hidden mt-2">
         <TimeStamp
           selectedDates={selectedDates}
           currentPage={currentPage}
           onPageChange={handlePageChange}
+          handleSelectedCol={handleSelectedCol}
         />
       </div>
     </div>

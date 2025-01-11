@@ -16,6 +16,7 @@ interface TimeStampProps {
   selectedDates: { date: number; weekday: string }[]
   currentPage: number
   onPageChange: (newPage: number) => void
+  handleSelectedCol: (colIndex: number) => void
 }
 
 const COLUMNS_PER_PAGE = 7
@@ -23,6 +24,7 @@ const COLUMNS_PER_PAGE = 7
 export default function TimeStamp({
   selectedDates,
   currentPage,
+  handleSelectedCol,
 }: TimeStampProps) {
   const [selections] = useState<Selection[]>([])
   const [isResizing, setIsResizing] = useState(false)
@@ -36,6 +38,8 @@ export default function TimeStamp({
     currentPage * COLUMNS_PER_PAGE,
     (currentPage + 1) * COLUMNS_PER_PAGE,
   )
+
+  console.log(currentDates)
 
   const [selectionsByPage, setSelectionsByPage] = useState<{
     [key: number]: Selection[]
@@ -86,8 +90,8 @@ export default function TimeStamp({
         isConfirmed: false,
       }
 
-      console.log('Block selected (Prev):', prevSelections)
-      console.log('Block selected (Click):', newSelection)
+      // console.log('Block selected (Prev):', prevSelections)
+      // console.log('Block selected (Click):', newSelection)
 
       return {
         ...prev,
@@ -110,8 +114,7 @@ export default function TimeStamp({
           ? 'start'
           : 'end',
       )
-
-      console.log('Resizing started on (Down):', selection)
+      // console.log('Resizing started on (Down):', selection)
     }
   }
 
@@ -126,7 +129,7 @@ export default function TimeStamp({
         47,
       )
 
-      console.log('ActiveSelection', activeSelection)
+      // console.log('ActiveSelection', activeSelection)
 
       setActiveSelection((prev) => {
         if (!prev) return null
@@ -181,7 +184,14 @@ export default function TimeStamp({
         // 중복 확인 후 병합
         const mergedSelections = [...updatedSelections, finalizedSelection]
 
+        // console.log('Merged Selections:', mergedSelections)
+
+        const startCol = finalizedSelection.startCol
         console.log('Merged Selections:', mergedSelections)
+        console.log('StartCol:', currentDates[startCol])
+
+        // // 부모 함수 호출
+        // handleConfirmedCol(startCol)
 
         return {
           ...prev,
@@ -286,6 +296,8 @@ export default function TimeStamp({
       Math.min(activeSelection.startCol, activeSelection.endCol) <= c &&
       Math.max(activeSelection.startCol, activeSelection.endCol) >= c
 
+    handleSelectedCol(col) // 해당 컬럼에 대해 handleSelectedCol 호출
+
     return {
       borderTop:
         !isSelected(row - 1, col) && !isActiveSelection(row - 1, col)
@@ -315,6 +327,10 @@ export default function TimeStamp({
 
     let currentRangeStart: string | null = null
     let currentRangeEnd: string | null = null
+
+    // const getDateLabel = (colIndex: number) => {
+    //   const date = currentDates[colIndex]
+    // }
 
     const getTimeLabel = (rowIndex: number) => {
       const hours = Math.floor(rowIndex / 2)
