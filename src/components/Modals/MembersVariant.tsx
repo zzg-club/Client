@@ -100,7 +100,7 @@ export default function MembersVariant({
         />
       </div>
       {/* 멤버 그리드 부분 */}
-      <div className="grid grid-cols-3 gap-[20px]">
+      <div className="py-2 grid grid-cols-3 gap-[20px]  max-h-[170px] overflow-y-auto scrollbar-thin">
         {members.map((member) => (
           <div key={member.id} className="flex flex-col items-center gap-1">
             <div className="relative w-12 h-12 rounded-3xl border-2 border-[#9562fa]">
