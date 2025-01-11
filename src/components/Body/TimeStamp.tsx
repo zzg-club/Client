@@ -39,7 +39,19 @@ export default function TimeStamp({
     (currentPage + 1) * COLUMNS_PER_PAGE,
   )
 
-  console.log(currentDates)
+  const onColumnClick = useCallback(
+    (colIndex: number) => {
+      if (colIndex == -1) {
+        handleSelectedCol(colIndex)
+        return 0
+      }
+      if (gridRef.current) {
+        const actualColIndex = colIndex
+        handleSelectedCol(actualColIndex)
+      }
+    },
+    [handleSelectedCol],
+  )
 
   const [selectionsByPage, setSelectionsByPage] = useState<{
     [key: number]: Selection[]
@@ -181,7 +193,6 @@ export default function TimeStamp({
               ),
           ) || []
 
-        // 중복 확인 후 병합
         const mergedSelections = [...updatedSelections, finalizedSelection]
 
         // console.log('Merged Selections:', mergedSelections)
@@ -189,9 +200,6 @@ export default function TimeStamp({
         const startCol = finalizedSelection.startCol
         console.log('Merged Selections:', mergedSelections)
         console.log('StartCol:', currentDates[startCol])
-
-        // // 부모 함수 호출
-        // handleConfirmedCol(startCol)
 
         return {
           ...prev,
@@ -203,18 +211,30 @@ export default function TimeStamp({
     setIsResizing(false)
     setActiveSelection(null)
     setResizingPoint(null)
-  }, [activeSelection, currentPage])
+  }, [activeSelection, currentDates, currentPage])
 
   useEffect(() => {
+    const handleMouseUpWithColumnClick = () => {
+      handleMouseUp()
+      onColumnClick(-1) // mouseup 이벤트가 발생하면 onColumnClick(null) 실행
+    }
+
     if (activeSelection || isResizing) {
       window.addEventListener('mousemove', handleMouseMove)
-      window.addEventListener('mouseup', handleMouseUp)
+      window.addEventListener('mouseup', handleMouseUpWithColumnClick)
     }
     return () => {
       window.removeEventListener('mousemove', handleMouseMove)
-      window.removeEventListener('mouseup', handleMouseUp)
+      window.removeEventListener('mouseup', handleMouseUpWithColumnClick)
     }
-  }, [activeSelection, isResizing, handleMouseMove, handleMouseUp])
+  }, [
+    activeSelection,
+    isResizing,
+    handleMouseMove,
+    handleMouseUp,
+    onColumnClick,
+    currentSelections,
+  ])
 
   const getCellStatus = (row: number, col: number) => {
     const allSelections = [...currentSelections, ...selections].filter(
@@ -296,8 +316,6 @@ export default function TimeStamp({
       Math.min(activeSelection.startCol, activeSelection.endCol) <= c &&
       Math.max(activeSelection.startCol, activeSelection.endCol) >= c
 
-    handleSelectedCol(col) // 해당 컬럼에 대해 handleSelectedCol 호출
-
     return {
       borderTop:
         !isSelected(row - 1, col) && !isActiveSelection(row - 1, col)
@@ -340,37 +358,40 @@ export default function TimeStamp({
       return `${formattedHour}:${formattedMinute}`
     }
 
-    sortedSelections.forEach((selection) => {
-      const startTime = getTimeLabel(selection.startRow)
-      const endTime = getTimeLabel(selection.endRow + 1) // endRow에 +1 적용
+    sortedSelections.forEach(
+      (selection) => {
+        const startTime = getTimeLabel(selection.startRow)
+        const endTime = getTimeLabel(selection.endRow + 1) // endRow에 +1 적용
 
-      // 연속된 시간 범위인지 확인
-      if (currentRangeStart === null) {
-        currentRangeStart = startTime
-      }
-
-      if (
-        currentRangeEnd === null ||
-        (currentRangeEnd === startTime &&
-          selection.startCol === confirmedSelections[0]?.startCol)
-      ) {
-        currentRangeEnd = endTime
-      } else {
-        // 연속적인 시간 범위가 끊어진 경우
-        if (currentRangeStart && currentRangeEnd) {
-          timeRanges.push({ start: currentRangeStart, end: currentRangeEnd })
+        // 연속된 시간 범위인지 확인
+        if (currentRangeStart === null) {
+          currentRangeStart = startTime
         }
-        currentRangeStart = startTime
-        currentRangeEnd = endTime
-      }
-    })
+
+        if (
+          currentRangeEnd === null ||
+          (currentRangeEnd === startTime &&
+            selection.startCol === confirmedSelections[0]?.startCol)
+        ) {
+          currentRangeEnd = endTime
+        } else {
+          // 연속적인 시간 범위가 끊어진 경우
+          if (currentRangeStart && currentRangeEnd) {
+            timeRanges.push({ start: currentRangeStart, end: currentRangeEnd })
+          }
+          currentRangeStart = startTime
+          currentRangeEnd = endTime
+        }
+      },
+      [currentSelections],
+    )
 
     // 마지막 남은 범위 추가
     if (currentRangeStart && currentRangeEnd) {
       timeRanges.push({ start: currentRangeStart, end: currentRangeEnd })
     }
 
-    console.log(`Confirmed selections for page ${currentPage}:`)
+    // console.log(`Confirmed selections for page ${currentPage}:`)
     timeRanges.forEach((range) => {
       console.log(`Time: ${range.start} - ${range.end}`)
     })
@@ -415,32 +436,37 @@ export default function TimeStamp({
                           : ''
                       }`}
                       style={cellBorder}
-                      onMouseDown={() => handleMouseClick(rowIndex, colIndex)}
+                      onMouseDown={() => {
+                        handleMouseClick(rowIndex, colIndex)
+                        onColumnClick(colIndex)
+                      }}
                     >
                       {!cellStatus.isConfirmed && cellStatus.isStartCell && (
                         <div
                           className="absolute -top-[5px] left-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move"
-                          onMouseDown={() =>
+                          onMouseDown={() => {
                             handleMouseDown(
                               rowIndex,
                               colIndex,
                               true,
                               cellStatus.selection!,
                             )
-                          }
+                            onColumnClick(colIndex)
+                          }}
                         />
                       )}
                       {!cellStatus.isConfirmed && cellStatus.isEndCell && (
                         <div
                           className="absolute -bottom-[5px] right-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move"
-                          onMouseDown={() =>
+                          onMouseDown={() => {
                             handleMouseDown(
                               rowIndex,
                               colIndex,
                               true,
                               cellStatus.selection!,
                             )
-                          }
+                            onColumnClick(colIndex)
+                          }}
                         />
                       )}
                     </div>

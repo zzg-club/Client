@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import Title from '@/components/Header/Title'
 import SelectedDays from '@/components/Header/SelectedDays'
 import TimeStamp from '@/components/Body/TimeStamp'
@@ -20,10 +20,9 @@ export default function Page() {
     setTitle(newTitle)
   }
 
-  const handleSelectedCol = (colIndex: number) => {
+  const handleSelectedCol = useCallback((colIndex: number) => {
     setHighlightedCol(colIndex)
-    // console.log('Highlighted Col:', colIndex)
-  }
+  }, [])
 
   const selectedDates: SelectedDate[] = [
     { date: 3, weekday: '금' },
