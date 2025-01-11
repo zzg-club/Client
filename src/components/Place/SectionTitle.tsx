@@ -23,6 +23,7 @@ const SectionTitle = ({ title }: { title: string }) => {
           color: '#9562FB',
           margin: 0,
           marginRight: '7px', // 텍스트와 선 사이 간격
+          marginLeft:'10px'
         }}
       >
         {title}
@@ -32,7 +33,8 @@ const SectionTitle = ({ title }: { title: string }) => {
           flex: 1,
           height: '1px',
           backgroundColor: '#9562FB',
-          marginTop: '14px'
+          marginTop: '14px',
+          marginRight: '20px', // 텍스트와 선 사이 간격
         }}
       ></div>
     </div>

@@ -18,19 +18,26 @@ const VisitorPhoto = () => {
   ];
 
   return (
-    <div style={{ marginTop: '20px', backgroundColor: '#f7f7f7' }}>
+    <div
+      style={{
+        marginTop: '20px',
+        backgroundColor: '#f7f7f7',
+        paddingLeft: '8px', 
+        paddingRight: '8px', 
+      }}
+    >
       {/* Masonry 스타일 컨테이너 */}
       <div
         style={{
           columnCount: 3, // 열의 개수를 설정 (필요에 따라 조정 가능)
-          columnGap: '4px', // 열 간격
+          columnGap: '2px', // 열 간격 2px
         }}
       >
         {photos.map((photo, index) => (
           <div
             key={index}
             style={{
-              marginBottom: '5px', // 각 이미지 사이의 간격
+              marginBottom: '2px', // 각 이미지 사이의 간격 2px
               borderRadius: '24px', // 둥근 모서리 적용
               overflow: 'hidden', // 둥근 모서리에 맞게 이미지 잘림
             }}
