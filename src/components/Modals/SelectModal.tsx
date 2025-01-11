@@ -49,7 +49,7 @@ export default function SelectModal({
           <div className="w-[2px] bg-[#afafaf] marginzero-button"></div>
           <button
             onClick={onClickRight}
-            className="text-center text-[#9562fa] font-medium text-base py-4 w-full marginzero-button"
+            className="text-center text-[#9562fa] font-medium text-base py-[16px] w-full marginzero-button"
           >
             {rightText}
           </button>

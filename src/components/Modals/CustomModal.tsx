@@ -42,7 +42,7 @@ export default function CustomModal({
           <DialogFooter className="flex flex-col items-center w-[280px] border-t border-[#afafaf]">
             <button
               onClick={onNext}
-              className="text-center text-[#9562fa] font-medium rounded-3xl text-lg py-5 w-full"
+              className="text-center text-[#9562fa] font-medium rounded-3xl text-lg py-[16px] w-full"
             >
               {footerText}
             </button>
