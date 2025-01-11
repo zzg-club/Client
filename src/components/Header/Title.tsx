@@ -10,7 +10,7 @@ import ScheduleSelectShareModal from '../Modals/ScheduleSelectShareModal'
 
 interface TitleProps {
   buttonText: string
-  buttonLink: string
+  onClickTitleButton?: () => void
   initialTitle: string // 초기 제목
   isPurple: boolean
   onTitleChange: (newTitle: string) => void // 제목 수정 후 부모로 전달
@@ -18,7 +18,7 @@ interface TitleProps {
 
 export default function Title({
   buttonText,
-  buttonLink,
+  onClickTitleButton,
   initialTitle,
   onTitleChange,
   isPurple,
@@ -30,21 +30,12 @@ export default function Title({
     router.back()
   }
 
-  const handleButtonClick = () => {
-    router.push(buttonLink)
-  }
-
   const handleOpenDdialg = () => {
     setIsShareOpen(!isShareOpen)
   }
 
   return (
-    <div
-      className="w-full h-16 px-4 py-5 bg-white flex items-center gap-1"
-      style={{
-        borderRadius: '0px 0px 24px 24px',
-      }}
-    >
+    <div className="w-full h-16 px-4 py-5 bg-white flex items-center gap-1">
       <button onClick={handleBackClick}>
         <MdArrowBackIos className="w-7 h-7 text-[#1e1e1e]" />
       </button>
@@ -58,8 +49,8 @@ export default function Title({
         </button>
         <button
           className={`text-center text-xl font-medium font-['Pretendard'] leading-[25px] 
-          ${isPurple ? 'text-purple-500' : 'text-[#afafaf]'}`}
-          onClick={handleButtonClick}
+          ${isPurple ? 'text-[#9562fa]' : 'text-[#afafaf]'}`}
+          onClick={onClickTitleButton}
         >
           {buttonText}
         </button>
