@@ -85,7 +85,7 @@ export default function SelectedDays({
                   highlightedCol === 0 ? 'text-[#9562FA]' : ''
                 }`}
               >
-                <span className="text-3xl font-medium mb-1">
+                <span className="text-3xl font-normal mb-1">
                   {currentDates[0].date}
                 </span>
                 <span className="text-s mt-0">{currentDates[0].weekday}</span>
@@ -103,7 +103,7 @@ export default function SelectedDays({
                     highlightedCol === index ? 'text-[#9562FA]' : ''
                   }`}
                 >
-                  <span className="text-3xl font-medium">{date}</span>
+                  <span className="text-3xl font-normal">{date}</span>
                   <span className="text-s mt-0">{weekday}</span>
                 </div>
               ))}
@@ -123,7 +123,7 @@ export default function SelectedDays({
                     highlightedCol === index ? 'text-[#9562FA]' : ''
                   }`}
                 >
-                  <span className="text-3xl font-medium">{date}</span>
+                  <span className="text-3xl font-normal">{date}</span>
                   <span className="text-s mt-0">{weekday}</span>
                 </div>
               ))}
