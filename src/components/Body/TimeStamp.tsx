@@ -17,6 +17,7 @@ interface TimeStampProps {
   currentPage: number
   onPageChange: (newPage: number) => void
   handleSelectedCol: (colIndex: number) => void
+  getDateTime: (col: number, start: string, end: string) => void
 }
 
 const COLUMNS_PER_PAGE = 7
@@ -25,6 +26,7 @@ export default function TimeStamp({
   selectedDates,
   currentPage,
   handleSelectedCol,
+  getDateTime,
 }: TimeStampProps) {
   const [selections] = useState<Selection[]>([])
   const [isResizing, setIsResizing] = useState(false)
@@ -53,6 +55,13 @@ export default function TimeStamp({
     [handleSelectedCol],
   )
 
+  const handleDateTimeSelect = useCallback(
+    (col: number, start: string, end: string) => {
+      getDateTime(col, start, end)
+    },
+    [getDateTime],
+  )
+
   const [selectionsByPage, setSelectionsByPage] = useState<{
     [key: number]: Selection[]
   }>({})
@@ -61,24 +70,15 @@ export default function TimeStamp({
 
   const isOverlapping = useCallback(
     (selection: Selection) => {
-      const { startRow, endRow, startCol, endCol } = selection
+      const { startRow, endRow } = selection
       const minRow = Math.min(startRow, endRow)
       const maxRow = Math.max(startRow, endRow)
-      const minCol = Math.min(startCol, endCol)
-      const maxCol = Math.max(startCol, endCol)
 
       return selections.some((existing) => {
         const existingMinRow = Math.min(existing.startRow, existing.endRow)
         const existingMaxRow = Math.max(existing.startRow, existing.endRow)
-        const existingMinCol = Math.min(existing.startCol, existing.endCol)
-        const existingMaxCol = Math.max(existing.startCol, existing.endCol)
 
-        return !(
-          maxRow < existingMinRow ||
-          minRow > existingMaxRow ||
-          maxCol < existingMinCol ||
-          minCol > existingMaxCol
-        )
+        return !(maxRow < existingMinRow || minRow > existingMaxRow)
       })
     },
     [selections],
@@ -150,19 +150,15 @@ export default function TimeStamp({
 
         if (isResizing) {
           if (resizingPoint === 'start') {
-            // 위쪽 핸들만 위쪽으로 움직일 수 있도록 제한
             if (row < prev.endRow) {
               newSelection.startRow = row
             }
           } else if (resizingPoint === 'end') {
-            // 아래쪽 핸들만 아래쪽으로 움직일 수 있도록 제한
             if (row > prev.startRow) {
               newSelection.endRow = row
             }
           }
         }
-
-        // 겹치는 선택이 있으면 움직이지 않음
         return !isOverlapping(newSelection) ? newSelection : prev
       })
     },
@@ -178,28 +174,50 @@ export default function TimeStamp({
       }
 
       setSelectionsByPage((prev) => {
-        // 이전 선택을 가져오기
-        const updatedSelections =
-          prev[currentPage]?.filter(
-            (sel) =>
-              // 이전 선택의 startRow 또는 startCol이 확장된 선택과 겹치지 않도록 조건 추가
-              (sel.startRow !== finalizedSelection.startRow ||
-                sel.startCol !== finalizedSelection.startCol) &&
-              // startRow 확장이 반영된 선택이 없으면 추가
-              !(
-                sel.startRow >= finalizedSelection.startRow &&
-                sel.startRow <= finalizedSelection.endRow &&
-                sel.startCol === finalizedSelection.startCol
-              ),
-          ) || []
+        const currentSelections = prev[currentPage] || []
+        const updatedSelections = currentSelections.flatMap((sel) => {
+          const isOverlap =
+            sel.startRow <= finalizedSelection.endRow &&
+            sel.endRow >= finalizedSelection.startRow &&
+            sel.startCol === finalizedSelection.startCol
+
+          if (!isOverlap) {
+            return [sel]
+          }
+
+          const splitSelections = []
+          if (sel.startRow < finalizedSelection.startRow) {
+            splitSelections.push({
+              ...sel,
+              endRow: finalizedSelection.startRow - 1,
+            })
+          }
+          if (sel.endRow > finalizedSelection.endRow) {
+            splitSelections.push({
+              ...sel,
+              startRow: finalizedSelection.endRow + 1,
+            })
+          }
+          return splitSelections
+        })
 
         const mergedSelections = [...updatedSelections, finalizedSelection]
-
-        // console.log('Merged Selections:', mergedSelections)
+        console.log('Updated Selections:', mergedSelections)
 
         const startCol = finalizedSelection.startCol
-        console.log('Merged Selections:', mergedSelections)
-        console.log('StartCol:', currentDates[startCol])
+        const getTimeLabel = (rowIndex: number) => {
+          const hours = Math.floor(rowIndex / 2)
+          const minutes = (rowIndex % 2) * 30
+          const formattedHour = String(hours).padStart(2, '0')
+          const formattedMinute = String(minutes).padStart(2, '0')
+          return `${formattedHour}:${formattedMinute}`
+        }
+
+        const selectedDate = currentDates[startCol]?.date
+        const startTime = getTimeLabel(finalizedSelection.startRow)
+        const endTime = getTimeLabel(finalizedSelection.endRow + 1)
+
+        handleDateTimeSelect(selectedDate, startTime, endTime)
 
         return {
           ...prev,
@@ -211,12 +229,12 @@ export default function TimeStamp({
     setIsResizing(false)
     setActiveSelection(null)
     setResizingPoint(null)
-  }, [activeSelection, currentDates, currentPage])
+  }, [activeSelection, currentDates, currentPage, handleDateTimeSelect])
 
   useEffect(() => {
     const handleMouseUpWithColumnClick = () => {
       handleMouseUp()
-      onColumnClick(-1) // mouseup 이벤트가 발생하면 onColumnClick(null) 실행
+      onColumnClick(-1)
     }
 
     if (activeSelection || isResizing) {
@@ -330,72 +348,70 @@ export default function TimeStamp({
     }
   }
 
-  useEffect(() => {
-    const confirmedSelections = currentSelections.filter(
-      (selection) => selection.isConfirmed,
-    )
+  // useEffect(() => {
+  //   const confirmedSelections = currentSelections.filter(
+  //     (selection) => selection.isConfirmed,
+  //   )
 
-    // 선택된 셀들을 rowIndex 기준으로 정렬
-    const sortedSelections = confirmedSelections.sort(
-      (a, b) => a.startRow - b.startRow,
-    )
+  //   const sortedSelections = confirmedSelections.sort(
+  //     (a, b) => a.startRow - b.startRow,
+  //   )
 
-    // 시간 범위를 그룹화
-    const timeRanges: { start: string; end: string }[] = []
+  //   const timeRanges: { start: string; end: string; colIndex: number }[] = []
 
-    let currentRangeStart: string | null = null
-    let currentRangeEnd: string | null = null
+  //   let currentRangeStart: string | null = null
+  //   let currentRangeEnd: string | null = null
+  //   let currentColIndex: number | null = null
 
-    // const getDateLabel = (colIndex: number) => {
-    //   const date = currentDates[colIndex]
-    // }
+  //   const getTimeLabel = (rowIndex: number) => {
+  //     const hours = Math.floor(rowIndex / 2)
+  //     const minutes = (rowIndex % 2) * 30
+  //     const formattedHour = String(hours).padStart(2, '0')
+  //     const formattedMinute = String(minutes).padStart(2, '0')
+  //     return `${formattedHour}:${formattedMinute}`
+  //   }
 
-    const getTimeLabel = (rowIndex: number) => {
-      const hours = Math.floor(rowIndex / 2)
-      const minutes = (rowIndex % 2) * 30
-      const formattedHour = String(hours).padStart(2, '0')
-      const formattedMinute = String(minutes).padStart(2, '0')
-      return `${formattedHour}:${formattedMinute}`
-    }
+  //   sortedSelections.forEach((selection) => {
+  //     const startTime = getTimeLabel(selection.startRow)
+  //     const endTime = getTimeLabel(selection.endRow + 1)
 
-    sortedSelections.forEach(
-      (selection) => {
-        const startTime = getTimeLabel(selection.startRow)
-        const endTime = getTimeLabel(selection.endRow + 1) // endRow에 +1 적용
+  //     if (currentRangeStart === null) {
+  //       currentRangeStart = startTime
+  //       currentColIndex = selection.startCol // 현재 column index 저장
+  //     }
 
-        // 연속된 시간 범위인지 확인
-        if (currentRangeStart === null) {
-          currentRangeStart = startTime
-        }
+  //     if (
+  //       currentRangeEnd === null ||
+  //       (currentRangeEnd === startTime &&
+  //         selection.startCol === confirmedSelections[0]?.startCol)
+  //     ) {
+  //       currentRangeEnd = endTime
+  //     } else {
+  //       if (currentRangeStart && currentRangeEnd && currentColIndex !== null) {
+  //         timeRanges.push({
+  //           start: currentRangeStart,
+  //           end: currentRangeEnd,
+  //           colIndex: currentColIndex,
+  //         })
+  //       }
+  //       currentRangeStart = startTime
+  //       currentRangeEnd = endTime
+  //       currentColIndex = selection.startCol
+  //     }
+  //   })
 
-        if (
-          currentRangeEnd === null ||
-          (currentRangeEnd === startTime &&
-            selection.startCol === confirmedSelections[0]?.startCol)
-        ) {
-          currentRangeEnd = endTime
-        } else {
-          // 연속적인 시간 범위가 끊어진 경우
-          if (currentRangeStart && currentRangeEnd) {
-            timeRanges.push({ start: currentRangeStart, end: currentRangeEnd })
-          }
-          currentRangeStart = startTime
-          currentRangeEnd = endTime
-        }
-      },
-      [currentSelections],
-    )
+  //   if (currentRangeStart && currentRangeEnd && currentColIndex !== null) {
+  //     timeRanges.push({
+  //       start: currentRangeStart,
+  //       end: currentRangeEnd,
+  //       colIndex: currentColIndex,
+  //     })
+  //   }
 
-    // 마지막 남은 범위 추가
-    if (currentRangeStart && currentRangeEnd) {
-      timeRanges.push({ start: currentRangeStart, end: currentRangeEnd })
-    }
-
-    // console.log(`Confirmed selections for page ${currentPage}:`)
-    timeRanges.forEach((range) => {
-      console.log(`Time: ${range.start} - ${range.end}`)
-    })
-  }, [currentPage, currentSelections])
+  //   timeRanges.forEach((range) => {
+  //     console.log(`Time: ${range.start} - ${range.end}, Col: ${range.colIndex}`)
+  //   })
+  // }, [currentPage, currentSelections, handleDateTimeSelect])
 
   return (
     <div className="timestamp-container">
