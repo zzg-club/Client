@@ -124,9 +124,8 @@ export default function Page() {
     <div>
       <Title
         buttonText="완료"
-        buttonLink="/"
-        initialTitle={title}
-        onTitleChange={handleTitleChange}
+        initialTitle={title} // 하위 컴포넌트에 제목 전달
+        onTitleChange={handleTitleChange} // 제목 수정 함수 전달
         isPurple={isPurple}
       />
       <SelectedDays

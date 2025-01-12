@@ -1,3 +1,8 @@
 [data-state='open'][data-aria-hidden='true'] {
   position: absolute;
 }
+
+[role='dialog'][data-state='open'] {
+  position: absolute;
+  border-radius: 24px;
+}
