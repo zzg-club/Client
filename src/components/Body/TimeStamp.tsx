@@ -34,6 +34,7 @@ export default function TimeStamp({
   const [resizingPoint, setResizingPoint] = useState<'start' | 'end' | null>(
     null,
   )
+  const [scale, setScale] = useState(1)
   const gridRef = useRef<HTMLDivElement>(null)
 
   const currentDates = selectedDates.slice(
@@ -413,13 +414,36 @@ export default function TimeStamp({
   //   })
   // }, [currentPage, currentSelections, handleDateTimeSelect])
 
+  useEffect(() => {
+    const element = gridRef.current
+    if (!element) return
+
+    const handleWheel = (e: WheelEvent) => {
+      if (e.ctrlKey) {
+        e.preventDefault()
+        const delta = e.deltaY > 0 ? 0.9 : 1.1
+        setScale((prev) => Math.min(Math.max(prev * delta, 1), 2))
+      }
+    }
+
+    element.addEventListener('wheel', handleWheel, { passive: false })
+    return () => element.removeEventListener('wheel', handleWheel)
+  }, [])
+
   return (
     <div className="timestamp-container">
       <div className="timestamp-content">
         <div className="w-full max-w-4xl mx-auto bg-white pl-2 pr-8 pt-3 pb-8 flex grid grid-cols-[auto_1fr]">
-          <div className="relative pt-8 w-7 pr-1">
+          <div className="w-7 pr-1 -mt-1">
             {Array.from({ length: 23 }, (_, i) => (
-              <div key={i} className="h-9 text-[10px] text-[#afafaf]">
+              <div
+                key={i}
+                className="text-[10px] text-[#afafaf]"
+                style={{
+                  height: `${18 * scale}px`,
+                  paddingTop: `${36 * scale}px`,
+                }}
+              >
                 {`${String(i + 1).padStart(2, '0')}시`}{' '}
               </div>
             ))}
@@ -430,7 +454,7 @@ export default function TimeStamp({
             style={{
               gridTemplateColumns: `repeat(${currentDates.length}, 1fr)`,
               backgroundImage: 'linear-gradient(#d9d9d9 1px, transparent 1px)',
-              backgroundSize: `100% ${36}px`,
+              backgroundSize: `100% ${36 * scale}px`,
             }}
           >
             {currentDates.map((_, colIndex) => (
@@ -444,14 +468,17 @@ export default function TimeStamp({
                   return (
                     <div
                       key={rowIndex}
-                      className={`h-[18px] relative cursor-pointer ${
+                      className={`relative cursor-pointer ${
                         cellStatus.isSelected
                           ? cellStatus.isConfirmed
                             ? 'bg-[#9562fa]/70 z-200'
                             : 'bg-[#9562fa]/20 z-200'
                           : ''
                       }`}
-                      style={cellBorder}
+                      style={{
+                        ...cellBorder,
+                        height: `${18 * scale}px`,
+                      }}
                       onMouseDown={() => {
                         handleMouseClick(rowIndex, colIndex)
                         onColumnClick(colIndex)
