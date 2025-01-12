@@ -35,7 +35,6 @@ export default function Page() {
         const updated = [...prev]
         let timeSlots = updated[existingDateIndex].timeSlots
 
-        // 문자열 시간을 분 단위로 변환하는 함수
         const toMinutes = (time: string) => {
           const [hours, minutes] = time.split(':').map(Number)
           return hours * 60 + minutes
@@ -44,23 +43,19 @@ export default function Page() {
         const newStartMinutes = toMinutes(start)
         const newEndMinutes = toMinutes(end)
 
-        // 병합 대상 슬롯 필터링
         const overlappingSlots = timeSlots.filter((slot) => {
           const slotStartMinutes = toMinutes(slot.start)
           const slotEndMinutes = toMinutes(slot.end)
 
-          // 병합 조건: 범위가 겹치거나 경계가 맞닿는 경우
           return (
             (newStartMinutes <= slotEndMinutes &&
-              newEndMinutes >= slotStartMinutes) || // 겹침
-            slotEndMinutes === newStartMinutes || // 새로운 start가 기존 end와 일치
-            slotStartMinutes === newEndMinutes // 새로운 end가 기존 start와 일치
+              newEndMinutes >= slotStartMinutes) ||
+            slotEndMinutes === newStartMinutes ||
+            slotStartMinutes === newEndMinutes
           )
         })
 
-        // 병합 대상이 있는 경우
         if (overlappingSlots.length > 0) {
-          // 기존 슬롯 중 start의 최소값, end의 최대값 계산
           const mergedStart = Math.min(
             newStartMinutes,
             ...overlappingSlots.map((slot) => toMinutes(slot.start)),
@@ -70,7 +65,6 @@ export default function Page() {
             ...overlappingSlots.map((slot) => toMinutes(slot.end)),
           )
 
-          // 병합된 슬롯 추가
           timeSlots = timeSlots.filter(
             (slot) => !overlappingSlots.includes(slot),
           )
@@ -89,17 +83,14 @@ export default function Page() {
               )}:${(mergedEnd % 60).toString().padStart(2, '0')}`,
           })
         } else {
-          // 병합 대상이 없는 경우 새 슬롯 추가
           timeSlots.push({ start, end })
         }
 
-        // 항상 시간 순으로 정렬
         timeSlots.sort((a, b) => toMinutes(a.start) - toMinutes(b.start))
 
         updated[existingDateIndex].timeSlots = timeSlots
         return updated
       } else {
-        // 새로운 date 항목 추가
         return [...prev, { date: col, timeSlots: [{ start, end }] }]
       }
     })

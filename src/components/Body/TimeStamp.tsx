@@ -58,7 +58,9 @@ export default function TimeStamp({
 
   const handleDateTimeSelect = useCallback(
     (col: number, start: string, end: string) => {
-      getDateTime(col, start, end)
+      setTimeout(() => {
+        getDateTime(col, start, end)
+      }, 0)
     },
     [getDateTime],
   )
@@ -348,71 +350,6 @@ export default function TimeStamp({
       borderRight: '2px solid #9562fa',
     }
   }
-
-  // useEffect(() => {
-  //   const confirmedSelections = currentSelections.filter(
-  //     (selection) => selection.isConfirmed,
-  //   )
-
-  //   const sortedSelections = confirmedSelections.sort(
-  //     (a, b) => a.startRow - b.startRow,
-  //   )
-
-  //   const timeRanges: { start: string; end: string; colIndex: number }[] = []
-
-  //   let currentRangeStart: string | null = null
-  //   let currentRangeEnd: string | null = null
-  //   let currentColIndex: number | null = null
-
-  //   const getTimeLabel = (rowIndex: number) => {
-  //     const hours = Math.floor(rowIndex / 2)
-  //     const minutes = (rowIndex % 2) * 30
-  //     const formattedHour = String(hours).padStart(2, '0')
-  //     const formattedMinute = String(minutes).padStart(2, '0')
-  //     return `${formattedHour}:${formattedMinute}`
-  //   }
-
-  //   sortedSelections.forEach((selection) => {
-  //     const startTime = getTimeLabel(selection.startRow)
-  //     const endTime = getTimeLabel(selection.endRow + 1)
-
-  //     if (currentRangeStart === null) {
-  //       currentRangeStart = startTime
-  //       currentColIndex = selection.startCol // 현재 column index 저장
-  //     }
-
-  //     if (
-  //       currentRangeEnd === null ||
-  //       (currentRangeEnd === startTime &&
-  //         selection.startCol === confirmedSelections[0]?.startCol)
-  //     ) {
-  //       currentRangeEnd = endTime
-  //     } else {
-  //       if (currentRangeStart && currentRangeEnd && currentColIndex !== null) {
-  //         timeRanges.push({
-  //           start: currentRangeStart,
-  //           end: currentRangeEnd,
-  //           colIndex: currentColIndex,
-  //         })
-  //       }
-  //       currentRangeStart = startTime
-  //       currentRangeEnd = endTime
-  //       currentColIndex = selection.startCol
-  //     }
-  //   })
-
-  //   if (currentRangeStart && currentRangeEnd && currentColIndex !== null) {
-  //     timeRanges.push({
-  //       start: currentRangeStart,
-  //       end: currentRangeEnd,
-  //       colIndex: currentColIndex,
-  //     })
-  //   }
-
-  //   timeRanges.forEach((range) => {
-  //     console.log(`Time: ${range.start} - ${range.end}, Col: ${range.colIndex}`)
-  //   })
-  // }, [currentPage, currentSelections, handleDateTimeSelect])
 
   useEffect(() => {
     const element = gridRef.current
