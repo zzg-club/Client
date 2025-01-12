@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
 import '../../styles/TimeStamp.css'
 
 interface Selection {
@@ -69,7 +69,9 @@ export default function TimeStamp({
     [key: number]: Selection[]
   }>({})
 
-  const currentSelections = selectionsByPage[currentPage] || []
+  const currentSelections = useMemo(() => {
+    return selectionsByPage[currentPage] || []
+  }, [selectionsByPage, currentPage])
 
   const isOverlapping = useCallback(
     (selection: Selection) => {
