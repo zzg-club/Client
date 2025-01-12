@@ -1,94 +1,105 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import WheelTimePicker from '@/components/Pickers/WheelTimePicker'
 import CustomModal from '../CustomModal'
 import CustomCalendar from '@/components/Calendars/CustomCalendar'
-import { useHandleSelect } from '@/hooks/useHandleSelect'
-import { format } from 'date-fns'
+import { format, isBefore } from 'date-fns'
+import { DateRange } from 'react-day-picker'
+import { useDateTimeStore } from '@/store/dateTimeStore'
 
 interface DateTimeModalProps {
   onDateChange: (startDate: string, endDate: string) => void
 }
 
 export default function DateTimeModal({ onDateChange }: DateTimeModalProps) {
-  const [isTimePickerOpen, setIsTimePickerOpen] = useState<boolean>(false)
-  const [isTimePicker2Open, setIsTimePicker2Open] = useState<boolean>(false)
-  const [isCalendarOpen, setIsCalendarOpen] = useState<boolean>(false)
-  const { selectedDates, stringDates, handleSelect } = useHandleSelect()
-  const [startTime, setStartTime] = useState('08:00 PM')
-  const [finTime, setFinTime] = useState('08:00 PM')
-  const [isFinTime, setIsFinTime] = useState<boolean>(false)
+  const {
+    startDate,
+    endDate,
+    startTime,
+    endTime,
+    setStartDate,
+    setEndDate,
+    setStartTime,
+    setEndTime,
+    adjustEndDateTime,
+  } = useDateTimeStore()
 
-  const formattedStringDates = stringDates.map((date) => {
-    const dateObject = new Date(date)
-    return format(dateObject, 'MM월 dd일')
-  })
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false)
+  const [isTimePickerOpen, setIsTimePickerOpen] = useState(false)
+  const [isEndDatePickerOpen, setIsEndDatePickerOpen] = useState(false)
+  const [isEndTimePickerOpen, setIsEndTimePickerOpen] = useState(false)
+  const [warningMessage, setWarningMessage] = useState('')
 
-  const handleTimeChange = (time: string) => {
-    console.log('[date-time-modal] Selected time: ', time)
-    if (isTimePickerOpen) {
-      setStartTime(time) // WheelTimePicker에서 전달받은 시간 설정
-    } else {
-      setFinTime(time)
+  useEffect(() => {
+    adjustEndDateTime()
+  }, [startDate, startTime, endDate, endTime])
+
+  useEffect(() => {
+    if (startDate && endDate) {
+      const startDateString = `${format(startDate, 'yyyy-MM-dd')}T${formatTime(startTime)}:00.000Z`
+      const endDateString = `${format(endDate, 'yyyy-MM-dd')}T${formatTime(endTime)}:00.000Z`
+      onDateChange(startDateString, endDateString)
     }
-  }
+  }, [startDate, endDate, startTime, endTime, onDateChange])
 
-  // 시작 시간 선택 모달 오픈
+  const handleCalendarOpen = () => setIsCalendarOpen(!isCalendarOpen)
   const handleTimePickerOpen = () => {
     setIsCalendarOpen(false)
     setIsTimePickerOpen(!isTimePickerOpen)
   }
-  // 끝 시간 선택 모달 오픈
-  const handleTimePicker2Open = () => {
-    setIsTimePicker2Open(!isTimePicker2Open)
-    setIsFinTime(true)
+
+  const handleStartDateSelect = (
+    selection: Date | DateRange | Date[] | undefined,
+  ) => {
+    if (selection instanceof Date) {
+      setStartDate(selection)
+    } else if (Array.isArray(selection) && selection.length > 0) {
+      setStartDate(selection[0])
+    } else if (selection && 'from' in selection && selection.from) {
+      setStartDate(selection.from)
+    }
+    setWarningMessage('')
   }
 
-  const handleCalendarOpen = () => {
-    setIsCalendarOpen(!isCalendarOpen)
-    setIsFinTime(false)
+  const handleEndDateSelect = (
+    selection: Date | DateRange | Date[] | undefined,
+  ) => {
+    if (selection instanceof Date) {
+      if (startDate && isBefore(selection, startDate)) {
+        setWarningMessage('시작 날짜 이후의 날짜만 선택 가능합니다.')
+      } else {
+        setEndDate(selection)
+        setWarningMessage('')
+      }
+    } else if (Array.isArray(selection) && selection.length > 0) {
+      if (startDate && isBefore(selection[0], startDate)) {
+        setWarningMessage('시작 날짜 이후의 날짜만 선택 가능합니다.')
+      } else {
+        setEndDate(selection[0])
+        setWarningMessage('')
+      }
+    } else if (selection && 'from' in selection && selection.from) {
+      if (startDate && isBefore(selection.from, startDate)) {
+        setWarningMessage('시작 날짜 이후의 날짜만 선택 가능합니다.')
+      } else {
+        setEndDate(selection.from)
+        setWarningMessage('')
+      }
+    }
   }
 
-  // 선택한 시간 포맷 변경
+  const formatDateDisplay = (date: Date | undefined) => {
+    return date ? format(date, 'MM월 dd일') : '--월 --일'
+  }
+
   const formatTime = (time: string) => {
     const [hour, minutePart] = time.split(':')
-    const minute = minutePart.slice(0, 2)
-    const period = minutePart.slice(3)
-
+    const [minute, period] = minutePart.split(' ')
     let hourNumber = parseInt(hour, 10)
-    if (period === 'PM' && hourNumber !== 12) {
-      hourNumber += 12
-    } else if (period === 'AM' && hourNumber === 12) {
-      hourNumber = 0
-    }
-
+    if (period === 'PM' && hourNumber !== 12) hourNumber += 12
+    if (period === 'AM' && hourNumber === 12) hourNumber = 0
     return `${String(hourNumber).padStart(2, '0')}:${minute}`
-  }
-
-  // 두번째 날짜/시간까지 입력했을 경우 부모컴포넌트로 state 전달
-  const handleConfirm = () => {
-    if (stringDates[0]) {
-      const formattedDate = stringDates[0]
-        .replace(/월|일/g, '') // 'MM월 DD일'에서 'MM DD'로 변환
-        .trim()
-        .split(' ')
-
-      const month = formattedDate[0] || '01' // 기본값 '01'
-      const day = formattedDate[1] || '01' // 기본값 '01'
-
-      const startDateString = `${month.padStart(2, '0')}-${day.padStart(2, '0')}T${formatTime(startTime)}:00.000Z`
-      const endDateString = `${month.padStart(2, '0')}-${day.padStart(2, '0')}T${formatTime(finTime)}:00.000Z`
-
-      try {
-        onDateChange(startDateString, endDateString)
-        setIsTimePicker2Open(!isTimePicker2Open)
-      } catch (error) {
-        console.error('Invalid date format:', error)
-      }
-    } else {
-      console.warn('No date selected.')
-    }
   }
 
   return (
@@ -100,9 +111,9 @@ export default function DateTimeModal({ onDateChange }: DateTimeModalProps) {
               className="text-[#1e1e1e] text-base font-normal"
               onClick={handleCalendarOpen}
             >
-              {formattedStringDates[0] ? (
-                <div className="flex space-x-1">
-                  <div>{formattedStringDates[0]}</div>
+              {startDate ? (
+                <div className="flex space-x-1 justify-center">
+                  <div>{formatDateDisplay(startDate)}</div>
                   <div>{startTime}</div>
                 </div>
               ) : (
@@ -111,14 +122,15 @@ export default function DateTimeModal({ onDateChange }: DateTimeModalProps) {
             </button>
           </div>
           <div>
-            <button
-              className="text-[#1e1e1e] text-base font-normal"
-              onClick={handleTimePicker2Open}
-            >
-              {isFinTime && formattedStringDates[0] ? (
-                <div className="flex space-x-1">
-                  <div>{formattedStringDates[0]}</div>
-                  <div>{finTime}</div>
+            <button className="text-[#1e1e1e] text-base font-normal">
+              {endDate ? (
+                <div className="flex space-x-1 justify-center">
+                  <div onClick={() => setIsEndDatePickerOpen(true)}>
+                    {formatDateDisplay(endDate)}
+                  </div>
+                  <div onClick={() => setIsEndTimePickerOpen(true)}>
+                    {endTime}
+                  </div>
                 </div>
               ) : (
                 '--월 --일 --:--'
@@ -128,61 +140,68 @@ export default function DateTimeModal({ onDateChange }: DateTimeModalProps) {
         </div>
       </div>
 
-      {/* 첫번째 달력 모달 */}
       <CustomModal
         open={isCalendarOpen}
         onOpenChange={handleCalendarOpen}
         onNext={handleTimePickerOpen}
         isFooter={true}
         footerText={'다음으로'}
+        isDisabled={startDate ? false : true}
       >
         <CustomCalendar
           initialMode="single"
-          selected={selectedDates}
-          onSelect={handleSelect}
-        />
-      </CustomModal>
-
-      <CustomModal
-        open={isCalendarOpen}
-        onOpenChange={handleCalendarOpen}
-        onNext={handleTimePickerOpen}
-        isFooter={true}
-        footerText={'다음으로'}
-      >
-        <CustomCalendar
-          initialMode="single"
-          selected={selectedDates}
-          onSelect={handleSelect}
+          selected={startDate}
+          onSelect={handleStartDateSelect}
         />
       </CustomModal>
 
       <CustomModal
         open={isTimePickerOpen}
-        onOpenChange={handleTimePickerOpen}
-        onNext={handleTimePickerOpen}
+        onOpenChange={() => setIsTimePickerOpen(false)}
+        onNext={() => setIsTimePickerOpen(false)}
         isFooter={true}
         footerText={'다음으로'}
         contentPadding={false}
       >
         <WheelTimePicker
-          value={startTime} // 현재 시간 전달
-          onChange={handleTimeChange} // 시간 변경 핸들러 전달
+          value={startTime}
+          initialValue={startTime}
+          onChange={(time) => setStartTime(time)}
           className="w-full max-w-xs"
         />
       </CustomModal>
 
       <CustomModal
-        open={isTimePicker2Open}
-        onOpenChange={handleTimePicker2Open}
-        onNext={handleConfirm} // 두번째 날짜/시간까지 입력했다면 컨펌
+        open={isEndDatePickerOpen}
+        onOpenChange={() => setIsEndDatePickerOpen(false)}
+        onNext={() => setIsEndDatePickerOpen(false)}
+        isFooter={true}
+        footerText={'다음으로'}
+      >
+        <CustomCalendar
+          initialMode="single"
+          selected={endDate}
+          onSelect={handleEndDateSelect}
+        />
+        {warningMessage && (
+          <div className="text-red-500 text-sm mt-2 text-center">
+            {warningMessage}
+          </div>
+        )}
+      </CustomModal>
+
+      <CustomModal
+        open={isEndTimePickerOpen}
+        onOpenChange={() => setIsEndTimePickerOpen(false)}
+        onNext={() => setIsEndTimePickerOpen(false)}
         isFooter={true}
         footerText={'다음으로'}
         contentPadding={false}
       >
         <WheelTimePicker
-          value={finTime} // 현재 시간 전달
-          onChange={handleTimeChange} // 시간 변경 핸들러 전달
+          value={endTime}
+          initialValue={endTime}
+          onChange={(time) => setEndTime(time)}
           className="w-full max-w-xs"
         />
       </CustomModal>

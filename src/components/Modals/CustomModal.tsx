@@ -15,6 +15,7 @@ interface ModalProps {
   isFooter: boolean // 하단 버튼 이용 여부
   footerText?: string // 하단 버튼 이용 시 버튼 텍스트
   contentPadding?: boolean
+  isDisabled?: boolean // 다음으로 버튼 비활성화 여부
 }
 
 export default function CustomModal({
@@ -25,6 +26,7 @@ export default function CustomModal({
   isFooter,
   footerText,
   contentPadding = true,
+  isDisabled = false,
 }: ModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -42,7 +44,8 @@ export default function CustomModal({
           <DialogFooter className="flex flex-col items-center w-[280px] border-t border-[#afafaf]">
             <button
               onClick={onNext}
-              className="text-center text-[#9562fa] font-medium rounded-3xl text-lg py-[16px] w-full"
+              className="text-center text-[#9562fa] font-medium rounded-3xl text-lg py-[16px] w-full disabled:text-gray-400"
+              disabled={isDisabled}
             >
               {footerText}
             </button>
