@@ -1,5 +1,3 @@
-'use client';
-
 import React, { useEffect, useState, useRef } from 'react';
 import KakaoMap from '@/components/Map/KakaoMap';
 import styles from '@/app/place/styles/Detail.module.css';
@@ -241,14 +239,21 @@ const PlaceDetail = ({ id }: PlaceDetailProps) => {
 
               <div className={styles['gallery-small-container']}>
                 {selectedPlace.images.slice(1, 5).map((image, index) => (
-                  <div key={index} className={styles['gallery-small']}>
+                  
+                  <div key={index} className={styles['gallery-small']} style={{ position: 'relative' }}>
                     <img
                       src={image}
                       alt={`Small Gallery ${index}`}
                       className={styles['gallery-image']}
+                      style={{ filter: index === 3 ? 'brightness(35%)' : 'none' }}
                     />
-                    {index === 3 && selectedPlace.images.length > 5 && (
+                    {index === 3 && (
                       <div className={styles['more-overlay']}>
+                        <img
+                          src="/photo_library.svg"
+                          alt="Photo Library Icon"
+                          className={styles['photo-icon']}
+                        />
                         +{selectedPlace.images.length - 5}
                       </div>
                     )}
