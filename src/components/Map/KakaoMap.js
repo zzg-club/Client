@@ -107,7 +107,7 @@ const KakaoMap = ({ selectedPlace, bottomSheetState, onMoveToCurrentLocation }) 
 
   // Bottom Sheet 상태 변경에 따른 지도 중심 및 마커 위치 조정
   useEffect(() => {
-    if (!map || !placeMarker || !originalPosition) return;
+    if (!map || !originalPosition) return;
 
     const adjustMarkerAndMapPosition = () => {
       let offsetY = 0;
@@ -127,7 +127,9 @@ const KakaoMap = ({ selectedPlace, bottomSheetState, onMoveToCurrentLocation }) 
       );
 
       map.setCenter(newCenter);
-      placeMarker.setPosition(newCenter);
+      if (placeMarker) {
+        placeMarker.setPosition(originalPosition);
+      }
     };
 
     adjustMarkerAndMapPosition();
