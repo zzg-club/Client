@@ -26,6 +26,7 @@ const EditTimeStamp: React.FC<EditTimeStampProps> = ({
 }) => {
   const COLUMNS_PER_PAGE = 7
   const [scale, setScale] = useState(1)
+  const [isEdit, setIsEdit] = useState<number | null>(null) // 수정 모드 상태
   const gridRef = useRef<HTMLDivElement>(null)
 
   const currentDates = data.slice(
@@ -37,38 +38,6 @@ const EditTimeStamp: React.FC<EditTimeStampProps> = ({
     const element = gridRef.current
     if (!element) return
 
-    let initialDistance = 0
-
-    const handleTouchStart = (e: TouchEvent) => {
-      if (e.touches.length === 2) {
-        const touch1 = e.touches[0]
-        const touch2 = e.touches[1]
-        initialDistance = Math.sqrt(
-          Math.pow(touch2.clientX - touch1.clientX, 2) +
-            Math.pow(touch2.clientY - touch1.clientY, 2),
-        )
-      }
-    }
-
-    const handleTouchMove = (e: TouchEvent) => {
-      if (e.touches.length === 2) {
-        const touch1 = e.touches[0]
-        const touch2 = e.touches[1]
-        const currentDistance = Math.sqrt(
-          Math.pow(touch2.clientX - touch1.clientX, 2) +
-            Math.pow(touch2.clientY - touch1.clientY, 2),
-        )
-
-        const scaleChange = currentDistance / initialDistance
-        setScale((prev) => Math.min(Math.max(prev * scaleChange, 1), 2))
-        initialDistance = currentDistance
-      }
-    }
-
-    const handleTouchEnd = () => {
-      initialDistance = 0
-    }
-
     const handleWheel = (e: WheelEvent) => {
       if (e.ctrlKey) {
         e.preventDefault()
@@ -78,21 +47,20 @@ const EditTimeStamp: React.FC<EditTimeStampProps> = ({
     }
 
     element.addEventListener('wheel', handleWheel, { passive: false })
-    element.addEventListener('touchstart', handleTouchStart, { passive: false })
-    element.addEventListener('touchmove', handleTouchMove, { passive: false })
-    element.addEventListener('touchend', handleTouchEnd)
-
     return () => {
       element.removeEventListener('wheel', handleWheel)
-      element.removeEventListener('touchstart', handleTouchStart)
-      element.removeEventListener('touchmove', handleTouchMove)
-      element.removeEventListener('touchend', handleTouchEnd)
     }
   }, [])
 
-  //   const handleMouseClick = (rowIndex: number, colIndex: number) => {
-  //     console.log(`Clicked Row: ${rowIndex}, Column: ${colIndex}`)
-  //   }
+  const handleSlotClick = (id: number) => {
+    setIsEdit(id) // 클릭한 슬롯의 ID를 isEdit 상태로 설정
+    onSlotClick(id) // 슬롯 클릭 콜백
+  }
+
+  const handleMouseDown = (id: number, type: 'start' | 'end') => {
+    console.log(`Dragging ${type} handle for slot ID: ${id}`)
+    // 드래그 로직
+  }
 
   return (
     <div className="timestamp-container">
@@ -123,36 +91,58 @@ const EditTimeStamp: React.FC<EditTimeStampProps> = ({
               backgroundSize: `100% ${36 * scale}px`,
             }}
           >
-            {/* {currentDates.map((day, colIndex) => ( */}
             {currentDates.map((day) => (
               <div
                 key={day.date}
                 className="relative border-r border-[#d9d9d9]"
               >
                 {day.timeSlots.map((slot) => {
-                  // 시작 시간과 분
                   const [startHour, startMinute] = slot.start
                     .split(':')
                     .map(Number)
                   const [endHour, endMinute] = slot.end.split(':').map(Number)
 
-                  // 시작 위치, 높이 계산 (30분 = 0.5)
-                  const startTop = (startHour + startMinute / 60) * 36 * scale // 1시간 = 36px
+                  const startTop = (startHour + startMinute / 60) * 36 * scale
                   const endTop = (endHour + endMinute / 60) * 36 * scale
                   const height = endTop - startTop
 
                   return (
                     <div
                       key={slot.id}
-                      className="absolute left-0 bg-[#9562fa]/60 cursor-pointer"
+                      className={`absolute left-0 cursor-pointer ${
+                        isEdit === slot.id
+                          ? 'bg-[#9562fa]/20 z-200 border-2 border-[#9562fa]'
+                          : 'bg-[#9562fa]/60 z-200'
+                      }`}
                       style={{
-                        top: `${startTop}px`, // 30분 단위로 시작 위치 설정
-                        height: `${height}px`, // 30분 단위로 높이 설정
+                        top: `${startTop}px`,
+                        height: `${height}px`,
                         width: '100%',
                       }}
-                      //   onMouseDown={() => console.log(`Clicked ID: ${slot.id}`)}
-                      onMouseDown={() => onSlotClick(slot.id)}
-                    />
+                      onMouseDown={() => handleSlotClick(slot.id)}
+                    >
+                      {/* 수정 모드일 때 핸들 표시 */}
+                      {isEdit === slot.id && (
+                        <>
+                          {/* 상단 핸들 */}
+                          <div
+                            className="absolute -top-[5px] left-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move"
+                            onMouseDown={(e) => {
+                              e.stopPropagation()
+                              handleMouseDown(slot.id, 'start')
+                            }}
+                          />
+                          {/* 하단 핸들 */}
+                          <div
+                            className="absolute -bottom-[5px] right-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move"
+                            onMouseDown={(e) => {
+                              e.stopPropagation()
+                              handleMouseDown(slot.id, 'end')
+                            }}
+                          />
+                        </>
+                      )}
+                    </div>
                   )
                 })}
               </div>
