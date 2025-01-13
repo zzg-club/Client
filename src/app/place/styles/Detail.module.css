@@ -148,7 +148,7 @@
 }
 
 .bottomSheet.middle {
-  --bottomSheetHeight: 470px;
+  --bottomSheetHeight: 560px;
 }
 
 .bottomSheet.expanded {
@@ -528,7 +528,7 @@
 }
 
 .bottomSheetTopRightButton.middle {
-  bottom: calc(470px + 16px); /* BottomSheet middle 상태 */
+  bottom: calc(560px + 16px); /* BottomSheet middle 상태 */
   opacity: 1;
 }
 
@@ -540,5 +540,31 @@
   width: 34px;
   height: 34px;
 }
+
+.top-buttons {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 22px;
+  z-index: 100; /* 버튼이 다른 요소 위에 표시되도록 설정 */
+}
+
+.top-left-button,
+.top-right-button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.top-left-button img,
+.top-right-button img {
+  width: 28px;
+  height: 28px;
+}
+
 
 

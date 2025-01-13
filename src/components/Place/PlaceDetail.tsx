@@ -54,16 +54,29 @@ const PlaceDetail = ({ id }: PlaceDetailProps) => {
   const handleTouchEnd = () => {
     if (startY.current !== null && currentY.current !== null) {
       const delta = startY.current - currentY.current;
-
+  
       if (delta > threshold) {
-        setBottomSheetState((prevState) => (prevState === 'collapsed' ? 'middle' : 'expanded'));
+        // 위로 드래그: collapsed → middle → expanded
+        setBottomSheetState((prevState) => {
+          if (prevState === 'collapsed') return 'middle';
+          if (prevState === 'middle') return 'expanded';
+          return 'expanded'; // 이미 expanded면 유지
+        });
       } else if (delta < -threshold) {
-        setBottomSheetState((prevState) => (prevState === 'expanded' ? 'middle' : 'collapsed'));
+        // 아래로 드래그: expanded → middle → collapsed
+        setBottomSheetState((prevState) => {
+          if (prevState === 'expanded') return 'middle';
+          if (prevState === 'middle') return 'collapsed';
+          return 'collapsed'; // 이미 collapsed면 유지
+        });
       }
     }
+  
+    // 초기화
     startY.current = null;
     currentY.current = null;
   };
+  
 
   if (loading) {
     return <div>Loading...</div>;
@@ -94,6 +107,33 @@ const PlaceDetail = ({ id }: PlaceDetailProps) => {
           />
         </div>
       </div>
+
+      {/* 상단 버튼 (expanded 상태) */}
+      {bottomSheetState === 'expanded' && (
+        <div className={styles['top-buttons']}>
+          <button
+            className={styles['top-left-button']}
+            // onClick={() => window.history.back()}
+          >
+            <img
+              src="/arrow_back_ios.svg"
+              alt="뒤로가기"
+              style={{ width: '28px', height: '28px' }}
+            />
+          </button>
+          <button
+            className={styles['top-right-button']}
+            // onClick={() => window.history.back()}
+          >
+            <img
+              src="/close_ios.svg"
+              alt="닫기"
+              style={{ width: '28px', height: '28px' }}
+            />
+          </button>
+        </div>
+      )}
+
       {/* BottomSheet 상단(지도 하단) 버튼 */}
       <div
   className={`${styles.bottomSheetTopRightButton} ${styles[bottomSheetState]}`}
