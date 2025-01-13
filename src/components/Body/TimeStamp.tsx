@@ -1,0 +1,464 @@
+'use client'
+
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
+import '../../styles/TimeStamp.css'
+
+interface Selection {
+  startRow: number
+  startCol: number
+  endRow: number
+  endCol: number
+  isSelected: boolean
+  isConfirmed: boolean
+}
+
+interface TimeStampProps {
+  selectedDates: { date: number; weekday: string }[]
+  currentPage: number
+  onPageChange: (newPage: number) => void
+  handleSelectedCol: (colIndex: number) => void
+  getDateTime: (col: number, start: string, end: string) => void
+}
+
+const COLUMNS_PER_PAGE = 7
+
+export default function TimeStamp({
+  selectedDates,
+  currentPage,
+  handleSelectedCol,
+  getDateTime,
+}: TimeStampProps) {
+  const [selections] = useState<Selection[]>([])
+  const [isResizing, setIsResizing] = useState(false)
+  const [activeSelection, setActiveSelection] = useState<Selection | null>(null)
+  const [resizingPoint, setResizingPoint] = useState<'start' | 'end' | null>(
+    null,
+  )
+  const [scale, setScale] = useState(1)
+  const gridRef = useRef<HTMLDivElement>(null)
+
+  const currentDates = selectedDates.slice(
+    currentPage * COLUMNS_PER_PAGE,
+    (currentPage + 1) * COLUMNS_PER_PAGE,
+  )
+
+  const onColumnClick = useCallback(
+    (colIndex: number) => {
+      if (colIndex == -1) {
+        handleSelectedCol(colIndex)
+        return 0
+      }
+      if (gridRef.current) {
+        const actualColIndex = colIndex
+        handleSelectedCol(actualColIndex)
+      }
+    },
+    [handleSelectedCol],
+  )
+
+  const handleDateTimeSelect = useCallback(
+    (col: number, start: string, end: string) => {
+      setTimeout(() => {
+        getDateTime(col, start, end)
+      }, 0)
+    },
+    [getDateTime],
+  )
+
+  const [selectionsByPage, setSelectionsByPage] = useState<{
+    [key: number]: Selection[]
+  }>({})
+
+  const currentSelections = useMemo(() => {
+    return selectionsByPage[currentPage] || []
+  }, [selectionsByPage, currentPage])
+
+  const isOverlapping = useCallback(
+    (selection: Selection) => {
+      const { startRow, endRow } = selection
+      const minRow = Math.min(startRow, endRow)
+      const maxRow = Math.max(startRow, endRow)
+
+      return selections.some((existing) => {
+        const existingMinRow = Math.min(existing.startRow, existing.endRow)
+        const existingMaxRow = Math.max(existing.startRow, existing.endRow)
+
+        return !(maxRow < existingMinRow || minRow > existingMaxRow)
+      })
+    },
+    [selections],
+  )
+
+  const handleMouseClick = (rowIndex: number, colIndex: number) => {
+    const pairStartRow = Math.floor(rowIndex / 2) * 2
+    const pairEndRow = pairStartRow + 1
+
+    setSelectionsByPage((prev) => {
+      const prevSelections = (prev[currentPage] || [])
+        .map((selection) => (selection.isConfirmed ? selection : null))
+        .filter(Boolean) as Selection[]
+
+      const newSelection: Selection = {
+        startRow: pairStartRow,
+        startCol: colIndex,
+        endRow: pairEndRow,
+        endCol: colIndex,
+        isSelected: true,
+        isConfirmed: false,
+      }
+
+      // console.log('Block selected (Prev):', prevSelections)
+      // console.log('Block selected (Click):', newSelection)
+
+      return {
+        ...prev,
+        [currentPage]: [...prevSelections, newSelection],
+      }
+    })
+  }
+
+  const handleMouseDown = (
+    rowIndex: number,
+    colIndex: number,
+    isEndpoint: boolean,
+    selection?: Selection,
+  ) => {
+    if (selection) {
+      setIsResizing(true)
+      setActiveSelection(selection)
+      setResizingPoint(
+        rowIndex === selection.startRow && colIndex === selection.startCol
+          ? 'start'
+          : 'end',
+      )
+      // console.log('Resizing started on (Down):', selection)
+    }
+  }
+
+  const handleMouseMove = useCallback(
+    (e: MouseEvent) => {
+      if (!gridRef.current || !activeSelection) return
+
+      const rect = gridRef.current.getBoundingClientRect()
+      const cellHeight = rect.height / 48
+      const row = Math.min(
+        Math.max(Math.floor((e.clientY - rect.top) / cellHeight), 0),
+        47,
+      )
+
+      // console.log('ActiveSelection', activeSelection)
+
+      setActiveSelection((prev) => {
+        if (!prev) return null
+
+        const newSelection = { ...prev }
+
+        if (isResizing) {
+          if (resizingPoint === 'start') {
+            if (row < prev.endRow) {
+              newSelection.startRow = row
+            }
+          } else if (resizingPoint === 'end') {
+            if (row > prev.startRow) {
+              newSelection.endRow = row
+            }
+          }
+        }
+        return !isOverlapping(newSelection) ? newSelection : prev
+      })
+    },
+    [activeSelection, isResizing, resizingPoint, isOverlapping],
+  )
+
+  const handleMouseUp = useCallback(() => {
+    if (activeSelection) {
+      const finalizedSelection = {
+        ...activeSelection,
+        isSelected: false,
+        isConfirmed: true,
+      }
+
+      setSelectionsByPage((prev) => {
+        const currentSelections = prev[currentPage] || []
+        const updatedSelections = currentSelections.flatMap((sel) => {
+          const isOverlap =
+            sel.startRow <= finalizedSelection.endRow &&
+            sel.endRow >= finalizedSelection.startRow &&
+            sel.startCol === finalizedSelection.startCol
+
+          if (!isOverlap) {
+            return [sel]
+          }
+
+          const splitSelections = []
+          if (sel.startRow < finalizedSelection.startRow) {
+            splitSelections.push({
+              ...sel,
+              endRow: finalizedSelection.startRow - 1,
+            })
+          }
+          if (sel.endRow > finalizedSelection.endRow) {
+            splitSelections.push({
+              ...sel,
+              startRow: finalizedSelection.endRow + 1,
+            })
+          }
+          return splitSelections
+        })
+
+        const mergedSelections = [...updatedSelections, finalizedSelection]
+        console.log('Updated Selections:', mergedSelections)
+
+        const startCol = finalizedSelection.startCol
+        const getTimeLabel = (rowIndex: number) => {
+          const hours = Math.floor(rowIndex / 2)
+          const minutes = (rowIndex % 2) * 30
+          const formattedHour = String(hours).padStart(2, '0')
+          const formattedMinute = String(minutes).padStart(2, '0')
+          return `${formattedHour}:${formattedMinute}`
+        }
+
+        const selectedDate = currentDates[startCol]?.date
+        const startTime = getTimeLabel(finalizedSelection.startRow)
+        const endTime = getTimeLabel(finalizedSelection.endRow + 1)
+
+        handleDateTimeSelect(selectedDate, startTime, endTime)
+
+        return {
+          ...prev,
+          [currentPage]: mergedSelections,
+        }
+      })
+    }
+
+    setIsResizing(false)
+    setActiveSelection(null)
+    setResizingPoint(null)
+  }, [activeSelection, currentDates, currentPage, handleDateTimeSelect])
+
+  useEffect(() => {
+    const handleMouseUpWithColumnClick = () => {
+      handleMouseUp()
+      onColumnClick(-1)
+    }
+
+    if (activeSelection || isResizing) {
+      window.addEventListener('mousemove', handleMouseMove)
+      window.addEventListener('mouseup', handleMouseUpWithColumnClick)
+    }
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove)
+      window.removeEventListener('mouseup', handleMouseUpWithColumnClick)
+    }
+  }, [
+    activeSelection,
+    isResizing,
+    handleMouseMove,
+    handleMouseUp,
+    onColumnClick,
+    currentSelections,
+  ])
+
+  const getCellStatus = (row: number, col: number) => {
+    const allSelections = [...currentSelections, ...selections].filter(
+      Boolean,
+    ) as Selection[]
+
+    if (activeSelection) {
+      const minRow = Math.min(activeSelection.startRow, activeSelection.endRow)
+      const maxRow = Math.max(activeSelection.startRow, activeSelection.endRow)
+      const minCol = Math.min(activeSelection.startCol, activeSelection.endCol)
+      const maxCol = Math.min(activeSelection.startCol, activeSelection.endCol)
+
+      if (row >= minRow && row <= maxRow && col >= minCol && col <= maxCol) {
+        const isStartCell =
+          row === activeSelection.startRow && col === activeSelection.startCol
+        const isEndCell =
+          row === activeSelection.endRow && col === activeSelection.endCol
+
+        return {
+          isSelected: true,
+          isConfirmed: false,
+          isStartCell,
+          isEndCell,
+          selection: activeSelection,
+        }
+      }
+    }
+
+    for (const selection of allSelections) {
+      const minRow = Math.min(selection.startRow, selection.endRow)
+      const maxRow = Math.max(selection.startRow, selection.endRow)
+      const minCol = Math.min(selection.startCol, selection.endCol)
+      const maxCol = Math.max(selection.startCol, selection.endCol)
+
+      if (row >= minRow && row <= maxRow && col >= minCol && col <= maxCol) {
+        const isStartCell =
+          row === selection.startRow && col === selection.startCol
+        const isEndCell = row === selection.endRow && col === selection.endCol
+
+        return {
+          isSelected: true,
+          isConfirmed: selection.isConfirmed,
+          isStartCell,
+          isEndCell,
+          selection,
+        }
+      }
+    }
+
+    return {
+      isSelected: false,
+      isConfirmed: false,
+      isStartCell: false,
+      isEndCell: false,
+    }
+  }
+
+  const getCellBorder = (row: number, col: number) => {
+    const allSelections = [...currentSelections, ...selections].filter(
+      Boolean,
+    ) as Selection[]
+
+    const cellStatus = getCellStatus(row, col)
+    if (!cellStatus.isSelected || cellStatus.isConfirmed) return {}
+
+    const isSelected = (r: number, c: number) =>
+      allSelections.some(
+        (selection) =>
+          Math.min(selection.startRow, selection.endRow) <= r &&
+          Math.max(selection.startRow, selection.endRow) >= r &&
+          Math.min(selection.startCol, selection.endCol) <= c &&
+          Math.max(selection.startCol, selection.endCol) >= c,
+      )
+
+    const isActiveSelection = (r: number, c: number) =>
+      activeSelection &&
+      Math.min(activeSelection.startRow, activeSelection.endRow) <= r &&
+      Math.max(activeSelection.startRow, activeSelection.endRow) >= r &&
+      Math.min(activeSelection.startCol, activeSelection.endCol) <= c &&
+      Math.max(activeSelection.startCol, activeSelection.endCol) >= c
+
+    return {
+      borderTop:
+        !isSelected(row - 1, col) && !isActiveSelection(row - 1, col)
+          ? '2px solid #9562fa'
+          : 'none',
+      borderBottom:
+        !isSelected(row + 1, col) && !isActiveSelection(row + 1, col)
+          ? '2px solid #9562fa'
+          : 'none',
+      borderLeft: '2px solid #9562fa',
+      borderRight: '2px solid #9562fa',
+    }
+  }
+
+  useEffect(() => {
+    const element = gridRef.current
+    if (!element) return
+
+    const handleWheel = (e: WheelEvent) => {
+      if (e.ctrlKey) {
+        e.preventDefault()
+        const delta = e.deltaY > 0 ? 0.9 : 1.1
+        setScale((prev) => Math.min(Math.max(prev * delta, 1), 2))
+      }
+    }
+
+    element.addEventListener('wheel', handleWheel, { passive: false })
+    return () => element.removeEventListener('wheel', handleWheel)
+  }, [])
+
+  return (
+    <div className="timestamp-container">
+      <div className="timestamp-content">
+        <div className="w-full max-w-4xl mx-auto bg-white pl-2 pr-8 pt-3 pb-8 flex grid grid-cols-[auto_1fr]">
+          <div className="w-7 pr-1 -mt-1">
+            {Array.from({ length: 23 }, (_, i) => (
+              <div
+                key={i}
+                className="text-[10px] text-[#afafaf]"
+                style={{
+                  height: `${18 * scale}px`,
+                  paddingTop: `${36 * scale}px`,
+                }}
+              >
+                {`${String(i + 1).padStart(2, '0')}시`}{' '}
+              </div>
+            ))}
+          </div>
+          <div
+            ref={gridRef}
+            className=" w-full relative grid z-100 border-[1px] border-[#d9d9d9] rounded-3xl overflow-hidden"
+            style={{
+              gridTemplateColumns: `repeat(${currentDates.length}, 1fr)`,
+              backgroundImage: 'linear-gradient(#d9d9d9 1px, transparent 1px)',
+              backgroundSize: `100% ${36 * scale}px`,
+            }}
+          >
+            {currentDates.map((_, colIndex) => (
+              <div
+                key={colIndex}
+                className="relative border border-[#d9d9d9] z-100"
+              >
+                {Array.from({ length: 48 }, (_, rowIndex) => {
+                  const cellStatus = getCellStatus(rowIndex, colIndex)
+                  const cellBorder = getCellBorder(rowIndex, colIndex)
+                  return (
+                    <div
+                      key={rowIndex}
+                      className={`relative cursor-pointer ${
+                        cellStatus.isSelected
+                          ? cellStatus.isConfirmed
+                            ? 'bg-[#9562fa]/70 z-200'
+                            : 'bg-[#9562fa]/20 z-200'
+                          : ''
+                      }`}
+                      style={{
+                        ...cellBorder,
+                        height: `${18 * scale}px`,
+                      }}
+                      onMouseDown={() => {
+                        handleMouseClick(rowIndex, colIndex)
+                        onColumnClick(colIndex)
+                      }}
+                    >
+                      {!cellStatus.isConfirmed && cellStatus.isStartCell && (
+                        <div
+                          className="absolute -top-[5px] left-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move"
+                          onMouseDown={() => {
+                            handleMouseDown(
+                              rowIndex,
+                              colIndex,
+                              true,
+                              cellStatus.selection!,
+                            )
+                            onColumnClick(colIndex)
+                          }}
+                        />
+                      )}
+                      {!cellStatus.isConfirmed && cellStatus.isEndCell && (
+                        <div
+                          className="absolute -bottom-[5px] right-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move"
+                          onMouseDown={() => {
+                            handleMouseDown(
+                              rowIndex,
+                              colIndex,
+                              true,
+                              cellStatus.selection!,
+                            )
+                            onColumnClick(colIndex)
+                          }}
+                        />
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
