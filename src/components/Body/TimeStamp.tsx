@@ -13,10 +13,11 @@ interface Selection {
 }
 
 interface TimeStampProps {
-  selectedDates: { date: number; weekday: string }[]
+  selectedDates: { day: number; weekday: string }[]
   currentPage: number
   onPageChange: (newPage: number) => void
-  handleSelectedCol: (colIndex: number) => void
+  handleSelectedCol: (colIndex: number, rowIndex: number) => void
+  handleActiveTime: (start: number, end: number) => void
   getDateTime: (col: number, start: string, end: string) => void
 }
 
@@ -26,6 +27,7 @@ export default function TimeStamp({
   selectedDates,
   currentPage,
   handleSelectedCol,
+  handleActiveTime,
   getDateTime,
 }: TimeStampProps) {
   const [selections] = useState<Selection[]>([])
@@ -43,17 +45,26 @@ export default function TimeStamp({
   )
 
   const onColumnClick = useCallback(
-    (colIndex: number) => {
-      if (colIndex == -1) {
-        handleSelectedCol(colIndex)
+    (colIndex: number, rowIndex: number) => {
+      if (colIndex === -1) {
+        handleSelectedCol(colIndex, rowIndex)
         return 0
       }
       if (gridRef.current) {
-        const actualColIndex = colIndex
-        handleSelectedCol(actualColIndex)
+        const actualColIndex = currentPage * COLUMNS_PER_PAGE + colIndex
+        handleSelectedCol(actualColIndex, rowIndex)
       }
     },
-    [handleSelectedCol],
+    [handleSelectedCol, currentPage],
+  )
+
+  const onActiveTime = useCallback(
+    (start: number, end: number) => {
+      setTimeout(() => {
+        handleActiveTime(start, end)
+      }, 0)
+    },
+    [handleActiveTime],
   )
 
   const handleDateTimeSelect = useCallback(
@@ -94,9 +105,15 @@ export default function TimeStamp({
     const pairEndRow = pairStartRow + 1
 
     setSelectionsByPage((prev) => {
-      const prevSelections = (prev[currentPage] || [])
-        .map((selection) => (selection.isConfirmed ? selection : null))
-        .filter(Boolean) as Selection[]
+      const updatedSelections = Object.keys(prev).reduce(
+        (acc, page) => {
+          acc[Number(page)] = (prev[Number(page)] || []).filter(
+            (selection) => selection.isConfirmed,
+          )
+          return acc
+        },
+        {} as { [key: number]: Selection[] },
+      )
 
       const newSelection: Selection = {
         startRow: pairStartRow,
@@ -107,12 +124,12 @@ export default function TimeStamp({
         isConfirmed: false,
       }
 
-      // console.log('Block selected (Prev):', prevSelections)
-      // console.log('Block selected (Click):', newSelection)
-
       return {
-        ...prev,
-        [currentPage]: [...prevSelections, newSelection],
+        ...updatedSelections,
+        [currentPage]: [
+          ...(updatedSelections[currentPage] || []),
+          newSelection,
+        ],
       }
     })
   }
@@ -207,7 +224,6 @@ export default function TimeStamp({
         })
 
         const mergedSelections = [...updatedSelections, finalizedSelection]
-        console.log('Updated Selections:', mergedSelections)
 
         const startCol = finalizedSelection.startCol
         const getTimeLabel = (rowIndex: number) => {
@@ -218,7 +234,7 @@ export default function TimeStamp({
           return `${formattedHour}:${formattedMinute}`
         }
 
-        const selectedDate = currentDates[startCol]?.date
+        const selectedDate = currentDates[startCol]?.day
         const startTime = getTimeLabel(finalizedSelection.startRow)
         const endTime = getTimeLabel(finalizedSelection.endRow + 1)
 
@@ -236,19 +252,122 @@ export default function TimeStamp({
     setResizingPoint(null)
   }, [activeSelection, currentDates, currentPage, handleDateTimeSelect])
 
+  const handleSelectionStart = (
+    rowIndex: number,
+    colIndex: number,
+    isTouchEvent: boolean,
+  ) => {
+    if (isTouchEvent) {
+      if (rowIndex % 2 !== 1) return
+    }
+
+    const pairStartRow = Math.floor(rowIndex / 2) * 2
+    const pairEndRow = pairStartRow + 1
+
+    setSelectionsByPage((prev) => {
+      const prevSelections = (prev[currentPage] || [])
+        .map((selection) => (selection.isConfirmed ? selection : null))
+        .filter(Boolean) as Selection[]
+
+      const newSelection: Selection = {
+        startRow: pairStartRow,
+        startCol: colIndex,
+        endRow: pairEndRow,
+        endCol: colIndex,
+        isSelected: true,
+        isConfirmed: false,
+      }
+
+      // console.log('Block selected (Prev):', prevSelections)
+      // console.log('Block selected (Start):', newSelection)
+
+      return {
+        ...prev,
+        [currentPage]: [...prevSelections, newSelection],
+      }
+    })
+  }
+
+  const handleResizeStart = (
+    rowIndex: number,
+    colIndex: number,
+    isEndpoint: boolean,
+    selection: Selection,
+  ) => {
+    setIsResizing(true)
+    setActiveSelection(selection)
+    setResizingPoint(
+      rowIndex === selection.startRow && colIndex === selection.startCol
+        ? 'start'
+        : 'end',
+    )
+
+    // console.log('Resizing started on (Down):', selection)
+  }
+
+  const handleMove = useCallback(
+    (clientY: number, isTouchEvent: boolean) => {
+      if (!gridRef.current || !activeSelection) return
+
+      const rect = gridRef.current.getBoundingClientRect()
+      const cellHeight = rect.height / 48
+      let row = Math.min(
+        Math.max(Math.floor((clientY - rect.top) / cellHeight), 0),
+        47,
+      )
+
+      if (isTouchEvent) {
+        row = Math.floor(row / 2) * 2 + 1
+      }
+
+      setActiveSelection((prev) => {
+        if (!prev) return null
+
+        const newSelection = { ...prev }
+
+        if (isResizing) {
+          if (resizingPoint === 'start') {
+            if (row < prev.endRow) {
+              newSelection.startRow = row
+            }
+          } else if (resizingPoint === 'end') {
+            if (row > prev.startRow) {
+              newSelection.endRow = row
+            }
+          }
+        }
+
+        return !isOverlapping(newSelection) ? newSelection : prev
+      })
+    },
+    [activeSelection, isResizing, resizingPoint, isOverlapping],
+  )
+
   useEffect(() => {
     const handleMouseUpWithColumnClick = () => {
       handleMouseUp()
-      onColumnClick(-1)
+      onColumnClick(-1, -1)
+    }
+
+    const handleMouseMove = (e: MouseEvent) => handleMove(e.clientY, false)
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches[0]) {
+        // e.preventDefault()
+        handleMove(e.touches[0].clientY, true)
+      }
     }
 
     if (activeSelection || isResizing) {
       window.addEventListener('mousemove', handleMouseMove)
+      window.addEventListener('touchmove', handleTouchMove, { passive: false })
       window.addEventListener('mouseup', handleMouseUpWithColumnClick)
+      window.addEventListener('touchend', handleMouseUpWithColumnClick)
     }
     return () => {
       window.removeEventListener('mousemove', handleMouseMove)
+      window.removeEventListener('touchmove', handleTouchMove)
       window.removeEventListener('mouseup', handleMouseUpWithColumnClick)
+      window.removeEventListener('touchend', handleMouseUpWithColumnClick)
     }
   }, [
     activeSelection,
@@ -257,6 +376,7 @@ export default function TimeStamp({
     handleMouseUp,
     onColumnClick,
     currentSelections,
+    handleMove,
   ])
 
   const getCellStatus = (row: number, col: number) => {
@@ -339,6 +459,11 @@ export default function TimeStamp({
       Math.min(activeSelection.startCol, activeSelection.endCol) <= c &&
       Math.max(activeSelection.startCol, activeSelection.endCol) >= c
 
+    // console.log(activeSelection)
+    if (activeSelection) {
+      onActiveTime(activeSelection.startRow, activeSelection.endRow)
+    }
+
     return {
       borderTop:
         !isSelected(row - 1, col) && !isActiveSelection(row - 1, col)
@@ -357,6 +482,42 @@ export default function TimeStamp({
     const element = gridRef.current
     if (!element) return
 
+    let initialDistance = 0
+
+    // 핀치 줌 이벤트 처리
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        const touch1 = e.touches[0]
+        const touch2 = e.touches[1]
+        initialDistance = Math.sqrt(
+          Math.pow(touch2.clientX - touch1.clientX, 2) +
+            Math.pow(touch2.clientY - touch1.clientY, 2),
+        )
+      }
+    }
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        const touch1 = e.touches[0]
+        const touch2 = e.touches[1]
+        const currentDistance = Math.sqrt(
+          Math.pow(touch2.clientX - touch1.clientX, 2) +
+            Math.pow(touch2.clientY - touch1.clientY, 2),
+        )
+
+        const scaleChange = currentDistance / initialDistance
+        setScale((prev) => Math.min(Math.max(prev * scaleChange, 1), 2))
+        initialDistance = currentDistance
+      }
+    }
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (e.touches.length < 2) {
+        initialDistance = 0
+      }
+    }
+
+    // 마우스 휠 줌 이벤트
     const handleWheel = (e: WheelEvent) => {
       if (e.ctrlKey) {
         e.preventDefault()
@@ -366,7 +527,16 @@ export default function TimeStamp({
     }
 
     element.addEventListener('wheel', handleWheel, { passive: false })
-    return () => element.removeEventListener('wheel', handleWheel)
+    element.addEventListener('touchstart', handleTouchStart, { passive: false })
+    element.addEventListener('touchmove', handleTouchMove, { passive: false })
+    element.addEventListener('touchend', handleTouchEnd)
+
+    return () => {
+      element.removeEventListener('wheel', handleWheel)
+      element.removeEventListener('touchstart', handleTouchStart)
+      element.removeEventListener('touchmove', handleTouchMove)
+      element.removeEventListener('touchend', handleTouchEnd)
+    }
   }, [])
 
   return (
@@ -420,7 +590,10 @@ export default function TimeStamp({
                       }}
                       onMouseDown={() => {
                         handleMouseClick(rowIndex, colIndex)
-                        onColumnClick(colIndex)
+                        onColumnClick(colIndex, rowIndex)
+                      }}
+                      onTouchStart={() => {
+                        handleSelectionStart(rowIndex, colIndex, true)
                       }}
                     >
                       {!cellStatus.isConfirmed && cellStatus.isStartCell && (
@@ -433,21 +606,31 @@ export default function TimeStamp({
                               true,
                               cellStatus.selection!,
                             )
-                            onColumnClick(colIndex)
+                            onColumnClick(colIndex, rowIndex)
                           }}
                         />
                       )}
                       {!cellStatus.isConfirmed && cellStatus.isEndCell && (
                         <div
                           className="absolute -bottom-[5px] right-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move"
-                          onMouseDown={() => {
-                            handleMouseDown(
+                          onMouseDown={(e) => {
+                            e.stopPropagation()
+                            handleResizeStart(
                               rowIndex,
                               colIndex,
-                              true,
+                              false,
                               cellStatus.selection!,
                             )
-                            onColumnClick(colIndex)
+                          }}
+                          onTouchStart={(e) => {
+                            e.stopPropagation()
+                            handleResizeStart(
+                              rowIndex,
+                              colIndex,
+                              false,
+                              cellStatus.selection!,
+                            )
+                            onColumnClick(colIndex, rowIndex)
                           }}
                         />
                       )}

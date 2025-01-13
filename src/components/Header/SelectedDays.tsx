@@ -6,7 +6,7 @@ import { GoTriangleUp, GoTriangleDown } from 'react-icons/go'
 import { LuDot } from 'react-icons/lu'
 
 interface SelectedDate {
-  date: number
+  day: number
   weekday: string
 }
 
@@ -31,6 +31,10 @@ export default function SelectedDays({
 
   const totalPages = Math.ceil(selectedDates.length / DAYS_PER_PAGE)
   const isSingleDate = selectedDates.length === 1
+  const highlightedIndex =
+    highlightedCol !== null
+      ? highlightedCol - currentPage * DAYS_PER_PAGE
+      : null
 
   const getCurrentPageDates = () => {
     const start = currentPage * DAYS_PER_PAGE
@@ -82,11 +86,11 @@ export default function SelectedDays({
               <LuDot className="ml-3 text-[#AFAFAF] w-7 h-7" />
               <div
                 className={`flex flex-col items-center w-full ${
-                  highlightedCol === 0 ? 'text-[#9562FA]' : ''
+                  highlightedIndex === 0 ? 'text-[#9562FA]' : ''
                 }`}
               >
                 <span className="text-3xl font-normal mb-1">
-                  {currentDates[0].date}
+                  {currentDates[0].day}
                 </span>
                 <span className="text-s mt-0">{currentDates[0].weekday}</span>
               </div>
@@ -96,14 +100,14 @@ export default function SelectedDays({
             </div>
           ) : isFullWeek ? (
             <div className="grid grid-cols-7 gap-0">
-              {currentDates.map(({ date, weekday }, index) => (
+              {currentDates.map(({ day, weekday }, index) => (
                 <div
-                  key={date}
+                  key={day}
                   className={`flex flex-col items-center w-full ${
-                    highlightedCol === index ? 'text-[#9562FA]' : ''
+                    highlightedIndex === index ? 'text-[#9562FA]' : ''
                   }`}
                 >
-                  <span className="text-3xl font-normal">{date}</span>
+                  <span className="text-3xl font-normal">{day}</span>
                   <span className="text-s mt-0">{weekday}</span>
                 </div>
               ))}
@@ -116,14 +120,14 @@ export default function SelectedDays({
                 margin: '0 auto',
               }}
             >
-              {currentDates.map(({ date, weekday }, index) => (
+              {currentDates.map(({ day, weekday }, index) => (
                 <div
-                  key={date}
+                  key={day}
                   className={`flex flex-col items-center w-full ${
-                    highlightedCol === index ? 'text-[#9562FA]' : ''
+                    highlightedIndex === index ? 'text-[#9562FA]' : ''
                   }`}
                 >
-                  <span className="text-3xl font-normal">{date}</span>
+                  <span className="text-3xl font-normal">{day}</span>
                   <span className="text-s mt-0">{weekday}</span>
                 </div>
               ))}

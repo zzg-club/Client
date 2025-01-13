@@ -4,10 +4,21 @@ import { useState, useEffect, useCallback } from 'react'
 import Title from '@/components/Header/Title'
 import SelectedDays from '@/components/Header/SelectedDays'
 import TimeStamp from '@/components/Body/TimeStamp'
+import SelectedBottom from '@/components/Footer/BottomSheet/SelectedBottom'
+import { SelectItem } from '@/components/Footer/ListItem/SelectItem'
 
 interface SelectedDate {
-  date: number
+  year: number
+  month: number
+  day: number
   weekday: string
+}
+
+interface ScheduleData {
+  name: string // 일정 이름
+  userId: number // 사용자 ID
+  groupId: number // 그룹 ID
+  date: [string, string][] // 날짜 배열: [날짜, 요일]의 배열
 }
 
 export default function Page() {
@@ -15,21 +26,80 @@ export default function Page() {
   const isPurple = false
   const [currentPage, setCurrentPage] = useState(0)
   const [highlightedCol, setHighlightedCol] = useState<number | null>(null)
+  const [startTime, setStartTime] = useState<string | null>(null)
+  const [endTime, setEndTime] = useState<string | null>(null)
   const [dateTime, setDateTime] = useState<
     { date: number; timeSlots: { start: string; end: string }[] }[]
   >([])
+  const [isOpen, setIsOpen] = useState(false)
 
   const handleTitleChange = (newTitle: string) => {
     setTitle(newTitle)
   }
 
-  const handleSelectedCol = useCallback((colIndex: number) => {
-    setHighlightedCol(colIndex)
-  }, [])
+  const handleSelectedCol = useCallback(
+    (colIndex: number, rowIndex: number) => {
+      const pairStartRow = Math.floor(rowIndex / 2) * 2
+      const pairEndRow = pairStartRow + 1
+
+      const getStartLabel = (rowIndex: number) => {
+        const hours = Math.floor(rowIndex / 2)
+        const minutes = (rowIndex % 2) * 30
+        const formattedHour = String(hours).padStart(2, '0')
+        const formattedMinute = String(minutes).padStart(2, '0')
+        return `${formattedHour}:${formattedMinute}`
+      }
+
+      const getEndLabel = (rowIndex: number) => {
+        const nextRowIndex = rowIndex + 1
+        const hours = Math.floor(nextRowIndex / 2)
+        const minutes = (nextRowIndex % 2) * 30
+        const formattedHour = String(hours).padStart(2, '0')
+        const formattedMinute = String(minutes).padStart(2, '0')
+        return `${formattedHour}:${formattedMinute}`
+      }
+
+      const DefaultStartTime = getStartLabel(pairStartRow)
+      const DefaultEndTime = getEndLabel(pairEndRow)
+
+      setStartTime(DefaultStartTime)
+      setEndTime(DefaultEndTime)
+
+      setHighlightedCol(colIndex)
+      setIsOpen(true)
+    },
+    [],
+  )
+
+  const handleActiveTime = (start: number, end: number) => {
+    const getStartLabel = (rowIndex: number) => {
+      const hours = Math.floor(rowIndex / 2)
+      const minutes = (rowIndex % 2) * 30
+      const formattedHour = String(hours).padStart(2, '0')
+      const formattedMinute = String(minutes).padStart(2, '0')
+      return `${formattedHour}:${formattedMinute}`
+    }
+
+    const getEndLabel = (rowIndex: number) => {
+      const nextRowIndex = rowIndex + 1
+      const hours = Math.floor(nextRowIndex / 2)
+      const minutes = (nextRowIndex % 2) * 30
+      const formattedHour = String(hours).padStart(2, '0')
+      const formattedMinute = String(minutes).padStart(2, '0')
+      return `${formattedHour}:${formattedMinute}`
+    }
+
+    const calculatedStartTime = getStartLabel(start)
+    const calculatedEndTime = getEndLabel(end)
+
+    setStartTime(calculatedStartTime)
+    setEndTime(calculatedEndTime)
+  }
 
   const getDateTime = (col: number, start: string, end: string) => {
     setDateTime((prev) => {
       const existingDateIndex = prev.findIndex((item) => item.date === col)
+      let newEntry = null
 
       if (existingDateIndex !== -1) {
         const updated = [...prev]
@@ -68,53 +138,96 @@ export default function Page() {
           timeSlots = timeSlots.filter(
             (slot) => !overlappingSlots.includes(slot),
           )
-          timeSlots.push({
+          const mergedSlot = {
             start: `${Math.floor(mergedStart / 60)
               .toString()
-              .padStart(
-                2,
-                '0',
-              )}:${(mergedStart % 60).toString().padStart(2, '0')}`,
+              .padStart(2, '0')}:${(mergedStart % 60)
+              .toString()
+              .padStart(2, '0')}`,
             end: `${Math.floor(mergedEnd / 60)
               .toString()
-              .padStart(
-                2,
-                '0',
-              )}:${(mergedEnd % 60).toString().padStart(2, '0')}`,
-          })
+              .padStart(2, '0')}:${(mergedEnd % 60)
+              .toString()
+              .padStart(2, '0')}`,
+          }
+          timeSlots.push(mergedSlot)
+          newEntry = { date: col, timeSlots: [mergedSlot] }
         } else {
-          timeSlots.push({ start, end })
+          const newSlot = { start, end }
+          timeSlots.push(newSlot)
+          newEntry = { date: col, timeSlots: [newSlot] }
         }
 
         timeSlots.sort((a, b) => toMinutes(a.start) - toMinutes(b.start))
 
         updated[existingDateIndex].timeSlots = timeSlots
+        // console.log('새로 추가된 항목:', newEntry)
         return updated
       } else {
-        return [...prev, { date: col, timeSlots: [{ start, end }] }]
+        newEntry = { date: col, timeSlots: [{ start, end }] }
+        // console.log('새로 추가된 항목:', newEntry)
+        return [...prev, newEntry]
       }
     })
+    setIsOpen(false)
   }
 
   useEffect(() => {
     console.log(`Updated dateTimeData:`, dateTime)
-  }, [dateTime]) // dateTimeData가 변경될 때마다 호출
+  }, [dateTime])
 
-  const selectedDates: SelectedDate[] = [
-    { date: 3, weekday: '금' },
-    { date: 4, weekday: '토' },
-    { date: 5, weekday: '일' },
-    { date: 6, weekday: '월' },
-    { date: 7, weekday: '화' },
-    { date: 8, weekday: '수' },
-    { date: 9, weekday: '목' },
-    { date: 10, weekday: '금' },
-    { date: 11, weekday: '토' },
-    { date: 12, weekday: '일' },
-    { date: 13, weekday: '월' },
+  const weekdayMap: { [key: string]: string } = {
+    mon: '월',
+    tue: '화',
+    wed: '수',
+    thu: '목',
+    fri: '금',
+    sat: '토',
+    sun: '일',
+  }
+
+  function convertToSelectedDates(
+    scheduleData: ScheduleData[],
+  ): SelectedDate[] {
+    return scheduleData.flatMap((schedule) =>
+      schedule.date.map(([fullDate, weekday]) => {
+        const [year, month, day] = fullDate.split('-').map(Number)
+        return {
+          year,
+          month,
+          day: day,
+          weekday: weekdayMap[weekday],
+        }
+      }),
+    )
+  }
+
+  const scheduleData: ScheduleData[] = [
+    {
+      name: '팀플 대면',
+      userId: 2,
+      groupId: 1,
+      date: [
+        ['2024-12-30', 'mon'],
+        ['2024-12-31', 'tue'],
+        ['2024-01-01', 'wed'],
+        ['2024-01-02', 'thu'],
+        ['2024-01-03', 'fri'],
+        ['2024-01-04', 'sat'],
+        ['2024-01-05', 'sun'],
+        ['2024-01-06', 'mon'],
+        ['2024-01-07', 'tue'],
+        ['2024-01-08', 'wed'],
+        ['2024-01-09', 'thu'],
+        // ['2024-01-10', 'fri'],
+        // ['2024-01-11', 'sat'],
+        // ['2024-01-12', 'sun'],
+      ],
+    },
   ]
 
-  const month = '3월'
+  const selectedDates: SelectedDate[] = convertToSelectedDates(scheduleData)
+  const month = `${selectedDates[0]?.month}월`
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage)
@@ -124,8 +237,8 @@ export default function Page() {
     <div>
       <Title
         buttonText="완료"
-        initialTitle={title} // 하위 컴포넌트에 제목 전달
-        onTitleChange={handleTitleChange} // 제목 수정 함수 전달
+        initialTitle={title}
+        onTitleChange={handleTitleChange}
         isPurple={isPurple}
       />
       <SelectedDays
@@ -141,9 +254,23 @@ export default function Page() {
           currentPage={currentPage}
           onPageChange={handlePageChange}
           handleSelectedCol={handleSelectedCol}
+          handleActiveTime={handleActiveTime}
           getDateTime={getDateTime}
         />
       </div>
+      <SelectedBottom isOpen={isOpen} onClose={() => setIsOpen(false)}>
+        <div>
+          <SelectItem
+            date={
+              highlightedCol !== null
+                ? `${selectedDates[0]?.month}월 ${selectedDates[highlightedCol]?.day}일`
+                : ''
+            }
+            startTime={`${startTime}`}
+            endTime={`${endTime}`}
+          />
+        </div>
+      </SelectedBottom>
     </div>
   )
 }
