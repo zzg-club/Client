@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import SelectedDays from '@/components/Body/Decide/DecideSelectedDays'
+import { useCallback, useEffect, useState } from 'react'
+import SelectedDays from '@/components/Header/SelectedDays'
 import Title from '@/components/Header/Title'
 import DecideTimeStamp from '@/components/Body/Decide/DecideTimeStamp'
 
@@ -119,6 +119,91 @@ export default function SchedulePage() {
   const [currentPage, setCurrentPage] = useState(0)
   const [title, setTitle] = useState('제목 없는 일정') // 제목 상태 관리
   const isPurple = false
+  const [dateTime, setDateTime] = useState<
+    { date: number; timeSlots: { start: string; end: string }[] }[]
+  >([])
+  const [highlightedCol, setHighlightedCol] = useState<number | null>(null)
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage)
+  }
+
+  useEffect(() => {
+    console.log(`Updated dateTimeData:`, dateTime)
+  }, [dateTime]) // dateTimeData가 변경될 때마다 호출
+
+  const handleSelectedCol = useCallback((colIndex: number) => {
+    setHighlightedCol(colIndex)
+  }, [])
+
+  const getDateTime = (col: number, start: string, end: string) => {
+    setDateTime((prev) => {
+      const existingDateIndex = prev.findIndex((item) => item.date === col)
+
+      if (existingDateIndex !== -1) {
+        const updated = [...prev]
+        let timeSlots = updated[existingDateIndex].timeSlots
+
+        const toMinutes = (time: string) => {
+          const [hours, minutes] = time.split(':').map(Number)
+          return hours * 60 + minutes
+        }
+
+        const newStartMinutes = toMinutes(start)
+        const newEndMinutes = toMinutes(end)
+
+        const overlappingSlots = timeSlots.filter((slot) => {
+          const slotStartMinutes = toMinutes(slot.start)
+          const slotEndMinutes = toMinutes(slot.end)
+
+          return (
+            (newStartMinutes <= slotEndMinutes &&
+              newEndMinutes >= slotStartMinutes) ||
+            slotEndMinutes === newStartMinutes ||
+            slotStartMinutes === newEndMinutes
+          )
+        })
+
+        if (overlappingSlots.length > 0) {
+          const mergedStart = Math.min(
+            newStartMinutes,
+            ...overlappingSlots.map((slot) => toMinutes(slot.start)),
+          )
+          const mergedEnd = Math.max(
+            newEndMinutes,
+            ...overlappingSlots.map((slot) => toMinutes(slot.end)),
+          )
+
+          timeSlots = timeSlots.filter(
+            (slot) => !overlappingSlots.includes(slot),
+          )
+          timeSlots.push({
+            start: `${Math.floor(mergedStart / 60)
+              .toString()
+              .padStart(
+                2,
+                '0',
+              )}:${(mergedStart % 60).toString().padStart(2, '0')}`,
+            end: `${Math.floor(mergedEnd / 60)
+              .toString()
+              .padStart(
+                2,
+                '0',
+              )}:${(mergedEnd % 60).toString().padStart(2, '0')}`,
+          })
+        } else {
+          timeSlots.push({ start, end })
+        }
+
+        timeSlots.sort((a, b) => toMinutes(a.start) - toMinutes(b.start))
+
+        updated[existingDateIndex].timeSlots = timeSlots
+        return updated
+      } else {
+        return [...prev, { date: col, timeSlots: [{ start, end }] }]
+      }
+    })
+  }
 
   // 제목 수정 함수
   const handleTitleChange = (newTitle: string) => {
@@ -145,11 +230,16 @@ export default function SchedulePage() {
         month="1월"
         currentPage={currentPage}
         onPageChange={setCurrentPage}
+        highlightedCol={highlightedCol}
       />
       <div className="flex-grow overflow-hidden mt-2">
         <DecideTimeStamp
-          dates={mockDateTime[0].data}
+          selectedDates={selectedDates}
           currentPage={currentPage}
+          onPageChange={handlePageChange}
+          handleSelectedCol={handleSelectedCol}
+          getDateTime={getDateTime}
+          mockDateTime={mockDateTime[0].data}
         />
       </div>
     </div>
