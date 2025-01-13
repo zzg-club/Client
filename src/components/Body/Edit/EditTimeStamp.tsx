@@ -144,7 +144,7 @@ const EditTimeStamp: React.FC<EditTimeStampProps> = ({
                   return (
                     <div
                       key={slot.id}
-                      className="absolute left-0 bg-[#9562fa]/70"
+                      className="absolute left-0 bg-[#9562fa]/70 cursor-pointer"
                       style={{
                         top: `${startTop}px`, // 30분 단위로 시작 위치 설정
                         height: `${height}px`, // 30분 단위로 높이 설정
