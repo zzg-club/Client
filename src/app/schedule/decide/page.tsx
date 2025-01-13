@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import SelectedDays from '@/components/Body/Decide/DecideSelectedDays'
-import TimeGrid from '@/components/Body/Decide/DecideTimeStamp'
 import Title from '@/components/Header/Title'
+import DecideTimeStamp from '@/components/Body/Decide/DecideTimeStamp'
 
 interface TimeSlot {
   start: string
@@ -27,7 +27,7 @@ const mockDateTime: ScheduleData[] = [
         date: '2025-01-01',
         timeSlots: [
           {
-            start: '09:00',
+            start: '09:30',
             end: '17:00',
             selectedBy: ['user1', 'user2', 'user3'],
           },
@@ -147,7 +147,10 @@ export default function SchedulePage() {
         onPageChange={setCurrentPage}
       />
       <div className="flex-1 overflow-auto">
-        <TimeGrid dates={mockDateTime[0].data} currentPage={currentPage} />
+        <DecideTimeStamp
+          dates={mockDateTime[0].data}
+          currentPage={currentPage}
+        />
       </div>
     </div>
   )
