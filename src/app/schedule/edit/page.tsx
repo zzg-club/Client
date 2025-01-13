@@ -16,7 +16,7 @@ interface selectedScheduleData {
   timeSlots: TimeSlot[]
 }
 
-const mockDateTime: selectedScheduleData[] = [
+const mockSelectedSchedule: selectedScheduleData[] = [
   {
     date: '2025-01-01',
     timeSlots: [
@@ -163,9 +163,9 @@ export default function SchedulePage() {
     setTitle(newTitle)
   }
 
-  const selectedDates = mockDateTime.map((dateData) => ({
-    date: parseInt(dateData.date.split('-')[2]),
-    weekday: new Date(dateData.date).toLocaleDateString('ko-KR', {
+  const selectedDates = mockSelectedSchedule.map((scheduleData) => ({
+    date: parseInt(scheduleData.date.split('-')[2]),
+    weekday: new Date(scheduleData.date).toLocaleDateString('ko-KR', {
       weekday: 'short',
     }),
   }))
@@ -189,7 +189,7 @@ export default function SchedulePage() {
       />
       <div className="flex-1 overflow-auto">
         <EditTimeStamp
-          data={mockDateTime}
+          data={mockSelectedSchedule}
           currentPage={currentPage}
           onPageChange={handlePageChange}
         />
