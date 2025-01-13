@@ -75,8 +75,8 @@ const PlaceDetail = ({ id }: PlaceDetailProps) => {
 
   return (
     <div className={styles['detail-container']}>
-      <div className={styles['map-container']}>
-        <KakaoMap selectedPlace={selectedPlace} />
+      <div className={`${styles['map-container']} ${styles[bottomSheetState]}`}>
+        <KakaoMap bottomSheetState={bottomSheetState} selectedPlace={selectedPlace} />
         {/* 뒤로가기 버튼 */}
         <div className={styles.backButton} onClick={() => window.history.back()}>
           <img

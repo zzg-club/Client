@@ -1,11 +1,12 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { getCurrentLocation } from './getCurrentLocation';
 
-const KakaoMap = ({ selectedPlace, onMoveToCurrentLocation }) => {
+const KakaoMap = ({ selectedPlace, bottomSheetState, onMoveToCurrentLocation }) => {
   const mapContainerRef = useRef(null);
   const [map, setMap] = useState(null);
   const [placeMarker, setPlaceMarker] = useState(null);
   const [currentMarker, setCurrentMarker] = useState(null);
+  const [originalPosition, setOriginalPosition] = useState(null);
 
   // 지도 초기화
   useEffect(() => {
@@ -32,7 +33,7 @@ const KakaoMap = ({ selectedPlace, onMoveToCurrentLocation }) => {
           const markerImage = new window.kakao.maps.MarkerImage(
             '/myLocation.svg',
             new window.kakao.maps.Size(32, 60),
-            { offset: new window.kakao.maps.Point(16, 60) } // 중심점 하단으로 설정
+            { offset: new window.kakao.maps.Point(16, 60) }
           );
 
           const marker = new window.kakao.maps.Marker({
@@ -80,12 +81,12 @@ const KakaoMap = ({ selectedPlace, onMoveToCurrentLocation }) => {
             ? '/cafe_location.svg'
             : selectedPlace.type === 'play'
             ? '/game_location.svg'
-            : '/default_location.svg'; // 기본 마커 이미지
+            : '/default_location.svg';
 
         const markerImage = new window.kakao.maps.MarkerImage(
           markerImageSrc,
-          new window.kakao.maps.Size(32, 60), // 마커 크기 설정
-          { offset: new window.kakao.maps.Point(13, 30) } // 중심점 하단으로 설정
+          new window.kakao.maps.Size(32, 60),
+          { offset: new window.kakao.maps.Point(13, 30) }
         );
 
         // 새 장소 마커 추가
@@ -95,14 +96,45 @@ const KakaoMap = ({ selectedPlace, onMoveToCurrentLocation }) => {
         });
         newMarker.setMap(map);
         setPlaceMarker(newMarker);
+
+        // 마커의 원래 위치 저장
+        setOriginalPosition(coords);
       } else {
         console.error('주소 검색 실패:', selectedPlace.address);
       }
     });
   }, [map, selectedPlace]);
 
+  // Bottom Sheet 상태 변경에 따른 지도 중심 및 마커 위치 조정
+  useEffect(() => {
+    if (!map || !placeMarker || !originalPosition) return;
+
+    const adjustMarkerAndMapPosition = () => {
+      let offsetY = 0;
+
+      // BottomSheet 상태에 따라 위로 이동할 거리 계산
+      if (bottomSheetState === 'middle') {
+        offsetY = 0.002;
+      } else if (bottomSheetState === 'expanded') {
+        offsetY = 0.005;
+      } else {
+        offsetY = 0;
+      }
+
+      const newCenter = new window.kakao.maps.LatLng(
+        originalPosition.getLat() - offsetY,
+        originalPosition.getLng()
+      );
+
+      map.setCenter(newCenter);
+      placeMarker.setPosition(newCenter);
+    };
+
+    adjustMarkerAndMapPosition();
+  }, [map, placeMarker, bottomSheetState, originalPosition]);
+
   // 현재 위치로 이동
-  const moveToCurrentLocation = async () => {
+  const moveToCurrentLocation = useCallback(async () => {
     try {
       const location = await getCurrentLocation();
 
@@ -110,7 +142,6 @@ const KakaoMap = ({ selectedPlace, onMoveToCurrentLocation }) => {
 
       const newLocation = new window.kakao.maps.LatLng(location.lat, location.lng);
 
-      // 지도와 현재 위치 마커 업데이트
       map.setCenter(newLocation);
 
       if (currentMarker) {
@@ -132,7 +163,7 @@ const KakaoMap = ({ selectedPlace, onMoveToCurrentLocation }) => {
     } catch (error) {
       console.error('현재 위치로 이동 중 오류:', error);
     }
-  };
+  }, [map, currentMarker]);
 
   // 외부 이벤트와 연동
   useEffect(() => {

@@ -16,18 +16,38 @@
   position: relative;
 }
 
-/* Detail.module.css */
+/* Bottom Sheet 상태별 지도 높이 */
 .map-container {
   width: 100%;
-  height: 100%;
+  transition: margin-bottom 0.3s ease, height 0.3s ease; /* 부드러운 전환 */
 }
+
+.map-container {
+  width: 100%;
+  height: 100%; /* 기본적으로 화면 전체를 차지 */
+  transition: margin-bottom 0.3s ease-in-out, height 0.3s ease-in-out;
+}
+
+.map-container.collapsed {
+  margin-bottom: 180px !important;
+}
+
+.map-container.middle {
+  margin-bottom: 470px !important;
+}
+
+.map-container.expanded {
+  margin-bottom: 100vh !important;
+}
+
 
 .detail-container {
   width: 100%;
-  height: 100vh; /* 화면 전체를 차지 */
   display: flex;
   flex-direction: column;
+  height: 100%; /* 부모 요소 크기에 맞춰 유연하게 */
 }
+
 
 .dragHandle {
   width: 64px;
