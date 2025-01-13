@@ -85,9 +85,9 @@ const EditTimeStamp: React.FC<EditTimeStampProps> = ({ data, currentPage }) => {
     }
   }, [])
 
-  const handleMouseClick = (rowIndex: number, colIndex: number) => {
-    console.log(`Clicked Row: ${rowIndex}, Column: ${colIndex}`)
-  }
+  //   const handleMouseClick = (rowIndex: number, colIndex: number) => {
+  //     console.log(`Clicked Row: ${rowIndex}, Column: ${colIndex}`)
+  //   }
 
   return (
     <div className="timestamp-container">
@@ -118,7 +118,8 @@ const EditTimeStamp: React.FC<EditTimeStampProps> = ({ data, currentPage }) => {
               backgroundSize: `100% ${36 * scale}px`,
             }}
           >
-            {currentDates.map((day, colIndex) => (
+            {/* {currentDates.map((day, colIndex) => ( */}
+            {currentDates.map((day) => (
               <div
                 key={day.date}
                 className="relative border-r border-[#d9d9d9]"
@@ -144,7 +145,7 @@ const EditTimeStamp: React.FC<EditTimeStampProps> = ({ data, currentPage }) => {
                         height: `${height}px`, // 30분 단위로 높이 설정
                         width: '100%',
                       }}
-                      onMouseDown={() => handleMouseClick(startHour, colIndex)}
+                      onMouseDown={() => console.log(`Clicked ID: ${slot.id}`)}
                     />
                   )
                 })}
