@@ -16,9 +16,14 @@ interface EditTimeStampProps {
   data: selectedScheduleData[]
   currentPage: number
   onPageChange: (newPage: number) => void
+  onSlotClick: (id: number) => void
 }
 
-const EditTimeStamp: React.FC<EditTimeStampProps> = ({ data, currentPage }) => {
+const EditTimeStamp: React.FC<EditTimeStampProps> = ({
+  data,
+  currentPage,
+  onSlotClick,
+}) => {
   const COLUMNS_PER_PAGE = 7
   const [scale, setScale] = useState(1)
   const gridRef = useRef<HTMLDivElement>(null)
@@ -145,7 +150,8 @@ const EditTimeStamp: React.FC<EditTimeStampProps> = ({ data, currentPage }) => {
                         height: `${height}px`, // 30분 단위로 높이 설정
                         width: '100%',
                       }}
-                      onMouseDown={() => console.log(`Clicked ID: ${slot.id}`)}
+                      //   onMouseDown={() => console.log(`Clicked ID: ${slot.id}`)}
+                      onMouseDown={() => onSlotClick(slot.id)}
                     />
                   )
                 })}

@@ -4,11 +4,14 @@ import { useState } from 'react'
 import SelectedDays from '@/components/Body/Edit/EditSelectedDays'
 import Title from '@/components/Header/Title'
 import EditTimeStamp from '@/components/Body/Edit/EditTimeStamp'
+import SelectedBottom from '@/components/Footer/BottomSheet/SelectedBottom'
+import { EditItem } from '@/components/Footer/ListItem/EditItem'
 
 interface TimeSlot {
   id: number
   start: string
   end: string
+  date?: string
 }
 
 interface selectedScheduleData {
@@ -158,6 +161,8 @@ export default function SchedulePage() {
   const [currentPage, setCurrentPage] = useState(0)
   const [title, setTitle] = useState('제목 없는 일정')
   const isPurple = false
+  const [isOpen, setIsOpen] = useState(false)
+  const [scheduleData, setScheduleData] = useState<TimeSlot[]>([])
 
   const handleTitleChange = (newTitle: string) => {
     setTitle(newTitle)
@@ -171,6 +176,33 @@ export default function SchedulePage() {
   }))
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage)
+  }
+
+  // 바텀시트 핸들
+  const handleSlotClick = (id: number) => {
+    const selectedDay = mockSelectedSchedule.find((day) =>
+      day.timeSlots.some((slot) => slot.id === id),
+    )
+    if (selectedDay) {
+      const selectedSlot = selectedDay.timeSlots.find((slot) => slot.id === id)
+      if (selectedSlot) {
+        // YYYY-MM-DD -> MM월 DD일로 date 형식 변환
+        const formattedDate = new Date(selectedDay.date).toLocaleDateString(
+          'ko-KR',
+          {
+            month: 'long',
+            day: 'numeric',
+          },
+        )
+        setScheduleData([{ ...selectedSlot, date: formattedDate }]) // 변환된 날짜 설정
+        setIsOpen(true) // BottomSheet 열기
+      }
+    }
+  }
+
+  // 삭제하기 버튼 클릭 이벤트 로직
+  const handleDelete = (id: number) => {
+    alert(`${id}번 삭제되었습니다.`)
   }
 
   return (
@@ -192,8 +224,23 @@ export default function SchedulePage() {
           data={mockSelectedSchedule}
           currentPage={currentPage}
           onPageChange={handlePageChange}
+          onSlotClick={handleSlotClick}
         />
       </div>
+      <SelectedBottom isOpen={isOpen} onClose={() => setIsOpen(false)}>
+        <div>
+          {scheduleData.map((item) => (
+            <EditItem
+              key={item.id}
+              id={item.id}
+              date={item.date}
+              startTime={item.start}
+              endTime={item.end}
+              onDelete={handleDelete}
+            />
+          ))}
+        </div>
+      </SelectedBottom>
     </div>
   )
 }

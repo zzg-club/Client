@@ -1,13 +1,18 @@
 export interface EditItemProps {
-  date: string
+  id: number
+  date?: string
   startTime: string
   endTime: string
+  onDelete: (id: number) => void
 }
 
-export function EditItem({ date, startTime, endTime }: EditItemProps) {
-  const onDelete = () => {
-    alert('삭제하기 버튼')
-  }
+export function EditItem({
+  id,
+  date,
+  startTime,
+  endTime,
+  onDelete,
+}: EditItemProps) {
   return (
     <div className="w-full p-4 rounded-b-3xl">
       <div className="flex justify-between items-center">
@@ -22,7 +27,7 @@ export function EditItem({ date, startTime, endTime }: EditItemProps) {
         <div className="px-6 py-2 rounded-3xl bg-[#9562fa]">
           <button
             className="w-[64px] h-[12px] text-center text-white text-lg font-medium"
-            onClick={onDelete}
+            onClick={() => onDelete(id)} // 클릭 시 ID 전달
           >
             삭제하기
           </button>
