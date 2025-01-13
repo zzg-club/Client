@@ -146,7 +146,7 @@ export default function SchedulePage() {
         currentPage={currentPage}
         onPageChange={setCurrentPage}
       />
-      <div className="flex-1 overflow-auto">
+      <div className="flex-grow overflow-hidden mt-2">
         <DecideTimeStamp
           dates={mockDateTime[0].data}
           currentPage={currentPage}
