@@ -27,9 +27,10 @@ interface DecideTimeStampProps {
   selectedDates: { date: number; weekday: string }[]
   currentPage: number
   onPageChange: (newPage: number) => void
-  handleSelectedCol: (colIndex: number) => void
+  handleSelectedCol: (colIndex: number, rowIndex: number) => void
   getDateTime: (col: number, start: string, end: string) => void
   mockDateTime: DateData[]
+  handleActiveTime: (start: number, end: number) => void
 }
 
 const COLUMNS_PER_PAGE = 7
@@ -40,6 +41,7 @@ export default function DecideTimeStamp({
   handleSelectedCol,
   getDateTime,
   mockDateTime,
+  handleActiveTime,
 }: DecideTimeStampProps) {
   const [selections] = useState<Selection[]>([])
   const [isResizing, setIsResizing] = useState(false)
@@ -49,6 +51,15 @@ export default function DecideTimeStamp({
   )
   const [scale, setScale] = useState(1)
   const gridRef = useRef<HTMLDivElement>(null)
+
+  const onActiveTime = useCallback(
+    (start: number, end: number) => {
+      setTimeout(() => {
+        handleActiveTime(start, end)
+      }, 0)
+    },
+    [handleActiveTime],
+  )
 
   const currentDates = selectedDates.slice(
     currentPage * COLUMNS_PER_PAGE,
@@ -98,17 +109,17 @@ export default function DecideTimeStamp({
   }
 
   const onColumnClick = useCallback(
-    (colIndex: number) => {
-      if (colIndex == -1) {
-        handleSelectedCol(colIndex)
+    (colIndex: number, rowIndex: number) => {
+      if (colIndex === -1) {
+        handleSelectedCol(colIndex, rowIndex)
         return 0
       }
       if (gridRef.current) {
-        const actualColIndex = colIndex
-        handleSelectedCol(actualColIndex)
+        const actualColIndex = currentPage * COLUMNS_PER_PAGE + colIndex
+        handleSelectedCol(actualColIndex, rowIndex)
       }
     },
-    [handleSelectedCol],
+    [handleSelectedCol, currentPage],
   )
 
   const handleDateTimeSelect = useCallback(
@@ -385,7 +396,7 @@ export default function DecideTimeStamp({
   useEffect(() => {
     const handleMouseUpWithColumnClick = () => {
       handleMouseUp()
-      onColumnClick(-1)
+      onColumnClick(-1, -1)
     }
 
     const handleMouseMove = (e: MouseEvent) => handleMove(e.clientY, false)
@@ -497,6 +508,10 @@ export default function DecideTimeStamp({
       Math.max(activeSelection.startRow, activeSelection.endRow) >= r &&
       Math.min(activeSelection.startCol, activeSelection.endCol) <= c &&
       Math.max(activeSelection.startCol, activeSelection.endCol) >= c
+
+    if (activeSelection) {
+      onActiveTime(activeSelection.startRow, activeSelection.endRow)
+    }
 
     return {
       borderTop:
@@ -628,7 +643,7 @@ export default function DecideTimeStamp({
                       }}
                       onMouseDown={() => {
                         handleMouseClick(rowIndex, colIndex)
-                        onColumnClick(colIndex)
+                        onColumnClick(colIndex, rowIndex)
                       }}
                       onTouchStart={() => {
                         handleSelectionStart(rowIndex, colIndex, true)
@@ -661,7 +676,7 @@ export default function DecideTimeStamp({
                               true,
                               cellStatus.selection!,
                             )
-                            onColumnClick(colIndex)
+                            onColumnClick(colIndex, rowIndex)
                           }}
                         />
                       )}
@@ -685,7 +700,7 @@ export default function DecideTimeStamp({
                               false,
                               cellStatus.selection!,
                             )
-                            onColumnClick(colIndex)
+                            onColumnClick(colIndex, rowIndex)
                           }}
                         />
                       )}
