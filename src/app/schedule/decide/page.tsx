@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState } from 'react'
 import DecideSelectedDays from '@/components/Body/Decide/DecideSelectedDays'
 import Title from '@/components/Header/Title'
 import DecideTimeStamp from '@/components/Body/Decide/DecideTimeStamp'
+import SelectedBottom from '@/components/Footer/BottomSheet/SelectedBottom'
+import { SelectItem } from '@/components/Footer/ListItem/SelectItem'
 
 interface TimeSlot {
   start: string
@@ -18,6 +20,12 @@ interface DateData {
 
 interface ScheduleData {
   data: DateData[]
+}
+
+interface SelectedDate {
+  date: number
+  weekday: string
+  month: number
 }
 
 const mockDateTime: ScheduleData[] = [
@@ -168,7 +176,7 @@ const participants = [
   },
 ]
 
-export default function SchedulePage() {
+export default function Page() {
   const [currentPage, setCurrentPage] = useState(0)
   const [title, setTitle] = useState('제목 없는 일정') // 제목 상태 관리
   const isPurple = false
@@ -176,6 +184,11 @@ export default function SchedulePage() {
     { date: number; timeSlots: { start: string; end: string }[] }[]
   >([])
   const [highlightedCol, setHighlightedCol] = useState<number | null>(null)
+  const [isOpen, setIsOpen] = useState(false)
+  const [startTime, setStartTime] = useState<string | null>(null)
+  const [endTime, setEndTime] = useState<string | null>(null)
+
+  const [selectedDates, setSelectedDates] = useState<SelectedDate[]>([])
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage)
@@ -185,13 +198,44 @@ export default function SchedulePage() {
     console.log(`Updated dateTimeData:`, dateTime)
   }, [dateTime]) // dateTimeData가 변경될 때마다 호출
 
-  const handleSelectedCol = useCallback((colIndex: number) => {
-    setHighlightedCol(colIndex)
-  }, [])
+  const handleSelectedCol = useCallback(
+    (colIndex: number, rowIndex: number) => {
+      const pairStartRow = Math.floor(rowIndex / 2) * 2
+      const pairEndRow = pairStartRow + 1
+
+      const getStartLabel = (rowIndex: number) => {
+        const hours = Math.floor(rowIndex / 2)
+        const minutes = (rowIndex % 2) * 30
+        const formattedHour = String(hours).padStart(2, '0')
+        const formattedMinute = String(minutes).padStart(2, '0')
+        return `${formattedHour}:${formattedMinute}`
+      }
+
+      const getEndLabel = (rowIndex: number) => {
+        const nextRowIndex = rowIndex + 1
+        const hours = Math.floor(nextRowIndex / 2)
+        const minutes = (nextRowIndex % 2) * 30
+        const formattedHour = String(hours).padStart(2, '0')
+        const formattedMinute = String(minutes).padStart(2, '0')
+        return `${formattedHour}:${formattedMinute}`
+      }
+
+      const DefaultStartTime = getStartLabel(pairStartRow)
+      const DefaultEndTime = getEndLabel(pairEndRow)
+
+      setStartTime(DefaultStartTime)
+      setEndTime(DefaultEndTime)
+
+      setHighlightedCol(colIndex)
+      setIsOpen(true)
+    },
+    [],
+  )
 
   const getDateTime = (col: number, start: string, end: string) => {
     setDateTime((prev) => {
       const existingDateIndex = prev.findIndex((item) => item.date === col)
+      let newEntry = null
 
       if (existingDateIndex !== -1) {
         const updated = [...prev]
@@ -230,32 +274,38 @@ export default function SchedulePage() {
           timeSlots = timeSlots.filter(
             (slot) => !overlappingSlots.includes(slot),
           )
-          timeSlots.push({
+          const mergedSlot = {
             start: `${Math.floor(mergedStart / 60)
               .toString()
-              .padStart(
-                2,
-                '0',
-              )}:${(mergedStart % 60).toString().padStart(2, '0')}`,
+              .padStart(2, '0')}:${(mergedStart % 60)
+              .toString()
+              .padStart(2, '0')}`,
             end: `${Math.floor(mergedEnd / 60)
               .toString()
-              .padStart(
-                2,
-                '0',
-              )}:${(mergedEnd % 60).toString().padStart(2, '0')}`,
-          })
+              .padStart(2, '0')}:${(mergedEnd % 60)
+              .toString()
+              .padStart(2, '0')}`,
+          }
+          timeSlots.push(mergedSlot)
+          newEntry = { date: col, timeSlots: [mergedSlot] }
         } else {
-          timeSlots.push({ start, end })
+          const newSlot = { start, end }
+          timeSlots.push(newSlot)
+          newEntry = { date: col, timeSlots: [newSlot] }
         }
 
         timeSlots.sort((a, b) => toMinutes(a.start) - toMinutes(b.start))
 
         updated[existingDateIndex].timeSlots = timeSlots
+        // console.log('새로 추가된 항목:', newEntry)
         return updated
       } else {
-        return [...prev, { date: col, timeSlots: [{ start, end }] }]
+        newEntry = { date: col, timeSlots: [{ start, end }] }
+        // console.log('새로 추가된 항목:', newEntry)
+        return [...prev, newEntry]
       }
     })
+    setIsOpen(false)
   }
 
   // 제목 수정 함수
@@ -263,12 +313,46 @@ export default function SchedulePage() {
     setTitle(newTitle) // 수정된 제목으로 상태 업데이트
   }
 
-  const selectedDates = mockDateTime[0].data.map((dateData) => ({
-    date: parseInt(dateData.date.split('-')[2]),
-    weekday: new Date(dateData.date).toLocaleDateString('ko-KR', {
-      weekday: 'short',
-    }),
-  }))
+  const initializeSelectedDates = useCallback(() => {
+    return mockDateTime[0].data.map((dateData) => ({
+      date: parseInt(dateData.date.split('-')[2]),
+      weekday: new Date(dateData.date).toLocaleDateString('ko-KR', {
+        weekday: 'short',
+      }),
+      month: parseInt(dateData.date.split('-')[1]),
+    }))
+  }, [])
+
+  useEffect(() => {
+    if (selectedDates.length === 0) {
+      setSelectedDates(initializeSelectedDates())
+    }
+  }, [initializeSelectedDates, selectedDates])
+
+  const handleActiveTime = (start: number, end: number) => {
+    const getStartLabel = (rowIndex: number) => {
+      const hours = Math.floor(rowIndex / 2)
+      const minutes = (rowIndex % 2) * 30
+      const formattedHour = String(hours).padStart(2, '0')
+      const formattedMinute = String(minutes).padStart(2, '0')
+      return `${formattedHour}:${formattedMinute}`
+    }
+
+    const getEndLabel = (rowIndex: number) => {
+      const nextRowIndex = rowIndex + 1
+      const hours = Math.floor(nextRowIndex / 2)
+      const minutes = (nextRowIndex % 2) * 30
+      const formattedHour = String(hours).padStart(2, '0')
+      const formattedMinute = String(minutes).padStart(2, '0')
+      return `${formattedHour}:${formattedMinute}`
+    }
+
+    const calculatedStartTime = getStartLabel(start)
+    const calculatedEndTime = getEndLabel(end)
+
+    setStartTime(calculatedStartTime)
+    setEndTime(calculatedEndTime)
+  }
 
   return (
     <div className="flex flex-col h-full bg-white">
@@ -295,7 +379,23 @@ export default function SchedulePage() {
           handleSelectedCol={handleSelectedCol}
           getDateTime={getDateTime}
           mockDateTime={mockDateTime[0].data}
+          handleActiveTime={handleActiveTime}
         />
+      </div>
+      <div>
+        <SelectedBottom isOpen={isOpen} onClose={() => setIsOpen(false)}>
+          <div>
+            <SelectItem
+              date={
+                highlightedCol !== null
+                  ? `${selectedDates[0]?.month}월 ${selectedDates[highlightedCol]?.date}일`
+                  : ''
+              }
+              startTime={`${startTime}`}
+              endTime={`${endTime}`}
+            />
+          </div>
+        </SelectedBottom>
       </div>
     </div>
   )
