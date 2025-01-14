@@ -182,13 +182,64 @@ const EditTimeStamp: React.FC<EditTimeStampProps> = ({
     )
   }
 
+  const timeToMinutes = (time: string): number => {
+    const [hours, minutes] = time.split(':').map(Number)
+    return hours * 60 + minutes
+  }
+
+  const minutesToTime = (minutes: number): string => {
+    const hours = Math.floor(minutes / 60)
+    const mins = minutes % 60
+    return `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`
+  }
+
+  const mergeOverlappingSlots = (day: selectedScheduleData) => {
+    const sortedSlots = [...day.timeSlots].sort((a, b) =>
+      a.start.localeCompare(b.start),
+    )
+
+    const mergedSlots: TimeSlot[] = []
+
+    sortedSlots.forEach((slot) => {
+      if (
+        mergedSlots.length > 0 &&
+        timeToMinutes(mergedSlots[mergedSlots.length - 1].end) >=
+          timeToMinutes(slot.start)
+      ) {
+        // 병합
+        const newEnd = Math.max(
+          timeToMinutes(mergedSlots[mergedSlots.length - 1].end),
+          timeToMinutes(slot.end),
+        )
+
+        mergedSlots[mergedSlots.length - 1].end = minutesToTime(newEnd)
+      } else {
+        // 새로운 슬롯 추가
+        mergedSlots.push(slot)
+      }
+    })
+
+    return {
+      ...day,
+      timeSlots: mergedSlots,
+    }
+  }
+
   // 슬롯 드래그 끝났을 때의 이벤트
   const handleMouseUp = () => {
     setDraggingHandle(null)
     setIsEdit(false)
 
     if (isEdit) {
-      const updatedSlot = dataRef.current
+      const updatedData = dataRef.current.map((day) =>
+        day.timeSlots.some((slot) => slot.id === isEdit)
+          ? mergeOverlappingSlots(day)
+          : day,
+      )
+
+      setAndSyncData(updatedData)
+
+      const updatedSlot = updatedData
         .flatMap((day) => day.timeSlots)
         .find((slot) => slot.id === isEdit)
 
@@ -241,11 +292,21 @@ const EditTimeStamp: React.FC<EditTimeStampProps> = ({
                 className="relative border-r border-[#d9d9d9]"
               >
                 {day.timeSlots.map((slot) => {
-                  const [startHour, startMinute] = slot.start
-                    .split(':')
-                    .map(Number)
-                  const [endHour, endMinute] = slot.end.split(':').map(Number)
+                  // console.log('Slot 데이터:', slot)
 
+                  // slot.start와 slot.end가 문자열인지 확인하고 변환
+                  const start =
+                    typeof slot.start === 'string'
+                      ? slot.start
+                      : String(slot.start)
+                  const end =
+                    typeof slot.end === 'string' ? slot.end : String(slot.end)
+
+                  // start와 end를 split
+                  const [startHour, startMinute] = start.split(':').map(Number)
+                  const [endHour, endMinute] = end.split(':').map(Number)
+
+                  // 위치 계산
                   const startTop =
                     ((startHour * 2 + Math.floor(startMinute / 30)) *
                       (36 * scale)) /
