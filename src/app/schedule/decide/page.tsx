@@ -364,7 +364,7 @@ export default function Page() {
       />
       <DecideSelectedDays
         selectedDates={selectedDates}
-        month="1월"
+        month={`${selectedDates[0]?.month}월`}
         currentPage={currentPage}
         onPageChange={setCurrentPage}
         highlightedCol={highlightedCol}
