@@ -17,13 +17,15 @@ interface EditTimeStampProps {
   currentPage: number
   onPageChange: (newPage: number) => void
   onSlotClick: (id: number) => void
+  isBottomSheetOpen: boolean
 }
 
-const EditTimeStamp: React.FC<EditTimeStampProps> = ({
+export default function EditTimeStamp({
   data: initialData,
   currentPage,
   onSlotClick,
-}) => {
+  isBottomSheetOpen,
+}: EditTimeStampProps) {
   const COLUMNS_PER_PAGE = 7
   const [scale, setScale] = useState(1)
   const [isEdit, setIsEdit] = useState<number | boolean>(false)
@@ -44,70 +46,6 @@ const EditTimeStamp: React.FC<EditTimeStampProps> = ({
     setData(updatedData)
     dataRef.current = updatedData
   }
-
-  // 핀치줌 코드
-  useEffect(() => {
-    const element = gridRef.current
-    if (!element) return
-
-    let initialDistance = 0
-
-    // 핀치 줌 이벤트 처리
-    const handleTouchStart = (e: TouchEvent) => {
-      if (e.touches.length === 2) {
-        const touch1 = e.touches[0]
-        const touch2 = e.touches[1]
-        initialDistance = Math.sqrt(
-          Math.pow(touch2.clientX - touch1.clientX, 2) +
-            Math.pow(touch2.clientY - touch1.clientY, 2),
-        )
-      }
-    }
-
-    const handleTouchMove = (e: TouchEvent) => {
-      if (e.touches.length === 2) {
-        const touch1 = e.touches[0]
-        const touch2 = e.touches[1]
-        const currentDistance = Math.sqrt(
-          Math.pow(touch2.clientX - touch1.clientX, 2) +
-            Math.pow(touch2.clientY - touch1.clientY, 2),
-        )
-
-        const scaleChange = currentDistance / initialDistance
-        setScale((prev) => Math.min(Math.max(prev * scaleChange, 1), 2))
-        initialDistance = currentDistance
-      }
-    }
-
-    const handleTouchEnd = (e: TouchEvent) => {
-      if (e.touches.length < 2) {
-        initialDistance = 0
-      }
-    }
-
-    // 마우스 휠 줌 이벤트 처리
-    const handleWheel = (e: WheelEvent) => {
-      if (e.ctrlKey) {
-        e.preventDefault()
-        const delta = e.deltaY > 0 ? 0.9 : 1.1
-        setScale((prev) => Math.min(Math.max(prev * delta, 1), 2))
-      }
-    }
-
-    // 이벤트 리스너 등록
-    element.addEventListener('wheel', handleWheel, { passive: false })
-    element.addEventListener('touchstart', handleTouchStart, { passive: false })
-    element.addEventListener('touchmove', handleTouchMove, { passive: false })
-    element.addEventListener('touchend', handleTouchEnd)
-
-    // 클린업
-    return () => {
-      element.removeEventListener('wheel', handleWheel)
-      element.removeEventListener('touchstart', handleTouchStart)
-      element.removeEventListener('touchmove', handleTouchMove)
-      element.removeEventListener('touchend', handleTouchEnd)
-    }
-  }, [])
 
   // 슬롯을 클릭했을 때의 이벤트
   const handleSlotClick = (id: number) => {
@@ -134,12 +72,11 @@ const EditTimeStamp: React.FC<EditTimeStampProps> = ({
   // 슬롯부분 클릭 후 드래그 이벤트
   const handleMouseMove = (e: MouseEvent) => {
     if (isEdit === null || !gridRef.current) return
-
     const rect = gridRef.current.getBoundingClientRect()
-    const cellHeight = rect.height / 48
+    const cellHeight = rect.height / 48 // 48개의 셀로 분할
     const row = Math.min(
       Math.max(Math.floor((e.clientY - rect.top) / cellHeight), 0),
-      47,
+      48, // 최대 48까지 허용 (24:00)
     )
 
     setAndSyncData(
@@ -154,9 +91,11 @@ const EditTimeStamp: React.FC<EditTimeStampProps> = ({
               Number(slot.end.split(':')[0]) * 2 +
               Math.floor(Number(slot.end.split(':')[1]) / 30)
 
-            if (draggingHandle === 'start' && row < endRow) {
-              const newStartHour = Math.floor(row / 2)
-              const newStartMinute = (row % 2) * 30
+            if (draggingHandle === 'start') {
+              // 시작 핸들: 종료 핸들 위치까지 이동 가능
+              const newStartRow = Math.min(row, endRow)
+              const newStartHour = Math.floor(newStartRow / 2)
+              const newStartMinute = (newStartRow % 2) * 30
               return {
                 ...slot,
                 start: `${String(newStartHour).padStart(2, '0')}:${String(
@@ -165,9 +104,11 @@ const EditTimeStamp: React.FC<EditTimeStampProps> = ({
               }
             }
 
-            if (draggingHandle === 'end' && row > startRow) {
-              const newEndHour = Math.floor(row / 2)
-              const newEndMinute = (row % 2) * 30
+            if (draggingHandle === 'end') {
+              // 종료 핸들: 시작 핸들 위치까지 이동 가능
+              const newEndRow = Math.max(row, startRow)
+              const newEndHour = Math.floor(newEndRow / 2)
+              const newEndMinute = (newEndRow % 2) * 30
               return {
                 ...slot,
                 end: `${String(newEndHour).padStart(2, '0')}:${String(
@@ -225,6 +166,11 @@ const EditTimeStamp: React.FC<EditTimeStampProps> = ({
     }
   }
 
+  // DELETE 요청 함수 (나중에 백엔드 delete api 연결할 함수ㄴ)
+  const deleteTimeSlot = (id: number) => {
+    console.log(`${id} 삭제되었습니다.`)
+  }
+
   // 슬롯 드래그 끝났을 때의 이벤트
   const handleMouseUp = () => {
     setDraggingHandle(null)
@@ -244,10 +190,95 @@ const EditTimeStamp: React.FC<EditTimeStampProps> = ({
         .find((slot) => slot.id === isEdit)
 
       if (updatedSlot) {
-        console.log(`수정된 값: ${updatedSlot.start} - ${updatedSlot.end}`)
+        // start와 end가 같으면 삭제
+        if (updatedSlot.start === updatedSlot.end) {
+          console.log(
+            `Deleting slot with id ${updatedSlot.id} as start and end are the same.`,
+          )
+
+          // DELETE 요청
+          deleteTimeSlot(updatedSlot.id)
+
+          // 로컬 데이터에서 삭제
+          const newData = updatedData.map((day) => ({
+            ...day,
+            timeSlots: day.timeSlots.filter(
+              (slot) => slot.id !== updatedSlot.id,
+            ),
+          }))
+          setAndSyncData(newData)
+        } else {
+          console.log(`Updated slot: ${updatedSlot.start} - ${updatedSlot.end}`)
+        }
       }
     }
   }
+
+  // 핀치줌 코드
+  useEffect(() => {
+    const element = gridRef.current
+    if (!element) return
+
+    let initialDistance = 0
+
+    // 핀치 줌 이벤트 처리
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        const touch1 = e.touches[0]
+        const touch2 = e.touches[1]
+        initialDistance = Math.sqrt(
+          Math.pow(touch2.clientX - touch1.clientX, 2) +
+            Math.pow(touch2.clientY - touch1.clientY, 2),
+        )
+      }
+    }
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        const touch1 = e.touches[0]
+        const touch2 = e.touches[1]
+        const currentDistance = Math.sqrt(
+          Math.pow(touch2.clientX - touch1.clientX, 2) +
+            Math.pow(touch2.clientY - touch1.clientY, 2),
+        )
+
+        const scaleChange = currentDistance / initialDistance
+        setScale((prev) => Math.min(Math.max(prev * scaleChange, 1), 2))
+        initialDistance = currentDistance
+      }
+    }
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (e.touches.length < 2) {
+        initialDistance = 0
+      }
+    }
+
+    // 마우스 휠 줌 이벤트 처리
+    const handleWheel = (e: WheelEvent) => {
+      if (e.ctrlKey) {
+        e.preventDefault()
+        const delta = e.deltaY > 0 ? 0.9 : 1.1
+        setScale((prev) => Math.min(Math.max(prev * delta, 1), 2))
+      }
+    }
+
+    // 이벤트 리스너 등록
+    element.addEventListener('wheel', handleWheel, { passive: false })
+    element.addEventListener('touchstart', handleTouchStart, {
+      passive: false,
+    })
+    element.addEventListener('touchmove', handleTouchMove, { passive: false })
+    element.addEventListener('touchend', handleTouchEnd)
+
+    // 클린업
+    return () => {
+      element.removeEventListener('wheel', handleWheel)
+      element.removeEventListener('touchstart', handleTouchStart)
+      element.removeEventListener('touchmove', handleTouchMove)
+      element.removeEventListener('touchend', handleTouchEnd)
+    }
+  }, [])
 
   useEffect(() => {
     if (draggingHandle) {
@@ -261,19 +292,22 @@ const EditTimeStamp: React.FC<EditTimeStampProps> = ({
   }, [draggingHandle])
 
   return (
-    <div className="timestamp-container">
+    <div
+      className={`timestamp-container ${isBottomSheetOpen ? 'pb-[100px]' : 'pb-[40px]'}`}
+    >
       <div className="timestamp-content">
         <div className="w-full max-w-4xl mx-auto bg-white pl-2 pr-8 pt-3 pb-8 grid grid-cols-[auto_1fr]">
           <div className="w-7 pr-1 -mt-1">
-            {Array.from({ length: 24 }, (_, i) => (
+            {Array.from({ length: 23 }, (_, i) => (
               <div
                 key={i}
                 className="text-[10px] text-[#afafaf]"
                 style={{
-                  height: `${36 * scale}px`,
+                  height: `${18 * scale}px`,
+                  paddingTop: `${36 * scale}px`,
                 }}
               >
-                {`${String(i).padStart(2, '0')}시`}
+                {`${String(i + 1).padStart(2, '0')}시`}{' '}
               </div>
             ))}
           </div>
@@ -289,7 +323,7 @@ const EditTimeStamp: React.FC<EditTimeStampProps> = ({
             {currentDates.map((day) => (
               <div
                 key={day.date}
-                className="relative border-r border-[#d9d9d9]"
+                className="relative border-r border-[#d9d9d9] z-100"
               >
                 {day.timeSlots.map((slot) => {
                   // console.log('Slot 데이터:', slot)
@@ -361,5 +395,3 @@ const EditTimeStamp: React.FC<EditTimeStampProps> = ({
     </div>
   )
 }
-
-export default EditTimeStamp

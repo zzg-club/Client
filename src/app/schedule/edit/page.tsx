@@ -200,12 +200,13 @@ export default function SchedulePage() {
         currentPage={currentPage}
         onPageChange={setCurrentPage}
       />
-      <div className="flex-1 overflow-auto">
+      <div className="flex-grow overflow-hidden mt-2">
         <EditTimeStamp
           data={mockSelectedSchedule}
           currentPage={currentPage}
           onPageChange={handlePageChange}
           onSlotClick={handleSlotClick}
+          isBottomSheetOpen={isOpen}
         />
       </div>
       <SelectedBottom isOpen={isOpen} onClose={() => setIsOpen(false)}>
