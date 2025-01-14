@@ -18,12 +18,14 @@ interface ScheduleData {
   name: string // 일정 이름
   userId: number // 사용자 ID
   groupId: number // 그룹 ID
+  mode: string
+  selected: [string, string] | null
   date: [string, string][] // 날짜 배열: [날짜, 요일]의 배열
 }
 
 export default function Page() {
   const [title, setTitle] = useState('제목 없는 일정')
-  const isPurple = false
+  const [isPurple, setIsPurple] = useState(false)
   const [currentPage, setCurrentPage] = useState(0)
   const [highlightedCol, setHighlightedCol] = useState<number | null>(null)
   const [startTime, setStartTime] = useState<string | null>(null)
@@ -179,6 +181,7 @@ export default function Page() {
         return [...prev, newEntry]
       }
     })
+    setIsPurple(true)
     setIsOpen(false)
   }
 
@@ -214,29 +217,44 @@ export default function Page() {
 
   const scheduleData: ScheduleData[] = [
     {
-      name: '팀플 대면',
+      name: '팀플 대면 모임',
       userId: 2,
       groupId: 1,
+      mode: 'week',
+      selected: ['mon', 'wed'],
       date: [
-        ['2024-12-30', 'mon'],
-        ['2024-12-31', 'tue'],
-        ['2024-01-01', 'wed'],
-        ['2024-01-02', 'thu'],
-        ['2024-01-03', 'fri'],
-        ['2024-01-04', 'sat'],
-        ['2024-01-05', 'sun'],
         ['2024-01-06', 'mon'],
-        ['2024-01-07', 'tue'],
+        ['2024-01-13', 'mon'],
+        ['2024-01-20', 'mon'],
+        ['2024-01-27', 'mon'],
         ['2024-01-08', 'wed'],
-        ['2024-01-09', 'thu'],
-        // ['2024-01-10', 'fri'],
-        // ['2024-01-11', 'sat'],
-        // ['2024-01-12', 'sun'],
+        ['2024-01-15', 'wed'],
+        ['2024-01-22', 'wed'],
       ],
+      // mode: 'range',
+      //selected: null,
+      // date: [
+      //   ['2024-12-30', 'mon'],
+      //   ['2024-12-31', 'tue'],
+      //   ['2024-01-01', 'wed'],
+      //   ['2024-01-02', 'thu'],
+      //   ['2024-01-03', 'fri'],
+      //   ['2024-01-04', 'sat'],
+      //   ['2024-01-05', 'sun'],
+      //   ['2024-01-06', 'mon'],
+      //   ['2024-01-07', 'tue'],
+      //   ['2024-01-08', 'wed'],
+      //   ['2024-01-09', 'thu'],
+      //   // ['2024-01-10', 'fri'],
+      //   // ['2024-01-11', 'sat'],
+      //   // ['2024-01-12', 'sun'],
+      // ],
     },
   ]
 
   const selectedDates: SelectedDate[] = convertToSelectedDates(scheduleData)
+  const mode = scheduleData[0].mode
+  const dayofWeek = scheduleData[0].selected
   const month = `${selectedDates[0]?.month}월`
 
   const handlePageChange = (newPage: number) => {
@@ -246,14 +264,18 @@ export default function Page() {
   return (
     <div>
       <Title
-        buttonText="완료"
-        initialTitle={title}
+        buttonText={isExpanded ? '다음' : '완료'}
+        initialTitle={scheduleData[0]?.name || title}
         onTitleChange={handleTitleChange}
         isPurple={isPurple}
+        isExpanded={isExpanded}
+        setIsExpanded={setIsExpanded}
       />
       <SelectedDays
         selectedDates={selectedDates}
         month={month}
+        mode={mode}
+        dayofWeek={dayofWeek}
         currentPage={currentPage}
         onPageChange={handlePageChange}
         highlightedCol={highlightedCol}

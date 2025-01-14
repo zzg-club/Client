@@ -13,15 +13,18 @@ interface TitleProps {
   onClickTitleButton?: () => void
   initialTitle: string // 초기 제목
   isPurple: boolean
-  onTitleChange: (newTitle: string) => void // 제목 수정 후 부모로 전달
+  onTitleChange: (newTitle: string) => void
+  isExpanded: boolean
+  setIsExpanded: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 export default function Title({
   buttonText,
-  onClickTitleButton,
   initialTitle,
   onTitleChange,
   isPurple,
+  isExpanded,
+  setIsExpanded,
 }: TitleProps) {
   const router = useRouter()
   const [isShareOpen, setIsShareOpen] = useState(false)
@@ -32,6 +35,14 @@ export default function Title({
 
   const handleOpenDdialg = () => {
     setIsShareOpen(!isShareOpen)
+  }
+
+  const onClickTitleButton = () => {
+    if (!isExpanded) {
+      console.log('야야')
+      setIsExpanded(true)
+    } else {
+    }
   }
 
   return (

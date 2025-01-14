@@ -12,6 +12,8 @@ interface SelectedDate {
 interface SelectedDaysProps {
   selectedDates: SelectedDate[]
   month: string
+  mode: string
+  dayofWeek: [string, string] | null
   currentPage: number
   onPageChange: (newPage: number) => void
   highlightedCol: number | null
@@ -24,6 +26,8 @@ const DAYS_PER_PAGE = 7
 export default function SelectedDays({
   selectedDates,
   month,
+  mode,
+  dayofWeek,
   currentPage,
   onPageChange,
   highlightedCol,
@@ -54,6 +58,16 @@ export default function SelectedDays({
     onPageChange(Math.min(totalPages - 1, currentPage + 1))
   }
 
+  const weekdayMap: { [key: string]: string } = {
+    mon: '월',
+    tue: '화',
+    wed: '수',
+    thu: '목',
+    fri: '금',
+    sat: '토',
+    sun: '일',
+  }
+
   return (
     <div className="pt-0 relative">
       <div
@@ -61,8 +75,13 @@ export default function SelectedDays({
           isExpanded ? 'h-auto opacity-100' : 'h-0 opacity-0 overflow-hidden'
         }`}
       >
-        <div className="text-[#1e1e1e] text-3xl font-['Pretendard'] leading-[17px] tracking-tight pl-5 pt-3 pb-5">
-          {month}
+        <div className="text-[#1e1e1e] font-['Pretendard'] leading-[17px] tracking-tight pl-5 pt-3 pb-5">
+          <span className="text-3xl">{month}</span>
+          <span className="text-xl ml-2">
+            {dayofWeek && dayofWeek[currentPage] !== null
+              ? dayofWeek[currentPage].toUpperCase()
+              : ''}
+          </span>
         </div>
       </div>
       <div className="w-full px-0 pb-3 bg-white rounded-bl-3xl rounded-br-3xl shadow-[0_4px_6px_-1px_rgba(30,30,30,0.1),0_2px_4px_-2px_rgba(30,30,30,0.1)] flex items-center">
@@ -76,39 +95,61 @@ export default function SelectedDays({
           <ChevronLeft className="w-7 h-7 mb-4" />
         </button>
         <div className="flex-1 px-0 pb-4">
-          {isSingleDate ? (
-            <div className="grid grid-cols-7 gap-0 items-center w-full">
-              <LuDot className="ml-3 text-[#AFAFAF] w-7 h-7" />
-              <LuDot className="ml-3 text-[#AFAFAF] w-7 h-7" />
-              <LuDot className="ml-3 text-[#AFAFAF] w-7 h-7" />
-              <div
-                className={`flex flex-col items-center w-full ${
-                  highlightedIndex === 0 ? 'text-[#9562FA]' : ''
-                }`}
-              >
-                <span className="text-3xl font-normal mb-1">
-                  {currentDates[0].day}
-                </span>
-                <span className="text-s mt-0">{currentDates[0].weekday}</span>
-              </div>
-              <LuDot className="ml-3 text-[#AFAFAF] w-7 h-7" />
-              <LuDot className="ml-3 text-[#AFAFAF] w-7 h-7" />
-              <LuDot className="ml-3 text-[#AFAFAF] w-7 h-7" />
-            </div>
-          ) : isFullWeek ? (
-            <div className="grid grid-cols-7 gap-0">
-              {currentDates.map(({ day, weekday }, index) => (
+          {mode === 'range' ? (
+            isSingleDate ? (
+              <div className="grid grid-cols-7 gap-0 items-center w-full">
+                <LuDot className="ml-3 text-[#AFAFAF] w-7 h-7" />
+                <LuDot className="ml-3 text-[#AFAFAF] w-7 h-7" />
+                <LuDot className="ml-3 text-[#AFAFAF] w-7 h-7" />
                 <div
-                  key={day}
                   className={`flex flex-col items-center w-full ${
-                    highlightedIndex === index ? 'text-[#9562FA]' : ''
+                    highlightedIndex === 0 ? 'text-[#9562FA]' : ''
                   }`}
                 >
-                  <span className="text-3xl font-normal">{day}</span>
-                  <span className="text-s mt-0">{weekday}</span>
+                  <span className="text-3xl font-normal mb-1">
+                    {currentDates[0].day}
+                  </span>
+                  <span className="text-s mt-0">{currentDates[0].weekday}</span>
                 </div>
-              ))}
-            </div>
+                <LuDot className="ml-3 text-[#AFAFAF] w-7 h-7" />
+                <LuDot className="ml-3 text-[#AFAFAF] w-7 h-7" />
+                <LuDot className="ml-3 text-[#AFAFAF] w-7 h-7" />
+              </div>
+            ) : isFullWeek ? (
+              <div className="grid grid-cols-7 gap-0">
+                {currentDates.map(({ day, weekday }, index) => (
+                  <div
+                    key={day}
+                    className={`flex flex-col items-center w-full ${
+                      highlightedIndex === index ? 'text-[#9562FA]' : ''
+                    }`}
+                  >
+                    <span className="text-3xl font-normal">{day}</span>
+                    <span className="text-s mt-0">{weekday}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div
+                className="flex justify-between w-full"
+                style={{
+                  width: `calc(100% - ${currentDates.length}px)`,
+                  margin: '0 auto',
+                }}
+              >
+                {currentDates.map(({ day, weekday }, index) => (
+                  <div
+                    key={day}
+                    className={`flex flex-col items-center w-full ${
+                      highlightedIndex === index ? 'text-[#9562FA]' : ''
+                    }`}
+                  >
+                    <span className="text-3xl font-normal">{day}</span>
+                    <span className="text-s mt-0">{weekday}</span>
+                  </div>
+                ))}
+              </div>
+            )
           ) : (
             <div
               className="flex justify-between w-full"
@@ -117,20 +158,26 @@ export default function SelectedDays({
                 margin: '0 auto',
               }}
             >
-              {currentDates.map(({ day, weekday }, index) => (
-                <div
-                  key={day}
-                  className={`flex flex-col items-center w-full ${
-                    highlightedIndex === index ? 'text-[#9562FA]' : ''
-                  }`}
-                >
-                  <span className="text-3xl font-normal">{day}</span>
-                  <span className="text-s mt-0">{weekday}</span>
-                </div>
-              ))}
+              {currentDates
+                .filter(({ weekday }) => {
+                  const currentDay = dayofWeek?.[currentPage]
+                  return currentDay ? weekday === weekdayMap[currentDay] : true
+                })
+                .map(({ day, weekday }, index) => (
+                  <div
+                    key={day}
+                    className={`flex flex-col items-center w-full ${
+                      highlightedIndex === index ? 'text-[#9562FA]' : ''
+                    }`}
+                  >
+                    <span className="text-3xl font-normal">{day}</span>
+                    <span className="text-s mt-0">{weekday}</span>
+                  </div>
+                ))}
             </div>
           )}
         </div>
+
         <button
           onClick={handleNextPage}
           className={`flex items-center justify-center ${
