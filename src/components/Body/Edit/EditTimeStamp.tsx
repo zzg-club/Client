@@ -193,7 +193,7 @@ const EditTimeStamp: React.FC<EditTimeStampProps> = ({
         .find((slot) => slot.id === isEdit)
 
       if (updatedSlot) {
-        alert(`수정된 타임슬롯: ${updatedSlot.start} - ${updatedSlot.end}`)
+        console.log(`수정된 값: ${updatedSlot.start} - ${updatedSlot.end}`)
       }
     }
   }
