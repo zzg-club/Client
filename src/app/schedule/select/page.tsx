@@ -32,6 +32,15 @@ export default function Page() {
     { date: number; timeSlots: { start: string; end: string }[] }[]
   >([])
   const [isOpen, setIsOpen] = useState(false)
+  const [isExpanded, setIsExpanded] = useState(true)
+
+  const toggleExpand = () => {
+    setIsExpanded((prev) => !prev)
+  }
+
+  const togglecollapse = () => {
+    setIsExpanded(false)
+  }
 
   const handleTitleChange = (newTitle: string) => {
     setTitle(newTitle)
@@ -66,6 +75,7 @@ export default function Page() {
       setEndTime(DefaultEndTime)
 
       setHighlightedCol(colIndex)
+      togglecollapse()
       setIsOpen(true)
     },
     [],
@@ -247,6 +257,8 @@ export default function Page() {
         currentPage={currentPage}
         onPageChange={handlePageChange}
         highlightedCol={highlightedCol}
+        isExpanded={isExpanded}
+        toggleExpand={toggleExpand}
       />
       <div className="flex-grow overflow-hidden mt-2">
         <TimeStamp
@@ -256,6 +268,9 @@ export default function Page() {
           handleSelectedCol={handleSelectedCol}
           handleActiveTime={handleActiveTime}
           getDateTime={getDateTime}
+          isExpanded={isExpanded}
+          toggleCollapse={togglecollapse}
+          isBottomSheetOpen={isOpen}
         />
       </div>
       <SelectedBottom isOpen={isOpen} onClose={() => setIsOpen(false)}>

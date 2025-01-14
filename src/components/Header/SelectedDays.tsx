@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { GoTriangleUp, GoTriangleDown } from 'react-icons/go'
 import { LuDot } from 'react-icons/lu'
@@ -16,6 +15,8 @@ interface SelectedDaysProps {
   currentPage: number
   onPageChange: (newPage: number) => void
   highlightedCol: number | null
+  isExpanded: boolean
+  toggleExpand: () => void
 }
 
 const DAYS_PER_PAGE = 7
@@ -26,9 +27,9 @@ export default function SelectedDays({
   currentPage,
   onPageChange,
   highlightedCol,
+  isExpanded,
+  toggleExpand,
 }: SelectedDaysProps) {
-  const [isExpanded, setIsExpanded] = useState(true)
-
   const totalPages = Math.ceil(selectedDates.length / DAYS_PER_PAGE)
   const isSingleDate = selectedDates.length === 1
   const highlightedIndex =
@@ -51,10 +52,6 @@ export default function SelectedDays({
 
   const handleNextPage = () => {
     onPageChange(Math.min(totalPages - 1, currentPage + 1))
-  }
-
-  const toggleExpand = () => {
-    setIsExpanded(!isExpanded)
   }
 
   return (

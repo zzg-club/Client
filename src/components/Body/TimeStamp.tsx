@@ -19,6 +19,9 @@ interface TimeStampProps {
   handleSelectedCol: (colIndex: number, rowIndex: number) => void
   handleActiveTime: (start: number, end: number) => void
   getDateTime: (col: number, start: string, end: string) => void
+  isExpanded: boolean
+  toggleCollapse: () => void
+  isBottomSheetOpen: boolean
 }
 
 const COLUMNS_PER_PAGE = 7
@@ -29,6 +32,9 @@ export default function TimeStamp({
   handleSelectedCol,
   handleActiveTime,
   getDateTime,
+  isExpanded,
+  toggleCollapse,
+  isBottomSheetOpen,
 }: TimeStampProps) {
   const [selections] = useState<Selection[]>([])
   const [isResizing, setIsResizing] = useState(false)
@@ -46,16 +52,22 @@ export default function TimeStamp({
 
   const onColumnClick = useCallback(
     (colIndex: number, rowIndex: number) => {
+      if (isExpanded) {
+        toggleCollapse()
+        return
+      }
+
       if (colIndex === -1) {
         handleSelectedCol(colIndex, rowIndex)
         return 0
       }
+
       if (gridRef.current) {
         const actualColIndex = currentPage * COLUMNS_PER_PAGE + colIndex
         handleSelectedCol(actualColIndex, rowIndex)
       }
     },
-    [handleSelectedCol, currentPage],
+    [handleSelectedCol, currentPage, isExpanded, toggleCollapse],
   )
 
   const onActiveTime = useCallback(
@@ -101,6 +113,11 @@ export default function TimeStamp({
   )
 
   const handleMouseClick = (rowIndex: number, colIndex: number) => {
+    if (isExpanded) {
+      toggleCollapse()
+      return
+    }
+
     const pairStartRow = Math.floor(rowIndex / 2) * 2
     const pairEndRow = pairStartRow + 1
 
@@ -163,7 +180,7 @@ export default function TimeStamp({
         47,
       )
 
-      // console.log('ActiveSelection', activeSelection)
+      console.log('ActiveSelection', activeSelection)
 
       setActiveSelection((prev) => {
         if (!prev) return null
@@ -257,6 +274,10 @@ export default function TimeStamp({
     colIndex: number,
     isTouchEvent: boolean,
   ) => {
+    if (isExpanded) {
+      return
+    }
+
     if (isTouchEvent) {
       if (rowIndex % 2 !== 1) return
     }
@@ -540,7 +561,9 @@ export default function TimeStamp({
   }, [])
 
   return (
-    <div className="timestamp-container">
+    <div
+      className={`timestamp-container ${isBottomSheetOpen ? 'pb-[100px]' : 'pb-[40px]'}`}
+    >
       <div className="timestamp-content">
         <div className="w-full max-w-4xl mx-auto bg-white pl-2 pr-8 pt-3 pb-8 flex grid grid-cols-[auto_1fr]">
           <div className="w-7 pr-1 -mt-1">
@@ -580,7 +603,7 @@ export default function TimeStamp({
                       className={`relative cursor-pointer ${
                         cellStatus.isSelected
                           ? cellStatus.isConfirmed
-                            ? 'bg-[#9562fa]/70 z-200'
+                            ? 'bg-[#9562fa]/60 z-200'
                             : 'bg-[#9562fa]/20 z-200'
                           : ''
                       }`}
