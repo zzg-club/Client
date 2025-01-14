@@ -31,6 +31,7 @@ interface DecideTimeStampProps {
   getDateTime: (col: number, start: string, end: string) => void
   mockDateTime: DateData[]
   handleActiveTime: (start: number, end: number) => void
+  isBottomSheetOpen: boolean
 }
 
 const COLUMNS_PER_PAGE = 7
@@ -42,6 +43,7 @@ export default function DecideTimeStamp({
   getDateTime,
   mockDateTime,
   handleActiveTime,
+  isBottomSheetOpen,
 }: DecideTimeStampProps) {
   const [selections] = useState<Selection[]>([])
   const [isResizing, setIsResizing] = useState(false)
@@ -590,7 +592,9 @@ export default function DecideTimeStamp({
   }, [])
 
   return (
-    <div className="timestamp-container">
+    <div
+      className={`timestamp-container ${isBottomSheetOpen ? 'pb-[100px]' : 'pb-[40px]'}`}
+    >
       <div className="timestamp-content">
         <div className="w-full max-w-4xl mx-auto bg-white pl-2 pr-8 pt-3 pb-8 flex grid grid-cols-[auto_1fr]">
           <div className="w-7 pr-1 -mt-1">
