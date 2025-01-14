@@ -11,6 +11,7 @@ type UseHandleSelectReturn = {
   selectedDates: DateRange | Date[] | Date | undefined
   stringDates: DateInfo[]
   handleSelect: (selection: DateRange | Date[] | Date | undefined) => void
+  mode: 'range' | 'week'
 }
 
 export function useHandleSelect(): UseHandleSelectReturn {
@@ -18,6 +19,7 @@ export function useHandleSelect(): UseHandleSelectReturn {
     DateRange | Date[] | Date | undefined
   >()
   const [stringDates, setStringDates] = useState<DateInfo[]>([])
+  const [mode, setMode] = useState<'range' | 'week'>('range')
   const { formatDateToString } = useFormatDate()
 
   const formatDateInfo = (date: Date): DateInfo => [
@@ -30,11 +32,13 @@ export function useHandleSelect(): UseHandleSelectReturn {
     if (selection) {
       if (Array.isArray(selection)) {
         // multiple mode 처리
+        setMode('week')
         const formattedDates = selection.map(formatDateInfo)
         setStringDates(formattedDates)
         console.log('[multiple] 선택된 날짜:', formattedDates)
       } else if ('from' in selection && selection.from) {
         // range mode 처리
+        setMode('range')
         if (selection.to) {
           const dates = eachDayOfInterval({
             start: selection.from,
@@ -50,15 +54,17 @@ export function useHandleSelect(): UseHandleSelectReturn {
         }
       } else if (selection instanceof Date) {
         // single 모드 처리
+        setMode('range')
         const formattedDate = formatDateInfo(selection)
         setStringDates([formattedDate])
         console.log('[single] 선택된 날짜:', formattedDate)
       }
     } else {
       setStringDates([])
+      setMode('range')
       console.log('No date selected')
     }
   }
 
-  return { selectedDates, stringDates, handleSelect }
+  return { selectedDates, stringDates, handleSelect, mode }
 }
