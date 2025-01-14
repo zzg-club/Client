@@ -7,6 +7,8 @@ import DecideTimeStamp from '@/components/Body/Decide/DecideTimeStamp'
 import SelectedBottom from '@/components/Footer/BottomSheet/SelectedBottom'
 import { SelectItem } from '@/components/Footer/ListItem/SelectItem'
 import CustomModal from '@/components/Modals/CustomModal'
+import DecideBottom from '@/components/Footer/BottomSheet/DecideBottom'
+import { ScheduleItem } from '@/components/Footer/ListItem/ScheduleItem'
 
 interface TimeSlot {
   start: string
@@ -188,6 +190,15 @@ export default function Page() {
   const [isOpen, setIsOpen] = useState(false)
   const [startTime, setStartTime] = useState<string | null>(null)
   const [endTime, setEndTime] = useState<string | null>(null)
+  const [finalData, setFinalData] = useState<
+    {
+      id: number
+      number: number
+      startDate: string
+      startTime: string
+      endTime: string
+    }[]
+  >([])
 
   const [selectedDates, setSelectedDates] = useState<SelectedDate[]>([])
 
@@ -197,6 +208,22 @@ export default function Page() {
 
   useEffect(() => {
     console.log(`Updated dateTimeData:`, dateTime)
+
+    const transformedData = dateTime.flatMap((dateItem, index) => {
+      const { date, timeSlots } = dateItem
+
+      const startDate = `${new Date().getMonth() + 1}월 ${date}일` // date 기반으로 날짜 형식 생성
+
+      return timeSlots.map((slot) => ({
+        id: index + 1, // 고유 ID 생성
+        number: index + 1,
+        startDate,
+        startTime: slot.start,
+        endTime: slot.end,
+      }))
+    })
+
+    setFinalData(transformedData)
   }, [dateTime]) // dateTimeData가 변경될 때마다 호출
 
   const handleSelectedCol = useCallback(
@@ -357,13 +384,44 @@ export default function Page() {
   }
 
   const [warning, setWarning] = useState(false)
+  const [decideBottomOpen, setDecideBottomOpen] = useState(false)
 
   const onClickConfirm = () => {
-    if (isPurple) {
-      alert('바텀시트를 올려라')
-    } else {
+    if (isPurple && !decideBottomOpen) {
+      setDecideBottomOpen(true)
+    } else if (!isPurple && !decideBottomOpen) {
       setWarning(true)
+    } else if (isPurple && decideBottomOpen) {
+      alert('완전 확정')
     }
+  }
+
+  const handleDeleteSchedule = (id: number | undefined) => {
+    if (id === undefined) return
+
+    // finalData에서 삭제
+    setFinalData((prevFinalData) =>
+      prevFinalData.filter((item) => item.id !== id),
+    )
+
+    // dateTime에서 상응하는 date와 timeSlots 찾음
+    setDateTime((prevDateTime) => {
+      return prevDateTime
+        .map((dateItem) => {
+          const updatedTimeSlots = dateItem.timeSlots.filter((slot) => {
+            // finalData id와 일치하는 항목 찾기
+            const match = finalData.find((data) => data.id === id)
+            if (!match) return true // 일치하지 않으면 유지
+            // startTime - endTime 비교하여 정확한 slot 삭제
+            return !(
+              slot.start === match.startTime && slot.end === match.endTime
+            )
+          })
+
+          return { ...dateItem, timeSlots: updatedTimeSlots }
+        })
+        .filter((dateItem) => dateItem.timeSlots.length > 0) // timeSlots가 빈 date는 삭제
+    })
   }
 
   return (
@@ -396,21 +454,23 @@ export default function Page() {
           isBottomSheetOpen={isOpen}
         />
       </div>
-      <div className="z-[2000]">
-        <SelectedBottom isOpen={isOpen} onClose={() => setIsOpen(false)}>
-          <div>
-            <SelectItem
-              date={
-                highlightedCol !== null
-                  ? `${selectedDates[0]?.month}월 ${selectedDates[highlightedCol]?.date}일`
-                  : ''
-              }
-              startTime={`${startTime}`}
-              endTime={`${endTime}`}
-            />
-          </div>
-        </SelectedBottom>
-      </div>
+      {!decideBottomOpen && (
+        <div className="z-[2000]">
+          <SelectedBottom isOpen={isOpen} onClose={() => setIsOpen(false)}>
+            <div>
+              <SelectItem
+                date={
+                  highlightedCol !== null
+                    ? `${selectedDates[0]?.month}월 ${selectedDates[highlightedCol]?.date}일`
+                    : ''
+                }
+                startTime={`${startTime}`}
+                endTime={`${endTime}`}
+              />
+            </div>
+          </SelectedBottom>
+        </div>
+      )}
 
       <CustomModal
         isFooter={true}
@@ -424,6 +484,27 @@ export default function Page() {
           확정할 수 있어요
         </div>
       </CustomModal>
+
+      <div className="z-[1000]">
+        <DecideBottom
+          isOpen={decideBottomOpen}
+          onClose={() => setDecideBottomOpen(false)}
+        >
+          <div>
+            {finalData.map((item) => (
+              <ScheduleItem
+                key={item.id}
+                id={item.id}
+                number={item.number}
+                startDate={item.startDate}
+                startTime={item.startTime}
+                endTime={item.endTime}
+                onDelete={handleDeleteSchedule}
+              />
+            ))}
+          </div>
+        </DecideBottom>
+      </div>
     </div>
   )
 }
