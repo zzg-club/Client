@@ -60,34 +60,20 @@ const mockSelectedSchedule: selectedScheduleData[] = [
     timeSlots: [
       {
         id: 6,
-        start: '08:00',
-        end: '09:30',
+        start: '02:00',
+        end: '06:30',
       },
-      {
-        id: 7,
-        start: '13:30',
-        end: '18:30',
-      },
+
       {
         id: 8,
-        start: '20:30',
-        end: '23:00',
+        start: '16:30',
+        end: '19:00',
       },
     ],
   },
   {
     date: '2025-01-04',
     timeSlots: [
-      {
-        id: 9,
-        start: '08:00',
-        end: '09:00',
-      },
-      {
-        id: 10,
-        start: '13:30',
-        end: '18:00',
-      },
       {
         id: 11,
         start: '20:00',
@@ -99,19 +85,9 @@ const mockSelectedSchedule: selectedScheduleData[] = [
     date: '2025-01-05',
     timeSlots: [
       {
-        id: 12,
-        start: '08:00',
-        end: '09:00',
-      },
-      {
         id: 13,
-        start: '13:30',
+        start: '09:30',
         end: '18:00',
-      },
-      {
-        id: 14,
-        start: '20:00',
-        end: '21:30',
       },
     ],
   },
@@ -120,7 +96,7 @@ const mockSelectedSchedule: selectedScheduleData[] = [
     timeSlots: [
       {
         id: 15,
-        start: '08:00',
+        start: '03:00',
         end: '09:00',
       },
       {
@@ -130,7 +106,7 @@ const mockSelectedSchedule: selectedScheduleData[] = [
       },
       {
         id: 17,
-        start: '20:00',
+        start: '19:00',
         end: '21:30',
       },
     ],
@@ -143,15 +119,20 @@ const mockSelectedSchedule: selectedScheduleData[] = [
         start: '08:00',
         end: '09:00',
       },
+    ],
+  },
+  {
+    date: '2025-01-08',
+    timeSlots: [
       {
         id: 19,
-        start: '13:30',
-        end: '18:00',
+        start: '00:00',
+        end: '05:00',
       },
       {
         id: 20,
-        start: '20:00',
-        end: '21:30',
+        start: '14:00',
+        end: '19:30',
       },
     ],
   },
