@@ -20,13 +20,17 @@ interface EditTimeStampProps {
 }
 
 const EditTimeStamp: React.FC<EditTimeStampProps> = ({
-  data,
+  data: initialData,
   currentPage,
   onSlotClick,
 }) => {
   const COLUMNS_PER_PAGE = 7
   const [scale, setScale] = useState(1)
-  const [isEdit, setIsEdit] = useState<number | null>(null) // 수정 모드 상태
+  const [isEdit, setIsEdit] = useState<number | boolean>(false)
+  const [draggingHandle, setDraggingHandle] = useState<null | 'start' | 'end'>(
+    null,
+  )
+  const [data, setData] = useState(initialData) // 로컬 데이터 상태
   const gridRef = useRef<HTMLDivElement>(null)
 
   const currentDates = data.slice(
@@ -34,6 +38,7 @@ const EditTimeStamp: React.FC<EditTimeStampProps> = ({
     (currentPage + 1) * COLUMNS_PER_PAGE,
   )
 
+  // 핀치줌 코드
   useEffect(() => {
     const element = gridRef.current
     if (!element) return
@@ -52,21 +57,129 @@ const EditTimeStamp: React.FC<EditTimeStampProps> = ({
     }
   }, [])
 
+  // 슬롯을 클릭했을 때의 이벤트
   const handleSlotClick = (id: number) => {
     setIsEdit(id) // 클릭한 슬롯의 ID를 isEdit 상태로 설정
     onSlotClick(id) // 슬롯 클릭 콜백
+    const selectedSlot = currentDates
+      .flatMap((day) => day.timeSlots) // 모든 TimeSlot 펼치기
+      .find((slot) => slot.id === id)
+
+    console.log(
+      `${id}번째 타임슬롯 선택:`,
+      selectedSlot?.start,
+      '-',
+      selectedSlot?.end,
+    )
   }
 
+  // 슬롯부분 클릭했을 때의 이벤트
   const handleMouseDown = (id: number, type: 'start' | 'end') => {
-    console.log(`Dragging ${type} handle for slot ID: ${id}`)
-    // 드래그 로직
+    setDraggingHandle(type)
+    setIsEdit(id) // 드래그 시작 시 수정 상태로 설정
   }
+
+  // 슬롯부분 클릭 후 드래그 이벤트
+  const handleMouseMove = (e: MouseEvent) => {
+    if (isEdit === null || !gridRef.current) return
+
+    const rect = gridRef.current.getBoundingClientRect()
+    const cellHeight = rect.height / 48
+    const row = Math.min(
+      Math.max(Math.floor((e.clientY - rect.top) / cellHeight), 0),
+      47,
+    )
+
+    // const activeHour = Math.floor(row / 2)
+    // const activeMinute = (row % 2) * 30
+    // // const activeTimeValue = `${String(activeHour).padStart(2, '0')}:${String(
+    // //   activeMinute,
+    // // ).padStart(2, '0')}`
+
+    // 업데이트하는 변화값이 start 핸들인지 end 핸들인지 구분하여 나타냄
+    // console.log(
+    //   `${draggingHandle === 'start' ? 'Start' : 'End'} 값 업데이트 중:`,
+    //   activeTimeValue,
+    // )
+
+    setData((prevData) =>
+      prevData.map((day) => ({
+        ...day,
+        timeSlots: day.timeSlots.map((slot) => {
+          if (slot.id === isEdit) {
+            const [startHour, startMinute] = slot.start.split(':').map(Number)
+            const [endHour, endMinute] = slot.end.split(':').map(Number)
+
+            const startRow = startHour * 2 + Math.floor(startMinute / 30)
+            const endRow = endHour * 2 + Math.floor(endMinute / 30)
+
+            if (draggingHandle === 'start' && row < endRow) {
+              const newStartHour = Math.floor(row / 2)
+              const newStartMinute = (row % 2) * 30
+              return {
+                ...slot,
+                start: `${String(newStartHour).padStart(2, '0')}:${String(
+                  newStartMinute,
+                ).padStart(2, '0')}`,
+              }
+            }
+
+            if (draggingHandle === 'end' && row > startRow) {
+              const newEndHour = Math.floor(row / 2)
+              const newEndMinute = (row % 2) * 30
+              return {
+                ...slot,
+                end: `${String(newEndHour).padStart(2, '0')}:${String(
+                  newEndMinute,
+                ).padStart(2, '0')}`,
+              }
+            }
+          }
+          return slot
+        }),
+      })),
+    )
+  }
+
+  // 슬롯 드래그 끝났을 때의 이벤트
+  const handleMouseUp = () => {
+    setDraggingHandle(null) // 드래그 종료
+    setIsEdit(false)
+  }
+
+  // 슬롯 영역 변경 -> 시간 변경 추적
+  useEffect(() => {
+    if (isEdit) {
+      const updatedSlot = data
+        .flatMap((day) => day.timeSlots)
+        .find((slot) => slot.id === isEdit)
+
+      if (updatedSlot) {
+        console.log(
+          `${isEdit}번째 타임슬롯 업데이트:`,
+          updatedSlot.start,
+          '-',
+          updatedSlot.end,
+        )
+      }
+    }
+  }, [data])
+
+  useEffect(() => {
+    if (draggingHandle) {
+      window.addEventListener('mousemove', handleMouseMove)
+      window.addEventListener('mouseup', handleMouseUp)
+    }
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove)
+      window.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [draggingHandle])
 
   return (
     <div className="timestamp-container">
       <div className="timestamp-content">
         <div className="w-full max-w-4xl mx-auto bg-white pl-2 pr-8 pt-3 pb-8 grid grid-cols-[auto_1fr]">
-          {/* 시간 표시 열 */}
           <div className="w-7 pr-1 -mt-1">
             {Array.from({ length: 24 }, (_, i) => (
               <div
@@ -80,8 +193,6 @@ const EditTimeStamp: React.FC<EditTimeStampProps> = ({
               </div>
             ))}
           </div>
-
-          {/* 날짜별 데이터 열 */}
           <div
             ref={gridRef}
             className="w-full relative grid z-100 border-[1px] border-[#d9d9d9] rounded-3xl overflow-hidden"
@@ -121,10 +232,8 @@ const EditTimeStamp: React.FC<EditTimeStampProps> = ({
                       }}
                       onMouseDown={() => handleSlotClick(slot.id)}
                     >
-                      {/* 수정 모드일 때 핸들 표시 */}
                       {isEdit === slot.id && (
                         <>
-                          {/* 상단 핸들 */}
                           <div
                             className="absolute -top-[5px] left-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move"
                             onMouseDown={(e) => {
@@ -132,7 +241,6 @@ const EditTimeStamp: React.FC<EditTimeStampProps> = ({
                               handleMouseDown(slot.id, 'start')
                             }}
                           />
-                          {/* 하단 핸들 */}
                           <div
                             className="absolute -bottom-[5px] right-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move"
                             onMouseDown={(e) => {
