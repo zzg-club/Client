@@ -6,6 +6,7 @@ import Title from '@/components/Header/Title'
 import DecideTimeStamp from '@/components/Body/Decide/DecideTimeStamp'
 import SelectedBottom from '@/components/Footer/BottomSheet/SelectedBottom'
 import { SelectItem } from '@/components/Footer/ListItem/SelectItem'
+import CustomModal from '@/components/Modals/CustomModal'
 
 interface TimeSlot {
   start: string
@@ -179,7 +180,7 @@ const participants = [
 export default function Page() {
   const [currentPage, setCurrentPage] = useState(0)
   const [title, setTitle] = useState('제목 없는 일정') // 제목 상태 관리
-  const isPurple = false
+  const [isPurple, setIsPurple] = useState(false)
   const [dateTime, setDateTime] = useState<
     { date: number; timeSlots: { start: string; end: string }[] }[]
   >([])
@@ -306,6 +307,7 @@ export default function Page() {
       }
     })
     setIsOpen(false)
+    setIsPurple(true)
   }
 
   // 제목 수정 함수
@@ -354,13 +356,24 @@ export default function Page() {
     setEndTime(calculatedEndTime)
   }
 
+  const [warning, setWarning] = useState(false)
+
+  const onClickConfirm = () => {
+    if (isPurple) {
+      alert('바텀시트를 올려라')
+    } else {
+      setWarning(true)
+    }
+  }
+
   return (
     <div className="flex flex-col h-full bg-white">
       <Title
-        buttonText="완료"
+        buttonText="확정"
         initialTitle={title} // 하위 컴포넌트에 제목 전달
         onTitleChange={handleTitleChange} // 제목 수정 함수 전달
         isPurple={isPurple}
+        onClickTitleButton={onClickConfirm}
       />
       <DecideSelectedDays
         selectedDates={selectedDates}
@@ -398,6 +411,19 @@ export default function Page() {
           </div>
         </SelectedBottom>
       </div>
+
+      <CustomModal
+        isFooter={true}
+        footerText="확인"
+        onNext={() => setWarning(false)}
+        open={warning}
+        onOpenChange={() => setWarning(!warning)}
+      >
+        <div className="text-center pt-4">
+          한 개 이상 일정을 선택해야 <br />
+          확정할 수 있어요
+        </div>
+      </CustomModal>
     </div>
   )
 }
