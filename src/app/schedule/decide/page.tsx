@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import SelectedDays from '@/components/Header/SelectedDays'
+import DecideSelectedDays from '@/components/Body/Decide/DecideSelectedDays'
 import Title from '@/components/Header/Title'
 import DecideTimeStamp from '@/components/Body/Decide/DecideTimeStamp'
 
@@ -115,6 +115,59 @@ const mockDateTime: ScheduleData[] = [
   },
 ]
 
+const participants = [
+  {
+    id: 1,
+    name: '나',
+    image: '/sampleProfile.png',
+  },
+  {
+    id: 2,
+    name: '김태엽',
+    image: '/sampleProfile.png',
+  },
+  {
+    id: 3,
+    name: '지유진',
+    image: '/sampleProfile.png',
+  },
+  {
+    id: 4,
+    name: '이소룡',
+    image: '/sampleProfile.png',
+  },
+  {
+    id: 5,
+    name: '박진우',
+    image: '/sampleProfile.png',
+  },
+  {
+    id: 6,
+    name: '이예지',
+    image: '/sampleProfile.png',
+  },
+  {
+    id: 7,
+    name: '조성하',
+    image: '/sampleProfile.png',
+  },
+  {
+    id: 8,
+    name: '성윤정',
+    image: '/sampleProfile.png',
+  },
+  {
+    id: 9,
+    name: '김나영',
+    image: '/sampleProfile.png',
+  },
+  {
+    id: 10,
+    name: '이채연',
+    image: '/sampleProfile.png',
+  },
+]
+
 export default function SchedulePage() {
   const [currentPage, setCurrentPage] = useState(0)
   const [title, setTitle] = useState('제목 없는 일정') // 제목 상태 관리
@@ -225,12 +278,14 @@ export default function SchedulePage() {
         onTitleChange={handleTitleChange} // 제목 수정 함수 전달
         isPurple={isPurple}
       />
-      <SelectedDays
+      <DecideSelectedDays
         selectedDates={selectedDates}
         month="1월"
         currentPage={currentPage}
         onPageChange={setCurrentPage}
         highlightedCol={highlightedCol}
+        participants={participants}
+        title={title}
       />
       <div className="flex-grow overflow-hidden mt-2">
         <DecideTimeStamp
