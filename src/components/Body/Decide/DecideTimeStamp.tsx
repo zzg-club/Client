@@ -645,15 +645,15 @@ export default function DecideTimeStamp({
                         className={`absolute inset-0 ${
                           cellStatus.isSelected
                             ? cellStatus.isConfirmed
-                              ? 'opacity-50 bg-[#2a027a]'
-                              : 'opacity-50 bg-[#2a027a]'
+                              ? 'opacity-50 bg-[#2a027a] z-200'
+                              : 'opacity-50 bg-[#2a027a] z-200'
                             : ''
                         }`}
                         style={{ zIndex: 100 }}
                       />
                       {!cellStatus.isConfirmed && cellStatus.isStartCell && (
                         <div
-                          className="absolute -top-[5px] left-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move"
+                          className="absolute -top-[5px] left-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full z-[2000]"
                           onMouseDown={() => {
                             handleMouseDown(
                               rowIndex,
@@ -667,7 +667,7 @@ export default function DecideTimeStamp({
                       )}
                       {!cellStatus.isConfirmed && cellStatus.isEndCell && (
                         <div
-                          className="absolute -bottom-[5px] right-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move"
+                          className="absolute -bottom-[5px] right-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move z-[2000]"
                           onMouseDown={(e) => {
                             e.stopPropagation()
                             handleResizeStart(
