@@ -380,9 +380,10 @@ export default function Page() {
           getDateTime={getDateTime}
           mockDateTime={mockDateTime[0].data}
           handleActiveTime={handleActiveTime}
+          isBottomSheetOpen={isOpen}
         />
       </div>
-      <div>
+      <div className="z-[2000]">
         <SelectedBottom isOpen={isOpen} onClose={() => setIsOpen(false)}>
           <div>
             <SelectItem
