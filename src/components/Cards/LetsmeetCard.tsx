@@ -93,6 +93,7 @@ export function LetsmeetCard({
           </div>
         </div>
       </div>
+
       {/* MembersVariant 모달 */}
       <CustomModal
         open={isMembersModalOpen}

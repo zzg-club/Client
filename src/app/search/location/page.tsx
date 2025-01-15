@@ -24,10 +24,46 @@ const LocationPage: React.FC = () => {
       name: '성북역 롯데골드타운아파트',
       address: '경기 용인시 수지구 성북로 10',
     },
+    {
+      name: '성북역 롯데골드타운아파트',
+      address: '경기 용인시 수지구 성북로 10',
+    },
+    {
+      name: '성북역 롯데골드타운아파트',
+      address: '경기 용인시 수지구 성북로 10',
+    },
+    {
+      name: '성북역 롯데골드타운아파트',
+      address: '경기 용인시 수지구 성북로 10',
+    },
+    {
+      name: '성북역 롯데골드타운아파트',
+      address: '경기 용인시 수지구 성북로 10',
+    },
+    {
+      name: '성북역 롯데골드타운아파트',
+      address: '경기 용인시 수지구 성북로 10',
+    },
+    {
+      name: '성북역 롯데골드타운아파트',
+      address: '경기 용인시 수지구 성북로 10',
+    },
+    {
+      name: '성북역 롯데골드타운아파트',
+      address: '경기 용인시 수지구 성북로 10',
+    },
+    {
+      name: '성북역 롯데골드타운아파트',
+      address: '경기 용인시 수지구 성북로 10',
+    },
   ])
 
   const handleBack = () => {
-    router.push('/letsmeet') // 'place' 페이지로 이동
+    router.push('/letsmeet')
+  }
+
+  const handleLocationClick = () => {
+    router.push('/letsmeet/middle')
   }
 
   return (
@@ -54,7 +90,11 @@ const LocationPage: React.FC = () => {
       {/* 위치 리스트 */}
       <div className={styles.locationList}>
         {locations.map((location, index) => (
-          <div key={index} className={styles.locationItem}>
+          <div
+            key={index}
+            className={styles.locationItem}
+            onClick={() => handleLocationClick()} // 클릭 시 함수 호출
+          >
             <p className={styles.locationName}>{location.name}</p>
             <p className={styles.locationAddress}>{location.address}</p>
           </div>

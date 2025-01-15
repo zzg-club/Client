@@ -5,48 +5,7 @@
       "lat": 37.554722,
       "lng": 126.970833
     },
-    "participants": [
-      {
-        "name": "김태엽",
-        "time": "80분",
-        "icon": "/globe.svg",
-        "lat": 37.690722,
-        "lng": 126.818833,
-        "transport": "subway"
-      },
-      {
-        "name": "박진우",
-        "time": "50분",
-        "icon": "/globe.svg",
-        "lat": 37.474722,
-        "lng": 126.655833,
-        "transport": "subway"
-      },
-      {
-        "name": "이채연",
-        "time": "99분",
-        "icon": "/globe.svg",
-        "lat": 37.849922,
-        "lng": 127.080833,
-        "transport": "subway"
-      },
-      {
-        "name": "성윤정정",
-        "time": "99분",
-        "icon": "/globe.svg",
-        "lat": 37.253722,
-        "lng": 127.073833,
-        "transport": "subway"
-      },
-      {
-        "name": "김나영",
-        "time": "70분",
-        "icon": "/globe.svg",
-        "lat": 37.482722,
-        "lng": 127.289833,
-        "transport": "subway"
-      }
-    ]
+    "participants": []
   },
   {
     "destination": {
@@ -58,7 +17,7 @@
       {
         "name": "박진우",
         "time": "30분",
-        "icon": "/globe.svg",
+        "icon": "/sampleProfile.png",
         "lat": 37.537095,
         "lng": 127.04561,
         "transport": "subway"
@@ -66,7 +25,7 @@
       {
         "name": "이채연",
         "time": "40분",
-        "icon": "/globe.svg",
+        "icon": "/sampleProfile.png",
         "lat": 37.463095,
         "lng": 127.02161,
         "transport": "subway"
@@ -74,7 +33,7 @@
       {
         "name": "지유진",
         "time": "50분",
-        "icon": "/globe.svg",
+        "icon": "/sampleProfile.png",
         "lat": 37.487895,
         "lng": 127.00811,
         "transport": "subway"
@@ -91,7 +50,7 @@
       {
         "name": "김나영",
         "time": "99분",
-        "icon": "/globe.svg",
+        "icon": "/sampleProfile.png",
         "lat": 37.966209,
         "lng": 126.705879,
         "transport": "subway"
@@ -99,7 +58,7 @@
       {
         "name": "지유진",
         "time": "80분",
-        "icon": "/globe.svg",
+        "icon": "/sampleProfile.png",
         "lat": 37.295209,
         "lng": 127.146879,
         "transport": "subway"
@@ -107,7 +66,7 @@
       {
         "name": "김태엽",
         "time": "99분",
-        "icon": "/globe.svg",
+        "icon": "/sampleProfile.png",
         "lat": 36.815209,
         "lng": 127.131879,
         "transport": "subway"
@@ -115,7 +74,7 @@
       {
         "name": "지유진",
         "time": "99분",
-        "icon": "/globe.svg",
+        "icon": "/sampleProfile.png",
         "lat": 37.616209,
         "lng": 126.509879,
         "transport": "subway"
@@ -123,7 +82,7 @@
       {
         "name": "김태엽",
         "time": "99분",
-        "icon": "/globe.svg",
+        "icon": "/sampleProfile.png",
         "lat": 36.982209,
         "lng": 127.476879,
         "transport": "subway"
@@ -131,7 +90,7 @@
       {
         "name": "지유진",
         "time": "90분",
-        "icon": "/globe.svg",
+        "icon": "/sampleProfile.png",
         "lat": 37.241909,
         "lng": 126.767879,
         "transport": "subway"
@@ -139,7 +98,7 @@
       {
         "name": "김태엽",
         "time": "99분",
-        "icon": "/globe.svg",
+        "icon": "/sampleProfile.png",
         "lat": 37.421809,
         "lng": 127.983879,
         "transport": "subway"

@@ -48,7 +48,7 @@ export default function Middle() {
         const myInfo = {
           name: '내 위치',
           time: '50분',
-          icon: '/globe.svg',
+          icon: '/sampleProfile.png',
           lat: location.lat,
           lng: location.lng,
           transport: 'subway',
@@ -70,7 +70,7 @@ export default function Middle() {
         const fallbackInfo = {
           name: '기본 위치',
           time: '기본 시간',
-          icon: '/globe.svg',
+          icon: '/sampleProfile.png',
           lat: 37.5665,
           lng: 126.978,
           transport: 'subway',
@@ -101,6 +101,11 @@ export default function Middle() {
         return prevIndex < dummyDataArray.length - 1 ? prevIndex + 1 : 0
       }
     })
+  }
+
+  const handleConfirm = () => {
+    console.log(`현재 도착지 확정: ${destination.name}`)
+    // 추가 작업 (예: 서버로 확정 상태 전송)
   }
 
   return (
@@ -134,8 +139,12 @@ export default function Middle() {
       >
         <Title
           buttonText="확정"
-          buttonLink="/next-page"
+          buttonLink="#"
           initialTitle="제목 없는 일정"
+          onTitleChange={(newTitle) => console.log('새 제목:', newTitle)}
+          isPurple={true}
+          isDisabled={participants.length <= 1} // 참여 인원이 1명 이하일 경우 비활성화
+          onConfirm={handleConfirm} // 확정 동작
         />
       </header>
 
