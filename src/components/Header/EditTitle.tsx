@@ -37,12 +37,12 @@ export default function EditTitle({
   return (
     <div>
       {isEditing && (
-        <div className="absolute inset-0 bg-black bg-opacity-50 z-10"></div>
+        <div className="absolute inset-0 bg-black bg-opacity-50 z-[3000]"></div>
       )}
 
       <div
         className={`relative flex items-center gap-2 ${
-          isEditing ? 'z-20' : ''
+          isEditing ? 'z-[4000]' : ''
         }`}
       >
         {isEditing ? (
