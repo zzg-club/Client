@@ -296,7 +296,7 @@ export default function EditTimeStamp({
       className={`timestamp-container ${isBottomSheetOpen ? 'pb-[100px]' : 'pb-[40px]'}`}
     >
       <div className="timestamp-content">
-        <div className="w-full max-w-4xl mx-auto bg-white pl-2 pr-8 pt-3 pb-8 grid grid-cols-[auto_1fr]">
+        <div className="w-full max-w-4xl mx-auto bg-white pl-2 pr-8 pt-3 pb-6 grid grid-cols-[auto_1fr]">
           <div className="w-7 pr-1 -mt-1">
             {Array.from({ length: 24 }, (_, i) => (
               <div
@@ -313,15 +313,15 @@ export default function EditTimeStamp({
           </div>
           <div
             ref={gridRef}
-            className="w-full relative grid z-100 border-[1px] border-[#d9d9d9] rounded-3xl overflow-hidden"
+            className="w-full relative grid z-300 border-[1px] border-[#d9d9d9] rounded-3xl overflow-hidden"
             style={{
               gridTemplateColumns: `repeat(${currentDates.length}, 1fr)`,
               backgroundImage: 'linear-gradient(#d9d9d9 1px, transparent 1px)',
               backgroundSize: `100% ${36 * scale}px`,
-              minHeight: `${36 * scale * 24.1}px`,
+              minHeight: `${36 * scale * 24.05}px`,
             }}
           >
-            {currentDates.map((day) => (
+            {currentDates.map((day, columnIndex) => (
               <div
                 key={day.date}
                 className="relative border border-[#d9d9d9] z-100"
@@ -352,6 +352,16 @@ export default function EditTimeStamp({
                     2
                   const height = endTop - startTop
 
+                  // 둥근 테두리 설정 조건
+                  const isTopLeft = columnIndex === 0 && startTop === 0
+                  const isTopRight =
+                    columnIndex === currentDates.length - 1 && startTop === 0
+                  const isBottomLeft =
+                    columnIndex === 0 && endTop >= 36 * scale * 24
+                  const isBottomRight =
+                    columnIndex === currentDates.length - 1 &&
+                    endTop >= 36 * scale * 24
+
                   return (
                     <div
                       key={slot.id}
@@ -359,6 +369,10 @@ export default function EditTimeStamp({
                         isEdit === slot.id
                           ? 'bg-[#9562fa]/20 border-2 border-[#9562fa] z-200'
                           : 'bg-[#9562fa]/60 z-200'
+                      } ${isTopLeft ? 'rounded-tl-[20px]' : ''} ${
+                        isTopRight ? 'rounded-tr-[20px]' : ''
+                      } ${isBottomLeft ? 'rounded-bl-[20px]' : ''} ${
+                        isBottomRight ? 'rounded-br-[20px]' : ''
                       }`}
                       style={{
                         top: `${startTop}px`,
