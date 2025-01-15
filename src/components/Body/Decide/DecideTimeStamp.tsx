@@ -1,6 +1,13 @@
 'use client'
 
-import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
+import {
+  useState,
+  useRef,
+  useCallback,
+  useEffect,
+  useMemo,
+  CSSProperties,
+} from 'react'
 import '@/styles/TimeStamp.css'
 
 interface TimeSlot {
@@ -493,7 +500,7 @@ export default function DecideTimeStamp({
     ) as Selection[]
 
     const cellStatus = getCellStatus(row, col)
-    if (!cellStatus.isSelected || cellStatus.isConfirmed) return {}
+    if (!cellStatus.isSelected) return {}
 
     const isSelected = (r: number, c: number) =>
       allSelections.some(
@@ -515,19 +522,34 @@ export default function DecideTimeStamp({
       onActiveTime(activeSelection.startRow, activeSelection.endRow)
     }
 
-    return {
-      borderTop:
-        !isSelected(row - 1, col) && !isActiveSelection(row - 1, col)
-          ? '2px solid #ffffff'
-          : 'none',
-      borderBottom:
-        !isSelected(row + 1, col) && !isActiveSelection(row + 1, col)
-          ? '2px solid #ffffff'
-          : 'none',
-      borderLeft: '2px solid #ffffff',
-      borderRight: '2px solid #ffffff',
-      boxShadow: '0px 0px 10px 0px #FFF',
+    const borderStyle = cellStatus.isConfirmed
+      ? '2px solid #9562FB'
+      : '2px solid #ffffff'
+
+    const top = !isSelected(row - 1, col) && !isActiveSelection(row - 1, col)
+    const bottom = !isSelected(row + 1, col) && !isActiveSelection(row + 1, col)
+    const left = !isSelected(row, col - 1) && !isActiveSelection(row, col - 1)
+    const right = !isSelected(row, col + 1) && !isActiveSelection(row, col + 1)
+
+    const styles: CSSProperties = {
+      // height: `${18 * scale}px`,
+      borderTop: top ? borderStyle : 'none',
+      borderBottom: bottom ? borderStyle : 'none',
+      borderLeft: left ? borderStyle : 'none',
+      borderRight: right ? borderStyle : 'none',
+      boxShadow: [
+        top ? '0 -4px 8px -2px rgba(255, 255, 255, 0.7)' : '',
+        bottom ? '0 4px 8px -2px rgba(255, 255, 255, 0.7)' : '',
+        //left ? '-4px 0 8px -20px rgba(255, 255, 255, 0.7)' : '',
+        //right ? '4px 0 8px -2px rgba(255, 255, 255, 0.7)' : '',
+      ]
+        .filter(Boolean)
+        .join(', '),
+      position: 'relative' as const,
+      zIndex: cellStatus.isSelected ? 1000 : 'auto',
     }
+
+    return styles
   }
 
   useEffect(() => {
@@ -640,7 +662,7 @@ export default function DecideTimeStamp({
                   return (
                     <div
                       key={rowIndex}
-                      className={`relative cursor-pointer`}
+                      className={`relative cursor-pointer overflow-visible`}
                       style={{
                         ...cellBorder,
                         height: `${18 * scale}px`,
