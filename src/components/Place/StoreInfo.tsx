@@ -1,18 +1,20 @@
-'use client';
+'use client'
 
-import React, { useState } from 'react';
-import KakaoMap from '@/components/Map/KakaoMap'; // KakaoMap 컴포넌트 임포트
+import React, { useState } from 'react'
+import KakaoMap from '@/components/Map/KakaoMap' // KakaoMap 컴포넌트 임포트
 
 const StoreInfo = ({ selectedPlace }: { selectedPlace: any }) => {
-  const [activeDropdown, setActiveDropdown] = useState<'time' | 'capacity' | null>(null); // 드롭다운 상태 관리
+  const [activeDropdown, setActiveDropdown] = useState<
+    'time' | 'capacity' | null
+  >(null) // 드롭다운 상태 관리
 
   if (!selectedPlace) {
-    return null; // selectedPlace가 없으면 아무것도 렌더링하지 않음
+    return null // selectedPlace가 없으면 아무것도 렌더링하지 않음
   }
 
   const toggleDropdown = (dropdown: 'time' | 'capacity') => {
-    setActiveDropdown((prev) => (prev === dropdown ? null : dropdown));
-  };
+    setActiveDropdown((prev) => (prev === dropdown ? null : dropdown))
+  }
 
   return (
     <div>
@@ -27,13 +29,21 @@ const StoreInfo = ({ selectedPlace }: { selectedPlace: any }) => {
         }}
       >
         {/* 영업 시간 */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+          }}
+        >
           <img
             src="/clock-icon.svg"
             alt="Clock Icon"
             style={{ width: '28px', height: '28px', marginBottom: '4px' }}
           />
-          <p style={{ fontSize: '12px', color: '#8E8D8D', margin: 0 }}>영업 시간</p>
+          <p style={{ fontSize: '12px', color: '#8E8D8D', margin: 0 }}>
+            영업 시간
+          </p>
           <div
             style={{
               display: 'flex',
@@ -42,11 +52,22 @@ const StoreInfo = ({ selectedPlace }: { selectedPlace: any }) => {
               flexDirection: 'column',
             }}
           >
-            <p style={{ fontSize: '14px', fontWeight: 'bold', color: '#9562FB', margin: 0 }}>
+            <p
+              style={{
+                fontSize: '14px',
+                fontWeight: 'bold',
+                color: '#9562FB',
+                margin: 0,
+              }}
+            >
               10:00 - 22:00
             </p>
             <img
-              src={activeDropdown === 'time' ? '/drop-down-button.svg' : '/drop-button.svg'}
+              src={
+                activeDropdown === 'time'
+                  ? '/drop-down-button.svg'
+                  : '/drop-button.svg'
+              }
               alt="Drop Button"
               style={{ width: '20px', height: '20px', cursor: 'pointer' }}
               onClick={() => toggleDropdown('time')}
@@ -55,13 +76,21 @@ const StoreInfo = ({ selectedPlace }: { selectedPlace: any }) => {
         </div>
 
         {/* 최대 인원 */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+          }}
+        >
           <img
             src="/people.svg"
             alt="People Icon"
             style={{ width: '28px', height: '28px', marginBottom: '4px' }}
           />
-          <p style={{ fontSize: '12px', color: '#8E8D8D', margin: 0 }}>최대 인원</p>
+          <p style={{ fontSize: '12px', color: '#8E8D8D', margin: 0 }}>
+            최대 인원
+          </p>
           <div
             style={{
               display: 'flex',
@@ -70,11 +99,22 @@ const StoreInfo = ({ selectedPlace }: { selectedPlace: any }) => {
               flexDirection: 'column',
             }}
           >
-            <p style={{ fontSize: '14px', fontWeight: 'bold', color: '#9562FB', margin: 0 }}>
+            <p
+              style={{
+                fontSize: '14px',
+                fontWeight: 'bold',
+                color: '#9562FB',
+                margin: 0,
+              }}
+            >
               12명
             </p>
             <img
-              src={activeDropdown === 'capacity' ? '/drop-down-button.svg' : '/drop-button.svg'}
+              src={
+                activeDropdown === 'capacity'
+                  ? '/drop-down-button.svg'
+                  : '/drop-button.svg'
+              }
               alt="Drop Button"
               style={{ width: '20px', height: '20px', cursor: 'pointer' }}
               onClick={() => toggleDropdown('capacity')}
@@ -156,9 +196,13 @@ const StoreInfo = ({ selectedPlace }: { selectedPlace: any }) => {
           }}
         >
           <p>1팀 최대 인원 12명</p>
-          <p style={{ color: '#AFAFAF' }}>✔ 4인 이상 착석 가능한 테이블이 많아요</p>
+          <p style={{ color: '#AFAFAF' }}>
+            ✔ 4인 이상 착석 가능한 테이블이 많아요
+          </p>
           <p style={{ color: '#AFAFAF' }}>✔ 창가 쪽에 혼밥존 있어요</p>
-          <p style={{ color: '#AFAFAF' }}>✔ 예약석 테이블에 12명 착석 가능해요</p>
+          <p style={{ color: '#AFAFAF' }}>
+            ✔ 예약석 테이블에 12명 착석 가능해요
+          </p>
         </div>
       )}
 
@@ -219,7 +263,7 @@ const StoreInfo = ({ selectedPlace }: { selectedPlace: any }) => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default StoreInfo;
+export default StoreInfo

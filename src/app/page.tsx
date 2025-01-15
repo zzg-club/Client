@@ -107,7 +107,7 @@ export default function Home() {
           className="p-6"
           style={{
             padding: '40px 48px',
-            display: 'block'
+            display: 'block',
           }}
         >
           <h2

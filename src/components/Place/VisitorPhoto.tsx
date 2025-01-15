@@ -1,6 +1,6 @@
-'use client';
+'use client'
 
-import React from 'react';
+import React from 'react'
 
 const VisitorPhoto = () => {
   const photos = [
@@ -15,15 +15,15 @@ const VisitorPhoto = () => {
     '/meat9.png',
     '/meat10.png',
     '/meat11.png',
-  ];
+  ]
 
   return (
     <div
       style={{
         marginTop: '20px',
         backgroundColor: '#f7f7f7',
-        paddingLeft: '8px', 
-        paddingRight: '8px', 
+        paddingLeft: '8px',
+        paddingRight: '8px',
       }}
     >
       {/* Masonry 스타일 컨테이너 */}
@@ -55,7 +55,7 @@ const VisitorPhoto = () => {
         ))}
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default VisitorPhoto;
+export default VisitorPhoto

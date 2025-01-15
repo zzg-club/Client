@@ -1,13 +1,13 @@
-'use client';
+'use client'
 
-import React from 'react';
+import React from 'react'
 
 const Menu = () => {
   const menuItems = [
     { name: '생갈비', price: '65,000원', image: '/meat1.png' },
     { name: '특등심', price: '34,000원', image: '/meat2.png' },
     { name: '살치살', price: '37,000원', image: '/meat3.png' },
-  ];
+  ]
 
   return (
     <div
@@ -89,7 +89,7 @@ const Menu = () => {
         ))}
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Menu;
+export default Menu

@@ -19,14 +19,18 @@
 /* Bottom Sheet 상태별 지도 높이 */
 .map-container {
   width: 100%;
-  transition: margin-bottom 0.3s ease, height 0.3s ease; /* 부드러운 전환 */
+  transition:
+    margin-bottom 0.3s ease,
+    height 0.3s ease; /* 부드러운 전환 */
   z-index: 1;
 }
 
 .map-container {
   width: 100%;
   height: 100%; /* 기본적으로 화면 전체를 차지 */
-  transition: margin-bottom 0.3s ease-in-out, height 0.3s ease-in-out;
+  transition:
+    margin-bottom 0.3s ease-in-out,
+    height 0.3s ease-in-out;
 }
 
 .map-container.collapsed {
@@ -38,9 +42,8 @@
 }
 
 .map-container.expanded {
-  margin-bottom: 0px!important;
+  margin-bottom: 0px !important;
 }
-
 
 .detail-container {
   width: 100%;
@@ -49,11 +52,10 @@
   height: 100%; /* 부모 요소 크기에 맞춰 유연하게 */
 }
 
-
 .dragHandle {
   width: 64px;
   height: 5px;
-  background-color: #AFAFAF;
+  background-color: #afafaf;
   border-radius: 4px;
   margin: 0 auto;
   cursor: pointer;
@@ -70,7 +72,6 @@
   z-index: 1; /* dragHandle 아래로 설정 */
   height: 200px;
 }
-
 
 /* 왼쪽 큰 이미지 */
 .gallery-large {
@@ -144,7 +145,7 @@
   bottom: 0;
   left: 0;
   width: 100%;
-  background-color: #ffffff; 
+  background-color: #ffffff;
   border-radius: 24px 24px;
   overflow-y: auto; /* 스크롤 활성화 */
   transition: height 0.3s ease-in-out;
@@ -182,20 +183,19 @@
   font-weight: 600;
   line-height: 17px; /* 85% */
   letter-spacing: -0.5px;
-  color: #8E8D8D; /* 기본 탭 색상 */
+  color: #8e8d8d; /* 기본 탭 색상 */
   cursor: pointer;
   padding-bottom: 7px; /* 아래쪽 간격 */
-  transition: color 0.3s ease, border-bottom 0.3s ease;
+  transition:
+    color 0.3s ease,
+    border-bottom 0.3s ease;
 }
 
 /* 활성화된 탭 */
 .tab.selected {
-  color: #9562FB; /* 활성화된 탭 색상 */
-  border-bottom: 2px solid #9562FB; /* 활성화된 탭 하단 경계선 */
+  color: #9562fb; /* 활성화된 탭 색상 */
+  border-bottom: 2px solid #9562fb; /* 활성화된 탭 하단 경계선 */
 }
-
-
-
 
 /* Bottom Sheet 내용 */
 .content {
@@ -261,7 +261,7 @@
 /* MOIM-Pick 텍스트 */
 .storeText {
   overflow: hidden;
-  color: var(--glassmorph-black, #1E1E1E);
+  color: var(--glassmorph-black, #1e1e1e);
   text-overflow: ellipsis;
   font-family: Pretendard;
   font-size: 16px;
@@ -321,8 +321,8 @@
   overflow: hidden; /* 카드 내부 컨텐츠가 넘치지 않도록 설정 */
 }
 
-.cardTitle{
-  color: #1E1E1E;
+.cardTitle {
+  color: #1e1e1e;
   font-family: Pretendard, sans-serif;
   font-size: 24px;
   font-style: normal;
@@ -330,7 +330,6 @@
   line-height: 17px; /* 85% */
   letter-spacing: -0.5px;
 }
- 
 
 /* 카드 콘텐츠 */
 .cardContent {
@@ -432,7 +431,7 @@
   font-family: Pretendard;
   color: white;
   font-weight: 400;
-  line-height: 17px; 
+  line-height: 17px;
   letter-spacing: -0.5px;
   border-radius: 24px 24px 24px 0px;
   width: auto;
@@ -478,8 +477,8 @@
   height: 48px;
   flex-shrink: 0;
   border-radius: 16px;
-  border: 1px solid var(--NavBarColor, #AFAFAF);
-  background: var(--Grays-White, #FFF);
+  border: 1px solid var(--NavBarColor, #afafaf);
+  background: var(--Grays-White, #fff);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -491,19 +490,19 @@
 .backIcon {
   width: 26px;
   height: 26px;
-  color: #1E1E1E;
+  color: #1e1e1e;
 }
 
 .closeButton {
   position: absolute;
   top: 16px;
-  right: 16px; 
+  right: 16px;
   width: 48px;
   height: 48px;
   flex-shrink: 0;
   border-radius: 16px;
-  border: 1px solid var(--NavBarColor, #AFAFAF);
-  background: var(--Grays-White, #FFF);
+  border: 1px solid var(--NavBarColor, #afafaf);
+  background: var(--Grays-White, #fff);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -514,7 +513,7 @@
 .closeIcon {
   width: 26px;
   height: 26px;
-  color: #1E1E1E;
+  color: #1e1e1e;
 }
 
 .bottomSheetTopRightButton {
@@ -524,14 +523,16 @@
   height: 48px;
   flex-shrink: 0;
   border-radius: 16px;
-  background: var(--MainColor, #9562FB);
+  background: var(--MainColor, #9562fb);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   z-index: 11; /* BottomSheet 위로 표시 */
-  transition: bottom 0.3s ease, opacity 0.3s ease; /* 부드럽게 애니메이션 효과 */
+  transition:
+    bottom 0.3s ease,
+    opacity 0.3s ease; /* 부드럽게 애니메이션 효과 */
 }
 
 .bottomSheetTopRightButton.collapsed {
@@ -577,6 +578,3 @@
   width: 28px;
   height: 28px;
 }
-
-
-

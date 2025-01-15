@@ -1,6 +1,6 @@
-'use client';
+'use client'
 
-import React from 'react';
+import React from 'react'
 
 const SectionTitle = ({ title }: { title: string }) => {
   return (
@@ -10,7 +10,7 @@ const SectionTitle = ({ title }: { title: string }) => {
         alignItems: 'center',
         marginBottom: '16px',
         marginTop: '2px',
-        padding: '0px 14px', 
+        padding: '0px 14px',
       }}
     >
       <h2
@@ -23,7 +23,7 @@ const SectionTitle = ({ title }: { title: string }) => {
           color: '#9562FB',
           margin: 0,
           marginRight: '7px', // 텍스트와 선 사이 간격
-          marginLeft:'10px'
+          marginLeft: '10px',
         }}
       >
         {title}
@@ -38,7 +38,7 @@ const SectionTitle = ({ title }: { title: string }) => {
         }}
       ></div>
     </div>
-  );
-};
+  )
+}
 
-export default SectionTitle;
+export default SectionTitle
