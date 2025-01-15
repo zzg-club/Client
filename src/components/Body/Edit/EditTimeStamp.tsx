@@ -298,7 +298,7 @@ export default function EditTimeStamp({
       <div className="timestamp-content">
         <div className="w-full max-w-4xl mx-auto bg-white pl-2 pr-8 pt-3 pb-8 grid grid-cols-[auto_1fr]">
           <div className="w-7 pr-1 -mt-1">
-            {Array.from({ length: 23 }, (_, i) => (
+            {Array.from({ length: 24 }, (_, i) => (
               <div
                 key={i}
                 className="text-[10px] text-[#afafaf]"
@@ -307,7 +307,7 @@ export default function EditTimeStamp({
                   paddingTop: `${36 * scale}px`,
                 }}
               >
-                {`${String(i + 1).padStart(2, '0')}시`}{' '}
+                {i < 23 ? `${String(i + 1).padStart(2, '0')}시` : ''}{' '}
               </div>
             ))}
           </div>
@@ -318,12 +318,13 @@ export default function EditTimeStamp({
               gridTemplateColumns: `repeat(${currentDates.length}, 1fr)`,
               backgroundImage: 'linear-gradient(#d9d9d9 1px, transparent 1px)',
               backgroundSize: `100% ${36 * scale}px`,
+              minHeight: `${36 * scale * 24.1}px`,
             }}
           >
             {currentDates.map((day) => (
               <div
                 key={day.date}
-                className="relative border-r border-[#d9d9d9] z-100"
+                className="relative border border-[#d9d9d9] z-100"
               >
                 {day.timeSlots.map((slot) => {
                   // console.log('Slot 데이터:', slot)
@@ -354,9 +355,9 @@ export default function EditTimeStamp({
                   return (
                     <div
                       key={slot.id}
-                      className={`absolute left-0 cursor-pointer ${
+                      className={`absolute cursor-pointer ${
                         isEdit === slot.id
-                          ? 'bg-[#9562fa]/20 z-200 border-2 border-[#9562fa]'
+                          ? 'bg-[#9562fa]/20 border-2 border-[#9562fa] z-200'
                           : 'bg-[#9562fa]/60 z-200'
                       }`}
                       style={{
