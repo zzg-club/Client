@@ -1,220 +1,396 @@
-import { useState, useRef, useEffect } from 'react'
-import '../../../styles/TimeStamp.css'
+'use client'
+
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
+import '@/styles/TimeStamp.css'
 
 interface TimeSlot {
   id: number
   start: string
   end: string
+  date?: string
 }
 
-interface selectedScheduleData {
+interface DateData {
   date: string
   timeSlots: TimeSlot[]
 }
 
+interface Selection {
+  startRow: number
+  startCol: number
+  endRow: number
+  endCol: number
+  isSelected: boolean
+  isConfirmed: boolean
+}
+
 interface EditTimeStampProps {
-  data: selectedScheduleData[]
+  selectedDates: { date: number; weekday: string }[]
   currentPage: number
   onPageChange: (newPage: number) => void
-  onSlotClick: (id: number) => void
+  handleSelectedCol: (colIndex: number) => void
+  getDateTime: (col: number, start: string, end: string) => void
+  mockSelectedSchedule: DateData[]
   isBottomSheetOpen: boolean
+  handleTimeSelect: (
+    colIndex: number,
+    startTime: string,
+    endTime: string,
+  ) => void
+}
+
+const COLUMNS_PER_PAGE = 7
+
+// 시간 문자열을 인덱스로 변환하는 함수
+const timeToIndex = (time: string) => {
+  const [hours, minutes] = time.split(':').map(Number)
+  return hours * 2 + (minutes >= 30 ? 1 : 0)
+}
+
+// 인덱스를 시간 문자열로 변환하는 함수
+const indexToTime = (index: number) => {
+  const hours = Math.floor(index / 2)
+  const minutes = (index % 2) * 30
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`
 }
 
 export default function EditTimeStamp({
-  data: initialData,
+  selectedDates,
   currentPage,
-  onSlotClick,
+  handleSelectedCol,
+  getDateTime,
+  mockSelectedSchedule,
   isBottomSheetOpen,
+  handleTimeSelect,
 }: EditTimeStampProps) {
-  const COLUMNS_PER_PAGE = 7
-  const [scale, setScale] = useState(1)
-  const [isEdit, setIsEdit] = useState<number | boolean>(false)
-  const [draggingHandle, setDraggingHandle] = useState<null | 'start' | 'end'>(
+  const [selections] = useState<Selection[]>([])
+  const [isResizing, setIsResizing] = useState(false)
+  const [activeSelection, setActiveSelection] = useState<Selection | null>(null)
+  const [resizingPoint, setResizingPoint] = useState<'start' | 'end' | null>(
     null,
   )
-  const [data, setData] = useState(initialData) // 로컬 데이터 상태
-  const dataRef = useRef(initialData) // 최신 상태를 저장할 Ref
+  const [scale, setScale] = useState(1)
   const gridRef = useRef<HTMLDivElement>(null)
 
-  const currentDates = data.slice(
+  const currentDates = selectedDates.slice(
     currentPage * COLUMNS_PER_PAGE,
     (currentPage + 1) * COLUMNS_PER_PAGE,
   )
 
-  // 상태를 업데이트하고 Ref에 반영
-  const setAndSyncData = (updatedData: selectedScheduleData[]) => {
-    setData(updatedData)
-    dataRef.current = updatedData
+  const onColumnClick = useCallback(
+    (colIndex: number) => {
+      if (colIndex == -1) {
+        handleSelectedCol(colIndex)
+        return 0
+      }
+      if (gridRef.current) {
+        const actualColIndex = colIndex
+        handleSelectedCol(actualColIndex)
+      }
+    },
+    [handleSelectedCol],
+  )
+
+  const handleDateTimeSelect = useCallback(
+    (col: number, start: string, end: string) => {
+      setTimeout(() => {
+        getDateTime(col, start, end)
+      }, 0)
+    },
+    [getDateTime],
+  )
+
+  const [selectionsByPage, setSelectionsByPage] = useState<{
+    [key: number]: Selection[]
+  }>({})
+
+  const currentSelections = useMemo(() => {
+    return selectionsByPage[currentPage] || []
+  }, [selectionsByPage, currentPage])
+
+  const isOverlapping = useCallback(
+    (selection: Selection) => {
+      const { startRow, endRow } = selection
+      const minRow = Math.min(startRow, endRow)
+      const maxRow = Math.max(startRow, endRow)
+
+      return selections.some((existing) => {
+        const existingMinRow = Math.min(existing.startRow, existing.endRow)
+        const existingMaxRow = Math.max(existing.startRow, existing.endRow)
+
+        return !(maxRow < existingMinRow || minRow > existingMaxRow)
+      })
+    },
+    [selections],
+  )
+
+  const handleMouseClick = (rowIndex: number, colIndex: number) => {
+    if (isBottomSheetOpen) return
+
+    const scheduleIndex = currentPage * COLUMNS_PER_PAGE + colIndex
+    const schedule = mockSelectedSchedule[scheduleIndex]
+
+    if (!schedule) return
+
+    const clickedSlot = schedule.timeSlots.find((slot) => {
+      const startIdx = timeToIndex(slot.start)
+      const endIdx = timeToIndex(slot.end) - 1
+      return rowIndex >= startIdx && rowIndex <= endIdx
+    })
+
+    if (clickedSlot) {
+      const startIdx = timeToIndex(clickedSlot.start)
+      const endIdx = timeToIndex(clickedSlot.end)
+
+      setActiveSelection({
+        startRow: startIdx,
+        startCol: colIndex,
+        endRow: endIdx - 1,
+        endCol: colIndex,
+        isSelected: true,
+        isConfirmed: false,
+      })
+
+      // 바텀시트 열기
+      handleSelectedCol(colIndex)
+
+      // 시간 정보 전달
+      handleTimeSelect(colIndex, clickedSlot.start, clickedSlot.end)
+    }
   }
 
-  // 슬롯을 클릭했을 때의 이벤트
-  const handleSlotClick = (id: number) => {
-    setIsEdit(id)
-    onSlotClick(id)
-    const selectedSlot = currentDates
-      .flatMap((day) => day.timeSlots)
-      .find((slot) => slot.id === id)
-
-    console.log(
-      `${id}번째 타임슬롯 선택:`,
-      selectedSlot?.start,
-      '-',
-      selectedSlot?.end,
-    )
+  const handleMouseDown = (
+    rowIndex: number,
+    colIndex: number,
+    isStartPoint: boolean,
+    selection: Selection,
+  ) => {
+    setIsResizing(true)
+    setActiveSelection(selection)
+    setResizingPoint(isStartPoint ? 'start' : 'end')
   }
 
-  // 슬롯부분 클릭했을 때의 이벤트
-  const handleMouseDown = (id: number, type: 'start' | 'end') => {
-    setDraggingHandle(type)
-    setIsEdit(id)
+  const handleResizeStart = (
+    rowIndex: number,
+    colIndex: number,
+    isStartPoint: boolean,
+    selection: Selection,
+  ) => {
+    setIsResizing(true)
+    setActiveSelection(selection)
+    setResizingPoint(isStartPoint ? 'start' : 'end')
   }
 
-  // 슬롯부분 클릭 후 드래그 이벤트
-  const handleMouseMove = (e: MouseEvent) => {
-    if (isEdit === null || !gridRef.current) return
-    const rect = gridRef.current.getBoundingClientRect()
-    const cellHeight = rect.height / 48 // 48개의 셀로 분할
-    const row = Math.min(
-      Math.max(Math.floor((e.clientY - rect.top) / cellHeight), 0),
-      48, // 최대 48까지 허용 (24:00)
-    )
+  const handleMouseMove = useCallback(
+    (e: MouseEvent) => {
+      if (!gridRef.current || !activeSelection) return
 
-    setAndSyncData(
-      data.map((day) => ({
-        ...day,
-        timeSlots: day.timeSlots.map((slot) => {
-          if (slot.id === isEdit) {
-            const startRow =
-              Number(slot.start.split(':')[0]) * 2 +
-              Math.floor(Number(slot.start.split(':')[1]) / 30)
-            const endRow =
-              Number(slot.end.split(':')[0]) * 2 +
-              Math.floor(Number(slot.end.split(':')[1]) / 30)
+      const rect = gridRef.current.getBoundingClientRect()
+      const cellHeight = rect.height / 48
+      const row = Math.min(
+        Math.max(Math.floor((e.clientY - rect.top) / cellHeight), 0),
+        47,
+      )
 
-            if (draggingHandle === 'start') {
-              // 시작 핸들: 종료 핸들 위치까지 이동 가능
-              const newStartRow = Math.min(row, endRow)
-              const newStartHour = Math.floor(newStartRow / 2)
-              const newStartMinute = (newStartRow % 2) * 30
-              return {
-                ...slot,
-                start: `${String(newStartHour).padStart(2, '0')}:${String(
-                  newStartMinute,
-                ).padStart(2, '0')}`,
+      // console.log('ActiveSelection', activeSelection)
+
+      setActiveSelection((prev) => {
+        if (!prev) return null
+
+        const newSelection = { ...prev }
+
+        if (isResizing) {
+          if (resizingPoint === 'start') {
+            if (row < prev.endRow) {
+              newSelection.startRow = row
+              if (isBottomSheetOpen) {
+                handleTimeSelect(
+                  prev.startCol,
+                  indexToTime(row),
+                  indexToTime(prev.endRow + 1),
+                )
               }
             }
-
-            if (draggingHandle === 'end') {
-              // 종료 핸들: 시작 핸들 위치까지 이동 가능
-              const newEndRow = Math.max(row, startRow)
-              const newEndHour = Math.floor(newEndRow / 2)
-              const newEndMinute = (newEndRow % 2) * 30
-              return {
-                ...slot,
-                end: `${String(newEndHour).padStart(2, '0')}:${String(
-                  newEndMinute,
-                ).padStart(2, '0')}`,
+          } else if (resizingPoint === 'end') {
+            if (row > prev.startRow) {
+              newSelection.endRow = row
+              if (isBottomSheetOpen) {
+                handleTimeSelect(
+                  prev.startCol,
+                  indexToTime(prev.startRow),
+                  indexToTime(row + 1),
+                )
               }
             }
           }
+        }
+        return !isOverlapping(newSelection) ? newSelection : prev
+      })
+    },
+    [
+      activeSelection,
+      isResizing,
+      resizingPoint,
+      isOverlapping,
+      handleTimeSelect,
+      isBottomSheetOpen,
+    ],
+  )
+
+  const handleMouseUp = useCallback(() => {
+    if (activeSelection) {
+      const finalizedSelection = {
+        ...activeSelection,
+        isSelected: true,
+        isConfirmed: true,
+      }
+
+      // 수정된 시간 계산
+      const startTime = indexToTime(finalizedSelection.startRow)
+      const endTime = indexToTime(finalizedSelection.endRow + 1)
+
+      // 현재 페이지의 목데이터 인덱스 계산
+      const scheduleIndex =
+        currentPage * COLUMNS_PER_PAGE + finalizedSelection.startCol
+      const schedule = mockSelectedSchedule[scheduleIndex]
+
+      if (schedule) {
+        // 수정된 시간 슬롯 업데이트
+        schedule.timeSlots = schedule.timeSlots.map((slot) => {
+          if (
+            timeToIndex(slot.start) <= finalizedSelection.endRow &&
+            timeToIndex(slot.end) - 1 >= finalizedSelection.startRow
+          ) {
+            return {
+              ...slot,
+              start: startTime,
+              end: endTime,
+            }
+          }
           return slot
-        }),
-      })),
-    )
-  }
+        })
 
-  const timeToMinutes = (time: string): number => {
-    const [hours, minutes] = time.split(':').map(Number)
-    return hours * 60 + minutes
-  }
-
-  const minutesToTime = (minutes: number): string => {
-    const hours = Math.floor(minutes / 60)
-    const mins = minutes % 60
-    return `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`
-  }
-
-  const mergeOverlappingSlots = (day: selectedScheduleData) => {
-    const sortedSlots = [...day.timeSlots].sort((a, b) =>
-      a.start.localeCompare(b.start),
-    )
-
-    const mergedSlots: TimeSlot[] = []
-
-    sortedSlots.forEach((slot) => {
-      if (
-        mergedSlots.length > 0 &&
-        timeToMinutes(mergedSlots[mergedSlots.length - 1].end) >=
-          timeToMinutes(slot.start)
-      ) {
-        // 병합
-        const newEnd = Math.max(
-          timeToMinutes(mergedSlots[mergedSlots.length - 1].end),
-          timeToMinutes(slot.end),
+        // 콘솔에 수정된 날짜와 시간 출력
+        const selectedDate = currentDates[finalizedSelection.startCol]
+        console.log(
+          `${selectedDate.month}월 ${selectedDate.date}일 ${startTime}-${endTime}`,
         )
 
-        mergedSlots[mergedSlots.length - 1].end = minutesToTime(newEnd)
-      } else {
-        // 새로운 슬롯 추가
-        mergedSlots.push(slot)
+        // 선택된 시간 정보 전달
+        handleDateTimeSelect(finalizedSelection.startCol, startTime, endTime)
       }
+    }
+
+    // 리사이징 상태 초기화
+    setIsResizing(false)
+    setActiveSelection(null)
+    setResizingPoint(null)
+  }, [
+    activeSelection,
+    currentPage,
+    currentDates,
+    handleDateTimeSelect,
+    mockSelectedSchedule,
+  ])
+
+  useEffect(() => {
+    const handleMouseUpWithColumnClick = () => {
+      handleMouseUp()
+      onColumnClick(-1)
+    }
+
+    if (activeSelection || isResizing) {
+      window.addEventListener('mousemove', handleMouseMove)
+      window.addEventListener('mouseup', handleMouseUpWithColumnClick)
+    }
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove)
+      window.removeEventListener('mouseup', handleMouseUpWithColumnClick)
+    }
+  }, [
+    activeSelection,
+    isResizing,
+    handleMouseMove,
+    handleMouseUp,
+    onColumnClick,
+    currentSelections,
+  ])
+
+  const getCellStatus = (row: number, col: number) => {
+    // 현재 페이지의 목데이터 인덱스 계산
+    const scheduleIndex = currentPage * COLUMNS_PER_PAGE + col
+    const schedule = mockSelectedSchedule[scheduleIndex]
+
+    // 활성화된 선택 영역 확인
+    const activeCell =
+      activeSelection &&
+      col === activeSelection.startCol &&
+      row >= Math.min(activeSelection.startRow, activeSelection.endRow) &&
+      row <= Math.max(activeSelection.startRow, activeSelection.endRow)
+
+    // 목데이터에서 해당 셀이 포함된 시간 슬롯 찾기
+    const timeSlot = schedule?.timeSlots.find((slot) => {
+      const startIdx = timeToIndex(slot.start)
+      const endIdx = timeToIndex(slot.end) - 1
+      return row >= startIdx && row <= endIdx
     })
 
-    return {
-      ...day,
-      timeSlots: mergedSlots,
-    }
-  }
-
-  // DELETE 요청 함수 (나중에 백엔드 delete api 연결할 함수ㄴ)
-  const deleteTimeSlot = (id: number) => {
-    console.log(`${id} 삭제되었습니다.`)
-  }
-
-  // 슬롯 드래그 끝났을 때의 이벤트
-  const handleMouseUp = () => {
-    setDraggingHandle(null)
-    setIsEdit(false)
-
-    if (isEdit) {
-      const updatedData = dataRef.current.map((day) =>
-        day.timeSlots.some((slot) => slot.id === isEdit)
-          ? mergeOverlappingSlots(day)
-          : day,
-      )
-
-      setAndSyncData(updatedData)
-
-      const updatedSlot = updatedData
-        .flatMap((day) => day.timeSlots)
-        .find((slot) => slot.id === isEdit)
-
-      if (updatedSlot) {
-        // start와 end가 같으면 삭제
-        if (updatedSlot.start === updatedSlot.end) {
-          console.log(
-            `Deleting slot with id ${updatedSlot.id} as start and end are the same.`,
-          )
-
-          // DELETE 요청
-          deleteTimeSlot(updatedSlot.id)
-
-          // 로컬 데이터에서 삭제
-          const newData = updatedData.map((day) => ({
-            ...day,
-            timeSlots: day.timeSlots.filter(
-              (slot) => slot.id !== updatedSlot.id,
-            ),
-          }))
-          setAndSyncData(newData)
-        } else {
-          console.log(`Updated slot: ${updatedSlot.start} - ${updatedSlot.end}`)
-        }
+    if (activeCell) {
+      // 활성화된 선택 영역
+      return {
+        isSelected: true,
+        isConfirmed: false,
+        isStartCell: row === activeSelection.startRow,
+        isEndCell: row === activeSelection.endRow,
+        selection: activeSelection,
       }
     }
+
+    if (timeSlot) {
+      // 목데이터 시각화
+      const startIdx = timeToIndex(timeSlot.start)
+      const endIdx = timeToIndex(timeSlot.end) - 1
+      return {
+        isSelected: true,
+        isConfirmed: true,
+        isStartCell: row === startIdx,
+        isEndCell: row === endIdx,
+        selection: null,
+      }
+    }
+
+    return {
+      isSelected: false,
+      isConfirmed: false,
+      isStartCell: false,
+      isEndCell: false,
+      selection: null,
+    }
   }
 
-  // 핀치줌 코드
+  const getCellBorder = (row: number, col: number) => {
+    const cellStatus = getCellStatus(row, col)
+
+    // 활성화된 선택 영역에만 border 적용
+    if (!cellStatus.isSelected || cellStatus.isConfirmed) return {}
+
+    const topCell = getCellStatus(row - 1, col)
+    const bottomCell = getCellStatus(row + 1, col)
+
+    return {
+      borderTop:
+        !topCell.isSelected || topCell.isConfirmed
+          ? '2px solid #9562fa'
+          : 'none',
+      borderBottom:
+        !bottomCell.isSelected || bottomCell.isConfirmed
+          ? '2px solid #9562fa'
+          : 'none',
+      borderLeft: '2px solid #9562fa',
+      borderRight: '2px solid #9562fa',
+    }
+  }
+
   useEffect(() => {
     const element = gridRef.current
     if (!element) return
@@ -254,7 +430,7 @@ export default function EditTimeStamp({
       }
     }
 
-    // 마우스 휠 줌 이벤트 처리
+    // 마우스 휠 줌 이벤트
     const handleWheel = (e: WheelEvent) => {
       if (e.ctrlKey) {
         e.preventDefault()
@@ -263,15 +439,11 @@ export default function EditTimeStamp({
       }
     }
 
-    // 이벤트 리스너 등록
     element.addEventListener('wheel', handleWheel, { passive: false })
-    element.addEventListener('touchstart', handleTouchStart, {
-      passive: false,
-    })
+    element.addEventListener('touchstart', handleTouchStart, { passive: false })
     element.addEventListener('touchmove', handleTouchMove, { passive: false })
     element.addEventListener('touchend', handleTouchEnd)
 
-    // 클린업
     return () => {
       element.removeEventListener('wheel', handleWheel)
       element.removeEventListener('touchstart', handleTouchStart)
@@ -280,25 +452,14 @@ export default function EditTimeStamp({
     }
   }, [])
 
-  useEffect(() => {
-    if (draggingHandle) {
-      window.addEventListener('mousemove', handleMouseMove)
-      window.addEventListener('mouseup', handleMouseUp)
-    }
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove)
-      window.removeEventListener('mouseup', handleMouseUp)
-    }
-  }, [draggingHandle])
-
   return (
     <div
       className={`timestamp-container ${isBottomSheetOpen ? 'pb-[100px]' : 'pb-[40px]'}`}
     >
       <div className="timestamp-content">
-        <div className="w-full max-w-4xl mx-auto bg-white pl-2 pr-8 pt-3 pb-6 grid grid-cols-[auto_1fr]">
+        <div className="w-full max-w-4xl mx-auto bg-white pl-2 pr-8 pt-3 pb-8 flex grid grid-cols-[auto_1fr]">
           <div className="w-7 pr-1 -mt-1">
-            {Array.from({ length: 24 }, (_, i) => (
+            {Array.from({ length: 23 }, (_, i) => (
               <div
                 key={i}
                 className="text-[10px] text-[#afafaf]"
@@ -307,97 +468,83 @@ export default function EditTimeStamp({
                   paddingTop: `${36 * scale}px`,
                 }}
               >
-                {i < 23 ? `${String(i + 1).padStart(2, '0')}시` : ''}{' '}
+                {`${String(i + 1).padStart(2, '0')}시`}{' '}
               </div>
             ))}
           </div>
           <div
             ref={gridRef}
-            className="w-full relative grid z-300 border-[1px] border-[#d9d9d9] rounded-3xl overflow-hidden"
+            className=" w-full relative grid z-100 border-[1px] border-[#d9d9d9] rounded-3xl overflow-hidden"
             style={{
               gridTemplateColumns: `repeat(${currentDates.length}, 1fr)`,
               backgroundImage: 'linear-gradient(#d9d9d9 1px, transparent 1px)',
               backgroundSize: `100% ${36 * scale}px`,
-              minHeight: `${36 * scale * 24.05}px`,
             }}
           >
-            {currentDates.map((day, columnIndex) => (
+            {currentDates.map((_, colIndex) => (
               <div
-                key={day.date}
+                key={colIndex}
                 className="relative border border-[#d9d9d9] z-100"
               >
-                {day.timeSlots.map((slot) => {
-                  // console.log('Slot 데이터:', slot)
-
-                  // slot.start와 slot.end가 문자열인지 확인하고 변환
-                  const start =
-                    typeof slot.start === 'string'
-                      ? slot.start
-                      : String(slot.start)
-                  const end =
-                    typeof slot.end === 'string' ? slot.end : String(slot.end)
-
-                  // start와 end를 split
-                  const [startHour, startMinute] = start.split(':').map(Number)
-                  const [endHour, endMinute] = end.split(':').map(Number)
-
-                  // 위치 계산
-                  const startTop =
-                    ((startHour * 2 + Math.floor(startMinute / 30)) *
-                      (36 * scale)) /
-                    2
-                  const endTop =
-                    ((endHour * 2 + Math.floor(endMinute / 30)) *
-                      (36 * scale)) /
-                    2
-                  const height = endTop - startTop
-
-                  // 둥근 테두리 설정 조건
-                  const isTopLeft = columnIndex === 0 && startTop === 0
-                  const isTopRight =
-                    columnIndex === currentDates.length - 1 && startTop === 0
-                  const isBottomLeft =
-                    columnIndex === 0 && endTop >= 36 * scale * 24
-                  const isBottomRight =
-                    columnIndex === currentDates.length - 1 &&
-                    endTop >= 36 * scale * 24
-
+                {Array.from({ length: 48 }, (_, rowIndex) => {
+                  const cellStatus = getCellStatus(rowIndex, colIndex)
+                  const cellBorder = getCellBorder(rowIndex, colIndex)
                   return (
                     <div
-                      key={slot.id}
-                      className={`absolute cursor-pointer ${
-                        isEdit === slot.id
-                          ? 'bg-[#9562fa]/20 border-2 border-[#9562fa] z-200'
-                          : 'bg-[#9562fa]/60 z-200'
-                      } ${isTopLeft ? 'rounded-tl-[20px]' : ''} ${
-                        isTopRight ? 'rounded-tr-[20px]' : ''
-                      } ${isBottomLeft ? 'rounded-bl-[20px]' : ''} ${
-                        isBottomRight ? 'rounded-br-[20px]' : ''
+                      key={rowIndex}
+                      className={`relative cursor-pointer ${
+                        cellStatus.isSelected
+                          ? cellStatus.isConfirmed
+                            ? 'bg-[#9562fa]/60'
+                            : 'bg-[#9562fa]/20'
+                          : ''
                       }`}
                       style={{
-                        top: `${startTop}px`,
-                        height: `${height}px`,
-                        width: '100%',
+                        ...cellBorder,
+                        height: `${18 * scale}px`,
                       }}
-                      onMouseDown={() => handleSlotClick(slot.id)}
+                      onClick={() => {
+                        handleMouseClick(rowIndex, colIndex)
+                        onColumnClick(colIndex)
+                      }}
                     >
-                      {isEdit === slot.id && (
-                        <>
-                          <div
-                            className="absolute -top-[5px] left-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move"
-                            onMouseDown={(e) => {
-                              e.stopPropagation()
-                              handleMouseDown(slot.id, 'start')
-                            }}
-                          />
-                          <div
-                            className="absolute -bottom-[5px] right-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move"
-                            onMouseDown={(e) => {
-                              e.stopPropagation()
-                              handleMouseDown(slot.id, 'end')
-                            }}
-                          />
-                        </>
+                      {!cellStatus.isConfirmed && cellStatus.isStartCell && (
+                        <div
+                          className="absolute -top-[5px] left-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move"
+                          onMouseDown={() => {
+                            handleMouseDown(
+                              rowIndex,
+                              colIndex,
+                              true,
+                              cellStatus.selection!,
+                            )
+                            onColumnClick(colIndex)
+                          }}
+                        />
+                      )}
+                      {!cellStatus.isConfirmed && cellStatus.isEndCell && (
+                        <div
+                          className="absolute -bottom-[5px] right-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move"
+                          onMouseDown={(e) => {
+                            e.stopPropagation()
+                            handleResizeStart(
+                              rowIndex,
+                              colIndex,
+                              false,
+                              cellStatus.selection!,
+                            )
+                          }}
+                          onTouchStart={(e) => {
+                            e.stopPropagation()
+                            handleResizeStart(
+                              rowIndex,
+                              colIndex,
+                              false,
+                              cellStatus.selection!,
+                            )
+                            onColumnClick(colIndex)
+                          }}
+                        />
                       )}
                     </div>
                   )
