@@ -1,7 +1,7 @@
 import React from 'react'
 
 interface MiddleFooter2RightProps {
-  onClick: () => void // 클릭 이벤트 핸들러
+  onClick?: () => void // 클릭 이벤트 핸들러
 }
 
 const MiddleFooter2Right: React.FC<MiddleFooter2RightProps> = ({ onClick }) => {

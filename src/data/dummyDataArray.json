@@ -20,7 +20,8 @@
         "icon": "/sampleProfile.png",
         "lat": 37.537095,
         "lng": 127.04561,
-        "transport": "subway"
+        "transport": "subway",
+        "depart": "삼성역"
       },
       {
         "name": "이채연",
@@ -28,7 +29,8 @@
         "icon": "/sampleProfile.png",
         "lat": 37.463095,
         "lng": 127.02161,
-        "transport": "subway"
+        "transport": "subway",
+        "depart": "선릉역"
       },
       {
         "name": "지유진",
@@ -36,7 +38,8 @@
         "icon": "/sampleProfile.png",
         "lat": 37.487895,
         "lng": 127.00811,
-        "transport": "subway"
+        "transport": "subway",
+        "depart": "역삼역"
       }
     ]
   },
@@ -53,7 +56,8 @@
         "icon": "/sampleProfile.png",
         "lat": 37.966209,
         "lng": 126.705879,
-        "transport": "subway"
+        "transport": "subway",
+        "depart": "인천역"
       },
       {
         "name": "지유진",
@@ -61,7 +65,8 @@
         "icon": "/sampleProfile.png",
         "lat": 37.295209,
         "lng": 127.146879,
-        "transport": "subway"
+        "transport": "subway",
+        "depart": "수원역"
       },
       {
         "name": "김태엽",
@@ -69,7 +74,8 @@
         "icon": "/sampleProfile.png",
         "lat": 36.815209,
         "lng": 127.131879,
-        "transport": "subway"
+        "transport": "subway",
+        "depart": "청주역"
       },
       {
         "name": "지유진",
@@ -77,7 +83,8 @@
         "icon": "/sampleProfile.png",
         "lat": 37.616209,
         "lng": 126.509879,
-        "transport": "subway"
+        "transport": "subway",
+        "depart": "김포공항역"
       },
       {
         "name": "김태엽",
@@ -85,7 +92,8 @@
         "icon": "/sampleProfile.png",
         "lat": 36.982209,
         "lng": 127.476879,
-        "transport": "subway"
+        "transport": "subway",
+        "depart": "평택역"
       },
       {
         "name": "지유진",
@@ -93,7 +101,8 @@
         "icon": "/sampleProfile.png",
         "lat": 37.241909,
         "lng": 126.767879,
-        "transport": "subway"
+        "transport": "subway",
+        "depart": "안양역"
       },
       {
         "name": "김태엽",
@@ -101,7 +110,8 @@
         "icon": "/sampleProfile.png",
         "lat": 37.421809,
         "lng": 127.983879,
-        "transport": "subway"
+        "transport": "subway",
+        "depart": "춘천역"
       }
     ]
   }

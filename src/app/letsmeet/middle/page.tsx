@@ -53,6 +53,7 @@ export default function Middle() {
           lng: location.lng,
           transport: 'subway',
           transportIcon: '/subwayPurple.svg',
+          depart: '죽전역',
         }
 
         const updatedParticipants = [
@@ -75,6 +76,7 @@ export default function Middle() {
           lng: 126.978,
           transport: 'subway',
           transportIcon: '/subwayPurple.svg',
+          depart: '서울역',
         }
 
         const updatedParticipants = [
