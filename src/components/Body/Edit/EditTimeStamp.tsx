@@ -83,10 +83,6 @@ export default function EditTimeStamp({
         handleSelectedCol(colIndex)
         return 0
       }
-      if (gridRef.current) {
-        const actualColIndex = colIndex
-        handleSelectedCol(actualColIndex)
-      }
     },
     [handleSelectedCol],
   )
@@ -201,7 +197,8 @@ export default function EditTimeStamp({
 
         if (isResizing) {
           if (resizingPoint === 'start') {
-            if (row < prev.endRow) {
+            // 시작 핸들은 종료 핸들 위치까지 이동 가능
+            if (row - 1 <= prev.endRow) {
               newSelection.startRow = row
               if (isBottomSheetOpen) {
                 handleTimeSelect(
@@ -212,7 +209,8 @@ export default function EditTimeStamp({
               }
             }
           } else if (resizingPoint === 'end') {
-            if (row > prev.startRow) {
+            // 종료 핸들은 시작 핸들 위치까지 이동 가능
+            if (row + 1 >= prev.startRow) {
               newSelection.endRow = row
               if (isBottomSheetOpen) {
                 handleTimeSelect(
@@ -224,6 +222,7 @@ export default function EditTimeStamp({
             }
           }
         }
+
         return !isOverlapping(newSelection) ? newSelection : prev
       })
     },
@@ -248,6 +247,10 @@ export default function EditTimeStamp({
       // 수정된 시간 계산
       const startTime = indexToTime(finalizedSelection.startRow)
       const endTime = indexToTime(finalizedSelection.endRow + 1)
+
+      if (startTime === endTime) {
+        console.log(`시작 시간과 종료 시간이 같습니다: ${startTime}`)
+      }
 
       // 현재 페이지의 목데이터 인덱스 계산
       const scheduleIndex =
@@ -316,6 +319,7 @@ export default function EditTimeStamp({
     currentSelections,
   ])
 
+  // 셀 상태 계산
   const getCellStatus = (row: number, col: number) => {
     // 현재 페이지의 목데이터 인덱스 계산
     const scheduleIndex = currentPage * COLUMNS_PER_PAGE + col
@@ -368,6 +372,7 @@ export default function EditTimeStamp({
     }
   }
 
+  // 셀 테두리 처리
   const getCellBorder = (row: number, col: number) => {
     const cellStatus = getCellStatus(row, col)
 
@@ -376,6 +381,27 @@ export default function EditTimeStamp({
 
     const topCell = getCellStatus(row - 1, col)
     const bottomCell = getCellStatus(row + 1, col)
+
+    // const startTime = indexToTime(cellStatus.selection?.startRow || 0)
+    // const endTime = indexToTime(cellStatus.selection?.endRow + 1 || 0)
+    // if (startTime === endTime) {
+    //   console.log(`시작 시간과 종료 시간이 같습니다: ${startTime}`)
+    //   return {
+    //     borderTop:
+    //       !bottomCell.isSelected || bottomCell.isConfirmed
+    //         ? '2px solid #9562fa'
+    //         : 'none',
+    //     borderBottom:
+    //       !topCell.isSelected || topCell.isConfirmed
+    //         ? '2px solid #9562fa'
+    //         : 'none',
+    //     backgroundColor:
+    //       (topCell.isSelected || topCell.isConfirmed) &&
+    //       (bottomCell.isSelected || bottomCell.isConfirmed)
+    //         ? 'white'
+    //         : 'none',
+    //   }
+    // }
 
     return {
       borderTop:
@@ -391,6 +417,7 @@ export default function EditTimeStamp({
     }
   }
 
+  // 터치 줌 이벤트
   useEffect(() => {
     const element = gridRef.current
     if (!element) return
@@ -484,7 +511,7 @@ export default function EditTimeStamp({
             {currentDates.map((_, colIndex) => (
               <div
                 key={colIndex}
-                className="relative border border-[#d9d9d9] z-100"
+                className="relative border-r border-[#d9d9d9] z-100"
               >
                 {Array.from({ length: 48 }, (_, rowIndex) => {
                   const cellStatus = getCellStatus(rowIndex, colIndex)
