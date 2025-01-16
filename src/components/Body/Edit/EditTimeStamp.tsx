@@ -276,7 +276,7 @@ export default function EditTimeStamp({
         // 콘솔에 수정된 날짜와 시간 출력
         const selectedDate = currentDates[finalizedSelection.startCol]
         console.log(
-          `${selectedDate.month}월 ${selectedDate.date}일 ${startTime}-${endTime}`,
+          `${selectedDate.month}월 ${selectedDate.date}일 ${startTime} - ${endTime}`,
         )
 
         // 선택된 시간 정보 전달
@@ -382,6 +382,33 @@ export default function EditTimeStamp({
     const topCell = getCellStatus(row - 1, col)
     const bottomCell = getCellStatus(row + 1, col)
 
+    const startTime = indexToTime(cellStatus.selection?.startRow ?? 0)
+    const endTime = indexToTime((cellStatus.selection?.endRow ?? 0) + 1)
+    if (startTime === endTime) {
+      console.log(`시작 시간과 종료 시간이 같습니다: ${startTime}`)
+      return {
+        borderTop:
+          (!bottomCell.isSelected || bottomCell.isConfirmed) &&
+          (topCell.isSelected || topCell.isConfirmed)
+            ? '2px solid #9562fa'
+            : '1px solid #d9d9d9',
+        borderBottom:
+          !topCell.isSelected || topCell.isConfirmed
+            ? '2px solid #9562fa'
+            : 'none',
+        backgroundColor:
+          (topCell.isSelected || topCell.isConfirmed) &&
+          (bottomCell.isSelected || bottomCell.isConfirmed)
+            ? 'rgba(149, 98, 250, 0.6)'
+            : 'white',
+        paddingTop:
+          (topCell.isSelected || topCell.isConfirmed) &&
+          (bottomCell.isSelected || bottomCell.isConfirmed)
+            ? '0px'
+            : '2px',
+      }
+    }
+
     return {
       borderTop:
         !topCell.isSelected || topCell.isConfirmed
@@ -480,7 +507,7 @@ export default function EditTimeStamp({
           </div>
           <div
             ref={gridRef}
-            className=" w-full relative grid z-100 border-[1px] border-[#d9d9d9] rounded-3xl overflow-hidden"
+            className=" w-full relative grid z-500 border-[1px] border-[#d9d9d9] rounded-3xl overflow-hidden"
             style={{
               gridTemplateColumns: `repeat(${currentDates.length}, 1fr)`,
               backgroundImage: 'linear-gradient(#d9d9d9 1px, transparent 1px)',
