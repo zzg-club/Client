@@ -230,11 +230,11 @@ export default function DecideTimeStamp({
 
         if (isResizing) {
           if (resizingPoint === 'start') {
-            if (row < prev.endRow) {
+            if (row - 1 <= prev.endRow) {
               newSelection.startRow = row
             }
           } else if (resizingPoint === 'end') {
-            if (row > prev.startRow) {
+            if (row + 1 >= prev.startRow) {
               newSelection.endRow = row
             }
           }
@@ -528,15 +528,13 @@ export default function DecideTimeStamp({
 
     const top = !isSelected(row - 1, col) && !isActiveSelection(row - 1, col)
     const bottom = !isSelected(row + 1, col) && !isActiveSelection(row + 1, col)
-    const left = !isSelected(row, col - 1) && !isActiveSelection(row, col - 1)
-    const right = !isSelected(row, col + 1) && !isActiveSelection(row, col + 1)
 
     const styles: CSSProperties = {
       // height: `${18 * scale}px`,
       borderTop: top ? borderStyle : 'none',
       borderBottom: bottom ? borderStyle : 'none',
-      borderLeft: left ? borderStyle : 'none',
-      borderRight: right ? borderStyle : 'none',
+      borderLeft: borderStyle,
+      borderRight: borderStyle,
       boxShadow: [
         top ? '0 -4px 8px -2px rgba(255, 255, 255, 0.7)' : '',
         bottom ? '0 4px 8px -2px rgba(255, 255, 255, 0.7)' : '',
@@ -618,7 +616,7 @@ export default function DecideTimeStamp({
       className={`timestamp-container ${isBottomSheetOpen ? 'pb-[100px]' : 'pb-[40px]'}`}
     >
       <div className="timestamp-content">
-        <div className="w-full max-w-4xl mx-auto bg-white pl-2 pr-8 pt-3 pb-8 flex grid grid-cols-[auto_1fr]">
+        <div className="timestamp-grid w-full max-w-4xl mx-auto bg-white pl-2 pr-8 pt-3 pb-8 flex grid grid-cols-[auto_1fr]">
           <div className="w-7 pr-1 -mt-1">
             {Array.from({ length: 23 }, (_, i) => (
               <div
@@ -635,17 +633,18 @@ export default function DecideTimeStamp({
           </div>
           <div
             ref={gridRef}
-            className="w-full relative grid z-100 border-[1px] border-[#d9d9d9] rounded-3xl overflow-hidden"
+            className="timestamp-grid w-full relative grid z-100 border-[1px] border-[#d9d9d9] rounded-3xl"
             style={{
               gridTemplateColumns: `repeat(${currentDates.length}, 1fr)`,
               backgroundImage: 'linear-gradient(#d9d9d9 1px, transparent 1px)',
               backgroundSize: `100% ${36 * scale}px`,
+              clipPath: 'inset(1px 0 0 0)', // 위쪽 1px 잘라냄
             }}
           >
             {currentDates.map((_, colIndex) => (
               <div
                 key={colIndex}
-                className="relative border border-[#d9d9d9] z-100"
+                className="relative border-r border-[#d9d9d9] z-100 last:border-r-0"
               >
                 {Array.from({ length: 48 }, (_, rowIndex) => {
                   const cellStatus = getCellStatus(rowIndex, colIndex)
@@ -666,6 +665,7 @@ export default function DecideTimeStamp({
                       style={{
                         ...cellBorder,
                         height: `${18 * scale}px`,
+                        borderCollapse: 'separate',
                       }}
                       onMouseDown={() => {
                         handleMouseClick(rowIndex, colIndex)
@@ -694,7 +694,7 @@ export default function DecideTimeStamp({
                       />
                       {!cellStatus.isConfirmed && cellStatus.isStartCell && (
                         <div
-                          className="absolute -top-[5px] left-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full z-[2000]"
+                          className="absolute -top-[5px] left-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move z-[2000]"
                           onMouseDown={() => {
                             handleMouseDown(
                               rowIndex,
@@ -708,7 +708,8 @@ export default function DecideTimeStamp({
                       )}
                       {!cellStatus.isConfirmed && cellStatus.isEndCell && (
                         <div
-                          className="absolute -bottom-[5px] right-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move z-[2000]"
+                          className="absolute -bottom-[5px] right-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move"
+                          style={{ zIndex: 3000 }}
                           onMouseDown={(e) => {
                             e.stopPropagation()
                             handleResizeStart(
