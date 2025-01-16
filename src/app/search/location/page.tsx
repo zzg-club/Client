@@ -27,7 +27,7 @@ const LocationPage: React.FC = () => {
   ])
 
   const handleBack = () => {
-    router.push('/letsmeet') // 'place' 페이지로 이동
+    router.back();
   }
 
   return (
