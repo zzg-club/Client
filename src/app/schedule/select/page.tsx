@@ -19,7 +19,7 @@ interface ScheduleData {
   userId: number // 사용자 ID
   groupId: number // 그룹 ID
   mode: string
-  selected: [string, string] | null
+  selected: string[] | null
   date: [string, string][] // 날짜 배열: [날짜, 요일]의 배열
 }
 
@@ -35,6 +35,7 @@ export default function Page() {
   >([])
   const [isOpen, setIsOpen] = useState(false)
   const [isExpanded, setIsExpanded] = useState(true)
+  const [dateCounts, setDateCounts] = useState<number[]>([])
 
   const toggleExpand = () => {
     setIsExpanded((prev) => !prev)
@@ -46,6 +47,10 @@ export default function Page() {
 
   const handleTitleChange = (newTitle: string) => {
     setTitle(newTitle)
+  }
+
+  const handleDateCountsChange = (counts: number[]) => {
+    setDateCounts(counts)
   }
 
   const handleSelectedCol = useCallback(
@@ -221,15 +226,20 @@ export default function Page() {
       userId: 2,
       groupId: 1,
       // mode: 'week',
-      // selected: ['mon', 'wed'],
+      // selected: ['mon', 'wed', 'fri'],
       // date: [
       //   ['2024-01-06', 'mon'],
-      //   ['2024-01-13', 'mon'],
-      //   ['2024-01-20', 'mon'],
-      //   ['2024-01-27', 'mon'],
       //   ['2024-01-08', 'wed'],
+      //   ['2024-01-13', 'mon'],
       //   ['2024-01-15', 'wed'],
+      //   ['2024-01-20', 'mon'],
       //   ['2024-01-22', 'wed'],
+      //   ['2024-01-27', 'mon'],
+      //   ['2024-01-03', 'fri'],
+      //   ['2024-01-10', 'fri'],
+      //   ['2024-01-17', 'fri'],
+      //   ['2024-01-24', 'fri'],
+      //   ['2024-01-31', 'fri'],
       // ],
       mode: 'range',
       selected: null,
@@ -245,7 +255,7 @@ export default function Page() {
         ['2024-01-07', 'tue'],
         ['2024-01-08', 'wed'],
         ['2024-01-09', 'thu'],
-        // ['2024-01-10', 'fri'],
+        ['2024-01-10', 'fri'],
         // ['2024-01-11', 'sat'],
         // ['2024-01-12', 'sun'],
       ],
@@ -281,12 +291,15 @@ export default function Page() {
         highlightedCol={highlightedCol}
         isExpanded={isExpanded}
         toggleExpand={toggleExpand}
+        onDateCountsChange={handleDateCountsChange}
       />
       <div className="flex-grow overflow-hidden mt-2">
         <TimeStamp
           selectedDates={selectedDates}
           currentPage={currentPage}
+          mode={mode}
           onPageChange={handlePageChange}
+          dateCounts={dateCounts}
           handleSelectedCol={handleSelectedCol}
           handleActiveTime={handleActiveTime}
           getDateTime={getDateTime}

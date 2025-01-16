@@ -15,7 +15,9 @@ interface Selection {
 interface TimeStampProps {
   selectedDates: { day: number; weekday: string }[]
   currentPage: number
+  mode: string
   onPageChange: (newPage: number) => void
+  dateCounts: number[]
   handleSelectedCol: (colIndex: number, rowIndex: number) => void
   handleActiveTime: (start: number, end: number) => void
   getDateTime: (col: number, start: string, end: string) => void
@@ -29,6 +31,8 @@ const COLUMNS_PER_PAGE = 7
 export default function TimeStamp({
   selectedDates,
   currentPage,
+  mode,
+  dateCounts,
   handleSelectedCol,
   handleActiveTime,
   getDateTime,
@@ -45,10 +49,36 @@ export default function TimeStamp({
   const [scale, setScale] = useState(1)
   const gridRef = useRef<HTMLDivElement>(null)
 
-  const currentDates = selectedDates.slice(
-    currentPage * COLUMNS_PER_PAGE,
-    (currentPage + 1) * COLUMNS_PER_PAGE,
-  )
+  const currentDates =
+    mode === 'range'
+      ? selectedDates.slice(
+          currentPage * COLUMNS_PER_PAGE,
+          (currentPage + 1) * COLUMNS_PER_PAGE,
+        )
+      : (() => {
+          let startIndex = 0
+          let endIndex = 0
+
+          // dateCounts에 따라 날짜 범위 계산
+          for (let i = 0; i < dateCounts.length; i++) {
+            const pageSize = dateCounts[i]
+            if (currentPage === i) {
+              endIndex = startIndex + pageSize
+              break
+            }
+            startIndex += pageSize
+          }
+
+          return selectedDates.slice(startIndex, endIndex)
+        })()
+
+  const [selectionsByPage, setSelectionsByPage] = useState<{
+    [key: number]: Selection[]
+  }>({})
+
+  const currentSelections = useMemo(() => {
+    return selectionsByPage[currentPage] || []
+  }, [selectionsByPage, currentPage])
 
   const onColumnClick = useCallback(
     (colIndex: number, rowIndex: number) => {
@@ -87,14 +117,6 @@ export default function TimeStamp({
     },
     [getDateTime],
   )
-
-  const [selectionsByPage, setSelectionsByPage] = useState<{
-    [key: number]: Selection[]
-  }>({})
-
-  const currentSelections = useMemo(() => {
-    return selectionsByPage[currentPage] || []
-  }, [selectionsByPage, currentPage])
 
   const isOverlapping = useCallback(
     (selection: Selection) => {
@@ -505,7 +527,6 @@ export default function TimeStamp({
 
     let initialDistance = 0
 
-    // 핀치 줌 이벤트 처리
     const handleTouchStart = (e: TouchEvent) => {
       if (e.touches.length === 2) {
         const touch1 = e.touches[0]
@@ -587,12 +608,13 @@ export default function TimeStamp({
               gridTemplateColumns: `repeat(${currentDates.length}, 1fr)`,
               backgroundImage: 'linear-gradient(#d9d9d9 1px, transparent 1px)',
               backgroundSize: `100% ${36 * scale}px`,
+              clipPath: 'inset(1px 0 0)',
             }}
           >
             {currentDates.map((_, colIndex) => (
               <div
                 key={colIndex}
-                className="relative border border-[#d9d9d9] z-100"
+                className="relative border-r border-[#d9d9d9] z-100 last:border-r-0"
               >
                 {Array.from({ length: 48 }, (_, rowIndex) => {
                   const cellStatus = getCellStatus(rowIndex, colIndex)

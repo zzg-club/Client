@@ -1,10 +1,13 @@
 'use client'
 
+import { useCallback } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { GoTriangleUp, GoTriangleDown } from 'react-icons/go'
 import { LuDot } from 'react-icons/lu'
 
 interface SelectedDate {
+  year: number
+  month: number
   day: number
   weekday: string
 }
@@ -13,12 +16,13 @@ interface SelectedDaysProps {
   selectedDates: SelectedDate[]
   month: string
   mode: string
-  dayofWeek: [string, string] | null
+  dayofWeek: string[] | null
   currentPage: number
   onPageChange: (newPage: number) => void
   highlightedCol: number | null
   isExpanded: boolean
   toggleExpand: () => void
+  onDateCountsChange: (counts: number[]) => void
 }
 
 const DAYS_PER_PAGE = 7
@@ -33,30 +37,13 @@ export default function SelectedDays({
   highlightedCol,
   isExpanded,
   toggleExpand,
+  onDateCountsChange,
 }: SelectedDaysProps) {
-  const totalPages = Math.ceil(selectedDates.length / DAYS_PER_PAGE)
   const isSingleDate = selectedDates.length === 1
   const highlightedIndex =
     highlightedCol !== null
       ? highlightedCol - currentPage * DAYS_PER_PAGE
       : null
-
-  const getCurrentPageDates = () => {
-    const start = currentPage * DAYS_PER_PAGE
-    return selectedDates.slice(start, start + DAYS_PER_PAGE)
-  }
-
-  const currentDates = getCurrentPageDates()
-
-  const isFullWeek = currentDates.length === 7
-
-  const handlePrevPage = () => {
-    onPageChange(Math.max(0, currentPage - 1))
-  }
-
-  const handleNextPage = () => {
-    onPageChange(Math.min(totalPages - 1, currentPage + 1))
-  }
 
   const weekdayMap: { [key: string]: string } = {
     mon: '월',
@@ -66,6 +53,81 @@ export default function SelectedDays({
     fri: '금',
     sat: '토',
     sun: '일',
+  }
+
+  const groupByWeekday = useCallback(
+    (selectedDates: SelectedDate[], dayofWeek: string[] | null) => {
+      if (!dayofWeek) {
+        console.log('dayofWeek is null or empty.')
+        return []
+      }
+
+      const grouped = dayofWeek.map((day) => {
+        const weekdayKor = weekdayMap[day]
+        const datesForWeekday = selectedDates.filter(
+          (date) => date.weekday === weekdayKor,
+        )
+
+        return {
+          weekday: day,
+          date: datesForWeekday,
+        }
+      })
+      return grouped
+    },
+    [weekdayMap],
+  )
+
+  const getCurrentPageDates = useCallback(() => {
+    if (mode === 'range') {
+      const start = currentPage * DAYS_PER_PAGE
+      return selectedDates.slice(start, start + DAYS_PER_PAGE)
+    } else {
+      const groupedData = groupByWeekday(selectedDates, dayofWeek)
+
+      if (!Array.isArray(groupedData)) {
+        return []
+      }
+
+      const pageGroupedData = groupedData[currentPage]
+        ? groupedData[currentPage].date
+        : []
+
+      const dateCounts = groupedData.map((group) => group.date.length)
+
+      setTimeout(() => {
+        onDateCountsChange(dateCounts)
+      }, 0)
+
+      return pageGroupedData
+    }
+  }, [
+    mode,
+    currentPage,
+    selectedDates,
+    groupByWeekday,
+    dayofWeek,
+    onDateCountsChange,
+  ])
+
+  const currentDates = getCurrentPageDates()
+  const isFullWeek = currentDates.length === 7
+
+  const totalPages =
+    mode === 'range'
+      ? Math.ceil(selectedDates.length / DAYS_PER_PAGE)
+      : groupByWeekday(selectedDates, dayofWeek).reduce((acc, group) => {
+          return acc + Math.ceil(group.date.length / DAYS_PER_PAGE)
+        }, 0)
+
+  // console.log('totalPages:', totalPages)
+
+  const handlePrevPage = () => {
+    onPageChange(Math.max(0, currentPage - 1))
+  }
+
+  const handleNextPage = () => {
+    onPageChange(Math.min(totalPages - 1, currentPage + 1))
   }
 
   return (
@@ -158,22 +220,17 @@ export default function SelectedDays({
                 margin: '0 auto',
               }}
             >
-              {currentDates
-                .filter(({ weekday }) => {
-                  const currentDay = dayofWeek?.[currentPage]
-                  return currentDay ? weekday === weekdayMap[currentDay] : true
-                })
-                .map(({ day, weekday }, index) => (
-                  <div
-                    key={day}
-                    className={`flex flex-col items-center w-full ${
-                      highlightedIndex === index ? 'text-[#9562FA]' : ''
-                    }`}
-                  >
-                    <span className="text-3xl font-normal">{day}</span>
-                    <span className="text-s mt-0">{weekday}</span>
-                  </div>
-                ))}
+              {currentDates.map(({ day, weekday }, index) => (
+                <div
+                  key={day}
+                  className={`flex flex-col items-center w-full ${
+                    highlightedIndex === index ? 'text-[#9562FA]' : ''
+                  }`}
+                >
+                  <span className="text-3xl font-normal">{day}</span>
+                  <span className="text-s mt-0">{weekday}</span>
+                </div>
+              ))}
             </div>
           )}
         </div>
