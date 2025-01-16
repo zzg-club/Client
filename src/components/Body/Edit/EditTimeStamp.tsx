@@ -382,27 +382,6 @@ export default function EditTimeStamp({
     const topCell = getCellStatus(row - 1, col)
     const bottomCell = getCellStatus(row + 1, col)
 
-    // const startTime = indexToTime(cellStatus.selection?.startRow || 0)
-    // const endTime = indexToTime(cellStatus.selection?.endRow + 1 || 0)
-    // if (startTime === endTime) {
-    //   console.log(`시작 시간과 종료 시간이 같습니다: ${startTime}`)
-    //   return {
-    //     borderTop:
-    //       !bottomCell.isSelected || bottomCell.isConfirmed
-    //         ? '2px solid #9562fa'
-    //         : 'none',
-    //     borderBottom:
-    //       !topCell.isSelected || topCell.isConfirmed
-    //         ? '2px solid #9562fa'
-    //         : 'none',
-    //     backgroundColor:
-    //       (topCell.isSelected || topCell.isConfirmed) &&
-    //       (bottomCell.isSelected || bottomCell.isConfirmed)
-    //         ? 'white'
-    //         : 'none',
-    //   }
-    // }
-
     return {
       borderTop:
         !topCell.isSelected || topCell.isConfirmed
@@ -506,12 +485,13 @@ export default function EditTimeStamp({
               gridTemplateColumns: `repeat(${currentDates.length}, 1fr)`,
               backgroundImage: 'linear-gradient(#d9d9d9 1px, transparent 1px)',
               backgroundSize: `100% ${36 * scale}px`,
+              clipPath: 'inset(1px 0 0 0)', // 위쪽 1px 잘라냄
             }}
           >
             {currentDates.map((_, colIndex) => (
               <div
                 key={colIndex}
-                className="relative border-r border-[#d9d9d9] z-100"
+                className="relative border-r border-[#d9d9d9] z-100 last:border-r-0"
               >
                 {Array.from({ length: 48 }, (_, rowIndex) => {
                   const cellStatus = getCellStatus(rowIndex, colIndex)
