@@ -39,6 +39,7 @@ interface DecideTimeStampProps {
   mockDateTime: DateData[]
   handleActiveTime: (start: number, end: number) => void
   isBottomSheetOpen: boolean
+  dateTime: { date: number; timeSlots: { start: string; end: string }[] }[]
 }
 
 const COLUMNS_PER_PAGE = 7
@@ -51,6 +52,7 @@ export default function DecideTimeStamp({
   mockDateTime,
   handleActiveTime,
   isBottomSheetOpen,
+  dateTime,
 }: DecideTimeStampProps) {
   const [selections] = useState<Selection[]>([])
   const [isResizing, setIsResizing] = useState(false)
@@ -386,13 +388,13 @@ export default function DecideTimeStamp({
 
         if (isResizing) {
           if (resizingPoint === 'start') {
-            if (row < prev.endRow) {
-              newSelection.startRow = row
-            }
+            newSelection.startRow = Math.min(row, prev.endRow)
           } else if (resizingPoint === 'end') {
-            if (row > prev.startRow) {
-              newSelection.endRow = row
-            }
+            newSelection.endRow = Math.max(row, prev.startRow)
+          }
+
+          if (newSelection.startRow === newSelection.endRow) {
+            return null
           }
         }
 
@@ -610,6 +612,55 @@ export default function DecideTimeStamp({
       element.removeEventListener('touchend', handleTouchEnd)
     }
   }, [])
+
+  // dateTime이 변경될 때마다 선택 영역 업데이트
+  useEffect(() => {
+    setSelectionsByPage((prev) => {
+      const newSelections = { ...prev }
+
+      // 각 페이지의 선택 영역을 순회
+      Object.keys(newSelections).forEach((pageKey) => {
+        const page = parseInt(pageKey)
+        const pageSelections = newSelections[page]
+
+        if (!pageSelections) return
+
+        // 현재 페이지의 선택 영역들을 필터링
+        newSelections[page] = pageSelections.filter((selection) => {
+          // 선택 영역의 날짜와 시간 정보 계산
+          const colDate = selectedDates[selection.startCol]?.date
+
+          const getTimeFromRow = (row: number) => {
+            const hours = Math.floor(row / 2)
+            const minutes = (row % 2) * 30
+            return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`
+          }
+
+          const selectionStart = getTimeFromRow(selection.startRow)
+          const selectionEnd = getTimeFromRow(selection.endRow + 1)
+
+          // dateTime에서 해당 날짜와 시간대가 존재하는지 확인
+          const dateExists = dateTime.some((dateItem) => {
+            if (dateItem.date !== colDate) return false
+
+            return dateItem.timeSlots.some(
+              (slot) =>
+                slot.start === selectionStart && slot.end === selectionEnd,
+            )
+          })
+
+          return dateExists
+        })
+
+        // 빈 페이지 제거
+        if (newSelections[page].length === 0) {
+          delete newSelections[page]
+        }
+      })
+
+      return newSelections
+    })
+  }, [dateTime, selectedDates])
 
   return (
     <div
