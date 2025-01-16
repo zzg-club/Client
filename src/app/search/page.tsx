@@ -25,7 +25,7 @@ export default function SearchPage() {
 
   const handleBackClick = () => {
     // 뒤로가기 버튼 클릭 시 /search 페이지로 이동
-    router.back();
+    router.push('/search')
   }
 
   return (
@@ -39,7 +39,7 @@ export default function SearchPage() {
       <div
         style={{
           display: 'flex',
-          width: '100%',
+          width: '393px',
           padding: '11px 12px',
           justifyContent: 'center',
           alignItems: 'center',

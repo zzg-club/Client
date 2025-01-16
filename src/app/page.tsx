@@ -183,7 +183,6 @@ export default function Home() {
             ></div>
           </div>
           {/* 카카오 로그인 버튼 */}
-          {/* 카카오 로그인 버튼 */}
           <div
             className="kakao_button"
             style={{
@@ -201,33 +200,7 @@ export default function Home() {
               marginLeft: 'auto',
               marginRight: 'auto',
             }}
-            onClick={() => {
-              console.log('Kakao Login Clicked');
-            
-              // 서버에 GET 요청
-              fetch('http://api.mooim.kro.kr/api/start-login', {
-                method: 'GET',
-              })
-                .then((response) => {
-                  if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                  }
-                  return response.text(); // 텍스트 응답 처리
-                })
-                .then((loginUrl) => {
-                  console.log('Kakao Login URL:', loginUrl);
-            
-                  // 서버에서 받은 링크로 리디렉션
-                  if (loginUrl) {
-                    window.location.href = loginUrl; // 응답으로 받은 URL로 리디렉션
-                  } else {
-                    console.error('Invalid response: No login URL received');
-                  }
-                })
-                .catch((error) => {
-                  console.error('Kakao Login Error:', error);
-                });
-            }}            
+            onClick={() => console.log('Kakao Login Clicked')}
           >
             <img
               src="/kakao.svg"
