@@ -122,29 +122,29 @@ export default function SchedulePage() {
     setCurrentPage(newPage)
   }
 
-  useEffect(() => {
-    console.log(`Updated dateTimeData:`, dateTime)
+  // useEffect(() => {
+  //   console.log(`Updated dateTimeData:`, dateTime)
 
-    const updatedData = dateTime.flatMap((dateItem, index) => {
-      const { date, timeSlots } = dateItem
+  //   const updatedData = dateTime.flatMap((dateItem, index) => {
+  //     const { date, timeSlots } = dateItem
 
-      // date에서 일자만 추출
-      const day = date.toString().split('-')[2] // "YYYY-MM-DD"에서 마지막 부분만 가져옴
-      console.log(`Extracted day: ${day}`) // 일자 콘솔 출력
+  //     // date에서 일자만 추출
+  //     const day = date.toString().split('-')[2] // "YYYY-MM-DD"에서 마지막 부분만 가져옴
+  //     console.log(`Extracted day: ${day}`) // 일자 콘솔 출력
 
-      const startDate = `${new Date().getMonth() + 1}월 ${date}일` // date 기반으로 날짜 형식 생성
+  //     const startDate = `${new Date().getMonth() + 1}월 ${date}일` // date 기반으로 날짜 형식 생성
 
-      return timeSlots.map((slot) => ({
-        slotId: index + 1, // 고유 ID 생성
-        number: index + 1,
-        startDate,
-        startTime: slot.start,
-        endTime: slot.end,
-      }))
-    })
+  //     return timeSlots.map((slot) => ({
+  //       slotId: index + 1, // 고유 ID 생성
+  //       number: index + 1,
+  //       startDate,
+  //       startTime: slot.start,
+  //       endTime: slot.end,
+  //     }))
+  //   })
 
-    setUpdateData(updatedData)
-  }, [dateTime]) // dateTimeData가 변경될 때마다 호출
+  //   setUpdateData(updatedData)
+  // }, [dateTime]) // dateTimeData가 변경될 때마다 호출
 
   const getDateTime = (col: number, start: string, end: string) => {
     setTimeout(() => {
@@ -309,7 +309,7 @@ export default function SchedulePage() {
       />
       <SelectedDays
         selectedDates={selectedDates}
-        month="1월"
+        month={'1월'}
         currentPage={currentPage}
         onPageChange={handlePageChange}
         highlightedCol={highlightedCol}
