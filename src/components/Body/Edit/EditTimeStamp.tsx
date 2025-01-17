@@ -4,7 +4,7 @@ import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
 import '@/styles/TimeStamp.css'
 
 interface TimeSlot {
-  id: number
+  slotId: number
   start: string
   end: string
   date?: string
@@ -36,6 +36,7 @@ interface EditTimeStampProps {
     colIndex: number,
     startTime: string,
     endTime: string,
+    slotId: number,
   ) => void
 }
 
@@ -151,7 +152,12 @@ export default function EditTimeStamp({
       handleSelectedCol(colIndex)
 
       // 시간 정보 전달
-      handleTimeSelect(colIndex, clickedSlot.start, clickedSlot.end)
+      handleTimeSelect(
+        colIndex,
+        clickedSlot.start,
+        clickedSlot.end,
+        clickedSlot.slotId,
+      )
     }
   }
 
@@ -194,6 +200,14 @@ export default function EditTimeStamp({
         if (!prev) return null
 
         const newSelection = { ...prev }
+        const scheduleIndex = currentPage * COLUMNS_PER_PAGE + prev.startCol
+        const schedule = mockSelectedSchedule[scheduleIndex]
+        const slotId =
+          schedule?.timeSlots.find(
+            (slot) =>
+              slot.start === indexToTime(row) &&
+              slot.end === indexToTime(prev.endRow + 1),
+          )?.slotId || 0 // ID 가져오기
 
         if (isResizing) {
           if (resizingPoint === 'start') {
@@ -205,6 +219,7 @@ export default function EditTimeStamp({
                   prev.startCol,
                   indexToTime(row),
                   indexToTime(prev.endRow + 1),
+                  slotId, // ID 추가
                 )
               }
             }
@@ -217,6 +232,7 @@ export default function EditTimeStamp({
                   prev.startCol,
                   indexToTime(prev.startRow),
                   indexToTime(row + 1),
+                  slotId,
                 )
               }
             }

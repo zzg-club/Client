@@ -8,7 +8,7 @@ import SelectedBottom from '@/components/Footer/BottomSheet/SelectedBottom'
 import { EditItem } from '@/components/Footer/ListItem/EditItem'
 
 interface TimeSlot {
-  id: number
+  slotId: number
   start: string
   end: string
   date?: string
@@ -30,12 +30,12 @@ const mockSelectedSchedule: DateData[] = [
     date: '2025-01-01',
     timeSlots: [
       {
-        id: 1,
+        slotId: 1,
         start: '01:00',
         end: '05:30',
       },
       {
-        id: 2,
+        slotId: 2,
         start: '12:30',
         end: '16:00',
       },
@@ -45,12 +45,12 @@ const mockSelectedSchedule: DateData[] = [
     date: '2025-01-02',
     timeSlots: [
       {
-        id: 1,
+        slotId: 3,
         start: '09:00',
         end: '13:00',
       },
       {
-        id: 2,
+        slotId: 4,
         start: '17:30',
         end: '22:00',
       },
@@ -60,12 +60,12 @@ const mockSelectedSchedule: DateData[] = [
     date: '2025-01-03',
     timeSlots: [
       {
-        id: 1,
+        slotId: 5,
         start: '04:30',
         end: '10:00',
       },
       {
-        id: 2,
+        slotId: 6,
         start: '13:30',
         end: '16:00',
       },
@@ -75,12 +75,12 @@ const mockSelectedSchedule: DateData[] = [
     date: '2025-01-04',
     timeSlots: [
       {
-        id: 1,
+        slotId: 7,
         start: '06:00',
         end: '10:30',
       },
       {
-        id: 2,
+        slotId: 8,
         start: '17:30',
         end: '22:00',
       },
@@ -102,7 +102,7 @@ export default function SchedulePage() {
   const [endTime, setEndTime] = useState<string | null>(null)
   const [updateData, setUpdateData] = useState<
     {
-      id: number
+      slotId: number
       number: number
       startDate: string
       startTime: string
@@ -115,6 +115,7 @@ export default function SchedulePage() {
     date: string
     startTime: string
     endTime: string
+    slotId: number
   } | null>(null)
 
   const handlePageChange = (newPage: number) => {
@@ -127,10 +128,14 @@ export default function SchedulePage() {
     const updatedData = dateTime.flatMap((dateItem, index) => {
       const { date, timeSlots } = dateItem
 
+      // date에서 일자만 추출
+      const day = date.toString().split('-')[2] // "YYYY-MM-DD"에서 마지막 부분만 가져옴
+      console.log(`Extracted day: ${day}`) // 일자 콘솔 출력
+
       const startDate = `${new Date().getMonth() + 1}월 ${date}일` // date 기반으로 날짜 형식 생성
 
       return timeSlots.map((slot) => ({
-        id: index + 1, // 고유 ID 생성
+        slotId: index + 1, // 고유 ID 생성
         number: index + 1,
         startDate,
         startTime: slot.start,
@@ -263,8 +268,9 @@ export default function SchedulePage() {
     setEndTime(calculatedEndTime)
   }
 
-  const handleDeleteSchedule = (id: number) => {
-    setUpdateData((prev) => prev.filter((item) => item.id !== id))
+  const handleDeleteSchedule = (slotId: number) => {
+    setUpdateData((prev) => prev.filter((item) => item.slotId !== slotId))
+    console.log(`${slotId} 삭제`)
   }
 
   const handleSelectedCol = (colIndex: number) => {
@@ -276,6 +282,7 @@ export default function SchedulePage() {
     colIndex: number,
     startTime: string,
     endTime: string,
+    slotId: number,
   ) => {
     if (colIndex >= 0 && selectedDates[colIndex]) {
       const selectedDate = selectedDates[colIndex]
@@ -286,6 +293,7 @@ export default function SchedulePage() {
           date: `${selectedDate.month}월 ${selectedDate.date}일`,
           startTime,
           endTime,
+          slotId,
         })
       }, 0)
     }
@@ -321,11 +329,11 @@ export default function SchedulePage() {
       <SelectedBottom isOpen={isOpen} onClose={() => setIsOpen(false)}>
         <div>
           <EditItem
-            id={id || 0}
+            slotId={selectedTimeInfo?.slotId || 0}
             date={selectedTimeInfo?.date || ''}
             startTime={selectedTimeInfo?.startTime || ''}
             endTime={selectedTimeInfo?.endTime || ''}
-            onDelete={handleDeleteSchedule}
+            onDelete={(slotId) => handleDeleteSchedule(slotId)}
           />
         </div>
       </SelectedBottom>
