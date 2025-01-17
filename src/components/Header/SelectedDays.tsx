@@ -1,6 +1,7 @@
 'use client'
 
-import { useCallback } from 'react'
+import { useCallback, useState, useEffect, useRef } from 'react'
+import { isEqual } from 'lodash'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { GoTriangleUp, GoTriangleDown } from 'react-icons/go'
 import { LuDot } from 'react-icons/lu'
@@ -10,6 +11,22 @@ interface SelectedDate {
   month: number
   day: number
   weekday: string
+}
+
+interface GroupedDate {
+  weekday: string
+  dates?: {
+    year: number
+    month: number
+    day: number
+    weekday: string
+  }[]
+  date?: {
+    year: number
+    month: number
+    day: number
+    weekday: string
+  }[]
 }
 
 interface SelectedDaysProps {
@@ -22,7 +39,7 @@ interface SelectedDaysProps {
   highlightedCol: number | null
   isExpanded: boolean
   toggleExpand: () => void
-  onDateCountsChange: (counts: number[]) => void
+  onDateCountsChange: (counts: number[], groupedData: GroupedDate[]) => void
 }
 
 const DAYS_PER_PAGE = 7
@@ -39,6 +56,9 @@ export default function SelectedDays({
   toggleExpand,
   onDateCountsChange,
 }: SelectedDaysProps) {
+  const [dateCounts, setDateCounts] = useState<number[]>([])
+  const [groupedData, setGroupedData] = useState<GroupedDate[]>([])
+
   const isSingleDate = selectedDates.length === 1
   const highlightedIndex =
     highlightedCol !== null
@@ -93,22 +113,40 @@ export default function SelectedDays({
         ? groupedData[currentPage].date
         : []
 
-      const dateCounts = groupedData.map((group) => group.date.length)
+      // dateCounts와 groupedData를 최신 상태로 설정
+      const newDateCounts = groupedData.map((group) => group.date.length)
 
-      setTimeout(() => {
-        onDateCountsChange(dateCounts)
-      }, 0)
+      // 상태 업데이트 조건 추가: 실제로 값이 변경될 때만 상태 업데이트
+      if (
+        !dateCountsRef.current ||
+        !isEqual(dateCountsRef.current, newDateCounts)
+      ) {
+        setDateCounts(newDateCounts) // 상태 변경
+        dateCountsRef.current = newDateCounts // ref 업데이트
+      }
+
+      if (
+        !groupedDataRef.current ||
+        !isEqual(groupedDataRef.current, groupedData)
+      ) {
+        setGroupedData(groupedData) // 상태 변경
+        groupedDataRef.current = groupedData // ref 업데이트
+      }
 
       return pageGroupedData
     }
-  }, [
-    mode,
-    currentPage,
-    selectedDates,
-    groupByWeekday,
-    dayofWeek,
-    onDateCountsChange,
-  ])
+  }, [mode, currentPage, selectedDates, groupByWeekday, dayofWeek])
+
+  // useRef로 이전 값을 추적
+  const dateCountsRef = useRef<number[] | null>(null)
+  const groupedDataRef = useRef<GroupedDate[] | null>(null)
+
+  useEffect(() => {
+    // groupedData와 dateCounts가 변경된 경우에만 onDateCountsChange 호출
+    if (dateCountsRef.current && groupedDataRef.current) {
+      onDateCountsChange(dateCountsRef.current, groupedDataRef.current)
+    }
+  }, [dateCounts, groupedData, onDateCountsChange])
 
   const currentDates = getCurrentPageDates()
   const isFullWeek = currentDates.length === 7

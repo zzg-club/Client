@@ -14,6 +14,22 @@ interface SelectedDate {
   weekday: string
 }
 
+interface GroupedDate {
+  weekday: string
+  dates?: {
+    year: number
+    month: number
+    day: number
+    weekday: string
+  }[]
+  date?: {
+    year: number
+    month: number
+    day: number
+    weekday: string
+  }[]
+}
+
 interface ScheduleData {
   name: string // 일정 이름
   userId: number // 사용자 ID
@@ -36,6 +52,13 @@ export default function Page() {
   const [isOpen, setIsOpen] = useState(false)
   const [isExpanded, setIsExpanded] = useState(true)
   const [dateCounts, setDateCounts] = useState<number[]>([])
+  const [groupedDate, setGroupedDate] = useState<GroupedDate[]>([])
+
+  const DAYS_PER_PAGE = 7
+  const highlightedIndex =
+    highlightedCol !== null
+      ? highlightedCol - currentPage * DAYS_PER_PAGE
+      : null
 
   const toggleExpand = () => {
     setIsExpanded((prev) => !prev)
@@ -49,8 +72,12 @@ export default function Page() {
     setTitle(newTitle)
   }
 
-  const handleDateCountsChange = (counts: number[]) => {
+  const handleDateCountsChange = (
+    counts: number[],
+    groupedData: GroupedDate[],
+  ) => {
     setDateCounts(counts)
+    setGroupedDate(groupedData)
   }
 
   const handleSelectedCol = useCallback(
@@ -225,40 +252,40 @@ export default function Page() {
       name: '팀플 대면 모임',
       userId: 2,
       groupId: 1,
-      // mode: 'week',
-      // selected: ['mon', 'wed', 'fri'],
-      // date: [
-      //   ['2024-01-06', 'mon'],
-      //   ['2024-01-08', 'wed'],
-      //   ['2024-01-13', 'mon'],
-      //   ['2024-01-15', 'wed'],
-      //   ['2024-01-20', 'mon'],
-      //   ['2024-01-22', 'wed'],
-      //   ['2024-01-27', 'mon'],
-      //   ['2024-01-03', 'fri'],
-      //   ['2024-01-10', 'fri'],
-      //   ['2024-01-17', 'fri'],
-      //   ['2024-01-24', 'fri'],
-      //   ['2024-01-31', 'fri'],
-      // ],
-      mode: 'range',
-      selected: null,
+      mode: 'week',
+      selected: ['mon', 'wed', 'fri'],
       date: [
-        ['2024-12-30', 'mon'],
-        ['2024-12-31', 'tue'],
-        ['2024-01-01', 'wed'],
-        ['2024-01-02', 'thu'],
-        ['2024-01-03', 'fri'],
-        ['2024-01-04', 'sat'],
-        ['2024-01-05', 'sun'],
         ['2024-01-06', 'mon'],
-        ['2024-01-07', 'tue'],
         ['2024-01-08', 'wed'],
-        ['2024-01-09', 'thu'],
+        ['2024-01-13', 'mon'],
+        ['2024-01-15', 'wed'],
+        ['2024-01-20', 'mon'],
+        ['2024-01-22', 'wed'],
+        ['2024-01-27', 'mon'],
+        ['2024-01-03', 'fri'],
         ['2024-01-10', 'fri'],
-        // ['2024-01-11', 'sat'],
-        // ['2024-01-12', 'sun'],
+        ['2024-01-17', 'fri'],
+        ['2024-01-24', 'fri'],
+        ['2024-01-31', 'fri'],
       ],
+      // mode: 'range',
+      // selected: null,
+      // date: [
+      //   ['2024-12-30', 'mon'],
+      //   ['2024-12-31', 'tue'],
+      //   ['2024-01-01', 'wed'],
+      //   ['2024-01-02', 'thu'],
+      //   ['2024-01-03', 'fri'],
+      //   ['2024-01-04', 'sat'],
+      //   ['2024-01-05', 'sun'],
+      //   ['2024-01-06', 'mon'],
+      //   ['2024-01-07', 'tue'],
+      //   ['2024-01-08', 'wed'],
+      //   ['2024-01-09', 'thu'],
+      //   ['2024-01-10', 'fri'],
+      // //   // ['2024-01-11', 'sat'],
+      // //   // ['2024-01-12', 'sun'],
+      // ],
     },
   ]
 
@@ -266,9 +293,11 @@ export default function Page() {
   const mode = scheduleData[0].mode
   const dayofWeek = scheduleData[0].selected
   const month = `${selectedDates[0]?.month}월`
+  // console.log('selectedDates', selectedDates)
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage)
+    setIsOpen(false)
   }
 
   return (
@@ -312,8 +341,17 @@ export default function Page() {
         <div>
           <SelectItem
             date={
-              highlightedCol !== null
-                ? `${selectedDates[0]?.month}월 ${selectedDates[highlightedCol]?.day}일`
+              highlightedCol !== null && highlightedIndex !== null
+                ? mode === 'range'
+                  ? `${selectedDates[0]?.month}월 ${selectedDates[highlightedCol]?.day}일`
+                  : (() => {
+                      const month =
+                        groupedDate[currentPage]?.date?.[highlightedIndex]
+                          ?.month
+                      const day =
+                        groupedDate[currentPage]?.date?.[highlightedIndex]?.day
+                      return month && day ? `${month}월 ${day}일` : ''
+                    })()
                 : ''
             }
             startTime={`${startTime}`}
