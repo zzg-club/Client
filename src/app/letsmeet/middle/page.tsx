@@ -1,6 +1,6 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import React, { useEffect, useState, useRef } from 'react'
 import PinMap from '@/components/Map/PinMap'
 import RouteMap from '@/components/Map/RouteMap'
@@ -16,7 +16,8 @@ export default function Middle() {
   const [currentIndex, setCurrentIndex] = useState(0) // 현재 인덱스
   const [participants, setParticipants] = useState([])
   const [destination, setDestination] = useState(dummyDataArray[0].destination)
-
+  const searchParams = useSearchParams()
+  const from = searchParams.get('from')
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
   const router = useRouter()
 
@@ -151,7 +152,7 @@ export default function Middle() {
       </header>
 
       <BackButton
-        onClick={() => router.push('/search?from=/letsmeet')}
+        onClick={() => router.push(`/search?from=${from}`)}
         style={{
           position: 'relative',
           top: '72px',
