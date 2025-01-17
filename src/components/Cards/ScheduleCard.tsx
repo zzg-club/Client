@@ -120,7 +120,7 @@ export function ScheduleCard({
         leftText={'직접 입력'}
         rightText={'장소선정'}
         onClickLeft={() => alert('직접 입력 모달 연결')}
-        onClickRight={() => router.push('/search')}
+        onClickRight={() => router.push('/search?from=schedule')}
       >
         <div className="flex item-center justify-center text-[#1e1e1e] text-xl font-medium leading-snug py-4 mt-3">
           장소를
