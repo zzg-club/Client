@@ -35,7 +35,7 @@ const mockDateTime: ScheduleData[] = [
   {
     data: [
       {
-        date: '2025-01-01',
+        date: '2025-02-01',
         timeSlots: [
           {
             start: '09:30',
@@ -46,7 +46,7 @@ const mockDateTime: ScheduleData[] = [
         ],
       },
       {
-        date: '2025-01-02',
+        date: '2025-02-02',
         timeSlots: [
           { start: '08:00', end: '13:00', selectedBy: ['user2', 'user3'] },
           { start: '13:00', end: '20:00', selectedBy: ['user1', 'user4'] },
@@ -54,7 +54,7 @@ const mockDateTime: ScheduleData[] = [
         ],
       },
       {
-        date: '2025-01-03',
+        date: '2025-02-03',
         timeSlots: [
           { start: '05:00', end: '10:00', selectedBy: ['user1', 'user2'] },
           {
@@ -66,7 +66,7 @@ const mockDateTime: ScheduleData[] = [
         ],
       },
       {
-        date: '2025-01-04',
+        date: '2025-02-04',
         timeSlots: [
           {
             start: '11:00',
@@ -77,7 +77,7 @@ const mockDateTime: ScheduleData[] = [
         ],
       },
       {
-        date: '2025-01-05',
+        date: '2025-02-05',
         timeSlots: [
           { start: '10:00', end: '15:00', selectedBy: ['user1'] },
           {
@@ -89,7 +89,7 @@ const mockDateTime: ScheduleData[] = [
         ],
       },
       {
-        date: '2025-01-06',
+        date: '2025-02-06',
         timeSlots: [
           { start: '04:00', end: '06:00', selectedBy: ['user3'] },
           {
@@ -100,7 +100,7 @@ const mockDateTime: ScheduleData[] = [
         ],
       },
       {
-        date: '2025-01-07',
+        date: '2025-02-07',
         timeSlots: [
           { start: '06:00', end: '07:00', selectedBy: ['user2'] },
           {
@@ -112,7 +112,7 @@ const mockDateTime: ScheduleData[] = [
         ],
       },
       {
-        date: '2025-01-08',
+        date: '2025-02-08',
         timeSlots: [
           {
             start: '10:00',
@@ -184,7 +184,12 @@ export default function Page() {
   const [title, setTitle] = useState('제목 없는 일정') // 제목 상태 관리
   const [isPurple, setIsPurple] = useState(false)
   const [dateTime, setDateTime] = useState<
-    { date: number; timeSlots: { start: string; end: string }[] }[]
+    {
+      date: string
+      month: string
+      year: number
+      timeSlots: { start: string; end: string }[]
+    }[]
   >([])
   const [highlightedCol, setHighlightedCol] = useState<number | null>(null)
   const [isOpen, setIsOpen] = useState(false)
@@ -192,7 +197,7 @@ export default function Page() {
   const [endTime, setEndTime] = useState<string | null>(null)
   const [finalData, setFinalData] = useState<
     {
-      id: number
+      id: string
       number: number
       startDate: string
       startTime: string
@@ -209,14 +214,14 @@ export default function Page() {
   useEffect(() => {
     console.log(`Updated dateTimeData:`, dateTime)
 
-    const transformedData = dateTime.flatMap((dateItem, index) => {
-      const { date, timeSlots } = dateItem
+    const transformedData = dateTime.flatMap((dateItem, dateIndex) => {
+      const { date, month, timeSlots } = dateItem
 
-      const startDate = `${new Date().getMonth() + 1}월 ${date}일` // date 기반으로 날짜 형식 생성
+      const startDate = `${month}월 ${Number(date)}일`
 
-      return timeSlots.map((slot) => ({
-        id: index + 1, // 고유 ID 생성
-        number: index + 1,
+      return timeSlots.map((slot, slotIndex) => ({
+        id: `${dateIndex}-${slotIndex}`,
+        number: dateIndex + 1,
         startDate,
         startTime: slot.start,
         endTime: slot.end,
@@ -224,7 +229,7 @@ export default function Page() {
     })
 
     setFinalData(transformedData)
-  }, [dateTime]) // dateTimeData가 변경될 때마다 호출
+  }, [dateTime])
 
   const handleSelectedCol = useCallback(
     (colIndex: number, rowIndex: number) => {
@@ -262,8 +267,19 @@ export default function Page() {
 
   const getDateTime = (col: number, start: string, end: string) => {
     setDateTime((prev) => {
-      const existingDateIndex = prev.findIndex((item) => item.date === col)
+      const existingDateIndex = prev.findIndex(
+        (item) => Number(item.date) === col,
+      )
       let newEntry = null
+
+      // 현재 선택된 날짜의 month와 year 가져오기
+      const selectedDate = selectedDates.find((date) => date.date === col)
+      // month와 date를 2자리 숫자로 포맷팅
+      const month = String(
+        selectedDate?.month || new Date().getMonth() + 1,
+      ).padStart(2, '0')
+      const date = String(col).padStart(2, '0')
+      const year = 2025 // 또는 동적으로 가져올 year 값
 
       if (existingDateIndex !== -1) {
         const updated = [...prev]
@@ -315,21 +331,39 @@ export default function Page() {
               .padStart(2, '0')}`,
           }
           timeSlots.push(mergedSlot)
-          newEntry = { date: col, timeSlots: [mergedSlot] }
+          newEntry = {
+            date: date,
+            month: month,
+            year,
+            timeSlots: [mergedSlot],
+          }
         } else {
           const newSlot = { start, end }
           timeSlots.push(newSlot)
-          newEntry = { date: col, timeSlots: [newSlot] }
+          newEntry = {
+            date: date,
+            month: month,
+            year,
+            timeSlots: [newSlot],
+          }
         }
 
         timeSlots.sort((a, b) => toMinutes(a.start) - toMinutes(b.start))
 
-        updated[existingDateIndex].timeSlots = timeSlots
-        // console.log('새로 추가된 항목:', newEntry)
+        updated[existingDateIndex] = {
+          date: date,
+          month: month,
+          year,
+          timeSlots: timeSlots,
+        }
         return updated
       } else {
-        newEntry = { date: col, timeSlots: [{ start, end }] }
-        // console.log('새로 추가된 항목:', newEntry)
+        newEntry = {
+          date: date,
+          month: month,
+          year,
+          timeSlots: [{ start, end }],
+        }
         return [...prev, newEntry]
       }
     })
@@ -386,43 +420,60 @@ export default function Page() {
   const [warning, setWarning] = useState(false)
   const [decideBottomOpen, setDecideBottomOpen] = useState(false)
 
+  const formatTime = (time: string) => {
+    const [hour, minutePart] = time.split(':')
+    const [minute, period] = minutePart.split(' ')
+    let hourNumber = parseInt(hour, 10)
+    if (period === 'PM' && hourNumber !== 12) hourNumber += 12
+    if (period === 'AM' && hourNumber === 12) hourNumber = 0
+    return `${String(hourNumber).padStart(2, '0')}:${minute}`
+  }
+
   const onClickConfirm = () => {
     if (isPurple && !decideBottomOpen) {
       setDecideBottomOpen(true)
     } else if (!isPurple && !decideBottomOpen) {
       setWarning(true)
     } else if (isPurple && decideBottomOpen) {
-      alert('완전 확정')
+      const startDateString = `${dateTime[0].year}-${dateTime[0].month}-${dateTime[0].date}T${formatTime(dateTime[0].timeSlots[0].start)}:00.000Z`
+      const endDateString = `${dateTime[0].year}-${dateTime[0].month}-${dateTime[0].date}T${formatTime(dateTime[0].timeSlots[0].end)}:00.000Z`
+
+      alert(
+        `확정 스케줄: startDate - ${startDateString} /// endDate - ${endDateString}`,
+      )
     }
   }
 
-  const handleDeleteSchedule = (id: number | undefined) => {
+  const handleDeleteSchedule = (id: string | undefined) => {
     if (id === undefined) return
 
-    // finalData에서 삭제
     setFinalData((prevFinalData) =>
       prevFinalData.filter((item) => item.id !== id),
     )
 
-    // dateTime에서 상응하는 date와 timeSlots 찾음
+    // dateTime에서 해당 시간대 찾기
+    const [dateIndex, slotIndex] = id.split('-').map(Number)
+
     setDateTime((prevDateTime) => {
       return prevDateTime
-        .map((dateItem) => {
-          const updatedTimeSlots = dateItem.timeSlots.filter((slot) => {
-            // finalData id와 일치하는 항목 찾기
-            const match = finalData.find((data) => data.id === id)
-            if (!match) return true // 일치하지 않으면 유지
-            // startTime - endTime 비교하여 정확한 slot 삭제
-            return !(
-              slot.start === match.startTime && slot.end === match.endTime
-            )
-          })
+        .map((dateItem, index) => {
+          if (index !== dateIndex) return dateItem
 
+          const updatedTimeSlots = dateItem.timeSlots.filter(
+            (_, idx) => idx !== slotIndex,
+          )
           return { ...dateItem, timeSlots: updatedTimeSlots }
         })
-        .filter((dateItem) => dateItem.timeSlots.length > 0) // timeSlots가 빈 date는 삭제
+        .filter((dateItem) => dateItem.timeSlots.length > 0)
     })
   }
+
+  useEffect(() => {
+    if (dateTime.length === 0) {
+      setDecideBottomOpen(false)
+      setIsPurple(false) // 선택된 시간이 없으므로 확정 버튼도 비활성화
+    }
+  }, [dateTime])
 
   return (
     <div className="flex flex-col h-full bg-white">
@@ -452,6 +503,7 @@ export default function Page() {
           mockDateTime={mockDateTime[0].data}
           handleActiveTime={handleActiveTime}
           isBottomSheetOpen={isOpen}
+          dateTime={dateTime}
         />
       </div>
       {!decideBottomOpen && (
