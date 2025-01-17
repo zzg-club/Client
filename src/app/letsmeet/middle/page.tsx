@@ -151,7 +151,7 @@ export default function Middle() {
       </header>
 
       <BackButton
-        onClick={() => router.push('/search')}
+        onClick={() => router.push('/search?from=/letsmeet')}
         style={{
           position: 'relative',
           top: '72px',

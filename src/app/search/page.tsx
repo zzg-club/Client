@@ -1,11 +1,13 @@
 'use client'
 
 import React from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import SearchBar from '@/components/SearchBar/SearchBar'
 
 export default function SearchPage() {
   const router = useRouter() // Next.js 라우터 훅
+  const searchParams = useSearchParams() // 쿼리 파라미터 사용
+  const from = searchParams.get('from') || '/schedule' // 기본값: /letsmeet
 
   const handleSearchClick = () => {
     // 검색 버튼 클릭 시 실행
@@ -24,8 +26,8 @@ export default function SearchPage() {
   }
 
   const handleBackClick = () => {
-    // 뒤로가기 버튼 클릭 시 /search 페이지로 이동
-    router.push('/search')
+    // 뒤로가기 버튼 클릭 시 from 페이지로 이동
+    router.push(from)
   }
 
   return (

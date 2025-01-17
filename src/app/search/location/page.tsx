@@ -59,7 +59,7 @@ const LocationPage: React.FC = () => {
   ])
 
   const handleBack = () => {
-    router.push('/letsmeet')
+    router.push('/search')
   }
 
   const handleLocationClick = () => {

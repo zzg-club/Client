@@ -100,10 +100,9 @@ export default function LetsMeetPage() {
   const [isOptionsOpen, setIsOptionsOpen] = useState(false) // 옵션 모달 상태 관리
   const router = useRouter() // Next.js 라우터 훅
 
-  // 옵션 선택 핸들러
   const handleFindMidpoint = () => {
     // 중간지점 찾기 클릭 시 search 페이지로 이동
-    router.push('/search')
+    router.push('/search?from=/letsmeet')
   }
 
   const handleDirectInput = () => {
