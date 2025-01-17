@@ -44,6 +44,16 @@ interface SelectedDaysProps {
 
 const DAYS_PER_PAGE = 7
 
+const weekdayMap: { [key: string]: string } = {
+  mon: '월',
+  tue: '화',
+  wed: '수',
+  thu: '목',
+  fri: '금',
+  sat: '토',
+  sun: '일',
+}
+
 export default function SelectedDays({
   selectedDates,
   month,
@@ -64,16 +74,6 @@ export default function SelectedDays({
     highlightedCol !== null
       ? highlightedCol - currentPage * DAYS_PER_PAGE
       : null
-
-  const weekdayMap: { [key: string]: string } = {
-    mon: '월',
-    tue: '화',
-    wed: '수',
-    thu: '목',
-    fri: '금',
-    sat: '토',
-    sun: '일',
-  }
 
   const groupByWeekday = useCallback(
     (selectedDates: SelectedDate[], dayofWeek: string[] | null) => {
