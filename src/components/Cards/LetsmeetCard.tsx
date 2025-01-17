@@ -1,14 +1,15 @@
 import { WhiteButton } from '../Buttons/WhiteButtton'
 import { ProfileSmall } from '../Profiles/ProfileSmall'
 import React, { useState } from 'react'
-import { useRouter } from 'next/navigation' // useRouter 훅 사용
 import CustomModal from '@/components/Modals/CustomModal'
 import MembersVariant from '../Modals/MembersVariant'
 import SelectModal from '../Modals/SelectModal'
+import DateTimeModal from '@/components/Modals/DirectSelect/DateTimeModal'
+import EditTitle from '@/components/Header/EditTitle'
+import CustomCalendar from '@/components/Calendars/CustomCalendar'
+import { useHandleSelect } from '@/hooks/useHandleSelect'
 
 export interface LetsmeetCardProps {
-  startDate: string
-  endDate?: string
   title: string
   startTime: string
   endTime: string
@@ -17,7 +18,6 @@ export interface LetsmeetCardProps {
 }
 
 export function LetsmeetCard({
-  startDate,
   title,
   startTime,
   endTime,
@@ -27,7 +27,29 @@ export function LetsmeetCard({
   const [isMembersModalOpen, setIsMembersModalOpen] = useState(false)
   const [isSelectedPlace, setIsSelectedPlace] = useState(false)
 
-  const router = useRouter()
+  const [isCdialogOpen, setIsCdialogOpen] = useState(false) // 일정 조율하기 모달 상태 C: Coordinate
+  const [isDdialogOpen, setIsDdialogOpen] = useState(false) // 직접 입력하기 모달 상태 D: Direct
+  const { selectedDates, stringDates, handleSelect } = useHandleSelect() // 커스텀 훅으로 날짜 선택 기능 가져오기 (백에 보낼때 stringDates 가져오면 됨)
+  const [startDate, setStartDate] = useState<string | null>(null) // 직접입력하기-시작날짜,시간
+  const [endDate, setEndDate] = useState<string | null>(null) // 직접입력하기-끝날짜,시간
+  const [stitle, setsTitle] = useState('제목 없는 일정') // 제목 상태 관리
+
+  const handleTitleChange = (newTitle: string) => {
+    setsTitle(newTitle) // 수정된 제목으로 상태 업데이트
+  }
+
+  const handleOpenCdialog = () => {
+    setIsCdialogOpen(!isCdialogOpen)
+  }
+  const handleOpenDdialog = () => {
+    setIsDdialogOpen(!isDdialogOpen)
+  }
+
+  // 직접입력하기 모달에서 받아온 시작, 끝 string 저장
+  const handleDateChange = (startDate: string, endDate: string) => {
+    setStartDate(startDate)
+    setEndDate(endDate)
+  }
 
   // membersVariant 모달 핸들
   const handleMembersModalOpen = () => {
@@ -116,8 +138,8 @@ export function LetsmeetCard({
         onOpenChange={handleCloseSelectedPlace}
         leftText={'직접 입력'}
         rightText={'선정하기'}
-        onClickLeft={() => alert('직접 입력 모달 연결')}
-        onClickRight={() => router.push('/search')}
+        onClickLeft={handleOpenDdialog}
+        onClickRight={handleOpenCdialog}
       >
         <div className="flex item-center justify-center text-[#1e1e1e] text-xl font-medium leading-snug py-4 mt-3">
           일정을
@@ -125,6 +147,33 @@ export function LetsmeetCard({
           조율할까요?
         </div>
       </SelectModal>
+      {/* 일정 조율하기 모달 */}
+      <CustomModal
+        open={isCdialogOpen}
+        onOpenChange={handleOpenCdialog}
+        onNext={() => alert(`선택한 날짜들: ${stringDates}`)}
+        isFooter={true}
+        footerText={'다음으로'}
+        isDisabled={stringDates[0] ? false : true}
+      >
+        <CustomCalendar
+          initialMode="range"
+          selected={selectedDates}
+          onSelect={handleSelect}
+        />
+      </CustomModal>
+
+      {/* 직접 입력하기 모달 - 날짜, 시간 */}
+      <CustomModal
+        open={isDdialogOpen}
+        onOpenChange={handleOpenDdialog}
+        onNext={() => alert(`startDate: ${startDate} / endDate: ${endDate}`)}
+        isFooter={true}
+        footerText={'입력완료'}
+      >
+        <EditTitle initialTitle={title} onTitleChange={handleTitleChange} />
+        <DateTimeModal onDateChange={handleDateChange} />
+      </CustomModal>
     </div>
   )
 }

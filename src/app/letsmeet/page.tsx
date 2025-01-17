@@ -7,6 +7,7 @@ import { ScheduleOptions } from '@/components/Buttons/Floating/Options'
 import CarouselNotification from '@/components/Notification/CarouselNotification'
 import { LetsmeetCard } from '@/components/Cards/LetsmeetCard'
 import { useRouter } from 'next/navigation'
+
 const mockSchedules = [
   {
     id: 1,
@@ -101,7 +102,7 @@ export default function LetsMeetPage() {
   const router = useRouter() // Next.js 라우터 훅
 
   const handleFindMidpoint = () => {
-    // 중간지점 찾기 클릭 시 search 페이지로 이동
+    // 중간지점 찾기 클릭 시 /search?from=/letsmeet 페이지로 이동
     router.push('/search?from=/letsmeet')
   }
 
@@ -170,7 +171,6 @@ export default function LetsMeetPage() {
             {mockSchedules.map((schedule) => (
               <div key={schedule.id}>
                 <LetsmeetCard
-                  startDate={schedule.startDate}
                   title={schedule.title}
                   startTime={schedule.startTime}
                   endTime={schedule.endTime}
