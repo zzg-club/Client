@@ -41,7 +41,7 @@ export default function SearchPage() {
       <div
         style={{
           display: 'flex',
-          width: '393px',
+          width: '100%',
           padding: '11px 12px',
           justifyContent: 'center',
           alignItems: 'center',
@@ -67,7 +67,7 @@ export default function SearchPage() {
             color: 'var(--MainColor, #9562fb)',
             textAlign: 'center',
             fontFamily: 'Pretendard',
-            fontSize: '20px',
+            whiteSpace: 'nowrap',
             fontStyle: 'normal',
             fontWeight: 550,
             lineHeight: '17px',
