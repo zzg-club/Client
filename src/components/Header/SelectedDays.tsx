@@ -37,8 +37,6 @@ interface SelectedDaysProps {
   currentPage: number
   onPageChange: (newPage: number) => void
   highlightedCol: number | null
-  isExpanded: boolean
-  toggleExpand: () => void
   onDateCountsChange: (counts: number[], groupedData: GroupedDate[]) => void
 }
 
@@ -62,8 +60,6 @@ export default function SelectedDays({
   currentPage,
   onPageChange,
   highlightedCol,
-  isExpanded,
-  toggleExpand,
   onDateCountsChange,
 }: SelectedDaysProps) {
   const [dateCounts, setDateCounts] = useState<number[]>([])
@@ -150,6 +146,12 @@ export default function SelectedDays({
 
   const currentDates = getCurrentPageDates()
   const isFullWeek = currentDates.length === 7
+
+  const [isExpanded, setIsExpanded] = useState(true)
+
+  const toggleExpand = () => {
+    setIsExpanded(!isExpanded)
+  }
 
   const totalPages =
     mode === 'range'

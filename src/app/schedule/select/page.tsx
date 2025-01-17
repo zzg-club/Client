@@ -50,7 +50,6 @@ export default function Page() {
     { date: number; timeSlots: { start: string; end: string }[] }[]
   >([])
   const [isOpen, setIsOpen] = useState(false)
-  const [isExpanded, setIsExpanded] = useState(true)
   const [dateCounts, setDateCounts] = useState<number[]>([])
   const [groupedDate, setGroupedDate] = useState<GroupedDate[]>([])
 
@@ -59,14 +58,6 @@ export default function Page() {
     highlightedCol !== null
       ? highlightedCol - currentPage * DAYS_PER_PAGE
       : null
-
-  const toggleExpand = () => {
-    setIsExpanded((prev) => !prev)
-  }
-
-  const togglecollapse = () => {
-    setIsExpanded(false)
-  }
 
   const handleTitleChange = (newTitle: string) => {
     setTitle(newTitle)
@@ -109,7 +100,6 @@ export default function Page() {
       setEndTime(DefaultEndTime)
 
       setHighlightedCol(colIndex)
-      togglecollapse()
       setIsOpen(true)
     },
     [],
@@ -303,12 +293,10 @@ export default function Page() {
   return (
     <div>
       <Title
-        buttonText={isExpanded ? '다음' : '완료'}
+        buttonText={'완료'}
         initialTitle={scheduleData[0]?.name || title}
         onTitleChange={handleTitleChange}
         isPurple={isPurple}
-        isExpanded={isExpanded}
-        setIsExpanded={setIsExpanded}
       />
       <SelectedDays
         selectedDates={selectedDates}
@@ -318,8 +306,6 @@ export default function Page() {
         currentPage={currentPage}
         onPageChange={handlePageChange}
         highlightedCol={highlightedCol}
-        isExpanded={isExpanded}
-        toggleExpand={toggleExpand}
         onDateCountsChange={handleDateCountsChange}
       />
       <div className="flex-grow overflow-hidden mt-2">
@@ -332,8 +318,6 @@ export default function Page() {
           handleSelectedCol={handleSelectedCol}
           handleActiveTime={handleActiveTime}
           getDateTime={getDateTime}
-          isExpanded={isExpanded}
-          toggleCollapse={togglecollapse}
           isBottomSheetOpen={isOpen}
         />
       </div>

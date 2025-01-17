@@ -21,8 +21,6 @@ interface TimeStampProps {
   handleSelectedCol: (colIndex: number, rowIndex: number) => void
   handleActiveTime: (start: number, end: number) => void
   getDateTime: (col: number, start: string, end: string) => void
-  isExpanded: boolean
-  toggleCollapse: () => void
   isBottomSheetOpen: boolean
 }
 
@@ -36,8 +34,6 @@ export default function TimeStamp({
   handleSelectedCol,
   handleActiveTime,
   getDateTime,
-  isExpanded,
-  toggleCollapse,
   isBottomSheetOpen,
 }: TimeStampProps) {
   const [selections] = useState<Selection[]>([])
@@ -82,11 +78,6 @@ export default function TimeStamp({
 
   const onColumnClick = useCallback(
     (colIndex: number, rowIndex: number) => {
-      if (isExpanded) {
-        toggleCollapse()
-        return
-      }
-
       if (colIndex === -1) {
         handleSelectedCol(colIndex, rowIndex)
         return 0
@@ -97,7 +88,7 @@ export default function TimeStamp({
         handleSelectedCol(actualColIndex, rowIndex)
       }
     },
-    [handleSelectedCol, currentPage, isExpanded, toggleCollapse],
+    [handleSelectedCol, currentPage],
   )
 
   const onActiveTime = useCallback(
@@ -135,11 +126,6 @@ export default function TimeStamp({
   )
 
   const handleMouseClick = (rowIndex: number, colIndex: number) => {
-    if (isExpanded) {
-      toggleCollapse()
-      return
-    }
-
     const pairStartRow = Math.floor(rowIndex / 2) * 2
     const pairEndRow = pairStartRow + 1
 
@@ -296,10 +282,6 @@ export default function TimeStamp({
     colIndex: number,
     isTouchEvent: boolean,
   ) => {
-    if (isExpanded) {
-      return
-    }
-
     if (isTouchEvent) {
       if (rowIndex % 2 !== 1) return
     }
