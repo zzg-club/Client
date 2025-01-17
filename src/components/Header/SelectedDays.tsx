@@ -95,7 +95,7 @@ export default function SelectedDays({
       })
       return grouped
     },
-    [weekdayMap],
+    [],
   )
 
   const getCurrentPageDates = useCallback(() => {
