@@ -39,7 +39,12 @@ interface DecideTimeStampProps {
   mockDateTime: DateData[]
   handleActiveTime: (start: number, end: number) => void
   isBottomSheetOpen: boolean
-  dateTime: { date: number; timeSlots: { start: string; end: string }[] }[]
+  dateTime: {
+    date: string
+    month: string
+    year: number
+    timeSlots: { start: string; end: string }[]
+  }[]
 }
 
 const COLUMNS_PER_PAGE = 7
@@ -628,7 +633,9 @@ export default function DecideTimeStamp({
         // 현재 페이지의 선택 영역들을 필터링
         newSelections[page] = pageSelections.filter((selection) => {
           // 선택 영역의 날짜와 시간 정보 계산
-          const colDate = selectedDates[selection.startCol]?.date
+          const colDate = String(
+            selectedDates[selection.startCol]?.date,
+          ).padStart(2, '0')
 
           const getTimeFromRow = (row: number) => {
             const hours = Math.floor(row / 2)
