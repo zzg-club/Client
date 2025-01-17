@@ -3,16 +3,16 @@ import { X } from 'lucide-react'
 import SelectModal from '@/components/Modals/SelectModal'
 
 export interface ScheduleItemProps {
-  id?: number // Add this line
+  id: string
   number: number
   startDate: string
   startTime: string
   endTime: string
-  onDelete: (id: number | undefined) => void // Add this line
+  onDelete: (id: string) => void
 }
 
 export function ScheduleItem({
-  id = 0,
+  id,
   number,
   // title,
   startDate,
