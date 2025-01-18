@@ -6,7 +6,7 @@ import CustomModal from '@/components/Modals/CustomModal'
 import MembersVariant from '../Modals/MembersVariant'
 import SelectModal from '../Modals/SelectModal'
 
-export interface ScheduleCardProps {
+export interface LetsmeetCardProps {
   startDate: string
   endDate?: string
   title: string
@@ -16,14 +16,14 @@ export interface ScheduleCardProps {
   participants: { id: number; name: string; image: string }[]
 }
 
-export function ScheduleCard({
+export function LetsmeetCard({
   startDate,
   title,
   startTime,
   endTime,
   location,
   participants,
-}: ScheduleCardProps) {
+}: LetsmeetCardProps) {
   const [isMembersModalOpen, setIsMembersModalOpen] = useState(false)
   const [isSelectedPlace, setIsSelectedPlace] = useState(false)
 
@@ -63,30 +63,26 @@ export function ScheduleCard({
         className="group w-full h-full rounded-3xl border-2 border-[#9562fa] px-6 py-[18px] cursor-pointer bg-white border-[#9562fa] hover:bg-[#9562fa] hover:text-[#fff]"
         onClick={handleMembersModalOpen}
       >
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col">
           {/* 내용 정렬 */}
           <div className="flex justify-between">
             {/* 일정 제목 */}
-            <div className="flex flex-col justify-between gap-2">
-              <span className="text-xl font-medium leading-[17px] text-[#8e8d8d] group-hover:text-[#fff]">
+            <div className="flex flex-col justify-between gap-4">
+              <span className="text-xl font-medium leading-[17px] text-[#8e8d8d] group-hover:text-[#fff] ml-[5px]s">
                 {title}
               </span>
               {/* 모임원 프로필 */}
               <ProfileSmall profiles={participants} />
             </div>
 
-            {/* 약속 시간, 장소 */}
-            <div className="flex flex-col justify-center items-end gap-2">
+            {/* 약속 장소 */}
+            <div className="flex flex-col justify-center items-end gap-3">
               <span className="text-xl font-medium text-[#9562fa] group-hover:text-[#fff]">
-                {startTime} - {endTime}
+                {location}
               </span>
-              {location ? (
-                <span className="text-xl font-medium text-[#9562fa] group-hover:text-[#fff] my-1">
-                  {location}
-                </span>
-              ) : (
+              {(!startTime || !endTime) && (
                 <WhiteButton
-                  text="장소 정하기"
+                  text="일정 정하기"
                   className={
                     'border-[#9562fa] text-[#9562fa] group-hover:border-white group-hover:text-white'
                   }
@@ -97,6 +93,7 @@ export function ScheduleCard({
           </div>
         </div>
       </div>
+
       {/* MembersVariant 모달 */}
       <CustomModal
         open={isMembersModalOpen}
@@ -118,14 +115,14 @@ export function ScheduleCard({
         open={isSelectedPlace}
         onOpenChange={handleCloseSelectedPlace}
         leftText={'직접 입력'}
-        rightText={'장소선정'}
+        rightText={'선정하기'}
         onClickLeft={() => alert('직접 입력 모달 연결')}
-        onClickRight={() => router.push('/search?from=schedule')}
+        onClickRight={() => router.push('/search')}
       >
         <div className="flex item-center justify-center text-[#1e1e1e] text-xl font-medium leading-snug py-4 mt-3">
-          장소를
+          일정을
           <br />
-          선정할까요?
+          조율할까요?
         </div>
       </SelectModal>
     </div>

@@ -11,13 +11,13 @@
 
 .searchBar {
   display: flex;
-  width: 393px;
+  width: 100%;
   padding: 11px 12px;
   justify-content: center;
   align-items: center;
   gap: 8px;
   border-radius: 0px 0px 24px 24px;
-  background: var(--Grays-White, #fff);
+  background: var(—Grays-White, #fff);
   box-shadow: 0px 0px 10px 0px rgba(30, 30, 30, 0.1);
 }
 
@@ -48,7 +48,7 @@
   color: var(--MainColor, #9562fb);
   text-align: center;
   font-family: Pretendard;
-  font-size: 20px;
+  white-space: nowrap;
   font-style: normal;
   font-weight: 550;
   line-height: 17px; /* 85% */
