@@ -13,7 +13,7 @@
   height: 28px;
   padding: 6px;
   justify-content: center;
-  align-items: cente r;
+  align-items: center;
   border-radius: 24px;
   border: 2px solid var(--MainColor, #9562fb);
   background: lightgray 50% / cover no-repeat;
@@ -21,7 +21,7 @@
 }
 
 .pin-polygon {
-  margin-top: -10px; /* 폴리곤의 꼭지점이 글로브와 시각적으로 자연스럽게 연결되도록 조정 */
+  margin-top: -8px; /* 폴리곤의 꼭지점이 글로브와 시각적으로 자연스럽게 연결되도록 조정 */
   z-index: 1;
 }
 
@@ -31,4 +31,16 @@
 
 .pin-yellow .pin-globe {
   border-color: #ffcf33; /* 다른 사람 핀: 노란색 테두리 */
+}
+
+.pin-depart {
+  display: flex;
+  height: 16px;
+  padding: 4px 8px;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  align-self: stretch;
+  border-radius: 24px;
+  background: var(--Grays-White, #fff);
 }
