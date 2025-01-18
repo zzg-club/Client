@@ -585,7 +585,7 @@ export default function TimeStamp({
           </div>
           <div
             ref={gridRef}
-            className=" w-full relative grid z-100 border-[1px] border-[#d9d9d9] rounded-3xl overflow-hidden"
+            className=" w-full relative grid z-100 border-[1px] border-[#d9d9d9] rounded-3xl"
             style={{
               gridTemplateColumns: `repeat(${currentDates.length}, 1fr)`,
               backgroundImage: 'linear-gradient(#d9d9d9 1px, transparent 1px)',
@@ -601,10 +601,24 @@ export default function TimeStamp({
                 {Array.from({ length: 48 }, (_, rowIndex) => {
                   const cellStatus = getCellStatus(rowIndex, colIndex)
                   const cellBorder = getCellBorder(rowIndex, colIndex)
+
+                  const isTopLeftCorner = rowIndex === 0 && colIndex === 0
+                  const isTopRightCorner =
+                    rowIndex === 0 && colIndex === currentDates.length - 1
+                  const isBottomLeftCorner = rowIndex === 47 && colIndex === 0
+                  const isBottomRightCorner =
+                    rowIndex === 47 && colIndex === currentDates.length - 1
+
+                  const cornerStyleRound = `
+                    ${isTopLeftCorner ? 'rounded-tl-3xl' : ''}
+                    ${isTopRightCorner ? 'rounded-tr-3xl' : ''}
+                    ${isBottomLeftCorner ? 'rounded-bl-3xl' : ''}
+                    ${isBottomRightCorner ? 'rounded-br-3xl' : ''}
+                  `
                   return (
                     <div
                       key={rowIndex}
-                      className={`relative cursor-pointer ${
+                      className={`relative cursor-pointer ${cornerStyleRound} ${
                         cellStatus.isSelected
                           ? cellStatus.isConfirmed
                             ? 'bg-[#9562fa]/60 z-200'
