@@ -37,8 +37,8 @@ export default function Home() {
   }
 
   const handleSearchClick = () => {
-    router.push('/search')
-  }
+    router.push('/search?from=/place')
+  } 
 
   const handleTouchStart = (e: React.TouchEvent) => {
     startY.current = e.touches[0].clientY
