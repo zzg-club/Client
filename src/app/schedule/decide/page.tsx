@@ -185,6 +185,7 @@ export default function Page() {
   const [isPurple, setIsPurple] = useState(false)
   const [dateTime, setDateTime] = useState<
     {
+      id: number
       date: string
       month: string
       year: number
@@ -206,6 +207,7 @@ export default function Page() {
   >([])
 
   const [selectedDates, setSelectedDates] = useState<SelectedDate[]>([])
+  const [isEdit, setIsEdit] = useState(false)
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage)
@@ -256,35 +258,52 @@ export default function Page() {
       const DefaultStartTime = getStartLabel(pairStartRow)
       const DefaultEndTime = getEndLabel(pairEndRow)
 
-      setStartTime(DefaultStartTime)
-      setEndTime(DefaultEndTime)
-
-      setHighlightedCol(colIndex)
-      setIsOpen(true)
+      setTimeout(() => {
+        setStartTime(DefaultStartTime)
+        setEndTime(DefaultEndTime)
+        setHighlightedCol(colIndex)
+        setIsOpen(true)
+      }, 0)
     },
     [],
   )
 
-  const getDateTime = (col: number, start: string, end: string) => {
+  const getDateTime = (
+    col: number,
+    start: string,
+    end: string,
+    colIndex: number,
+  ) => {
     setDateTime((prev) => {
       const existingDateIndex = prev.findIndex(
         (item) => Number(item.date) === col,
       )
-      let newEntry = null
 
-      // 현재 선택된 날짜의 month와 year 가져오기
       const selectedDate = selectedDates.find((date) => date.date === col)
-      // month와 date를 2자리 숫자로 포맷팅
       const month = String(
         selectedDate?.month || new Date().getMonth() + 1,
       ).padStart(2, '0')
       const date = String(col).padStart(2, '0')
-      const year = 2025 // 또는 동적으로 가져올 year 값
+      const year = 2025
 
       if (existingDateIndex !== -1) {
         const updated = [...prev]
-        let timeSlots = updated[existingDateIndex].timeSlots
 
+        if (isEdit) {
+          // isEdit일 때는 기존 timeSlots를 새로운 slot으로 교체
+          updated[existingDateIndex] = {
+            id: colIndex,
+            date: date,
+            month: month,
+            year,
+            timeSlots: [{ start, end }], // 단일 slot만 포함
+          }
+          setIsEdit(false)
+          return updated
+        }
+
+        // isEdit이 아닐 때
+        let timeSlots = updated[existingDateIndex].timeSlots
         const toMinutes = (time: string) => {
           const [hours, minutes] = time.split(':').map(Number)
           return hours * 60 + minutes
@@ -306,6 +325,7 @@ export default function Page() {
         })
 
         if (overlappingSlots.length > 0) {
+          // 겹치는 시간대가 있을 때는 병합
           const mergedStart = Math.min(
             newStartMinutes,
             ...overlappingSlots.map((slot) => toMinutes(slot.start)),
@@ -315,9 +335,12 @@ export default function Page() {
             ...overlappingSlots.map((slot) => toMinutes(slot.end)),
           )
 
+          // 겹치지 않는 시간대만 필터링
           timeSlots = timeSlots.filter(
             (slot) => !overlappingSlots.includes(slot),
           )
+
+          // 병합된 새로운 시간대 추가
           const mergedSlot = {
             start: `${Math.floor(mergedStart / 60)
               .toString()
@@ -330,27 +353,17 @@ export default function Page() {
               .toString()
               .padStart(2, '0')}`,
           }
-          timeSlots.push(mergedSlot)
-          newEntry = {
-            date: date,
-            month: month,
-            year,
-            timeSlots: [mergedSlot],
-          }
+          timeSlots = [...timeSlots, mergedSlot]
         } else {
-          const newSlot = { start, end }
-          timeSlots.push(newSlot)
-          newEntry = {
-            date: date,
-            month: month,
-            year,
-            timeSlots: [newSlot],
-          }
+          // 겹치는 시간대가 없을 때는 새로운 시간대 추가
+          timeSlots = [...timeSlots, { start, end }]
         }
 
+        // 시간순으로 정렬
         timeSlots.sort((a, b) => toMinutes(a.start) - toMinutes(b.start))
 
         updated[existingDateIndex] = {
+          id: colIndex,
           date: date,
           month: month,
           year,
@@ -358,13 +371,17 @@ export default function Page() {
         }
         return updated
       } else {
-        newEntry = {
-          date: date,
-          month: month,
-          year,
-          timeSlots: [{ start, end }],
-        }
-        return [...prev, newEntry]
+        // 새로운 날짜 추가
+        return [
+          ...prev,
+          {
+            id: colIndex,
+            date: date,
+            month: month,
+            year,
+            timeSlots: [{ start, end }],
+          },
+        ]
       }
     })
     setIsOpen(false)
@@ -504,6 +521,8 @@ export default function Page() {
           handleActiveTime={handleActiveTime}
           isBottomSheetOpen={isOpen}
           dateTime={dateTime}
+          isEdit={isEdit}
+          setIsEdit={setIsEdit}
         />
       </div>
       {!decideBottomOpen && (

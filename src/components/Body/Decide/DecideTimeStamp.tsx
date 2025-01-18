@@ -35,16 +35,24 @@ interface DecideTimeStampProps {
   currentPage: number
   onPageChange: (newPage: number) => void
   handleSelectedCol: (colIndex: number, rowIndex: number) => void
-  getDateTime: (col: number, start: string, end: string) => void
+  getDateTime: (
+    col: number,
+    start: string,
+    end: string,
+    colIndex: number,
+  ) => void
   mockDateTime: DateData[]
   handleActiveTime: (start: number, end: number) => void
   isBottomSheetOpen: boolean
   dateTime: {
+    id: number
     date: string
     month: string
     year: number
     timeSlots: { start: string; end: string }[]
   }[]
+  isEdit: boolean
+  setIsEdit: (value: boolean) => void
 }
 
 const COLUMNS_PER_PAGE = 7
@@ -58,6 +66,8 @@ export default function DecideTimeStamp({
   handleActiveTime,
   isBottomSheetOpen,
   dateTime,
+  isEdit,
+  setIsEdit,
 }: DecideTimeStampProps) {
   const [selections] = useState<Selection[]>([])
   const [isResizing, setIsResizing] = useState(false)
@@ -139,9 +149,10 @@ export default function DecideTimeStamp({
   )
 
   const handleDateTimeSelect = useCallback(
-    (col: number, start: string, end: string) => {
+    (col: number, start: string, end: string, colIndex: number) => {
       setTimeout(() => {
-        getDateTime(col, start, end)
+        getDateTime(col, start, end, colIndex)
+        console.log('handleDateTimeSelect', start, end)
       }, 0)
     },
     [getDateTime],
@@ -171,49 +182,80 @@ export default function DecideTimeStamp({
     [selections],
   )
 
+  const [isEditClick, setIsEditClick] = useState(false)
+
   const handleMouseClick = (rowIndex: number, colIndex: number) => {
-    const pairStartRow = Math.floor(rowIndex / 2) * 2
-    const pairEndRow = pairStartRow + 1
-
-    setSelectionsByPage((prev) => {
-      const prevSelections = (prev[currentPage] || [])
-        .map((selection) => (selection.isConfirmed ? selection : null))
-        .filter(Boolean) as Selection[]
-
-      const newSelection: Selection = {
-        startRow: pairStartRow,
-        startCol: colIndex,
-        endRow: pairEndRow,
-        endCol: colIndex,
-        isSelected: true,
-        isConfirmed: false,
-      }
-
-      // console.log('Block selected (Prev):', prevSelections)
-      // console.log('Block selected (Click):', newSelection)
-
-      return {
-        ...prev,
-        [currentPage]: [...prevSelections, newSelection],
-      }
+    const scheduleIndex = colIndex
+    const schedule = dateTime.find((item) => {
+      return item.id === scheduleIndex
     })
-  }
 
-  const handleMouseDown = (
-    rowIndex: number,
-    colIndex: number,
-    isEndpoint: boolean,
-    selection?: Selection,
-  ) => {
-    if (selection) {
-      setIsResizing(true)
-      setActiveSelection(selection)
-      setResizingPoint(
-        rowIndex === selection.startRow && colIndex === selection.startCol
-          ? 'start'
-          : 'end',
-      )
-      // console.log('Resizing started on (Down):', selection)
+    console.log('schedule', schedule)
+    console.log('scheduleIndex', scheduleIndex)
+    console.log('index', colIndex)
+    console.log('handeleMouseClick')
+
+    if (!schedule) {
+      setIsEdit(false)
+      const pairStartRow = Math.floor(rowIndex / 2) * 2
+      const pairEndRow = pairStartRow + 1
+
+      setSelectionsByPage((prev) => {
+        const prevSelections = (prev[currentPage] || [])
+          .map((selection) => (selection.isConfirmed ? selection : null))
+          .filter(Boolean) as Selection[]
+
+        const newSelection: Selection = {
+          startRow: pairStartRow,
+          startCol: colIndex,
+          endRow: pairEndRow,
+          endCol: colIndex,
+          isSelected: true,
+          isConfirmed: false,
+        }
+
+        // console.log('Block selected (Prev):', prevSelections)
+        // console.log('Block selected (Click):', newSelection)
+
+        return {
+          ...prev,
+          [currentPage]: [...prevSelections, newSelection],
+        }
+      })
+    } else if (schedule && schedule.id === scheduleIndex) {
+      setIsEdit(true)
+      setIsEditClick(true)
+      console.log('handleMouseClick')
+      const clickedSlot = schedule.timeSlots.find((slot) => {
+        const startIdx = timeToIndex(slot.start)
+        const endIdx = timeToIndex(slot.end) - 1
+        return rowIndex >= startIdx && rowIndex <= endIdx
+      })
+
+      if (clickedSlot) {
+        const startIdx = timeToIndex(clickedSlot.start)
+        const endIdx = timeToIndex(clickedSlot.end)
+
+        setActiveSelection({
+          startRow: startIdx,
+          startCol: colIndex,
+          endRow: endIdx - 1,
+          endCol: colIndex,
+          isSelected: true,
+          isConfirmed: false,
+        })
+
+        // 바텀시트 열기
+        handleSelectedCol(colIndex, rowIndex)
+
+        // 시간 정보 전달
+        handleDateTimeSelect(
+          Number(schedule.date),
+          clickedSlot.start,
+          clickedSlot.end,
+          colIndex,
+        )
+      }
     }
   }
 
@@ -221,6 +263,9 @@ export default function DecideTimeStamp({
     (e: MouseEvent) => {
       if (!gridRef.current || !activeSelection) return
 
+      console.log('handleMouseMove')
+
+      setIsEditClick(false)
       const rect = gridRef.current.getBoundingClientRect()
       const cellHeight = rect.height / 48
       const row = Math.min(
@@ -253,42 +298,35 @@ export default function DecideTimeStamp({
   )
 
   const handleMouseUp = useCallback(() => {
+    console.log('as', activeSelection)
+    console.log('handleMouseUp')
+    console.log('handleMouseUp-isEdit', isEdit)
+
     if (activeSelection) {
       const finalizedSelection = {
         ...activeSelection,
-        isSelected: false,
-        isConfirmed: true,
+        isSelected: true,
+        isConfirmed: isEditClick ? false : true,
       }
+      // 시작점과 끝점을 정렬된 상태로 저장
+      const startRow = Math.min(
+        finalizedSelection.startRow,
+        finalizedSelection.endRow,
+      )
+      const endRow = Math.max(
+        finalizedSelection.startRow,
+        finalizedSelection.endRow,
+      )
+      finalizedSelection.startRow = startRow
+      finalizedSelection.endRow = endRow
 
       setSelectionsByPage((prev) => {
         const currentSelections = prev[currentPage] || []
-        const updatedSelections = currentSelections.flatMap((sel) => {
-          const isOverlap =
-            sel.startRow <= finalizedSelection.endRow &&
-            sel.endRow >= finalizedSelection.startRow &&
-            sel.startCol === finalizedSelection.startCol
-
-          if (!isOverlap) {
-            return [sel]
-          }
-
-          const splitSelections = []
-          if (sel.startRow < finalizedSelection.startRow) {
-            splitSelections.push({
-              ...sel,
-              endRow: finalizedSelection.startRow - 1,
-            })
-          }
-          if (sel.endRow > finalizedSelection.endRow) {
-            splitSelections.push({
-              ...sel,
-              startRow: finalizedSelection.endRow + 1,
-            })
-          }
-          return splitSelections
-        })
-
-        const mergedSelections = [...updatedSelections, finalizedSelection]
+        const otherSelections = currentSelections.filter(
+          (sel) =>
+            sel.startCol !== finalizedSelection.startCol ||
+            sel.startRow !== activeSelection.startRow,
+        )
 
         const startCol = finalizedSelection.startCol
         const getTimeLabel = (rowIndex: number) => {
@@ -300,14 +338,17 @@ export default function DecideTimeStamp({
         }
 
         const selectedDate = currentDates[startCol]?.date
-        const startTime = getTimeLabel(finalizedSelection.startRow)
-        const endTime = getTimeLabel(finalizedSelection.endRow + 1)
+        const startTime = getTimeLabel(startRow)
+        const endTime = getTimeLabel(endRow + 1)
 
-        handleDateTimeSelect(selectedDate, startTime, endTime)
+        handleDateTimeSelect(selectedDate, startTime, endTime, startCol)
+
+        console.log('startTime', startTime)
+        console.log('endTime', endTime)
 
         return {
           ...prev,
-          [currentPage]: mergedSelections,
+          [currentPage]: [...otherSelections, finalizedSelection],
         }
       })
     }
@@ -315,7 +356,14 @@ export default function DecideTimeStamp({
     setIsResizing(false)
     setActiveSelection(null)
     setResizingPoint(null)
-  }, [activeSelection, currentDates, currentPage, handleDateTimeSelect])
+  }, [
+    activeSelection,
+    currentDates,
+    currentPage,
+    handleDateTimeSelect,
+    isEdit,
+    isEditClick,
+  ])
 
   const handleSelectionStart = (
     rowIndex: number,
@@ -359,6 +407,7 @@ export default function DecideTimeStamp({
     isEndpoint: boolean,
     selection: Selection,
   ) => {
+    setIsEditClick(false)
     setIsResizing(true)
     setActiveSelection(selection)
     setResizingPoint(
@@ -366,8 +415,6 @@ export default function DecideTimeStamp({
         ? 'start'
         : 'end',
     )
-
-    // console.log('Resizing started on (Down):', selection)
   }
 
   const handleMove = useCallback(
@@ -382,7 +429,6 @@ export default function DecideTimeStamp({
       )
 
       if (isTouchEvent) {
-        // For touch events, snap to the nearest bottom border
         row = Math.floor(row / 2) * 2 + 1
       }
 
@@ -393,26 +439,28 @@ export default function DecideTimeStamp({
 
         if (isResizing) {
           if (resizingPoint === 'start') {
-            newSelection.startRow = Math.min(row, prev.endRow)
+            newSelection.startRow = row
           } else if (resizingPoint === 'end') {
-            newSelection.endRow = Math.max(row, prev.startRow)
+            newSelection.endRow = row
           }
 
-          if (newSelection.startRow === newSelection.endRow) {
-            return null
+          // isEdit이 true일 때 바텀시트 열기
+          if (isEdit) {
+            handleSelectedCol(newSelection.startCol, newSelection.startRow)
           }
         }
-
-        return !isOverlapping(newSelection) ? newSelection : prev
+        return newSelection
       })
     },
-    [activeSelection, isResizing, resizingPoint, isOverlapping],
+    [activeSelection, isResizing, resizingPoint, isEdit, handleSelectedCol],
   )
 
   useEffect(() => {
     const handleMouseUpWithColumnClick = () => {
-      handleMouseUp()
-      onColumnClick(-1, -1)
+      if (!isEditClick) {
+        handleMouseUp()
+        onColumnClick(-1, -1)
+      }
     }
 
     const handleMouseMove = (e: MouseEvent) => handleMove(e.clientY, false)
@@ -443,6 +491,9 @@ export default function DecideTimeStamp({
     onColumnClick,
     currentSelections,
     handleMove,
+    handleSelectedCol,
+    isEdit,
+    isEditClick,
   ])
 
   const getCellStatus = (row: number, col: number) => {
@@ -753,8 +804,19 @@ export default function DecideTimeStamp({
                       {!cellStatus.isConfirmed && cellStatus.isStartCell && (
                         <div
                           className="absolute -top-[5px] left-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move z-[2000]"
-                          onMouseDown={() => {
-                            handleMouseDown(
+                          onMouseDown={(e) => {
+                            e.stopPropagation()
+                            handleResizeStart(
+                              rowIndex,
+                              colIndex,
+                              true,
+                              cellStatus.selection!,
+                            )
+                            onColumnClick(colIndex, rowIndex)
+                          }}
+                          onTouchStart={(e) => {
+                            e.stopPropagation()
+                            handleResizeStart(
                               rowIndex,
                               colIndex,
                               true,
