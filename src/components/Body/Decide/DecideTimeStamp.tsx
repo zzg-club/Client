@@ -439,9 +439,13 @@ export default function DecideTimeStamp({
 
         if (isResizing) {
           if (resizingPoint === 'start') {
-            newSelection.startRow = row
+            if (row < prev.endRow) {
+              newSelection.startRow = row
+            }
           } else if (resizingPoint === 'end') {
-            newSelection.endRow = row
+            if (row > prev.startRow) {
+              newSelection.endRow = row
+            }
           }
 
           // isEdit이 true일 때 바텀시트 열기
@@ -742,7 +746,7 @@ export default function DecideTimeStamp({
           </div>
           <div
             ref={gridRef}
-            className="timestamp-grid w-full relative grid z-100 border-[1px] border-[#d9d9d9] rounded-3xl"
+            className="w-full relative grid z-500 border-[1px] border-[#d9d9d9] rounded-3xl"
             style={{
               gridTemplateColumns: `repeat(${currentDates.length}, 1fr)`,
               backgroundImage: 'linear-gradient(#d9d9d9 1px, transparent 1px)',
@@ -758,6 +762,19 @@ export default function DecideTimeStamp({
                 {Array.from({ length: 48 }, (_, rowIndex) => {
                   const cellStatus = getCellStatus(rowIndex, colIndex)
                   const cellBorder = getCellBorder(rowIndex, colIndex)
+                  const isTopLeftCorner = rowIndex === 0 && colIndex === 0
+                  const isTopRightCorner =
+                    rowIndex === 0 && colIndex === currentDates.length - 1
+                  const isBottomLeftCorner = rowIndex === 47 && colIndex === 0
+                  const isBottomRightCorner =
+                    rowIndex === 47 && colIndex === currentDates.length - 1
+
+                  const cornerStyleRound = `
+                    ${isTopLeftCorner ? 'rounded-tl-[20px]' : ''}
+                    ${isTopRightCorner ? 'rounded-tr-[20px]' : ''}
+                    ${isBottomLeftCorner ? 'rounded-bl-[20px]' : ''}
+                    ${isBottomRightCorner ? 'rounded-br-[20px]' : ''}
+                  `
                   const mockDataForDate = processedMockData.find(
                     (data) =>
                       new Date(data.date).getDate() ===
@@ -770,11 +787,11 @@ export default function DecideTimeStamp({
                   return (
                     <div
                       key={rowIndex}
-                      className={`relative cursor-pointer overflow-visible`}
+                      className={`relative cursor-pointer ${cornerStyleRound}`}
                       style={{
                         ...cellBorder,
                         height: `${18 * scale}px`,
-                        borderCollapse: 'separate',
+                        // borderCollapse: 'separate',
                       }}
                       onMouseDown={() => {
                         handleMouseClick(rowIndex, colIndex)
@@ -785,25 +802,25 @@ export default function DecideTimeStamp({
                       }}
                     >
                       <div
-                        className="absolute inset-0"
+                        className={`absolute inset-0 ${cornerStyleRound}`}
                         style={{
                           backgroundColor: `rgba(149, 98, 251, ${overlayOpacity})`,
                           zIndex: 50,
                         }}
                       />
                       <div
-                        className={`absolute inset-0 ${
+                        className={`absolute inset-0 ${cornerStyleRound} ${
                           cellStatus.isSelected
                             ? cellStatus.isConfirmed
-                              ? 'opacity-50 bg-[#2a027a] z-200'
-                              : 'opacity-50 bg-[#2a027a] z-200'
+                              ? 'opacity-50 bg-[#2a027a]'
+                              : 'opacity-50 bg-[#2a027a]'
                             : ''
                         }`}
                         style={{ zIndex: 100 }}
                       />
                       {!cellStatus.isConfirmed && cellStatus.isStartCell && (
                         <div
-                          className="absolute -top-[5px] left-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move z-[2000]"
+                          className="absolute -top-[3px] left-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move z-[2000]"
                           onMouseDown={(e) => {
                             e.stopPropagation()
                             handleResizeStart(
@@ -828,7 +845,7 @@ export default function DecideTimeStamp({
                       )}
                       {!cellStatus.isConfirmed && cellStatus.isEndCell && (
                         <div
-                          className="absolute -bottom-[5px] right-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move"
+                          className="absolute -bottom-[3px] right-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move"
                           style={{ zIndex: 3000 }}
                           onMouseDown={(e) => {
                             e.stopPropagation()
