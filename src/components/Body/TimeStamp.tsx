@@ -590,7 +590,7 @@ export default function TimeStamp({
               gridTemplateColumns: `repeat(${currentDates.length}, 1fr)`,
               backgroundImage: 'linear-gradient(#d9d9d9 1px, transparent 1px)',
               backgroundSize: `100% ${36 * scale}px`,
-              clipPath: 'inset(1px 0 0)',
+              // clipPath: 'inset(1px 0 0)',
             }}
           >
             {currentDates.map((_, colIndex) => (
@@ -610,10 +610,10 @@ export default function TimeStamp({
                     rowIndex === 47 && colIndex === currentDates.length - 1
 
                   const cornerStyleRound = `
-                    ${isTopLeftCorner ? 'rounded-tl-3xl' : ''}
-                    ${isTopRightCorner ? 'rounded-tr-3xl' : ''}
-                    ${isBottomLeftCorner ? 'rounded-bl-3xl' : ''}
-                    ${isBottomRightCorner ? 'rounded-br-3xl' : ''}
+                    ${isTopLeftCorner ? 'rounded-tl-[20px]' : ''}
+                    ${isTopRightCorner ? 'rounded-tr-[20px]' : ''}
+                    ${isBottomLeftCorner ? 'rounded-bl-[20px]' : ''}
+                    ${isBottomRightCorner ? 'rounded-br-[20px]' : ''}
                   `
                   return (
                     <div
