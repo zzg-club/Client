@@ -6,6 +6,10 @@ import SelectedDays from '@/components/Header/SelectedDays'
 import TimeStamp from '@/components/Body/TimeStamp'
 import SelectedBottom from '@/components/Footer/BottomSheet/SelectedBottom'
 import { SelectItem } from '@/components/Footer/ListItem/SelectItem'
+import CustomModal from '@/components/Modals/CustomModal'
+import { ProfileLarge } from '@/components/Profiles/ProfileLarge'
+import MembersDefault from '@/components/Modals/MembersDefault'
+// import { useRouter } from 'next/navigation'
 
 interface SelectedDate {
   year: number
@@ -290,6 +294,123 @@ export default function Page() {
     setIsOpen(false)
   }
 
+  const scheduleModalData = [
+    {
+      id: 2,
+      number: 2,
+      startDate: '12월 30일',
+      startTime: '18:00',
+      endTime: '20:00',
+      participants: [
+        {
+          id: 1,
+          name: '나',
+          image: '/sampleProfile.png',
+          isScheduleSelect: true,
+        },
+        {
+          id: 2,
+          name: '김태엽',
+          image: '/sampleProfile.png',
+          isScheduleSelect: true,
+        },
+        {
+          id: 3,
+          name: '지유진',
+          image: '/sampleProfile.png',
+          isScheduleSelect: true,
+        },
+        {
+          id: 4,
+          name: '이소룡',
+          image: '/sampleProfile.png',
+          isScheduleSelect: false,
+        },
+        {
+          id: 5,
+          name: '박진우',
+          image: '/sampleProfile.png',
+          isScheduleSelect: false,
+        },
+        {
+          id: 6,
+          name: '이예지',
+          image: '/sampleProfile.png',
+          isScheduleSelect: false,
+        },
+        {
+          id: 7,
+          name: '조성하',
+          image: '/sampleProfile.png',
+          isScheduleSelect: true,
+        },
+        {
+          id: 8,
+          name: '성윤정',
+          image: '/sampleProfile.png',
+          isScheduleSelect: false,
+        },
+        {
+          id: 9,
+          name: '김나영',
+          image: '/sampleProfile.png',
+          isScheduleSelect: false,
+        },
+        {
+          id: 10,
+          name: '이채연',
+          image: '/sampleProfile.png',
+          isScheduleSelect: false,
+        },
+      ],
+    },
+  ]
+
+  // 완료 버튼 누르면 나오는 일정 입력 중 모달
+  const [isToDecideModal, setIsToDecideModal] = useState(false)
+  const handleToDecideModal = () => {
+    if (isPurple) {
+      setIsToDecideModal(!isToDecideModal)
+      setIsExpanded(false)
+      setIsDanger(false)
+    } else {
+      setIsNextOpen(!isNextOpen)
+    }
+  }
+
+  // 확장 상태 관리, ProfileLarge에서 전달받은 확장 상태 업데이트
+  const [isExpanded, setIsExpanded] = useState(false)
+  const handleExpandChange = (newExpandState: boolean) => {
+    setIsExpanded(newExpandState)
+  }
+
+  // onNext 버튼 누르면 경고 문구 출력 상태 관리
+  const [isDanger, setIsDanger] = useState(false)
+  const handleDanger = () => {
+    const hasIncompleteMember = scheduleModalData[0].participants.some(
+      (participant) => !participant.isScheduleSelect,
+    )
+    setIsDanger(hasIncompleteMember ? !isDanger : isDanger)
+
+    // isDanger가 true로 변경되었을 때 페이지 이동
+    if (hasIncompleteMember) {
+      if (isDanger) {
+        // 경고가 이미 표시된 상태에서 다시 누르면 페이지 이동
+        alert('경고 확인 후 페이지 이동')
+      } else {
+        // 경고 보여주기
+        setIsDanger(true)
+      }
+    } else {
+      // 모두 완료되었으면 바로 페이지 이동
+      alert('경고 없이 페이지 이동')
+    }
+  }
+
+  // const router = useRouter()
+
+  const [isNextOpen, setIsNextOpen] = useState(false)
+
   return (
     <div>
       <Title
@@ -297,6 +418,7 @@ export default function Page() {
         initialTitle={scheduleData[0]?.name || title}
         onTitleChange={handleTitleChange}
         isPurple={isPurple}
+        onClickTitleButton={handleToDecideModal}
       />
       <SelectedDays
         selectedDates={selectedDates}
@@ -343,6 +465,60 @@ export default function Page() {
           />
         </div>
       </SelectedBottom>
+      <CustomModal
+        open={isToDecideModal}
+        onOpenChange={handleToDecideModal}
+        onNext={handleDanger}
+        isFooter={true}
+        footerText={'최적의 일정 찾기'}
+      >
+        <div className="flex flex-col item-center justify-center">
+          <div className="text-center text-[#1e1e1e] text-[18px] font-medium leading-[25px] mb-[24px]">
+            함께하는 친구들이
+            <br /> 시간을 입력하고 있어요!
+          </div>
+          <div className="flex item-center justify-center mb-[12px]">
+            <ProfileLarge
+              key={scheduleModalData[0].id}
+              profiles={scheduleModalData[0].participants}
+              onExpandChange={handleExpandChange}
+            />
+          </div>
+          {isDanger ? (
+            <div className="text-center text-[#ff0000] text-xs font-medium ">
+              아직 입력을 마치지 않은 친구가 있어요!
+              <br />
+              그래도 진행하시겠어요?
+            </div>
+          ) : (
+            <div className="text-center text-[#afafaf] text-xs font-medium">
+              입력을 완료한 친구의 프로필만 활성화돼요!
+            </div>
+          )}
+          <div className="flex item-center justify-center">
+            {isExpanded && (
+              <MembersDefault
+                blackText={false}
+                title={title}
+                members={scheduleModalData[0].participants}
+                memberCount={scheduleModalData[0].participants.length}
+              />
+            )}
+          </div>
+        </div>
+      </CustomModal>
+      <CustomModal
+        open={isNextOpen}
+        onOpenChange={handleToDecideModal}
+        onNext={() => alert('다음으로 버튼 클릭')}
+        isFooter={true}
+        footerText={'다음으로'}
+      >
+        <div className="flex item-center justify-center text-center text-[#1e1e1e] text-xl font-medium py-4 mt-3">
+          아무것도 선택 <br />
+          안하고 넘어갈까요?
+        </div>
+      </CustomModal>
     </div>
   )
 }
