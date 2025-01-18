@@ -127,6 +127,9 @@ export default function EditTimeStamp({
     const scheduleIndex = currentPage * COLUMNS_PER_PAGE + colIndex
     const schedule = mockSelectedSchedule[scheduleIndex]
 
+    console.log(scheduleIndex)
+    console.log(schedule)
+
     if (!schedule) return
 
     const clickedSlot = schedule.timeSlots.find((slot) => {
@@ -212,7 +215,7 @@ export default function EditTimeStamp({
         if (isResizing) {
           if (resizingPoint === 'start') {
             // 시작 핸들은 종료 핸들 위치까지 이동 가능
-            if (row - 1 <= prev.endRow) {
+            if (row - 1 < prev.endRow) {
               newSelection.startRow = row
               if (isBottomSheetOpen) {
                 handleTimeSelect(
@@ -225,7 +228,7 @@ export default function EditTimeStamp({
             }
           } else if (resizingPoint === 'end') {
             // 종료 핸들은 시작 핸들 위치까지 이동 가능
-            if (row + 1 >= prev.startRow) {
+            if (row + 1 > prev.startRow) {
               newSelection.endRow = row
               if (isBottomSheetOpen) {
                 handleTimeSelect(
@@ -397,33 +400,6 @@ export default function EditTimeStamp({
 
     const topCell = getCellStatus(row - 1, col)
     const bottomCell = getCellStatus(row + 1, col)
-
-    const startTime = indexToTime(cellStatus.selection?.startRow ?? 0)
-    const endTime = indexToTime((cellStatus.selection?.endRow ?? 0) + 1)
-    if (startTime === endTime) {
-      console.log(`시작 시간과 종료 시간이 같습니다: ${startTime}`)
-      return {
-        borderTop:
-          (!bottomCell.isSelected || bottomCell.isConfirmed) &&
-          (topCell.isSelected || topCell.isConfirmed)
-            ? '2px solid #9562fa'
-            : '1px solid #d9d9d9',
-        borderBottom:
-          !topCell.isSelected || topCell.isConfirmed
-            ? '2px solid #9562fa'
-            : 'none',
-        backgroundColor:
-          (topCell.isSelected || topCell.isConfirmed) &&
-          (bottomCell.isSelected || bottomCell.isConfirmed)
-            ? 'rgba(149, 98, 250, 0.6)'
-            : 'white',
-        paddingTop:
-          (topCell.isSelected || topCell.isConfirmed) &&
-          (bottomCell.isSelected || bottomCell.isConfirmed)
-            ? '0px'
-            : '2px',
-      }
-    }
 
     return {
       borderTop:
