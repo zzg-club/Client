@@ -9,6 +9,8 @@ import { SelectItem } from '@/components/Footer/ListItem/SelectItem'
 import CustomModal from '@/components/Modals/CustomModal'
 import DecideBottom from '@/components/Footer/BottomSheet/DecideBottom'
 import { ScheduleItem } from '@/components/Footer/ListItem/ScheduleItem'
+import { EditItem } from '@/components/Footer/ListItem/EditItem'
+import useEditStore from '@/store/useEditStore'
 
 interface TimeSlot {
   start: string
@@ -180,6 +182,8 @@ const participants = [
 ]
 
 export default function Page() {
+  const { isEdit, setIsEdit, isEditBottomSheetOpen, setIsEditBottomSheetOpen } =
+    useEditStore()
   const [currentPage, setCurrentPage] = useState(0)
   const [title, setTitle] = useState('제목 없는 일정') // 제목 상태 관리
   const [isPurple, setIsPurple] = useState(false)
@@ -207,7 +211,6 @@ export default function Page() {
   >([])
 
   const [selectedDates, setSelectedDates] = useState<SelectedDate[]>([])
-  const [isEdit, setIsEdit] = useState(false)
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage)
@@ -259,13 +262,18 @@ export default function Page() {
       const DefaultEndTime = getEndLabel(pairEndRow)
 
       setTimeout(() => {
+        console.log('page - isEdit', isEdit)
         setStartTime(DefaultStartTime)
         setEndTime(DefaultEndTime)
         setHighlightedCol(colIndex)
-        setIsOpen(true)
+        if (isEdit) {
+          setIsEditBottomSheetOpen(true)
+        } else {
+          setIsOpen(true)
+        }
       }, 0)
     },
-    [],
+    [isEdit, setIsEditBottomSheetOpen],
   )
 
   const getDateTime = (
@@ -298,7 +306,10 @@ export default function Page() {
             year,
             timeSlots: [{ start, end }], // 단일 slot만 포함
           }
-          setIsEdit(false)
+
+          setTimeout(() => {
+            setIsEdit(false)
+          }, 0)
           return updated
         }
 
@@ -385,6 +396,7 @@ export default function Page() {
       }
     })
     setIsOpen(false)
+    // setIsEditBottomSheetOpen(false)
     setIsPurple(true)
   }
 
@@ -521,15 +533,14 @@ export default function Page() {
           handleActiveTime={handleActiveTime}
           isBottomSheetOpen={isOpen}
           dateTime={dateTime}
-          isEdit={isEdit}
-          setIsEdit={setIsEdit}
         />
       </div>
       {!decideBottomOpen && (
-        <div className="z-[2000]">
+        <div className="z-[1000]">
           <SelectedBottom isOpen={isOpen} onClose={() => setIsOpen(false)}>
-            <div>
-              <SelectItem
+            {isEditBottomSheetOpen ? (
+              <EditItem
+                key={1}
                 date={
                   highlightedCol !== null
                     ? `${selectedDates[0]?.month}월 ${selectedDates[highlightedCol]?.date}일`
@@ -538,7 +549,19 @@ export default function Page() {
                 startTime={`${startTime}`}
                 endTime={`${endTime}`}
               />
-            </div>
+            ) : (
+              <div>
+                <SelectItem
+                  date={
+                    highlightedCol !== null
+                      ? `${selectedDates[0]?.month}월 ${selectedDates[highlightedCol]?.date}일`
+                      : ''
+                  }
+                  startTime={`${startTime}`}
+                  endTime={`${endTime}`}
+                />
+              </div>
+            )}
           </SelectedBottom>
         </div>
       )}

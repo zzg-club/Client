@@ -9,6 +9,7 @@ import {
   CSSProperties,
 } from 'react'
 import '@/styles/TimeStamp.css'
+import useEditStore from '@/store/useEditStore'
 
 interface TimeSlot {
   start: string
@@ -51,8 +52,6 @@ interface DecideTimeStampProps {
     year: number
     timeSlots: { start: string; end: string }[]
   }[]
-  isEdit: boolean
-  setIsEdit: (value: boolean) => void
 }
 
 const COLUMNS_PER_PAGE = 7
@@ -66,9 +65,9 @@ export default function DecideTimeStamp({
   handleActiveTime,
   isBottomSheetOpen,
   dateTime,
-  isEdit,
-  setIsEdit,
 }: DecideTimeStampProps) {
+  const { isEdit, setIsEdit, isEditBottomSheetOpen, setIsEditBottomSheetOpen } =
+    useEditStore()
   const [selections] = useState<Selection[]>([])
   const [isResizing, setIsResizing] = useState(false)
   const [activeSelection, setActiveSelection] = useState<Selection | null>(null)
@@ -224,6 +223,7 @@ export default function DecideTimeStamp({
       })
     } else if (schedule && schedule.id === scheduleIndex) {
       setIsEdit(true)
+      setIsEditBottomSheetOpen(true)
       setIsEditClick(true)
       console.log('handleMouseClick')
       const clickedSlot = schedule.timeSlots.find((slot) => {
@@ -341,6 +341,10 @@ export default function DecideTimeStamp({
         const startTime = getTimeLabel(startRow)
         const endTime = getTimeLabel(endRow + 1)
 
+        setTimeout(() => {
+          setIsEditBottomSheetOpen(false)
+        }, 0)
+
         handleDateTimeSelect(selectedDate, startTime, endTime, startCol)
 
         console.log('startTime', startTime)
@@ -363,6 +367,7 @@ export default function DecideTimeStamp({
     handleDateTimeSelect,
     isEdit,
     isEditClick,
+    setIsEditBottomSheetOpen,
   ])
 
   const handleSelectionStart = (
@@ -726,7 +731,7 @@ export default function DecideTimeStamp({
 
   return (
     <div
-      className={`timestamp-container ${isBottomSheetOpen ? 'pb-[100px]' : 'pb-[40px]'}`}
+      className={`timestamp-container ${isBottomSheetOpen || isEditBottomSheetOpen ? 'pb-[100px]' : 'pb-[40px]'}`}
     >
       <div className="timestamp-content">
         <div className="timestamp-grid w-full max-w-4xl mx-auto bg-white pl-2 pr-8 pt-3 pb-8 flex grid grid-cols-[auto_1fr]">
@@ -751,7 +756,7 @@ export default function DecideTimeStamp({
               gridTemplateColumns: `repeat(${currentDates.length}, 1fr)`,
               backgroundImage: 'linear-gradient(#d9d9d9 1px, transparent 1px)',
               backgroundSize: `100% ${36 * scale}px`,
-              clipPath: 'inset(1px 0 0 0)', // 위쪽 1px 잘라냄
+              // clipPath: 'inset(1px 0 0 0)', // 위쪽 1px 잘라냄
             }}
           >
             {currentDates.map((_, colIndex) => (
