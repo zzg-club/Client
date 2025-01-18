@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import SelectedDays from '@/components/Body/Edit/EditSelectedDays'
+import SelectedDays from '@/components/Header/SelectedDays'
 import Title from '@/components/Header/Title'
 import EditTimeStamp from '@/components/Body/Edit/EditTimeStamp'
 import SelectedBottom from '@/components/Footer/BottomSheet/SelectedBottom'
