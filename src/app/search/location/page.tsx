@@ -13,6 +13,7 @@ const Location = () => {
       //플레이스 탭에서 왔다면
       window.location.href = `/place`
     } else {
+      //그 외의 탭에서 오면 /letsmeet/middle로 이동
       window.location.href = `/letsmeet/middle?from=${from}`
     }
   }

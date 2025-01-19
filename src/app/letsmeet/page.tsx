@@ -7,6 +7,7 @@ import { ScheduleOptions } from '@/components/Buttons/Floating/Options'
 import CarouselNotification from '@/components/Notification/CarouselNotification'
 import { LetsmeetCard } from '@/components/Cards/LetsmeetCard'
 import { useRouter } from 'next/navigation'
+import LocationModal from '@/components/Modals/DirectSelect/LocationModal'
 
 const mockSchedules = [
   {
@@ -98,16 +99,27 @@ const mockSchedules = [
 
 export default function LetsMeetPage() {
   const [isOpen, setIsOpen] = useState(false)
-  const [isOptionsOpen, setIsOptionsOpen] = useState(false) // 옵션 모달 상태 관리
-  const router = useRouter() // Next.js 라우터 훅
+  const [isOptionsOpen, setIsOptionsOpen] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [title, setTitle] = useState('제목 없는 일정')
+  const router = useRouter()
 
   const handleFindMidpoint = () => {
-    // 중간지점 찾기 클릭 시 /search?from=/letsmeet 페이지로 이동
     router.push('/search?from=/letsmeet')
   }
 
   const handleDirectInput = () => {
-    alert('직접 입력하기 선택됨!')
+    setTitle('제목 없는 일정') // 기본 제목 설정
+    setIsModalOpen(true) // LocationModal 열기
+  }
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+  }
+
+  const handleComplete = () => {
+    console.log('완료 버튼 클릭')
+    handleCloseModal()
   }
 
   // 캐러셀 알림 목데이터
@@ -142,7 +154,6 @@ export default function LetsMeetPage() {
 
   return (
     <div className="flex flex-col min-h-screen h-screen">
-      {/* Add Moim Button */}
       <NavBar activeTab="렛츠밋" />
 
       {/* 캐로셀 알림 컴포넌트 */}
@@ -182,10 +193,10 @@ export default function LetsMeetPage() {
           </div>
         </>
       ) : (
-        // 스케줄 정보 없는 경우 렌더링 화면
+        // 장소 정보 없는 경우 렌더링 화면
         <div className="flex flex-col items-center justify-center flex-1">
           <div className="text-center text-zinc-400 text-base font-medium leading-[17px]">
-            모임 일정을 추가해봐요!
+            모임 장소를 추가해봐요!
           </div>
         </div>
       )}
@@ -208,6 +219,16 @@ export default function LetsMeetPage() {
         optionStringUp="중간지점 찾기"
         optionStringDown="직접 입력하기"
       />
+      {/* LocationModal */}
+      {isModalOpen && (
+        <LocationModal
+          isVisible={isModalOpen}
+          onClose={handleCloseModal}
+          onClickRight={handleComplete}
+          initialTitle={title}
+          onTitleChange={setTitle}
+        ></LocationModal>
+      )}
     </div>
   )
 }

@@ -5,9 +5,9 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import SearchBar from '@/components/SearchBar/SearchBar'
 
 export default function SearchPage() {
-  const router = useRouter() // Next.js 라우터 훅
-  const searchParams = useSearchParams() // 쿼리 파라미터 사용
-  const from = searchParams.get('from') || '/schedule' // 기본값: /letsmeet
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const from = searchParams.get('from') || '/schedule'
 
   const handleSearchClick = () => {
     // 검색 버튼 클릭 시 실행
@@ -29,49 +29,21 @@ export default function SearchPage() {
   }
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100vh',
-      }}
-    >
-      <div
-        style={{
-          display: 'flex',
-          width: '100%',
-          padding: '11px 12px',
-          justifyContent: 'center',
-          alignItems: 'center',
-          gap: '8px',
-          borderRadius: '0px 0px 24px 24px',
-          background: 'var(--Grays-White, #fff)',
-          boxShadow: '0px 0px 10px 0px rgba(30, 30, 30, 0.1)',
-        }}
-      >
+    <div className="flex flex-col h-screen">
+      <div className="flex w-full px-3 py-[11px] justify-center items-center gap-2 rounded-b-[24px] bg-white shadow-[0_0_10px_0_rgba(30,30,30,0.1)]">
         {/* 뒤로가기 버튼 */}
         <img
           src="/arrow_back.svg"
           alt="뒤로 가기"
-          style={{ width: '24px', height: '24px', cursor: 'pointer' }}
+          className="w-6 h-6 cursor-pointer"
           onClick={handleBackClick}
         />
 
-        <SearchBar />
+        <SearchBar placeholder="출발지를 입력해주세요!" />
 
         {/* 검색 버튼 */}
         <button
-          style={{
-            color: 'var(--MainColor, #9562fb)',
-            textAlign: 'center',
-            fontFamily: 'Pretendard',
-            whiteSpace: 'nowrap',
-            fontStyle: 'normal',
-            fontWeight: 550,
-            lineHeight: '17px',
-            letterSpacing: '-0.5px',
-            cursor: 'pointer',
-          }}
+          className="text-xl text-center font-pretendard font-medium leading-[17px] tracking-[-0.5px] text-[#9562fb] cursor-pointer"
           onClick={handleSearchClick}
         >
           검색
@@ -80,36 +52,11 @@ export default function SearchPage() {
 
       {/* 내 위치 불러오기 버튼 */}
       <button
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center', // 내부 콘텐츠를 중앙 정렬
-          margin: '0 auto', // 부모 컨테이너 내에서 중앙 정렬
-          width: '356px', // 버튼의 고정 너비
-          height: '42px',
-          border: '1px solid #9562fb', // 테두리 색상
-          borderRadius: '24px',
-          color: '#9562fb', // 텍스트 색상
-          fontSize: '14px',
-          fontWeight: 550,
-          lineHeight: '17px',
-          letterSpacing: '-0.5px',
-          cursor: 'pointer',
-          gap: '8px',
-          padding: '0', // 패딩 제거
-          marginTop: '16px', // 버튼 위쪽 간격
-        }}
+        className="flex items-center justify-center mx-auto w-[356px] h-[42px] border border-[#9562fb] rounded-[24px] text-[#9562fb] text-[14px] font-medium leading-[17px] tracking-[-0.5px] cursor-pointer gap-2 p-0 mt-4"
         onClick={handleLocationClick}
       >
-        <img
-          src="/vector.svg"
-          alt="위치 아이콘"
-          style={{
-            width: '28px',
-            height: '28px',
-          }}
-        />
-        내 위치 불러오기
+        <img src="/vector.svg" alt="위치 아이콘" className="w-7 h-7" />내 위치
+        불러오기
       </button>
     </div>
   )
