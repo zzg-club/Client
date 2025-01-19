@@ -67,6 +67,11 @@ export default function Page() {
     setTitle(newTitle)
   }
 
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage)
+    setIsOpen(false)
+  }
+
   const handleDateCountsChange = (
     counts: number[],
     groupedData: GroupedDate[],
@@ -137,6 +142,8 @@ export default function Page() {
 
     setStartTime(calculatedStartTime)
     setEndTime(calculatedEndTime)
+
+    setIsOpen(true)
   }
 
   const getDateTime = (col: number, start: string, end: string) => {
@@ -291,21 +298,12 @@ export default function Page() {
   const selectedDates: SelectedDate[] = convertToSelectedDates(scheduleData)
   const mode = scheduleData[0].mode
   const dayofWeek = scheduleData[0].selected
-  if (highlightedCol !== null) {
-    console.log(Math.floor(highlightedCol / DAYS_PER_PAGE))
-  }
-
   const month =
     mode === 'range'
       ? currentPage === Math.floor((highlightedCol ?? 0) / DAYS_PER_PAGE)
         ? `${selectedDates[highlightedCol ?? currentPage * DAYS_PER_PAGE]?.month}월`
         : `${selectedDates[currentPage * DAYS_PER_PAGE]?.month}월`
       : `${groupedDate[currentPage]?.date?.[highlightedIndex ?? 0]?.month ?? groupedDate[currentPage]?.date?.[0]?.month}월`
-
-  const handlePageChange = (newPage: number) => {
-    setCurrentPage(newPage)
-    setIsOpen(false)
-  }
 
   const scheduleModalData = [
     {
