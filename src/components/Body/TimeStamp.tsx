@@ -188,7 +188,7 @@ export default function TimeStamp({
         47,
       )
 
-      console.log('ActiveSelection', activeSelection)
+      // console.log('ActiveSelection', activeSelection)
 
       setActiveSelection((prev) => {
         if (!prev) return null
