@@ -77,9 +77,7 @@ export default function Page() {
 
   const handleSelectedCol = useCallback(
     (colIndex: number, rowIndex: number) => {
-      // const defaultCol = Math.abs(colIndex / DAYS_PER_PAGE)
-      // console.log('default', defaultCol)
-      if (colIndex === -1) {
+      if (rowIndex === -1) {
         setHighlightedCol(null)
         return 0
       }
@@ -257,17 +255,17 @@ export default function Page() {
       // selected: ['mon', 'wed', 'fri'],
       // date: [
       //   ['2024-01-06', 'mon'],
-      //   ['2024-01-08', 'wed'],
-      //   ['2024-02-13', 'mon'],
-      //   ['2024-01-15', 'wed'],
-      //   ['2024-02-20', 'mon'],
-      //   ['2024-01-22', 'wed'],
+      //   ['2024-02-08', 'wed'],
+      //   ['2024-01-13', 'mon'],
+      //   ['2024-02-15', 'wed'],
+      //   ['2024-01-20', 'mon'],
+      //   ['2024-02-22', 'wed'],
       //   ['2024-01-27', 'mon'],
-      //   ['2024-01-03', 'fri'],
-      //   ['2024-01-10', 'fri'],
-      //   ['2024-01-17', 'fri'],
-      //   ['2024-01-24', 'fri'],
-      //   ['2024-01-31', 'fri'],
+      //   ['2024-03-03', 'fri'],
+      //   ['2024-03-10', 'fri'],
+      //   ['2024-03-17', 'fri'],
+      //   ['2024-03-24', 'fri'],
+      //   ['2024-03-31', 'fri'],
       // ],
       mode: 'range',
       selected: null,
@@ -284,8 +282,8 @@ export default function Page() {
         ['2024-01-08', 'wed'],
         ['2024-01-09', 'thu'],
         ['2024-01-10', 'fri'],
-        // ['2024-01-11', 'sat'],
-        // ['2024-01-12', 'sun'],
+        ['2024-01-11', 'sat'],
+        ['2024-01-12', 'sun'],
       ],
     },
   ]
@@ -293,10 +291,16 @@ export default function Page() {
   const selectedDates: SelectedDate[] = convertToSelectedDates(scheduleData)
   const mode = scheduleData[0].mode
   const dayofWeek = scheduleData[0].selected
+  if (highlightedCol !== null) {
+    console.log(Math.floor(highlightedCol / DAYS_PER_PAGE))
+  }
+
   const month =
     mode === 'range'
-      ? `${selectedDates[highlightedCol ?? 0]?.month}월`
-      : `${groupedDate[currentPage]?.date?.[highlightedIndex ?? 0]?.month}월`
+      ? currentPage === Math.floor((highlightedCol ?? 0) / DAYS_PER_PAGE)
+        ? `${selectedDates[highlightedCol ?? currentPage * DAYS_PER_PAGE]?.month}월`
+        : `${selectedDates[currentPage * DAYS_PER_PAGE]?.month}월`
+      : `${groupedDate[currentPage]?.date?.[highlightedIndex ?? 0]?.month ?? groupedDate[currentPage]?.date?.[0]?.month}월`
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage)
