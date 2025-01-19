@@ -51,7 +51,7 @@ export default function Page() {
   const [startTime, setStartTime] = useState<string | null>(null)
   const [endTime, setEndTime] = useState<string | null>(null)
   const [dateTime, setDateTime] = useState<
-    { date: number; timeSlots: { start: string; end: string }[] }[]
+    { date: string; timeSlots: { start: string; end: string }[] }[]
   >([])
   const [isOpen, setIsOpen] = useState(false)
   const [dateCounts, setDateCounts] = useState<number[]>([])
@@ -146,9 +146,9 @@ export default function Page() {
     setIsOpen(true)
   }
 
-  const getDateTime = (col: number, start: string, end: string) => {
+  const getDateTime = (date: string, start: string, end: string) => {
     setDateTime((prev) => {
-      const existingDateIndex = prev.findIndex((item) => item.date === col)
+      const existingDateIndex = prev.findIndex((item) => item.date === date)
       let newEntry = null
 
       if (existingDateIndex !== -1) {
@@ -201,20 +201,20 @@ export default function Page() {
               .padStart(2, '0')}`,
           }
           timeSlots.push(mergedSlot)
-          newEntry = { date: col, timeSlots: [mergedSlot] }
+          newEntry = { date: date, timeSlots: [mergedSlot] }
         } else {
           const newSlot = { start, end }
           timeSlots.push(newSlot)
-          newEntry = { date: col, timeSlots: [newSlot] }
+          newEntry = { date: date, timeSlots: [newSlot] }
         }
-
+        console.log(date)
         timeSlots.sort((a, b) => toMinutes(a.start) - toMinutes(b.start))
 
         updated[existingDateIndex].timeSlots = timeSlots
         // console.log('새로 추가된 항목:', newEntry)
         return updated
       } else {
-        newEntry = { date: col, timeSlots: [{ start, end }] }
+        newEntry = { date: date, timeSlots: [{ start, end }] }
         // console.log('새로 추가된 항목:', newEntry)
         return [...prev, newEntry]
       }

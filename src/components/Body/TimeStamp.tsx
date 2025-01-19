@@ -13,14 +13,14 @@ interface Selection {
 }
 
 interface TimeStampProps {
-  selectedDates: { day: number; weekday: string }[]
+  selectedDates: { year: number; month: number; day: number }[]
   currentPage: number
   mode: string
   onPageChange: (newPage: number) => void
   dateCounts: number[]
   handleSelectedCol: (colIndex: number, rowIndex: number) => void
   handleActiveTime: (start: number, end: number) => void
-  getDateTime: (col: number, start: string, end: string) => void
+  getDateTime: (date: string, start: string, end: string) => void
   isBottomSheetOpen: boolean
 }
 
@@ -101,9 +101,9 @@ export default function TimeStamp({
   )
 
   const handleDateTimeSelect = useCallback(
-    (col: number, start: string, end: string) => {
+    (date: string, start: string, end: string) => {
       setTimeout(() => {
-        getDateTime(col, start, end)
+        getDateTime(date, start, end)
       }, 0)
     },
     [getDateTime],
@@ -259,7 +259,7 @@ export default function TimeStamp({
           return `${formattedHour}:${formattedMinute}`
         }
 
-        const selectedDate = currentDates[startCol]?.day
+        const selectedDate = `${currentDates[startCol]?.year}-${String(currentDates[startCol]?.month).padStart(2, '0')}-${String(currentDates[startCol]?.day).padStart(2, '0')}`
         const startTime = getTimeLabel(finalizedSelection.startRow)
         const endTime = getTimeLabel(finalizedSelection.endRow + 1)
 
