@@ -172,7 +172,7 @@
   z-index: 1; /* 겹칠 때 순서 조정 */
 }
 
-.tab.selected {
+.selectedTab {
   color: var(--MainColor, #9562fb);
   font-family: Pretendard;
   font-size: 18px;
@@ -227,10 +227,9 @@
   border-radius: 24px;
 }
 
-/* 호버 효과 */
-.actionButton:hover {
-  background-color: var(--MainColor, #9562fb);
-  color: #ffffff; /* 호버 시 텍스트 색상 변경 */
+
+.selected {
+  background-color: #D4BEFF80; /* 선택된 버튼 배경색 */
 }
 
 /* MOIM-Pick 컨테이너 */

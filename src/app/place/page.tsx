@@ -36,6 +36,17 @@ export default function Home() {
   const threshold = 50
   const router = useRouter()
   const mapRef = useRef<() => void | null>(null)
+  const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
+
+
+  const handleFilterButtonClick = (filter: string) => {
+    setSelectedFilters((prevSelected) =>
+      prevSelected.includes(filter)
+        ? prevSelected.filter((item) => item !== filter) // 이미 선택된 경우 해제
+        : [...prevSelected, filter] // 새로 선택
+    );
+  };
+  
 
   const handleVectorButtonClick = () => {
     if (mapRef.current) {
@@ -144,7 +155,7 @@ export default function Home() {
           <button
             key={tab.id}
             className={`${styles.tab} ${
-              selectedTab === tab.id ? styles.selected : ''
+              selectedTab === tab.id ? styles.selectedTab : ''
             }`}
             onClick={() => setSelectedTab(tab.id)}
           >
@@ -165,11 +176,18 @@ export default function Home() {
           {/* Dynamic Buttons */}
           <div className={styles.buttonsContainer}>
             {getCurrentTabFilters().map((filter, index) => (
-              <button key={index} className={styles.actionButton}>
+              <button
+                key={index}
+                className={`${styles.actionButton} ${
+                  selectedFilters.includes(filter) ? styles.selected : ''
+                }`}
+                onClick={() => handleFilterButtonClick(filter)}
+              >
                 {filter}
               </button>
             ))}
           </div>
+          
           <div className={styles.moimPickContainer}>
             <span className={styles.moimPickText}>MOIM-Pick</span>
             <div className={styles.moimPickLine}></div>
