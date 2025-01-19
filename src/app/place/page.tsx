@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import KakaoMap from '@/components/Map/KakaoMap'
 import Navbar from '@/components/Navigate/NavBar'
@@ -12,10 +12,16 @@ interface Place {
   name: string
 }
 
+interface FilterResponse {
+  category: string
+  filters: Record<string, string> // filter1, filter2, ...
+}
+
 const tabs = [
   { id: 'food', label: '음식점' },
   { id: 'cafe', label: '카페' },
   { id: 'play', label: '놀이' },
+  { id: 'campus', label: '캠퍼스' },
 ]
 
 export default function Home() {
@@ -23,6 +29,7 @@ export default function Home() {
   const [bottomSheetState, setBottomSheetState] = useState<
     'collapsed' | 'middle' | 'expanded'
   >('collapsed')
+  const [filters, setFilters] = useState<FilterResponse[]>([]) // 필터 데이터를 저장
   const [selectedTab, setSelectedTab] = useState<string>(tabs[0].id)
   const startY = useRef<number | null>(null)
   const currentY = useRef<number | null>(null)
@@ -66,6 +73,35 @@ export default function Home() {
     }
     startY.current = null
     currentY.current = null
+  }
+
+  useEffect(() => {
+    const fetchFilters = async () => {
+      try {
+        const response = await fetch('http://api.mooim.kro.kr/api/places/filter', {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        })
+        if (response.ok) {
+          const data: FilterResponse[] = await response.json()
+          setFilters(data) // 상태 업데이트
+          console.log("상태업데이트 완료!")
+        } else {
+          console.error('Failed to fetch filters:', response.status)
+        }
+      } catch (error) {
+        console.error('Error fetching filters:', error)
+      }
+    }
+
+    fetchFilters()
+  }, [])
+
+   // 선택된 탭에 맞는 필터 가져오기
+  const getCurrentTabFilters = () => {
+    const currentCategory = tabs.find((tab) => tab.id === selectedTab)?.label
+    const categoryFilters = filters.find((filter) => filter.category === currentCategory)
+    return categoryFilters ? Object.values(categoryFilters.filters) : []
   }
 
   return (
@@ -128,26 +164,11 @@ export default function Home() {
         <div className={styles.content}>
           {/* Dynamic Buttons */}
           <div className={styles.buttonsContainer}>
-            {selectedTab === 'food' &&
-              ['24시', '학교', '주점', '룸'].map((button, index) => (
-                <button key={index} className={styles.actionButton}>
-                  {button}
-                </button>
-              ))}
-            {selectedTab === 'cafe' &&
-              ['24시', '학교', '스터디', '콘센트'].map((button, index) => (
-                <button key={index} className={styles.actionButton}>
-                  {button}
-                </button>
-              ))}
-            {selectedTab === 'play' &&
-              ['노래방', 'PC방', '볼링장', '당구장', '파티룸'].map(
-                (button, index) => (
-                  <button key={index} className={styles.actionButton}>
-                    {button}
-                  </button>
-                ),
-              )}
+            {getCurrentTabFilters().map((filter, index) => (
+              <button key={index} className={styles.actionButton}>
+                {filter}
+              </button>
+            ))}
           </div>
           <div className={styles.moimPickContainer}>
             <span className={styles.moimPickText}>MOIM-Pick</span>
