@@ -37,6 +37,35 @@ export default function Home() {
   const router = useRouter()
   const mapRef = useRef<() => void | null>(null)
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
+  const [cardData, setCardData] = useState<any[]>([]); // 카드 데이터를 저장
+
+  const handleTabClick = async (tabId: string) => {
+    setSelectedTab(tabId);
+    setSelectedFilters([]);
+  
+    const categoryIndex = tabs.findIndex((tab) => tab.id === tabId);
+  
+    if (categoryIndex !== -1) {
+      try {
+        const response = await fetch(`http://api.mooim.kro.kr/api/places/category/${categoryIndex}`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        });
+  
+        if (response.ok) {
+          const result = await response.json();
+          console.log('카드 데이터:', result); // 디버깅용
+          setCardData(result.data || []); // 카드 데이터 업데이트
+        } else {
+          console.error('Failed to fetch card data:', response.status);
+        }
+      } catch (error) {
+        console.error('Error fetching card data:', error);
+      }
+    }
+  };
+  
+
 
 
   const handleFilterButtonClick = (filter: string) => {
@@ -92,21 +121,25 @@ export default function Home() {
         const response = await fetch('http://api.mooim.kro.kr/api/places/filter', {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
-        })
+        });
         if (response.ok) {
-          const data: FilterResponse[] = await response.json()
-          setFilters(data) // 상태 업데이트
-          console.log("상태업데이트 완료!")
+          const result = await response.json();
+          console.log('API 응답 데이터:', result); // 디버깅용
+          if (result.success && Array.isArray(result.data)) {
+            setFilters(result.data); // 상태 업데이트
+          } else {
+            console.error('유효하지 않은 데이터 형식:', result);
+          }
         } else {
-          console.error('Failed to fetch filters:', response.status)
+          console.error('Failed to fetch filters:', response.status);
         }
       } catch (error) {
-        console.error('Error fetching filters:', error)
+        console.error('Error fetching filters:', error);
       }
-    }
-
-    fetchFilters()
-  }, [])
+    };
+  
+    fetchFilters();
+  }, []);  
 
    // 선택된 탭에 맞는 필터 가져오기
   const getCurrentTabFilters = () => {
@@ -157,7 +190,7 @@ export default function Home() {
             className={`${styles.tab} ${
               selectedTab === tab.id ? styles.selectedTab : ''
             }`}
-            onClick={() => setSelectedTab(tab.id)}
+            onClick={() => handleTabClick(tab.id)}
           >
             {tab.label}
           </button>
