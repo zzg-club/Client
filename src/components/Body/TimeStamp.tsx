@@ -297,7 +297,7 @@ export default function TimeStamp({
         } else {
           // mode가 'range'가 아닐 경우 다른 로직
           const groupedArray = groupedDate?.[currentPage]?.date ?? []
-          selectedDate = `${groupedArray[startCol]?.year}-${groupedArray[startCol]?.month}-${groupedArray[startCol]?.day}`
+          selectedDate = `${groupedArray[startCol]?.year}-${String(groupedArray[startCol]?.month).padStart(2, '0')}-${String(groupedArray[startCol]?.day).padStart(2, '0')}`
         }
 
         console.log('selectedDate', selectedDate)
