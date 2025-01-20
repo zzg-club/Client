@@ -126,13 +126,14 @@ export default function SchedulePage() {
   //   console.log(`Updated dateTimeData:`, dateTime)
 
   //   const updatedData = dateTime.flatMap((dateItem, index) => {
+  //     console.log(updateData)
   //     const { date, timeSlots } = dateItem
 
-  //     // date에서 일자만 추출
-  //     const day = date.toString().split('-')[2] // "YYYY-MM-DD"에서 마지막 부분만 가져옴
-  //     console.log(`Extracted day: ${day}`) // 일자 콘솔 출력
+  //     // const day = date.toString().split('-')[2]
+  //     console.log(updateData[0])
 
-  //     const startDate = `${new Date().getMonth() + 1}월 ${date}일` // date 기반으로 날짜 형식 생성
+  //     const startDate = `${new Date().getMonth() + 1} - ${date}`
+  //     console.log(`월일 ${startDate}`)
 
   //     return timeSlots.map((slot) => ({
   //       slotId: index + 1, // 고유 ID 생성
@@ -269,8 +270,18 @@ export default function SchedulePage() {
   }
 
   const handleDeleteSchedule = (slotId: number) => {
-    setUpdateData((prev) => prev.filter((item) => item.slotId !== slotId))
-    console.log(`${slotId} 삭제`)
+    // setUpdateData((prev) => prev.filter((item) => item.slotId !== slotId))
+    console.log(slotId)
+
+    const deletedSlot = updateData.find((item) => item.slotId === slotId)
+    console.log(deletedSlot)
+
+    if (deletedSlot) {
+      console.log(`${deletedSlot.slotId} 삭제`)
+      console.log(
+        `${deletedSlot.slotId}의 일자: ${deletedSlot.startDate} ${deletedSlot.startTime}  - ${deletedSlot.endTime} 삭제`,
+      )
+    }
   }
 
   const handleSelectedCol = (colIndex: number) => {
@@ -287,17 +298,54 @@ export default function SchedulePage() {
     if (colIndex >= 0 && selectedDates[colIndex]) {
       const selectedDate = selectedDates[colIndex]
 
-      // 비동기 상태 업데이트
-      setTimeout(() => {
-        setSelectedTimeInfo({
-          date: `${selectedDate.month}월 ${selectedDate.date}일`,
-          startTime,
-          endTime,
-          slotId,
-        })
-      }, 0)
+      // 수정된 데이터를 상태에 추가
+      setSelectedTimeInfo({
+        date: `${selectedDate.month}월 ${selectedDate.date}일`,
+        startTime,
+        endTime,
+        slotId,
+      })
+
+      // 선택된 시간 정보 업데이트
+      setSelectedTimeInfo({
+        date: `${selectedDate.month}월 ${selectedDate.date}일`,
+        startTime,
+        endTime,
+        slotId,
+      })
     }
   }
+
+  useEffect(() => {
+    if (selectedTimeInfo) {
+      setUpdateData((prev) => {
+        const updatedData = prev.map((item) =>
+          item.slotId === selectedTimeInfo.slotId
+            ? {
+                ...item,
+                startDate: selectedTimeInfo.date,
+                startTime: selectedTimeInfo.startTime,
+                endTime: selectedTimeInfo.endTime,
+              }
+            : item,
+        )
+
+        if (
+          !updatedData.some((item) => item.slotId === selectedTimeInfo.slotId)
+        ) {
+          updatedData.push({
+            slotId: selectedTimeInfo.slotId,
+            number: prev.length + 1,
+            startDate: selectedTimeInfo.date,
+            startTime: selectedTimeInfo.startTime,
+            endTime: selectedTimeInfo.endTime,
+          })
+        }
+
+        return updatedData
+      })
+    }
+  }, [selectedTimeInfo])
 
   return (
     <div className="flex flex-col h-full bg-white">
