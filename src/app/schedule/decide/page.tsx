@@ -211,6 +211,7 @@ export default function Page() {
   >([])
 
   const [selectedDates, setSelectedDates] = useState<SelectedDate[]>([])
+  const [isEditDelete, setIsEditDelete] = useState(false)
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage)
@@ -266,14 +267,10 @@ export default function Page() {
         setStartTime(DefaultStartTime)
         setEndTime(DefaultEndTime)
         setHighlightedCol(colIndex)
-        if (isEdit) {
-          setIsEditBottomSheetOpen(true)
-        } else {
-          setIsOpen(true)
-        }
+        setIsOpen(true)
       }, 0)
     },
-    [isEdit, setIsEditBottomSheetOpen],
+    [isEdit],
   )
 
   const getDateTime = (
@@ -396,7 +393,6 @@ export default function Page() {
       }
     })
     setIsOpen(false)
-    // setIsEditBottomSheetOpen(false)
     setIsPurple(true)
   }
 
@@ -504,6 +500,19 @@ export default function Page() {
     }
   }, [dateTime])
 
+  const handleEditDelete = () => {
+    setDateTime((prev) => {
+      const dateToDelete = selectedDates[highlightedCol!]?.date
+        .toString()
+        .padStart(2, '0')
+      return prev.filter((item) => item.date !== dateToDelete)
+    })
+    setIsEditBottomSheetOpen(false)
+    setHighlightedCol(null)
+    setIsOpen(false)
+    setIsEditDelete(true)
+  }
+
   return (
     <div className="flex flex-col h-full bg-white">
       <Title
@@ -533,6 +542,8 @@ export default function Page() {
           handleActiveTime={handleActiveTime}
           isBottomSheetOpen={isOpen}
           dateTime={dateTime}
+          isEditDelete={isEditDelete}
+          setIsEditDelete={setIsEditDelete}
         />
       </div>
       {!decideBottomOpen && (
@@ -548,6 +559,7 @@ export default function Page() {
                 }
                 startTime={`${startTime}`}
                 endTime={`${endTime}`}
+                handleEditDelete={handleEditDelete}
               />
             ) : (
               <div>

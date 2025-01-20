@@ -52,6 +52,8 @@ interface DecideTimeStampProps {
     year: number
     timeSlots: { start: string; end: string }[]
   }[]
+  isEditDelete: boolean
+  setIsEditDelete: (value: boolean) => void
 }
 
 const COLUMNS_PER_PAGE = 7
@@ -65,6 +67,8 @@ export default function DecideTimeStamp({
   handleActiveTime,
   isBottomSheetOpen,
   dateTime,
+  isEditDelete,
+  setIsEditDelete,
 }: DecideTimeStampProps) {
   const { isEdit, setIsEdit, isEditBottomSheetOpen, setIsEditBottomSheetOpen } =
     useEditStore()
@@ -194,8 +198,17 @@ export default function DecideTimeStamp({
     console.log('index', colIndex)
     console.log('handeleMouseClick')
 
+    // 이전 선택 영역 초기화
+    setActiveSelection(null)
+    setResizingPoint(null)
+    setIsResizing(false)
+    setIsEditBottomSheetOpen(false)
+    setIsEditClick(false)
+    setIsEdit(false)
+
     if (!schedule) {
       setIsEdit(false)
+      setIsEditBottomSheetOpen(false)
       const pairStartRow = Math.floor(rowIndex / 2) * 2
       const pairEndRow = pairStartRow + 1
 
@@ -356,7 +369,7 @@ export default function DecideTimeStamp({
         }
       })
     }
-
+    setIsEditBottomSheetOpen(false)
     setIsResizing(false)
     setActiveSelection(null)
     setResizingPoint(null)
@@ -680,6 +693,7 @@ export default function DecideTimeStamp({
 
   // dateTime이 변경될 때마다 선택 영역 업데이트
   useEffect(() => {
+    setIsEditDelete(false)
     setSelectionsByPage((prev) => {
       const newSelections = { ...prev }
 
@@ -727,7 +741,12 @@ export default function DecideTimeStamp({
 
       return newSelections
     })
-  }, [dateTime, selectedDates])
+
+    // activeSelection도 초기화
+    if (isEditDelete) {
+      setActiveSelection(null)
+    }
+  }, [dateTime, isEditDelete, selectedDates, setIsEditDelete])
 
   return (
     <div

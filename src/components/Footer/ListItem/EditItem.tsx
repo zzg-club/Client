@@ -2,11 +2,21 @@ export interface EditItemProps {
   date: string
   startTime: string
   endTime: string
+  handleEditDelete?: () => void
 }
 
-export function EditItem({ date, startTime, endTime }: EditItemProps) {
+export function EditItem({
+  date,
+  startTime,
+  endTime,
+  handleEditDelete,
+}: EditItemProps) {
   const onDelete = () => {
-    alert('삭제하기 버튼')
+    if (handleEditDelete) {
+      handleEditDelete()
+    } else {
+      alert('삭제하기 버튼')
+    }
   }
   return (
     <div className="w-full p-4 rounded-b-3xl">
