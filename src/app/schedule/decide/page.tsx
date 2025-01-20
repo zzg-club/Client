@@ -24,7 +24,12 @@ interface DateData {
 }
 
 interface ScheduleData {
-  data: DateData[]
+  name: string
+  userId: number
+  groupId: number
+  mode: string
+  selected: string[] | null
+  dateData: DateData[]
 }
 
 interface SelectedDate {
@@ -35,7 +40,12 @@ interface SelectedDate {
 
 const mockDateTime: ScheduleData[] = [
   {
-    data: [
+    name: '팀플 대면 모임',
+    userId: 2,
+    groupId: 1,
+    mode: 'range',
+    selected: null,
+    dateData: [
       {
         date: '2025-02-01',
         timeSlots: [
@@ -402,7 +412,7 @@ export default function Page() {
   }
 
   const initializeSelectedDates = useCallback(() => {
-    return mockDateTime[0].data.map((dateData) => ({
+    return mockDateTime[0].dateData.map((dateData) => ({
       date: parseInt(dateData.date.split('-')[2]),
       weekday: new Date(dateData.date).toLocaleDateString('ko-KR', {
         weekday: 'short',
@@ -538,7 +548,7 @@ export default function Page() {
           onPageChange={handlePageChange}
           handleSelectedCol={handleSelectedCol}
           getDateTime={getDateTime}
-          mockDateTime={mockDateTime[0].data}
+          mockDateTime={mockDateTime[0].dateData}
           handleActiveTime={handleActiveTime}
           isBottomSheetOpen={isOpen}
           dateTime={dateTime}
