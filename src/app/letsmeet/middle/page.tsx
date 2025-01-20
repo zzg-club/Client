@@ -11,10 +11,22 @@ import { loadKakaoMaps } from '@/utils/kakaoLoader'
 import { getCurrentLocation } from '@/components/Map/getCurrentLocation'
 import BackButton from '@/components/Buttons/Middle/BackButton'
 
+interface Participant {
+  id: number
+  name: string
+  time: string
+  image: string
+  lat: number
+  lng: number
+  transport: string
+  transportIcon: string
+  depart: string
+}
+
 export default function Middle() {
   const [kakaoMap, setKakaoMap] = useState<kakao.maps.Map | null>(null)
-  const [currentIndex, setCurrentIndex] = useState(0) // 현재 인덱스
-  const [participants, setParticipants] = useState([])
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [participants, setParticipants] = useState<Participant[]>([])
   const [destination, setDestination] = useState(dummyDataArray[0].destination)
   const searchParams = useSearchParams()
   const from = searchParams.get('from')
@@ -47,9 +59,10 @@ export default function Middle() {
       try {
         const location = await getCurrentLocation()
         const myInfo = {
+          id: 0,
           name: '내 위치',
           time: '50분',
-          icon: '/sampleProfile.png',
+          image: '/sampleProfile.png',
           lat: location.lat,
           lng: location.lng,
           transport: 'subway',
@@ -70,9 +83,10 @@ export default function Middle() {
         console.error('현재 위치를 가져오지 못했습니다:', error)
 
         const fallbackInfo = {
+          id: 0,
           name: '기본 위치',
           time: '기본 시간',
-          icon: '/sampleProfile.png',
+          image: '/sampleProfile.png',
           lat: 37.5665,
           lng: 126.978,
           transport: 'subway',

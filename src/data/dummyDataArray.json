@@ -1,5 +1,10 @@
 [
   {
+    "id": 1,
+    "startDate": "01월 19일 일요일",
+    "title": "미팅 1",
+    "startTime": "",
+    "endTime": "13:30",
     "destination": {
       "name": "서울역",
       "lat": 37.554722,
@@ -7,7 +12,13 @@
     },
     "participants": []
   },
+
   {
+    "id": 2,
+    "startDate": "01월 20일 월요일",
+    "title": "미팅 2",
+    "startTime": "",
+    "endTime": "13:30",
     "destination": {
       "name": "강남역",
       "lat": 37.498095,
@@ -15,27 +26,30 @@
     },
     "participants": [
       {
+        "id": 1,
         "name": "박진우",
         "time": "30분",
-        "icon": "/sampleProfile.png",
+        "image": "/sampleProfile.png",
         "lat": 37.537095,
         "lng": 127.04561,
         "transport": "subway",
         "depart": "삼성역"
       },
       {
+        "id": 2,
         "name": "이채연",
         "time": "40분",
-        "icon": "/sampleProfile.png",
+        "image": "/sampleProfile.png",
         "lat": 37.463095,
         "lng": 127.02161,
         "transport": "subway",
         "depart": "선릉역"
       },
       {
+        "id": 3,
         "name": "지유진",
         "time": "50분",
-        "icon": "/sampleProfile.png",
+        "image": "/sampleProfile.png",
         "lat": 37.487895,
         "lng": 127.00811,
         "transport": "subway",
@@ -44,70 +58,83 @@
     ]
   },
   {
+    "id": 3,
+    "startDate": "01월 21일 화요일",
+    "title": "미팅 3",
+    "startTime": "",
+    "endTime": "17:30",
     "destination": {
       "name": "신촌역",
       "lat": 37.555209,
       "lng": 126.936879
     },
+
     "participants": [
       {
+        "id": 1,
         "name": "김나영",
         "time": "99분",
-        "icon": "/sampleProfile.png",
+        "image": "/sampleProfile.png",
         "lat": 37.966209,
         "lng": 126.705879,
         "transport": "subway",
         "depart": "인천역"
       },
       {
+        "id": 2,
         "name": "지유진",
         "time": "80분",
-        "icon": "/sampleProfile.png",
+        "image": "/sampleProfile.png",
         "lat": 37.295209,
         "lng": 127.146879,
         "transport": "subway",
         "depart": "수원역"
       },
       {
+        "id": 3,
         "name": "김태엽",
         "time": "99분",
-        "icon": "/sampleProfile.png",
+        "image": "/sampleProfile.png",
         "lat": 36.815209,
         "lng": 127.131879,
         "transport": "subway",
         "depart": "청주역"
       },
       {
+        "id": 4,
         "name": "지유진",
         "time": "99분",
-        "icon": "/sampleProfile.png",
+        "image": "/sampleProfile.png",
         "lat": 37.616209,
         "lng": 126.509879,
         "transport": "subway",
         "depart": "김포공항역"
       },
       {
+        "id": 5,
         "name": "김태엽",
         "time": "99분",
-        "icon": "/sampleProfile.png",
+        "image": "/sampleProfile.png",
         "lat": 36.982209,
         "lng": 127.476879,
         "transport": "subway",
         "depart": "평택역"
       },
       {
+        "id": 6,
         "name": "지유진",
         "time": "90분",
-        "icon": "/sampleProfile.png",
+        "image": "/sampleProfile.png",
         "lat": 37.241909,
         "lng": 126.767879,
         "transport": "subway",
         "depart": "안양역"
       },
       {
+        "id": 7,
         "name": "김태엽",
         "time": "99분",
-        "icon": "/sampleProfile.png",
+        "image": "/sampleProfile.png",
         "lat": 37.421809,
         "lng": 127.983879,
         "transport": "subway",

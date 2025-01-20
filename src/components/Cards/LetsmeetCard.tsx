@@ -1,6 +1,6 @@
 import { WhiteButton } from '../Buttons/WhiteButtton'
 import { ProfileSmall } from '../Profiles/ProfileSmall'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import CustomModal from '@/components/Modals/CustomModal'
 import MembersVariant from '../Modals/MembersVariant'
 import SelectModal from '../Modals/SelectModal'
@@ -8,31 +8,58 @@ import DateTimeModal from '@/components/Modals/DirectSelect/DateTimeModal'
 import EditTitle from '@/components/Header/EditTitle'
 import CustomCalendar from '@/components/Calendars/CustomCalendar'
 import { useHandleSelect } from '@/hooks/useHandleSelect'
+import { getCurrentLocation } from '@/components/Map/getCurrentLocation'
+import mockSchedules from '@/data/dummyDataArray.json'
+
+interface Participant {
+  id: number
+  name: string
+  time: string
+  image: string
+  lat: number
+  lng: number
+  transport: string
+  transportIcon: string
+  depart: string
+}
 
 export interface LetsmeetCardProps {
   title: string
+  startDate: string
   startTime: string
   endTime: string
-  location?: string
-  participants: { id: number; name: string; image: string }[]
+  destination: string
+  participants: {
+    id: number
+    name: string
+    time: string
+    image: string
+    lat: number
+    lng: number
+    transport: string
+    transportIcon: string
+    depart: string
+  }[]
 }
 
 export function LetsmeetCard({
   title,
+  startDate,
   startTime,
   endTime,
-  location,
+  destination,
   participants,
 }: LetsmeetCardProps) {
   const [isMembersModalOpen, setIsMembersModalOpen] = useState(false)
   const [isSelectedPlace, setIsSelectedPlace] = useState(false)
-
   const [isCdialogOpen, setIsCdialogOpen] = useState(false) // 일정 조율하기 모달 상태 C: Coordinate
   const [isDdialogOpen, setIsDdialogOpen] = useState(false) // 직접 입력하기 모달 상태 D: Direct
   const { selectedDates, stringDates, handleSelect } = useHandleSelect() // 커스텀 훅으로 날짜 선택 기능 가져오기 (백에 보낼때 stringDates 가져오면 됨)
-  const [startDate, setStartDate] = useState<string | null>(null) // 직접입력하기-시작날짜,시간
-  const [endDate, setEndDate] = useState<string | null>(null) // 직접입력하기-끝날짜,시간
+  const [startDateState, setStartDateState] = useState<string | null>(null) // 직접입력하기-시작날짜,시간
+  const [endDateState, setEndDateState] = useState<string | null>(null) // 직접입력하기-끝날짜,시간
   const [stitle, setsTitle] = useState('제목 없는 일정') // 제목 상태 관리
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [participantState, setParticipantState] = useState<Participant[]>([])
 
   const handleTitleChange = (newTitle: string) => {
     setsTitle(newTitle) // 수정된 제목으로 상태 업데이트
@@ -47,8 +74,8 @@ export function LetsmeetCard({
 
   // 직접입력하기 모달에서 받아온 시작, 끝 string 저장
   const handleDateChange = (startDate: string, endDate: string) => {
-    setStartDate(startDate)
-    setEndDate(endDate)
+    setStartDateState(startDate)
+    setEndDateState(endDate)
   }
 
   // membersVariant 모달 핸들
@@ -69,12 +96,68 @@ export function LetsmeetCard({
   }
 
   // 선택된 멤버의 id값 전달을 위한 상태추적
-  const [selectedMember, setSelectedMember] = useState(participants)
+  const [selectedMember, setSelectedMember] = useState(participantState)
 
   // 실제 삭제 api 여기에 연동
   const handleRemoveMember = (id: number) => {
     setSelectedMember((prev) => prev.filter((member) => member.id !== id))
   }
+
+  useEffect(() => {
+    const updateParticipants = async () => {
+      try {
+        const location = await getCurrentLocation()
+        const myInfo = {
+          id: 0,
+          name: '내 위치',
+          time: '50분',
+          image: '/sampleProfile.png',
+          lat: location.lat,
+          lng: location.lng,
+          transport: 'subway',
+          transportIcon: '/subwayPurple.svg',
+          depart: '죽전역',
+        }
+
+        // participants Prop 기반으로 업데이트
+        const updatedParticipants = [
+          myInfo,
+          ...participants.map((participant) => ({
+            ...participant,
+            transportIcon: '/subwayYellow.svg',
+          })),
+        ]
+
+        setParticipantState(updatedParticipants)
+      } catch (error) {
+        console.error('현재 위치를 가져오지 못했습니다:', error)
+
+        const fallbackInfo = {
+          id: 0,
+          name: '기본 위치',
+          time: '기본 시간',
+          image: '/sampleProfile.png',
+          lat: 37.5665,
+          lng: 126.978,
+          transport: 'subway',
+          transportIcon: '/subwayPurple.svg',
+          depart: '서울역',
+        }
+
+        const updatedParticipants = [
+          fallbackInfo,
+          ...participants.map((participant) => ({
+            ...participant,
+            transportIcon: '/subwayYellow.svg',
+          })),
+        ]
+
+        setParticipantState(updatedParticipants)
+      }
+    }
+
+    updateParticipants()
+  }, [participants])
 
   return (
     <div className="px-4 mb-5">
@@ -94,13 +177,13 @@ export function LetsmeetCard({
                 {title}
               </span>
               {/* 모임원 프로필 */}
-              <ProfileSmall profiles={participants} />
+              <ProfileSmall profiles={participantState} />
             </div>
 
             {/* 약속 장소 */}
             <div className="flex flex-col justify-center items-end gap-3">
               <span className="text-xl font-medium text-[#9562fa] group-hover:text-[#fff]">
-                {location}
+                {destination}
               </span>
               {(!startTime || !endTime) && (
                 <WhiteButton
@@ -125,7 +208,7 @@ export function LetsmeetCard({
         <MembersVariant
           onClickX={handleRemoveMember}
           startDate={startDate}
-          location={location}
+          destination={destination}
           startTime={startTime}
           endTime={endTime}
           members={selectedMember}
@@ -167,7 +250,9 @@ export function LetsmeetCard({
       <CustomModal
         open={isDdialogOpen}
         onOpenChange={handleOpenDdialog}
-        onNext={() => alert(`startDate: ${startDate} / endDate: ${endDate}`)}
+        onNext={() =>
+          alert(`startDate: ${startDate} / endDate: ${endDateState}`)
+        }
         isFooter={true}
         footerText={'입력완료'}
       >
