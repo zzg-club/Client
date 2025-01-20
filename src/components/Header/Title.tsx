@@ -48,7 +48,7 @@ export default function Title({
           <IoShareSocialOutline className="w-8 h-8 text-[#1e1e1e]" />
         </button>
         <button
-          className={`text-center text-xl font-medium font-['Pretendard'] leading-[25px] 
+          className={`text-center text-[23px] font-medium font-['Pretendard'] leading-[25px] 
           ${isPurple ? 'text-[#9562fa]' : 'text-[#afafaf]'}`}
           onClick={onClickTitleButton}
         >
