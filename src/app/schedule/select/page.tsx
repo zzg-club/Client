@@ -80,6 +80,8 @@ export default function Page() {
     setGroupedDate(groupedData)
   }
 
+  // console.log('groupedData', groupedDate)
+
   const handleSelectedCol = useCallback(
     (colIndex: number, rowIndex: number) => {
       if (rowIndex === -1) {
@@ -258,40 +260,40 @@ export default function Page() {
       name: '팀플 대면 모임',
       userId: 2,
       groupId: 1,
-      // mode: 'week',
-      // selected: ['mon', 'wed', 'fri'],
-      // date: [
-      //   ['2024-01-06', 'mon'],
-      //   ['2024-02-08', 'wed'],
-      //   ['2024-01-13', 'mon'],
-      //   ['2024-02-15', 'wed'],
-      //   ['2024-01-20', 'mon'],
-      //   ['2024-02-22', 'wed'],
-      //   ['2024-01-27', 'mon'],
-      //   ['2024-03-03', 'fri'],
-      //   ['2024-03-10', 'fri'],
-      //   ['2024-03-17', 'fri'],
-      //   ['2024-03-24', 'fri'],
-      //   ['2024-03-31', 'fri'],
-      // ],
-      mode: 'range',
-      selected: null,
+      mode: 'week',
+      selected: ['mon', 'wed', 'fri'],
       date: [
-        ['2024-12-30', 'mon'],
-        ['2024-12-31', 'tue'],
-        ['2024-01-01', 'wed'],
-        ['2024-01-02', 'thu'],
-        ['2024-01-03', 'fri'],
-        ['2024-01-04', 'sat'],
-        ['2024-01-05', 'sun'],
         ['2024-01-06', 'mon'],
-        ['2024-01-07', 'tue'],
-        ['2024-01-08', 'wed'],
-        ['2024-01-09', 'thu'],
-        ['2024-01-10', 'fri'],
-        ['2024-01-11', 'sat'],
-        ['2024-01-12', 'sun'],
+        ['2024-02-08', 'wed'],
+        ['2024-01-13', 'mon'],
+        ['2024-02-15', 'wed'],
+        ['2024-01-20', 'mon'],
+        ['2024-02-22', 'wed'],
+        ['2024-01-27', 'mon'],
+        ['2024-03-03', 'fri'],
+        ['2024-03-10', 'fri'],
+        ['2024-03-17', 'fri'],
+        ['2024-03-24', 'fri'],
+        ['2024-03-31', 'fri'],
       ],
+      // mode: 'range',
+      // selected: null,
+      // date: [
+      //   ['2024-12-30', 'mon'],
+      //   ['2024-12-31', 'tue'],
+      //   ['2024-01-01', 'wed'],
+      //   ['2024-01-02', 'thu'],
+      //   ['2024-01-03', 'fri'],
+      //   ['2024-01-04', 'sat'],
+      //   ['2024-01-05', 'sun'],
+      //   ['2024-01-06', 'mon'],
+      //   ['2024-01-07', 'tue'],
+      //   ['2024-01-08', 'wed'],
+      //   ['2024-01-09', 'thu'],
+      //   ['2024-01-10', 'fri'],
+      //   ['2024-01-11', 'sat'],
+      //   ['2024-01-12', 'sun'],
+      // ],
     },
   ]
 
@@ -446,6 +448,7 @@ export default function Page() {
           selectedDates={selectedDates}
           currentPage={currentPage}
           mode={mode}
+          groupedDate={groupedDate}
           onPageChange={handlePageChange}
           dateCounts={dateCounts}
           handleSelectedCol={handleSelectedCol}

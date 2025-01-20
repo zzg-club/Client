@@ -12,6 +12,22 @@ interface Selection {
   isConfirmed: boolean
 }
 
+interface GroupedDate {
+  weekday: string
+  dates?: {
+    year: number
+    month: number
+    day: number
+    weekday: string
+  }[]
+  date?: {
+    year: number
+    month: number
+    day: number
+    weekday: string
+  }[]
+}
+
 interface TimeStampProps {
   selectedDates: { year: number; month: number; day: number }[]
   currentPage: number
@@ -22,6 +38,7 @@ interface TimeStampProps {
   handleActiveTime: (start: number, end: number) => void
   getDateTime: (date: string, start: string, end: string) => void
   isBottomSheetOpen: boolean
+  groupedDate: GroupedDate[]
 }
 
 const COLUMNS_PER_PAGE = 7
@@ -31,6 +48,7 @@ export default function TimeStamp({
   currentPage,
   mode,
   dateCounts,
+  groupedDate,
   handleSelectedCol,
   handleActiveTime,
   getDateTime,
@@ -259,7 +277,31 @@ export default function TimeStamp({
           return `${formattedHour}:${formattedMinute}`
         }
 
-        const selectedDate = `${currentDates[startCol]?.year}-${String(currentDates[startCol]?.month).padStart(2, '0')}-${String(currentDates[startCol]?.day).padStart(2, '0')}`
+        // console.log(
+        //   '현재 상황',
+        //   currentDates,
+        //   '시작 열',
+        //   startCol,
+        //   '현재 일자',
+        //   currentDates[startCol],
+        //   '현재 페이지',
+        //   currentPage,
+        //   '그룹 데이터',
+        //   groupedDate,
+        // )
+
+        let selectedDate: string
+        if (mode === 'range') {
+          // mode가 'range'일 경우 기존 로직
+          selectedDate = `${currentDates[startCol]?.year}-${String(currentDates[startCol]?.month).padStart(2, '0')}-${String(currentDates[startCol]?.day).padStart(2, '0')}`
+        } else {
+          // mode가 'range'가 아닐 경우 다른 로직
+          const groupedArray = groupedDate?.[currentPage]?.date ?? []
+          selectedDate = `${groupedArray[startCol]?.year}-${groupedArray[startCol]?.month}-${groupedArray[startCol]?.day}`
+        }
+
+        console.log('selectedDate', selectedDate)
+
         const startTime = getTimeLabel(finalizedSelection.startRow)
         const endTime = getTimeLabel(finalizedSelection.endRow + 1)
 
