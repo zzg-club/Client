@@ -33,9 +33,26 @@ interface ScheduleData {
 }
 
 interface SelectedDate {
-  date: number
+  day: number
   weekday: string
   month: number
+  year: number
+}
+
+interface GroupedDate {
+  weekday: string
+  dates?: {
+    year: number
+    month: number
+    day: number
+    weekday: string
+  }[]
+  date?: {
+    year: number
+    month: number
+    day: number
+    weekday: string
+  }[]
 }
 
 const mockDateTime: ScheduleData[] = [
@@ -138,58 +155,158 @@ const mockDateTime: ScheduleData[] = [
   },
 ]
 
-const participants = [
-  {
-    id: 1,
-    name: '나',
-    image: '/sampleProfile.png',
-  },
-  {
-    id: 2,
-    name: '김태엽',
-    image: '/sampleProfile.png',
-  },
-  {
-    id: 3,
-    name: '지유진',
-    image: '/sampleProfile.png',
-  },
-  {
-    id: 4,
-    name: '이소룡',
-    image: '/sampleProfile.png',
-  },
-  {
-    id: 5,
-    name: '박진우',
-    image: '/sampleProfile.png',
-  },
-  {
-    id: 6,
-    name: '이예지',
-    image: '/sampleProfile.png',
-  },
-  {
-    id: 7,
-    name: '조성하',
-    image: '/sampleProfile.png',
-  },
-  {
-    id: 8,
-    name: '성윤정',
-    image: '/sampleProfile.png',
-  },
-  {
-    id: 9,
-    name: '김나영',
-    image: '/sampleProfile.png',
-  },
-  {
-    id: 10,
-    name: '이채연',
-    image: '/sampleProfile.png',
-  },
-]
+// const mockDateTime: ScheduleData[] = [
+//   {
+//     name: '팀플 대면 모임',
+//     userId: 2,
+//     groupId: 1,
+//     mode: 'week',
+//     selected: ['mon', 'wed', 'fri'],
+//     dateData: [
+//       {
+//         date: '2025-01-06',
+//         timeSlots: [
+//           {
+//             start: '09:30',
+//             end: '17:00',
+//             selectedBy: ['user1', 'user2', 'user3'],
+//           },
+//           { start: '17:00', end: '22:00', selectedBy: ['user1'] },
+//         ],
+//       },
+//       {
+//         date: '2025-02-05',
+//         timeSlots: [
+//           { start: '08:00', end: '13:00', selectedBy: ['user2', 'user3'] },
+//           { start: '13:00', end: '20:00', selectedBy: ['user1', 'user4'] },
+//           { start: '20:00', end: '23:00', selectedBy: ['user3'] },
+//         ],
+//       },
+//       {
+//         date: '2025-01-13',
+//         timeSlots: [
+//           { start: '05:00', end: '10:00', selectedBy: ['user1', 'user2'] },
+//           {
+//             start: '10:00',
+//             end: '16:00',
+//             selectedBy: ['user2', 'user3', 'user4'],
+//           },
+//           { start: '16:00', end: '21:00', selectedBy: ['user1', 'user3'] },
+//         ],
+//       },
+//       {
+//         date: '2025-02-12',
+//         timeSlots: [
+//           {
+//             start: '11:00',
+//             end: '18:00',
+//             selectedBy: ['user1', 'user2', 'user3', 'user4'],
+//           },
+//           { start: '18:00', end: '19:00', selectedBy: ['user2'] },
+//         ],
+//       },
+//       {
+//         date: '2025-03-07',
+//         timeSlots: [
+//           { start: '10:00', end: '15:00', selectedBy: ['user1'] },
+//           {
+//             start: '15:00',
+//             end: '18:00',
+//             selectedBy: ['user1', 'user2', 'user3'],
+//           },
+//           { start: '28:00', end: '22:00', selectedBy: ['user2', 'user4'] },
+//         ],
+//       },
+//       {
+//         date: '2025-02-19',
+//         timeSlots: [
+//           { start: '04:00', end: '06:00', selectedBy: ['user3'] },
+//           {
+//             start: '06:00',
+//             end: '21:00',
+//             selectedBy: ['user1', 'user2', 'user3', 'user4'],
+//           },
+//         ],
+//       },
+//       {
+//         date: '2025-01-20',
+//         timeSlots: [
+//           { start: '06:00', end: '07:00', selectedBy: ['user2'] },
+//           {
+//             start: '07:00',
+//             end: '19:00',
+//             selectedBy: ['user1', 'user3', 'user4'],
+//           },
+//           { start: '19:00', end: '22:00', selectedBy: ['user1', 'user2'] },
+//         ],
+//       },
+//       {
+//         date: '2025-01-27',
+//         timeSlots: [
+//           {
+//             start: '10:00',
+//             end: '19:00',
+//             selectedBy: ['user1', 'user3', 'user4'],
+//           },
+//           { start: '19:00', end: '22:00', selectedBy: ['user1', 'user2'] },
+//         ],
+//       },
+//     ],
+//   },
+// ]
+
+// const participants = [
+//   {
+//     id: 1,
+//     name: '나',
+//     image: '/sampleProfile.png',
+//   },
+//   {
+//     id: 2,
+//     name: '김태엽',
+//     image: '/sampleProfile.png',
+//   },
+//   {
+//     id: 3,
+//     name: '지유진',
+//     image: '/sampleProfile.png',
+//   },
+//   {
+//     id: 4,
+//     name: '이소룡',
+//     image: '/sampleProfile.png',
+//   },
+//   {
+//     id: 5,
+//     name: '박진우',
+//     image: '/sampleProfile.png',
+//   },
+//   {
+//     id: 6,
+//     name: '이예지',
+//     image: '/sampleProfile.png',
+//   },
+//   {
+//     id: 7,
+//     name: '조성하',
+//     image: '/sampleProfile.png',
+//   },
+//   {
+//     id: 8,
+//     name: '성윤정',
+//     image: '/sampleProfile.png',
+//   },
+//   {
+//     id: 9,
+//     name: '김나영',
+//     image: '/sampleProfile.png',
+//   },
+//   {
+//     id: 10,
+//     name: '이채연',
+//     image: '/sampleProfile.png',
+//   },
+// ]
 
 export default function Page() {
   const { isEdit, setIsEdit, isEditBottomSheetOpen, setIsEditBottomSheetOpen } =
@@ -222,6 +339,41 @@ export default function Page() {
 
   const [selectedDates, setSelectedDates] = useState<SelectedDate[]>([])
   const [isEditDelete, setIsEditDelete] = useState(false)
+
+  const [dateCounts, setDateCounts] = useState<number[]>([])
+  const [groupedDate, setGroupedDate] = useState<GroupedDate[]>([])
+  const DAYS_PER_PAGE = 7
+  const highlightedIndex =
+    highlightedCol !== null
+      ? highlightedCol - currentPage * DAYS_PER_PAGE
+      : null
+
+  function transformMockDateTime(mockData: ScheduleData[]) {
+    const dayNames = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
+
+    // Helper function to get the day name for a given date
+    function getDayName(dateStr: string) {
+      const date = new Date(dateStr)
+      return dayNames[date.getUTCDay()]
+    }
+
+    return mockData.map(
+      ({ name, userId, groupId, mode, selected, dateData }) => {
+        const date = dateData.flatMap(({ date }) => [[date, getDayName(date)]])
+
+        return {
+          name,
+          userId,
+          groupId,
+          mode,
+          selected,
+          date,
+        }
+      },
+    )
+  }
+
+  console.log('성하 데이터에 맞춤', transformMockDateTime(mockDateTime))
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage)
@@ -294,12 +446,12 @@ export default function Page() {
         (item) => Number(item.date) === col,
       )
 
-      const selectedDate = selectedDates.find((date) => date.date === col)
+      const selectedDate = selectedDates.find((date) => date.day === col)
       const month = String(
         selectedDate?.month || new Date().getMonth() + 1,
       ).padStart(2, '0')
       const date = String(col).padStart(2, '0')
-      const year = 2025
+      const year = selectedDate?.year
 
       if (existingDateIndex !== -1) {
         const updated = [...prev]
@@ -310,7 +462,7 @@ export default function Page() {
             id: colIndex,
             date: date,
             month: month,
-            year,
+            year: year!,
             timeSlots: [{ start, end }], // 단일 slot만 포함
           }
 
@@ -384,7 +536,7 @@ export default function Page() {
           id: colIndex,
           date: date,
           month: month,
-          year,
+          year: year!,
           timeSlots: timeSlots,
         }
         return updated
@@ -396,7 +548,7 @@ export default function Page() {
             id: colIndex,
             date: date,
             month: month,
-            year,
+            year: year!,
             timeSlots: [{ start, end }],
           },
         ]
@@ -413,11 +565,12 @@ export default function Page() {
 
   const initializeSelectedDates = useCallback(() => {
     return mockDateTime[0].dateData.map((dateData) => ({
-      date: parseInt(dateData.date.split('-')[2]),
+      day: parseInt(dateData.date.split('-')[2]),
       weekday: new Date(dateData.date).toLocaleDateString('ko-KR', {
         weekday: 'short',
       }),
       month: parseInt(dateData.date.split('-')[1]),
+      year: parseInt(dateData.date.split('-')[0]),
     }))
   }, [])
 
@@ -512,7 +665,7 @@ export default function Page() {
 
   const handleEditDelete = () => {
     setDateTime((prev) => {
-      const dateToDelete = selectedDates[highlightedCol!]?.date
+      const dateToDelete = selectedDates[highlightedCol!]?.day
         .toString()
         .padStart(2, '0')
       return prev.filter((item) => item.date !== dateToDelete)
@@ -521,6 +674,23 @@ export default function Page() {
     setHighlightedCol(null)
     setIsOpen(false)
     setIsEditDelete(true)
+  }
+
+  const mode = mockDateTime[0].mode
+  const dayofWeek = mockDateTime[0].selected
+  const month =
+    mode === 'range'
+      ? currentPage === Math.floor((highlightedCol ?? 0) / DAYS_PER_PAGE)
+        ? `${selectedDates[highlightedCol ?? currentPage * DAYS_PER_PAGE]?.month}월`
+        : `${selectedDates[currentPage * DAYS_PER_PAGE]?.month}월`
+      : `${groupedDate[currentPage]?.date?.[highlightedIndex ?? 0]?.month ?? groupedDate[currentPage]?.date?.[0]?.month}월`
+
+  const handleDateCountsChange = (
+    counts: number[],
+    groupedData: GroupedDate[],
+  ) => {
+    setDateCounts(counts)
+    setGroupedDate(groupedData)
   }
 
   return (
@@ -534,12 +704,13 @@ export default function Page() {
       />
       <DecideSelectedDays
         selectedDates={selectedDates}
-        month={`${selectedDates[0]?.month}월`}
+        mode={mode}
+        dayofWeek={dayofWeek}
         currentPage={currentPage}
-        onPageChange={setCurrentPage}
         highlightedCol={highlightedCol}
-        participants={participants}
-        title={title}
+        onDateCountsChange={handleDateCountsChange}
+        month={month}
+        onPageChange={setCurrentPage}
       />
       <div className="flex-grow overflow-hidden mt-2">
         <DecideTimeStamp
@@ -554,6 +725,8 @@ export default function Page() {
           dateTime={dateTime}
           isEditDelete={isEditDelete}
           setIsEditDelete={setIsEditDelete}
+          dateCounts={dateCounts}
+          mode={mode}
         />
       </div>
       {!decideBottomOpen && (
@@ -564,7 +737,7 @@ export default function Page() {
                 key={1}
                 date={
                   highlightedCol !== null
-                    ? `${selectedDates[0]?.month}월 ${selectedDates[highlightedCol]?.date}일`
+                    ? `${selectedDates[0]?.month}월 ${selectedDates[highlightedCol]?.day}일`
                     : ''
                 }
                 startTime={`${startTime}`}
@@ -576,7 +749,7 @@ export default function Page() {
                 <SelectItem
                   date={
                     highlightedCol !== null
-                      ? `${selectedDates[0]?.month}월 ${selectedDates[highlightedCol]?.date}일`
+                      ? `${selectedDates[0]?.month}월 ${selectedDates[highlightedCol]?.day}일`
                       : ''
                   }
                   startTime={`${startTime}`}

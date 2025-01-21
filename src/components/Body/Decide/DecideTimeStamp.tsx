@@ -32,7 +32,7 @@ interface Selection {
 }
 
 interface DecideTimeStampProps {
-  selectedDates: { date: number; weekday: string }[]
+  selectedDates: { day: number; weekday: string }[]
   currentPage: number
   onPageChange: (newPage: number) => void
   handleSelectedCol: (colIndex: number, rowIndex: number) => void
@@ -54,6 +54,8 @@ interface DecideTimeStampProps {
   }[]
   isEditDelete: boolean
   setIsEditDelete: (value: boolean) => void
+  dateCounts: number[]
+  mode: string
 }
 
 const COLUMNS_PER_PAGE = 7
@@ -69,6 +71,8 @@ export default function DecideTimeStamp({
   dateTime,
   isEditDelete,
   setIsEditDelete,
+  dateCounts,
+  mode,
 }: DecideTimeStampProps) {
   const { isEdit, setIsEdit, isEditBottomSheetOpen, setIsEditBottomSheetOpen } =
     useEditStore()
@@ -90,10 +94,28 @@ export default function DecideTimeStamp({
     [handleActiveTime],
   )
 
-  const currentDates = selectedDates.slice(
-    currentPage * COLUMNS_PER_PAGE,
-    (currentPage + 1) * COLUMNS_PER_PAGE,
-  )
+  const currentDates =
+    mode === 'range'
+      ? selectedDates.slice(
+          currentPage * COLUMNS_PER_PAGE,
+          (currentPage + 1) * COLUMNS_PER_PAGE,
+        )
+      : (() => {
+          let startIndex = 0
+          let endIndex = 0
+
+          // dateCounts에 따라 날짜 범위 계산
+          for (let i = 0; i < dateCounts.length; i++) {
+            const pageSize = dateCounts[i]
+            if (currentPage === i) {
+              endIndex = startIndex + pageSize
+              break
+            }
+            startIndex += pageSize
+          }
+
+          return selectedDates.slice(startIndex, endIndex)
+        })()
 
   // Helper function to convert time string to index
   const timeToIndex = (time: string) => {
@@ -350,7 +372,7 @@ export default function DecideTimeStamp({
           return `${formattedHour}:${formattedMinute}`
         }
 
-        const selectedDate = currentDates[startCol]?.date
+        const selectedDate = currentDates[startCol]?.day
         const startTime = getTimeLabel(startRow)
         const endTime = getTimeLabel(endRow + 1)
 
@@ -708,7 +730,7 @@ export default function DecideTimeStamp({
         newSelections[page] = pageSelections.filter((selection) => {
           // 선택 영역의 날짜와 시간 정보 계산
           const colDate = String(
-            selectedDates[selection.startCol]?.date,
+            selectedDates[selection.startCol]?.day,
           ).padStart(2, '0')
 
           const getTimeFromRow = (row: number) => {
@@ -802,7 +824,7 @@ export default function DecideTimeStamp({
                   const mockDataForDate = processedMockData.find(
                     (data) =>
                       new Date(data.date).getDate() ===
-                      currentDates[colIndex].date,
+                      currentDates[colIndex].day,
                   )
                   const overlayOpacity = mockDataForDate
                     ? getOpacity(mockDataForDate.slots[rowIndex])
