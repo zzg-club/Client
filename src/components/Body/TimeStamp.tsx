@@ -317,7 +317,14 @@ export default function TimeStamp({
     setIsResizing(false)
     setActiveSelection(null)
     setResizingPoint(null)
-  }, [activeSelection, currentDates, currentPage, handleDateTimeSelect])
+  }, [
+    activeSelection,
+    currentDates,
+    currentPage,
+    groupedDate,
+    handleDateTimeSelect,
+    mode,
+  ])
 
   const handleSelectionStart = (
     rowIndex: number,
@@ -353,23 +360,6 @@ export default function TimeStamp({
         [currentPage]: [...prevSelections, newSelection],
       }
     })
-  }
-
-  const handleResizeStart = (
-    rowIndex: number,
-    colIndex: number,
-    isEndpoint: boolean,
-    selection: Selection,
-  ) => {
-    setIsResizing(true)
-    setActiveSelection(selection)
-    setResizingPoint(
-      rowIndex === selection.startRow && colIndex === selection.startCol
-        ? 'start'
-        : 'end',
-    )
-
-    // console.log('Resizing started on (Down):', selection)
   }
 
   const handleMove = useCallback(
@@ -689,6 +679,15 @@ export default function TimeStamp({
                               true,
                               cellStatus.selection!,
                             )
+                          }}
+                          onTouchStart={(e) => {
+                            e.stopPropagation()
+                            handleMouseDown(
+                              rowIndex,
+                              colIndex,
+                              true,
+                              cellStatus.selection!,
+                            )
                             onColumnClick(colIndex, rowIndex)
                           }}
                         />
@@ -698,19 +697,19 @@ export default function TimeStamp({
                           className="absolute -bottom-[5px] right-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move"
                           onMouseDown={(e) => {
                             e.stopPropagation()
-                            handleResizeStart(
+                            handleMouseDown(
                               rowIndex,
                               colIndex,
-                              false,
+                              true,
                               cellStatus.selection!,
                             )
                           }}
                           onTouchStart={(e) => {
                             e.stopPropagation()
-                            handleResizeStart(
+                            handleMouseDown(
                               rowIndex,
                               colIndex,
-                              false,
+                              true,
                               cellStatus.selection!,
                             )
                             onColumnClick(colIndex, rowIndex)
