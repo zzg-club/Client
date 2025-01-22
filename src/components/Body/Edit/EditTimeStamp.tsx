@@ -111,10 +111,10 @@ export default function EditTimeStamp({
       for (let i = 0; i <= currentPage; i++) {
         startIndex = endIndex
         endIndex = startIndex + (dateCounts[i] || 0)
-        console.log('dataIndex:', dateCounts[i])
+        // console.log('dataIndex:', dateCounts[i])
       }
 
-      console.log('slicing', sortedMockData.slice(startIndex, endIndex))
+      // console.log('slicing', sortedMockData.slice(startIndex, endIndex))
       return sortedMockData.slice(startIndex, endIndex)
     }
   }, [sortedMockData, dateCounts, currentPage])
@@ -194,14 +194,13 @@ export default function EditTimeStamp({
     const schedule = currentDates[colIndex]
     if (!schedule) return
 
-    console.log('Clicked Schedule:', schedule)
-
     // 클릭된 슬롯을 찾기
     const clickedSlot = schedule.timeSlots.find((slot) => {
       const startIdx = timeToIndex(slot.start)
       const endIdx = timeToIndex(slot.end) - 1
       return rowIndex >= startIdx && rowIndex <= endIdx
     })
+    console.log(schedule.date, clickedSlot?.start, '-', clickedSlot?.end)
 
     if (clickedSlot) {
       const startIdx = timeToIndex(clickedSlot.start)
@@ -217,7 +216,7 @@ export default function EditTimeStamp({
       })
       setSelectionsByPage((prev) => {
         const currentSelections = prev[currentPage] || []
-        console.log('curselections:', currentSelections)
+        // console.log('curselections:', currentSelections)
         return {
           ...prev,
           [currentPage]: [
@@ -246,6 +245,7 @@ export default function EditTimeStamp({
       )
     }
   }
+
   const handleMouseDown = (
     rowIndex: number,
     colIndex: number,
@@ -352,12 +352,14 @@ export default function EditTimeStamp({
       //현재 페이지의 목데이터 인덱스 계산
       const schedule = currentDates[startCol]
       if (schedule) {
+        let selectedSlotId = null
         // 수정된 시간 슬롯 업데이트
         schedule.timeSlots = schedule.timeSlots.map((slot) => {
           if (
             timeToIndex(slot.start) <= finalizedSelection.endRow &&
             timeToIndex(slot.end) - 1 >= finalizedSelection.startRow
           ) {
+            selectedSlotId = slot.slotId
             return {
               ...slot,
               start: startTime,
@@ -370,6 +372,7 @@ export default function EditTimeStamp({
         // 콘솔에 수정된 날짜와 시간 출력
         const selectedDate = currentDates[finalizedSelection.startCol]
         console.log(`${selectedDate.date} ${startTime} - ${endTime}`)
+        console.log('selectedSlotId:', selectedSlotId) // 클릭된 slotId 출력
 
         // 선택된 시간 정보 전달
         handleDateTimeSelect(String(startCol), startTime, endTime)
