@@ -214,24 +214,24 @@ export default function EditTimeStamp({
         isSelected: true,
         isConfirmed: false,
       })
-      setSelectionsByPage((prev) => {
-        const currentSelections = prev[currentPage] || []
-        // console.log('curselections:', currentSelections)
-        return {
-          ...prev,
-          [currentPage]: [
-            ...currentSelections,
-            {
-              startRow: startIdx,
-              startCol: colIndex,
-              endRow: endIdx - 1,
-              endCol: colIndex,
-              isSelected: true,
-              isConfirmed: true, // 클릭 시 즉시 확정
-            },
-          ],
-        }
-      })
+      // setSelectionsByPage((prev) => {
+      //   const currentSelections = prev[currentPage] || []
+      //   // console.log('curselections:', currentSelections)
+      //   return {
+      //     ...prev,
+      //     [currentPage]: [
+      //       ...currentSelections,
+      //       {
+      //         startRow: startIdx,
+      //         startCol: colIndex,
+      //         endRow: endIdx - 1,
+      //         endCol: colIndex,
+      //         isSelected: true,
+      //         isConfirmed: true, // 클릭 시 즉시 확정
+      //       },
+      //     ],
+      //   }
+      // })
 
       // 바텀시트 열기
       handleSelectedCol(colIndex, rowIndex)
