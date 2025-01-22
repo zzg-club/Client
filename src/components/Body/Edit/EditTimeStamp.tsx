@@ -24,12 +24,31 @@ interface Selection {
   isConfirmed: boolean
 }
 
+interface GroupedDate {
+  weekday: string
+  dates?: {
+    year: number
+    month: number
+    day: number
+    weekday: string
+  }[]
+  date?: {
+    year: number
+    month: number
+    day: number
+    weekday: string
+  }[]
+}
+
 interface EditTimeStampProps {
-  selectedDates: { date: number; weekday: string }[]
+  mode: string
+  dateCounts: number[]
+  handleActiveTime: (start: number, end: number) => void
+  selectedDates: { year: number; month: number; day: number }[]
   currentPage: number
   onPageChange: (newPage: number) => void
-  handleSelectedCol: (colIndex: number) => void
-  getDateTime: (col: number, start: string, end: string) => void
+  handleSelectedCol: (colIndex: number, rowIndex: number) => void
+  getDateTime: (date: string, start: string, end: string) => void
   mockSelectedSchedule: DateData[]
   isBottomSheetOpen: boolean
   handleTimeSelect: (
@@ -38,6 +57,7 @@ interface EditTimeStampProps {
     endTime: string,
     slotId: number,
   ) => void
+  groupedDate: GroupedDate[]
 }
 
 const COLUMNS_PER_PAGE = 7
@@ -63,6 +83,10 @@ export default function EditTimeStamp({
   mockSelectedSchedule,
   isBottomSheetOpen,
   handleTimeSelect,
+  mode,
+  dateCounts,
+  handleActiveTime,
+  groupedDate,
 }: EditTimeStampProps) {
   const [selections] = useState<Selection[]>([])
   const [isResizing, setIsResizing] = useState(false)
@@ -72,26 +96,56 @@ export default function EditTimeStamp({
   )
   const [scale, setScale] = useState(1)
   const gridRef = useRef<HTMLDivElement>(null)
+  const [sortedMockData, setSortedMockData] = useState<DateData[]>([]) // 정렬된 데이터를 상태로 관리
 
-  const currentDates = selectedDates.slice(
-    currentPage * COLUMNS_PER_PAGE,
-    (currentPage + 1) * COLUMNS_PER_PAGE,
-  )
+  const currentDates = useMemo(() => {
+    if (mode === 'range') {
+      return sortedMockData.slice(
+        currentPage * COLUMNS_PER_PAGE,
+        (currentPage + 1) * COLUMNS_PER_PAGE,
+      )
+    } else {
+      let startIndex = 0
+      let endIndex = 0
+
+      for (let i = 0; i <= currentPage; i++) {
+        startIndex = endIndex
+        endIndex = startIndex + (dateCounts[i] || 0)
+        console.log('dataIndex:', dateCounts[i])
+      }
+
+      console.log('slicing', sortedMockData.slice(startIndex, endIndex))
+      return sortedMockData.slice(startIndex, endIndex)
+    }
+  }, [sortedMockData, dateCounts, currentPage])
 
   const onColumnClick = useCallback(
-    (colIndex: number) => {
+    (colIndex: number, rowIndex: number) => {
       if (colIndex == -1) {
-        handleSelectedCol(colIndex)
+        handleSelectedCol(colIndex, rowIndex)
         return 0
       }
+      if (gridRef.current) {
+        const actualColIndex = currentPage * COLUMNS_PER_PAGE + colIndex
+        handleSelectedCol(actualColIndex, rowIndex)
+      }
     },
-    [handleSelectedCol],
+    [handleSelectedCol, currentPage],
+  )
+
+  const onActiveTime = useCallback(
+    (start: number, end: number) => {
+      setTimeout(() => {
+        handleActiveTime(start, end)
+      }, 0)
+    },
+    [handleActiveTime],
   )
 
   const handleDateTimeSelect = useCallback(
-    (col: number, start: string, end: string) => {
+    (date: string, start: string, end: string) => {
       setTimeout(() => {
-        getDateTime(col, start, end)
+        getDateTime(date, start, end)
       }, 0)
     },
     [getDateTime],
@@ -100,6 +154,17 @@ export default function EditTimeStamp({
   const [selectionsByPage, setSelectionsByPage] = useState<{
     [key: number]: Selection[]
   }>({})
+
+  //목데이터를 정렬시켜주는 useEffect 코드
+  useEffect(() => {
+    const sortingData = mockSelectedSchedule.sort((a, b) => {
+      const dateA = new Date(a.date)
+      const dateB = new Date(b.date)
+      return dateA.getTime() - dateB.getTime()
+    })
+    setSortedMockData(sortingData)
+    console.log('sortingData:', sortingData)
+  }, [mockSelectedSchedule])
 
   const currentSelections = useMemo(() => {
     return selectionsByPage[currentPage] || []
@@ -124,14 +189,14 @@ export default function EditTimeStamp({
   const handleMouseClick = (rowIndex: number, colIndex: number) => {
     if (isBottomSheetOpen) return
 
-    const scheduleIndex = currentPage * COLUMNS_PER_PAGE + colIndex
-    const schedule = mockSelectedSchedule[scheduleIndex]
+    // console.log('currentDates: ', currentDates)
 
-    console.log(scheduleIndex)
-    console.log(schedule)
-
+    const schedule = currentDates[colIndex]
     if (!schedule) return
 
+    console.log('Clicked Schedule:', schedule)
+
+    // 클릭된 슬롯을 찾기
     const clickedSlot = schedule.timeSlots.find((slot) => {
       const startIdx = timeToIndex(slot.start)
       const endIdx = timeToIndex(slot.end) - 1
@@ -150,9 +215,27 @@ export default function EditTimeStamp({
         isSelected: true,
         isConfirmed: false,
       })
+      setSelectionsByPage((prev) => {
+        const currentSelections = prev[currentPage] || []
+        console.log('curselections:', currentSelections)
+        return {
+          ...prev,
+          [currentPage]: [
+            ...currentSelections,
+            {
+              startRow: startIdx,
+              startCol: colIndex,
+              endRow: endIdx - 1,
+              endCol: colIndex,
+              isSelected: true,
+              isConfirmed: true, // 클릭 시 즉시 확정
+            },
+          ],
+        }
+      })
 
       // 바텀시트 열기
-      handleSelectedCol(colIndex)
+      handleSelectedCol(colIndex, rowIndex)
 
       // 시간 정보 전달
       handleTimeSelect(
@@ -163,7 +246,6 @@ export default function EditTimeStamp({
       )
     }
   }
-
   const handleMouseDown = (
     rowIndex: number,
     colIndex: number,
@@ -262,20 +344,13 @@ export default function EditTimeStamp({
         isSelected: true,
         isConfirmed: true,
       }
-
+      const startCol = finalizedSelection.startCol
       // 수정된 시간 계산
       const startTime = indexToTime(finalizedSelection.startRow)
       const endTime = indexToTime(finalizedSelection.endRow + 1)
 
-      if (startTime === endTime) {
-        console.log(`시작 시간과 종료 시간이 같습니다: ${startTime}`)
-      }
-
-      // 현재 페이지의 목데이터 인덱스 계산
-      const scheduleIndex =
-        currentPage * COLUMNS_PER_PAGE + finalizedSelection.startCol
-      const schedule = mockSelectedSchedule[scheduleIndex]
-
+      //현재 페이지의 목데이터 인덱스 계산
+      const schedule = currentDates[startCol]
       if (schedule) {
         // 수정된 시간 슬롯 업데이트
         schedule.timeSlots = schedule.timeSlots.map((slot) => {
@@ -294,12 +369,11 @@ export default function EditTimeStamp({
 
         // 콘솔에 수정된 날짜와 시간 출력
         const selectedDate = currentDates[finalizedSelection.startCol]
-        console.log(
-          `${selectedDate.month}월 ${selectedDate.date}일 ${startTime} - ${endTime}`,
-        )
+        console.log(`${selectedDate.date} ${startTime} - ${endTime}`)
 
         // 선택된 시간 정보 전달
-        handleDateTimeSelect(finalizedSelection.startCol, startTime, endTime)
+        handleDateTimeSelect(String(startCol), startTime, endTime)
+        // console.log('final', finalizedSelection.startCol)
       }
     }
 
@@ -318,7 +392,7 @@ export default function EditTimeStamp({
   useEffect(() => {
     const handleMouseUpWithColumnClick = () => {
       handleMouseUp()
-      onColumnClick(-1)
+      onColumnClick(-1, -1)
     }
 
     if (activeSelection || isResizing) {
@@ -341,8 +415,9 @@ export default function EditTimeStamp({
   // 셀 상태 계산
   const getCellStatus = (row: number, col: number) => {
     // 현재 페이지의 목데이터 인덱스 계산
-    const scheduleIndex = currentPage * COLUMNS_PER_PAGE + col
-    const schedule = mockSelectedSchedule[scheduleIndex]
+    // const scheduleIndex = currentPage * COLUMNS_PER_PAGE + col
+    // const schedule = currentDates[scheduleIndex]
+    const schedule = currentDates[col]
 
     // 활성화된 선택 영역 확인
     const activeCell =
@@ -546,7 +621,7 @@ export default function EditTimeStamp({
                       }}
                       onClick={() => {
                         handleMouseClick(rowIndex, colIndex)
-                        onColumnClick(colIndex)
+                        onColumnClick(colIndex, rowIndex)
                       }}
                     >
                       {!cellStatus.isConfirmed && cellStatus.isStartCell && (
@@ -559,7 +634,7 @@ export default function EditTimeStamp({
                               true,
                               cellStatus.selection!,
                             )
-                            onColumnClick(colIndex)
+                            onColumnClick(colIndex, rowIndex)
                           }}
                         />
                       )}
@@ -583,7 +658,7 @@ export default function EditTimeStamp({
                               false,
                               cellStatus.selection!,
                             )
-                            onColumnClick(colIndex)
+                            onColumnClick(colIndex, rowIndex)
                           }}
                         />
                       )}
