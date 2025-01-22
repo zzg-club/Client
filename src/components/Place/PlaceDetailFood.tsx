@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useEffect, useState, useRef } from 'react'
 import KakaoMap from '@/components/Map/KakaoMap'
 import styles from '@/app/place/styles/Detail.module.css'

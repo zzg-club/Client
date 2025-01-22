@@ -124,7 +124,7 @@ const StoreInfo = ({ selectedPlace }: { selectedPlace: any }) => {
         {/* 전화 버튼 */}
         <button
           style={{
-            backgroundColor: '#61C56C',
+            backgroundColor: '#AFAFAF',
             color: '#FFFFFF',
             border: 'none',
             borderRadius: '24px',
