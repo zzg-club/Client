@@ -191,7 +191,7 @@ export default function TimeStamp({
           ? 'start'
           : 'end',
       )
-      // console.log('Resizing started on (Down):', selection)
+      console.log('Resizing started on', resizingPoint, selection)
     }
   }
 
@@ -300,7 +300,7 @@ export default function TimeStamp({
           selectedDate = `${groupedArray[startCol]?.year}-${String(groupedArray[startCol]?.month).padStart(2, '0')}-${String(groupedArray[startCol]?.day).padStart(2, '0')}`
         }
 
-        console.log('selectedDate', selectedDate)
+        // console.log('selectedDate', selectedDate)
 
         const startTime = getTimeLabel(finalizedSelection.startRow)
         const endTime = getTimeLabel(finalizedSelection.endRow + 1)
@@ -331,17 +331,23 @@ export default function TimeStamp({
     colIndex: number,
     isTouchEvent: boolean,
   ) => {
-    if (isTouchEvent) {
-      if (rowIndex % 2 !== 1) return
+    if (!isTouchEvent) {
+      return
     }
 
     const pairStartRow = Math.floor(rowIndex / 2) * 2
     const pairEndRow = pairStartRow + 1
 
     setSelectionsByPage((prev) => {
-      const prevSelections = (prev[currentPage] || [])
-        .map((selection) => (selection.isConfirmed ? selection : null))
-        .filter(Boolean) as Selection[]
+      const updatedSelections = Object.keys(prev).reduce(
+        (acc, page) => {
+          acc[Number(page)] = (prev[Number(page)] || []).filter(
+            (selection) => selection.isConfirmed,
+          )
+          return acc
+        },
+        {} as { [key: number]: Selection[] },
+      )
 
       const newSelection: Selection = {
         startRow: pairStartRow,
@@ -352,12 +358,12 @@ export default function TimeStamp({
         isConfirmed: false,
       }
 
-      // console.log('Block selected (Prev):', prevSelections)
-      // console.log('Block selected (Start):', newSelection)
-
       return {
-        ...prev,
-        [currentPage]: [...prevSelections, newSelection],
+        ...updatedSelections,
+        [currentPage]: [
+          ...(updatedSelections[currentPage] || []),
+          newSelection,
+        ],
       }
     })
   }
@@ -374,7 +380,10 @@ export default function TimeStamp({
       )
 
       if (isTouchEvent) {
-        row = Math.floor(row / 2) * 2 + 1
+        row = Math.min(
+          Math.max(Math.floor((clientY - rect.top) / cellHeight), 0),
+          47,
+        )
       }
 
       setActiveSelection((prev) => {
@@ -409,7 +418,7 @@ export default function TimeStamp({
     const handleMouseMove = (e: MouseEvent) => handleMove(e.clientY, false)
     const handleTouchMove = (e: TouchEvent) => {
       if (e.touches[0]) {
-        // e.preventDefault()
+        e.preventDefault() // 셀 범위 조정과 y축 스크롤 중첩 방지
         handleMove(e.touches[0].clientY, true)
       }
     }
@@ -536,6 +545,7 @@ export default function TimeStamp({
   }
 
   useEffect(() => {
+    // 핀치 줌 구현
     const element = gridRef.current
     if (!element) return
 
@@ -543,6 +553,7 @@ export default function TimeStamp({
 
     const handleTouchStart = (e: TouchEvent) => {
       if (e.touches.length === 2) {
+        e.preventDefault()
         const touch1 = e.touches[0]
         const touch2 = e.touches[1]
         initialDistance = Math.sqrt(
@@ -554,6 +565,7 @@ export default function TimeStamp({
 
     const handleTouchMove = (e: TouchEvent) => {
       if (e.touches.length === 2) {
+        e.preventDefault()
         const touch1 = e.touches[0]
         const touch2 = e.touches[1]
         const currentDistance = Math.sqrt(
@@ -671,17 +683,8 @@ export default function TimeStamp({
                     >
                       {!cellStatus.isConfirmed && cellStatus.isStartCell && (
                         <div
-                          className="absolute -top-[5px] left-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move"
-                          onMouseDown={() => {
-                            handleMouseDown(
-                              rowIndex,
-                              colIndex,
-                              true,
-                              cellStatus.selection!,
-                            )
-                          }}
-                          onTouchStart={(e) => {
-                            e.stopPropagation()
+                          className="absolute -top-[0px] left-[0%] w-[100%] h-[100%] touch-target"
+                          onTouchStart={() => {
                             handleMouseDown(
                               rowIndex,
                               colIndex,
@@ -690,31 +693,63 @@ export default function TimeStamp({
                             )
                             onColumnClick(colIndex, rowIndex)
                           }}
-                        />
+                        >
+                          <div
+                            className="absolute -top-[5px] left-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move"
+                            onMouseDown={() => {
+                              handleMouseDown(
+                                rowIndex,
+                                colIndex,
+                                true,
+                                cellStatus.selection!,
+                              )
+                            }}
+                            onTouchStart={() => {
+                              handleMouseDown(
+                                rowIndex,
+                                colIndex,
+                                false,
+                                cellStatus.selection!,
+                              )
+                            }}
+                          />
+                        </div>
                       )}
                       {!cellStatus.isConfirmed && cellStatus.isEndCell && (
                         <div
-                          className="absolute -bottom-[5px] right-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move"
-                          onMouseDown={(e) => {
-                            e.stopPropagation()
-                            handleMouseDown(
-                              rowIndex,
-                              colIndex,
-                              true,
-                              cellStatus.selection!,
-                            )
-                          }}
+                          className="absolute -bottom-[0px] right-[0%] w-[100%] h-[100%] touch-target"
                           onTouchStart={(e) => {
                             e.stopPropagation()
                             handleMouseDown(
                               rowIndex,
                               colIndex,
-                              true,
+                              false,
                               cellStatus.selection!,
                             )
                             onColumnClick(colIndex, rowIndex)
                           }}
-                        />
+                        >
+                          <div
+                            className="absolute -bottom-[5px] right-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move "
+                            onMouseDown={() => {
+                              handleMouseDown(
+                                rowIndex,
+                                colIndex,
+                                false,
+                                cellStatus.selection!,
+                              )
+                            }}
+                            onTouchStart={(e) => {
+                              e.stopPropagation()
+                              handleMouseDown(
+                                rowIndex,
+                                colIndex,
+                                false,
+                                cellStatus.selection!,
+                              )
+                            }}
+                          />
+                        </div>
                       )}
                     </div>
                   )

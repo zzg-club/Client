@@ -209,7 +209,7 @@ export default function Page() {
           timeSlots.push(newSlot)
           newEntry = { date: date, timeSlots: [newSlot] }
         }
-        console.log(date)
+        // console.log(date)
         timeSlots.sort((a, b) => toMinutes(a.start) - toMinutes(b.start))
 
         updated[existingDateIndex].timeSlots = timeSlots
