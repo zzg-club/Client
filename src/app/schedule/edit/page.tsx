@@ -728,25 +728,20 @@ export default function SchedulePage() {
     endTime: string,
     slotId: number,
   ) => {
-    if (colIndex >= 0 && selectedDates[colIndex]) {
-      const selectedDate = selectedDates[colIndex]
-
-      // 수정된 데이터를 상태에 추가
-      // setSelectedTimeInfo({
-      //   date: `${selectedDate.month}월 ${selectedDate.day}일`,
-      //   startTime,
-      //   endTime,
-      //   slotId,
-      // })
+    if (colIndex >= 0 && groupedDate[currentPage]?.date?.[colIndex]) {
+      const selectedDate = groupedDate[currentPage]?.date?.[colIndex]
+      // console.log('selectedDate', selectedDate)
+      // console.log('colIndex', colIndex)
 
       // 선택된 시간 정보 업데이트
-      setSelectedTimeInfo({
-        date: `${selectedDate.month}월 ${selectedDate.day}일`,
-        startTime,
-        endTime,
-        slotId,
-      })
-      console.log(selectedDate)
+      setTimeout(() => {
+        setSelectedTimeInfo({
+          date: `${selectedDate.year}년 ${selectedDate.month}월 ${selectedDate.day}일`,
+          startTime,
+          endTime,
+          slotId,
+        })
+      }, 0)
     }
   }
 
@@ -776,6 +771,7 @@ export default function SchedulePage() {
           })
         }
 
+        // console.log('updatedData', updatedData)
         return updatedData
       })
     }
