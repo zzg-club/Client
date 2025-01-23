@@ -1,42 +1,21 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
-import DecideSelectedDays from '@/components/Body/Decide/DecideSelectedDays'
+import { useState, useEffect, useCallback } from 'react'
 import Title from '@/components/Header/Title'
+import DecideSelectedDays from '@/components/Body/Decide/DecideSelectedDays'
 import DecideTimeStamp from '@/components/Body/Decide/DecideTimeStamp'
 import SelectedBottom from '@/components/Footer/BottomSheet/SelectedBottom'
 import { SelectItem } from '@/components/Footer/ListItem/SelectItem'
 import CustomModal from '@/components/Modals/CustomModal'
-import DecideBottom from '@/components/Footer/BottomSheet/DecideBottom'
-import { ScheduleItem } from '@/components/Footer/ListItem/ScheduleItem'
-import { EditItem } from '@/components/Footer/ListItem/EditItem'
-import useEditStore from '@/store/useEditStore'
-
-interface TimeSlot {
-  start: string
-  end: string
-  selectedBy: string[]
-}
-
-interface DateData {
-  date: string
-  timeSlots: TimeSlot[]
-}
-
-interface ScheduleData {
-  name: string
-  userId: number
-  groupId: number
-  mode: string
-  selected: string[] | null
-  dateData: DateData[]
-}
+import { ProfileLarge } from '@/components/Profiles/ProfileLarge'
+import MembersDefault from '@/components/Modals/MembersDefault'
+// import { useRouter } from 'next/navigation'
 
 interface SelectedDate {
+  year: number
+  month: number
   day: number
   weekday: string
-  month: number
-  year: number
 }
 
 interface GroupedDate {
@@ -55,352 +34,61 @@ interface GroupedDate {
   }[]
 }
 
-const mockDateTime: ScheduleData[] = [
-  {
-    name: '팀플 대면 모임',
-    userId: 2,
-    groupId: 1,
-    mode: 'range',
-    selected: null,
-    dateData: [
-      {
-        date: '2025-02-01',
-        timeSlots: [
-          {
-            start: '09:30',
-            end: '17:00',
-            selectedBy: ['user1', 'user2', 'user3'],
-          },
-          { start: '17:00', end: '22:00', selectedBy: ['user1'] },
-        ],
-      },
-      {
-        date: '2025-02-02',
-        timeSlots: [
-          { start: '08:00', end: '13:00', selectedBy: ['user2', 'user3'] },
-          { start: '13:00', end: '20:00', selectedBy: ['user1', 'user4'] },
-          { start: '20:00', end: '23:00', selectedBy: ['user3'] },
-        ],
-      },
-      {
-        date: '2025-02-03',
-        timeSlots: [
-          { start: '05:00', end: '10:00', selectedBy: ['user1', 'user2'] },
-          {
-            start: '10:00',
-            end: '16:00',
-            selectedBy: ['user2', 'user3', 'user4'],
-          },
-          { start: '16:00', end: '21:00', selectedBy: ['user1', 'user3'] },
-        ],
-      },
-      {
-        date: '2025-02-04',
-        timeSlots: [
-          {
-            start: '11:00',
-            end: '18:00',
-            selectedBy: ['user1', 'user2', 'user3', 'user4'],
-          },
-          { start: '18:00', end: '19:00', selectedBy: ['user2'] },
-        ],
-      },
-      {
-        date: '2025-02-05',
-        timeSlots: [
-          { start: '10:00', end: '15:00', selectedBy: ['user1'] },
-          {
-            start: '15:00',
-            end: '18:00',
-            selectedBy: ['user1', 'user2', 'user3'],
-          },
-          { start: '28:00', end: '22:00', selectedBy: ['user2', 'user4'] },
-        ],
-      },
-      {
-        date: '2025-02-06',
-        timeSlots: [
-          { start: '04:00', end: '06:00', selectedBy: ['user3'] },
-          {
-            start: '06:00',
-            end: '21:00',
-            selectedBy: ['user1', 'user2', 'user3', 'user4'],
-          },
-        ],
-      },
-      {
-        date: '2025-02-07',
-        timeSlots: [
-          { start: '06:00', end: '07:00', selectedBy: ['user2'] },
-          {
-            start: '07:00',
-            end: '19:00',
-            selectedBy: ['user1', 'user3', 'user4'],
-          },
-          { start: '19:00', end: '22:00', selectedBy: ['user1', 'user2'] },
-        ],
-      },
-      {
-        date: '2025-02-08',
-        timeSlots: [
-          {
-            start: '10:00',
-            end: '19:00',
-            selectedBy: ['user1', 'user3', 'user4'],
-          },
-          { start: '19:00', end: '22:00', selectedBy: ['user1', 'user2'] },
-        ],
-      },
-    ],
-  },
-]
-
-// const mockDateTime: ScheduleData[] = [
-//   {
-//     name: '팀플 대면 모임',
-//     userId: 2,
-//     groupId: 1,
-//     mode: 'week',
-//     selected: ['mon', 'wed', 'fri'],
-//     dateData: [
-//       {
-//         date: '2025-01-06',
-//         timeSlots: [
-//           {
-//             start: '09:30',
-//             end: '17:00',
-//             selectedBy: ['user1', 'user2', 'user3'],
-//           },
-//           { start: '17:00', end: '22:00', selectedBy: ['user1'] },
-//         ],
-//       },
-//       {
-//         date: '2025-02-05',
-//         timeSlots: [
-//           { start: '08:00', end: '13:00', selectedBy: ['user2', 'user3'] },
-//           { start: '13:00', end: '20:00', selectedBy: ['user1', 'user4'] },
-//           { start: '20:00', end: '23:00', selectedBy: ['user3'] },
-//         ],
-//       },
-//       {
-//         date: '2025-01-13',
-//         timeSlots: [
-//           { start: '05:00', end: '10:00', selectedBy: ['user1', 'user2'] },
-//           {
-//             start: '10:00',
-//             end: '16:00',
-//             selectedBy: ['user2', 'user3', 'user4'],
-//           },
-//           { start: '16:00', end: '21:00', selectedBy: ['user1', 'user3'] },
-//         ],
-//       },
-//       {
-//         date: '2025-02-12',
-//         timeSlots: [
-//           {
-//             start: '11:00',
-//             end: '18:00',
-//             selectedBy: ['user1', 'user2', 'user3', 'user4'],
-//           },
-//           { start: '18:00', end: '19:00', selectedBy: ['user2'] },
-//         ],
-//       },
-//       {
-//         date: '2025-03-07',
-//         timeSlots: [
-//           { start: '10:00', end: '15:00', selectedBy: ['user1'] },
-//           {
-//             start: '15:00',
-//             end: '18:00',
-//             selectedBy: ['user1', 'user2', 'user3'],
-//           },
-//           { start: '28:00', end: '22:00', selectedBy: ['user2', 'user4'] },
-//         ],
-//       },
-//       {
-//         date: '2025-02-19',
-//         timeSlots: [
-//           { start: '04:00', end: '06:00', selectedBy: ['user3'] },
-//           {
-//             start: '06:00',
-//             end: '21:00',
-//             selectedBy: ['user1', 'user2', 'user3', 'user4'],
-//           },
-//         ],
-//       },
-//       {
-//         date: '2025-01-20',
-//         timeSlots: [
-//           { start: '06:00', end: '07:00', selectedBy: ['user2'] },
-//           {
-//             start: '07:00',
-//             end: '19:00',
-//             selectedBy: ['user1', 'user3', 'user4'],
-//           },
-//           { start: '19:00', end: '22:00', selectedBy: ['user1', 'user2'] },
-//         ],
-//       },
-//       {
-//         date: '2025-01-27',
-//         timeSlots: [
-//           {
-//             start: '10:00',
-//             end: '19:00',
-//             selectedBy: ['user1', 'user3', 'user4'],
-//           },
-//           { start: '19:00', end: '22:00', selectedBy: ['user1', 'user2'] },
-//         ],
-//       },
-//     ],
-//   },
-// ]
-
-// const participants = [
-//   {
-//     id: 1,
-//     name: '나',
-//     image: '/sampleProfile.png',
-//   },
-//   {
-//     id: 2,
-//     name: '김태엽',
-//     image: '/sampleProfile.png',
-//   },
-//   {
-//     id: 3,
-//     name: '지유진',
-//     image: '/sampleProfile.png',
-//   },
-//   {
-//     id: 4,
-//     name: '이소룡',
-//     image: '/sampleProfile.png',
-//   },
-//   {
-//     id: 5,
-//     name: '박진우',
-//     image: '/sampleProfile.png',
-//   },
-//   {
-//     id: 6,
-//     name: '이예지',
-//     image: '/sampleProfile.png',
-//   },
-//   {
-//     id: 7,
-//     name: '조성하',
-//     image: '/sampleProfile.png',
-//   },
-//   {
-//     id: 8,
-//     name: '성윤정',
-//     image: '/sampleProfile.png',
-//   },
-//   {
-//     id: 9,
-//     name: '김나영',
-//     image: '/sampleProfile.png',
-//   },
-//   {
-//     id: 10,
-//     name: '이채연',
-//     image: '/sampleProfile.png',
-//   },
-// ]
+interface ScheduleData {
+  title: string // 일정 이름
+  userId: number // 사용자 ID
+  groupId: number // 그룹 ID
+  mode: string
+  selected: string[] | null
+  date: [string, string][] // 날짜 배열: [날짜, 요일]의 배열
+}
 
 export default function Page() {
-  const { isEdit, setIsEdit, isEditBottomSheetOpen, setIsEditBottomSheetOpen } =
-    useEditStore()
-  const [currentPage, setCurrentPage] = useState(0)
-  const [title, setTitle] = useState('제목 없는 일정') // 제목 상태 관리
+  const [title, setTitle] = useState('제목 없는 일정')
   const [isPurple, setIsPurple] = useState(false)
-  const [dateTime, setDateTime] = useState<
-    {
-      id: number
-      date: string
-      month: string
-      year: number
-      timeSlots: { start: string; end: string }[]
-    }[]
-  >([])
+  const [currentPage, setCurrentPage] = useState(0)
   const [highlightedCol, setHighlightedCol] = useState<number | null>(null)
-  const [isOpen, setIsOpen] = useState(false)
   const [startTime, setStartTime] = useState<string | null>(null)
   const [endTime, setEndTime] = useState<string | null>(null)
-  const [finalData, setFinalData] = useState<
-    {
-      id: string
-      number: number
-      startDate: string
-      startTime: string
-      endTime: string
-    }[]
+  const [dateTime, setDateTime] = useState<
+    { date: string; timeSlots: { start: string; end: string }[] }[]
   >([])
-
-  const [selectedDates, setSelectedDates] = useState<SelectedDate[]>([])
-  const [isEditDelete, setIsEditDelete] = useState(false)
-
+  const [isOpen, setIsOpen] = useState(false)
   const [dateCounts, setDateCounts] = useState<number[]>([])
   const [groupedDate, setGroupedDate] = useState<GroupedDate[]>([])
+
   const DAYS_PER_PAGE = 7
   const highlightedIndex =
     highlightedCol !== null
       ? highlightedCol - currentPage * DAYS_PER_PAGE
       : null
 
-  function transformMockDateTime(mockData: ScheduleData[]) {
-    const dayNames = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
-
-    // Helper function to get the day name for a given date
-    function getDayName(dateStr: string) {
-      const date = new Date(dateStr)
-      return dayNames[date.getUTCDay()]
-    }
-
-    return mockData.map(
-      ({ name, userId, groupId, mode, selected, dateData }) => {
-        const date = dateData.flatMap(({ date }) => [[date, getDayName(date)]])
-
-        return {
-          name,
-          userId,
-          groupId,
-          mode,
-          selected,
-          date,
-        }
-      },
-    )
+  const handleTitleChange = (newTitle: string) => {
+    setTitle(newTitle)
   }
-
-  //console.log('성하 데이터에 맞춤', transformMockDateTime(mockDateTime))
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage)
+    setIsOpen(false)
   }
 
-  useEffect(() => {
-    console.log(`Updated dateTimeData:`, dateTime)
+  const handleDateCountsChange = (
+    counts: number[],
+    groupedData: GroupedDate[],
+  ) => {
+    setDateCounts(counts)
+    setGroupedDate(groupedData)
+  }
 
-    const transformedData = dateTime.flatMap((dateItem, dateIndex) => {
-      const { date, month, timeSlots } = dateItem
-
-      const startDate = `${month}월 ${Number(date)}일`
-
-      return timeSlots.map((slot, slotIndex) => ({
-        id: `${dateIndex}-${slotIndex}`,
-        number: dateIndex + 1,
-        startDate,
-        startTime: slot.start,
-        endTime: slot.end,
-      }))
-    })
-
-    setFinalData(transformedData)
-  }, [dateTime])
+  // console.log('groupedData', groupedDate)
 
   const handleSelectedCol = useCallback(
     (colIndex: number, rowIndex: number) => {
+      if (rowIndex === -1) {
+        setHighlightedCol(null)
+        return 0
+      }
+
       const pairStartRow = Math.floor(rowIndex / 2) * 2
       const pairEndRow = pairStartRow + 1
 
@@ -424,250 +112,14 @@ export default function Page() {
       const DefaultStartTime = getStartLabel(pairStartRow)
       const DefaultEndTime = getEndLabel(pairEndRow)
 
-      setTimeout(() => {
-        console.log('page - isEdit', isEdit)
-        setStartTime(DefaultStartTime)
-        setEndTime(DefaultEndTime)
-        setHighlightedCol(colIndex)
-        setIsOpen(true)
-      }, 0)
+      setStartTime(DefaultStartTime)
+      setEndTime(DefaultEndTime)
+
+      setHighlightedCol(colIndex)
+      setIsOpen(true)
     },
-    [isEdit],
+    [],
   )
-
-  const [isExistSlot, setIsExistSlot] = useState(false)
-
-  const getDateTime = (
-    col: number,
-    start: string,
-    end: string,
-    colIndex: number,
-  ) => {
-    // const generateUniqueId = (colIndex: number, start: string, end: string) => {
-    //   // 예: col과 시간대를 기반으로 고유 ID 생성
-    //   return `${colIndex}-${start}-${end}`
-    // }
-    let existSlot = false
-
-    setDateTime((prev) => {
-      const existingDateIndex = prev.findIndex(
-        (item) => Number(item.date) === col,
-      )
-
-      const selectedDate = selectedDates.find((date) => date.day === col)
-      const month = String(
-        selectedDate?.month || new Date().getMonth() + 1,
-      ).padStart(2, '0')
-      const date = String(col).padStart(2, '0')
-      const year = selectedDate?.year
-
-      if (existingDateIndex !== -1) {
-        const updated = [...prev]
-
-        if (isEdit) {
-          let timeSlots = updated[existingDateIndex].timeSlots
-          const toMinutes = (time: string) => {
-            const [hours, minutes] = time.split(':').map(Number)
-            return hours * 60 + minutes
-          }
-
-          const newStartMinutes = toMinutes(start)
-          const newEndMinutes = toMinutes(end)
-
-          const overlappingSlots = timeSlots.filter((slot) => {
-            const slotStartMinutes = toMinutes(slot.start)
-            const slotEndMinutes = toMinutes(slot.end)
-
-            if (
-              newStartMinutes >= slotStartMinutes &&
-              newEndMinutes <= slotEndMinutes
-            ) {
-              existSlot = true
-            }
-
-            return (
-              (newStartMinutes <= slotEndMinutes &&
-                newEndMinutes >= slotStartMinutes) ||
-              slotEndMinutes === newStartMinutes ||
-              slotStartMinutes === newEndMinutes
-            )
-          })
-
-          const matchingIndex = timeSlots.findIndex((slot) => {
-            const slotStartMinutes = toMinutes(slot.start)
-            const slotEndMinutes = toMinutes(slot.end)
-            return (
-              newStartMinutes === slotStartMinutes ||
-              newEndMinutes === slotEndMinutes
-            )
-          })
-
-          console.log('매칭인덱스', timeSlots[matchingIndex])
-
-          setIsExistSlot(existSlot)
-          console.log('isExistSlot', existSlot)
-
-          if (overlappingSlots.length > 0 && !existSlot) {
-            console.log('오버래핑')
-            const mergedStart = Math.min(
-              newStartMinutes,
-              ...overlappingSlots.map((slot) => toMinutes(slot.start)),
-            )
-            const mergedEnd = Math.max(
-              newEndMinutes,
-              ...overlappingSlots.map((slot) => toMinutes(slot.end)),
-            )
-
-            timeSlots = timeSlots.filter(
-              (slot) => !overlappingSlots.includes(slot),
-            )
-
-            const mergedSlot = {
-              start: `${Math.floor(mergedStart / 60)
-                .toString()
-                .padStart(2, '0')}:${(mergedStart % 60)
-                .toString()
-                .padStart(2, '0')}`,
-              end: `${Math.floor(mergedEnd / 60)
-                .toString()
-                .padStart(2, '0')}:${(mergedEnd % 60)
-                .toString()
-                .padStart(2, '0')}`,
-            }
-            timeSlots = [...timeSlots, mergedSlot]
-            console.log('병합', mergedSlot)
-          } else if (overlappingSlots.length > 0 && matchingIndex !== -1) {
-            console.log('매칭')
-            timeSlots[matchingIndex] = { start, end }
-          } else {
-            {
-              timeSlots = [...timeSlots, { start, end }]
-            }
-          }
-
-          timeSlots.sort((a, b) => toMinutes(a.start) - toMinutes(b.start))
-
-          updated[existingDateIndex] = {
-            id: prev[existingDateIndex].id,
-            date: date,
-            month: month,
-            year: year!,
-            timeSlots: timeSlots,
-          }
-          // setTimeout(() => {
-          //   setIsEdit(false)
-          // }, 0)
-          return updated
-        }
-
-        let timeSlots = updated[existingDateIndex].timeSlots
-        const toMinutes = (time: string) => {
-          const [hours, minutes] = time.split(':').map(Number)
-          return hours * 60 + minutes
-        }
-
-        const newStartMinutes = toMinutes(start)
-        const newEndMinutes = toMinutes(end)
-
-        const overlappingSlots = timeSlots.filter((slot) => {
-          const slotStartMinutes = toMinutes(slot.start)
-          const slotEndMinutes = toMinutes(slot.end)
-
-          return (
-            (newStartMinutes <= slotEndMinutes &&
-              newEndMinutes >= slotStartMinutes) ||
-            slotEndMinutes === newStartMinutes ||
-            slotStartMinutes === newEndMinutes
-          )
-        })
-
-        if (overlappingSlots.length > 0) {
-          console.log('오버래핑')
-          const mergedStart = Math.min(
-            newStartMinutes,
-            ...overlappingSlots.map((slot) => toMinutes(slot.start)),
-          )
-          const mergedEnd = Math.max(
-            newEndMinutes,
-            ...overlappingSlots.map((slot) => toMinutes(slot.end)),
-          )
-
-          timeSlots = timeSlots.filter(
-            (slot) => !overlappingSlots.includes(slot),
-          )
-
-          const mergedSlot = {
-            start: `${Math.floor(mergedStart / 60)
-              .toString()
-              .padStart(2, '0')}:${(mergedStart % 60)
-              .toString()
-              .padStart(2, '0')}`,
-            end: `${Math.floor(mergedEnd / 60)
-              .toString()
-              .padStart(2, '0')}:${(mergedEnd % 60)
-              .toString()
-              .padStart(2, '0')}`,
-          }
-          timeSlots = [...timeSlots, mergedSlot]
-        } else {
-          timeSlots = [...timeSlots, { start, end }]
-        }
-
-        timeSlots.sort((a, b) => toMinutes(a.start) - toMinutes(b.start))
-
-        updated[existingDateIndex] = {
-          id: prev[existingDateIndex].id,
-          date: date,
-          month: month,
-          year: year!,
-          timeSlots: timeSlots,
-        }
-        // setTimeout(() => {
-        //   setIsEdit(false)
-        // }, 0)
-        return updated
-      } else {
-        console.log('실행')
-        return [
-          ...prev,
-          {
-            id: colIndex,
-            date: date,
-            month: month,
-            year: year!,
-            timeSlots: [{ start, end }],
-          },
-        ]
-      }
-    })
-    setIsOpen(false)
-    setIsPurple(true)
-    // setTimeout(() => {
-    //   setIsEdit(false)
-    // }, 0)
-  }
-
-  // 제목 수정 함수
-  const handleTitleChange = (newTitle: string) => {
-    setTitle(newTitle) // 수정된 제목으로 상태 업데이트
-  }
-
-  const initializeSelectedDates = useCallback(() => {
-    return mockDateTime[0].dateData.map((dateData) => ({
-      day: parseInt(dateData.date.split('-')[2]),
-      weekday: new Date(dateData.date).toLocaleDateString('ko-KR', {
-        weekday: 'short',
-      }),
-      month: parseInt(dateData.date.split('-')[1]),
-      year: parseInt(dateData.date.split('-')[0]),
-    }))
-  }, [])
-
-  useEffect(() => {
-    if (selectedDates.length === 0) {
-      setSelectedDates(initializeSelectedDates())
-    }
-  }, [initializeSelectedDates, selectedDates])
 
   const handleActiveTime = (start: number, end: number) => {
     const getStartLabel = (rowIndex: number) => {
@@ -692,81 +144,162 @@ export default function Page() {
 
     setStartTime(calculatedStartTime)
     setEndTime(calculatedEndTime)
+
+    setIsOpen(true)
   }
 
-  const [warning, setWarning] = useState(false)
-  const [decideBottomOpen, setDecideBottomOpen] = useState(false)
+  const getDateTime = (date: string, start: string, end: string) => {
+    setDateTime((prev) => {
+      const existingDateIndex = prev.findIndex((item) => item.date === date)
+      let newEntry = null
 
-  const formatTime = (time: string) => {
-    const [hour, minutePart] = time.split(':')
-    const [minute, period] = minutePart.split(' ')
-    let hourNumber = parseInt(hour, 10)
-    if (period === 'PM' && hourNumber !== 12) hourNumber += 12
-    if (period === 'AM' && hourNumber === 12) hourNumber = 0
-    return `${String(hourNumber).padStart(2, '0')}:${minute}`
-  }
+      if (existingDateIndex !== -1) {
+        const updated = [...prev]
+        let timeSlots = updated[existingDateIndex].timeSlots
 
-  const onClickConfirm = () => {
-    if (isPurple && !decideBottomOpen) {
-      setDecideBottomOpen(true)
-    } else if (!isPurple && !decideBottomOpen) {
-      setWarning(true)
-    } else if (isPurple && decideBottomOpen) {
-      const startDateString = `${dateTime[0].year}-${dateTime[0].month}-${dateTime[0].date}T${formatTime(dateTime[0].timeSlots[0].start)}:00.000Z`
-      const endDateString = `${dateTime[0].year}-${dateTime[0].month}-${dateTime[0].date}T${formatTime(dateTime[0].timeSlots[0].end)}:00.000Z`
+        const toMinutes = (time: string) => {
+          const [hours, minutes] = time.split(':').map(Number)
+          return hours * 60 + minutes
+        }
 
-      alert(
-        `확정 스케줄: startDate - ${startDateString} /// endDate - ${endDateString}`,
-      )
-    }
-  }
+        const newStartMinutes = toMinutes(start)
+        const newEndMinutes = toMinutes(end)
 
-  const handleDeleteSchedule = (id: string | undefined) => {
-    if (id === undefined) return
+        const overlappingSlots = timeSlots.filter((slot) => {
+          const slotStartMinutes = toMinutes(slot.start)
+          const slotEndMinutes = toMinutes(slot.end)
 
-    setFinalData((prevFinalData) =>
-      prevFinalData.filter((item) => item.id !== id),
-    )
-
-    // dateTime에서 해당 시간대 찾기
-    const [dateIndex, slotIndex] = id.split('-').map(Number)
-
-    setDateTime((prevDateTime) => {
-      return prevDateTime
-        .map((dateItem, index) => {
-          if (index !== dateIndex) return dateItem
-
-          const updatedTimeSlots = dateItem.timeSlots.filter(
-            (_, idx) => idx !== slotIndex,
+          return (
+            (newStartMinutes <= slotEndMinutes &&
+              newEndMinutes >= slotStartMinutes) ||
+            slotEndMinutes === newStartMinutes ||
+            slotStartMinutes === newEndMinutes
           )
-          return { ...dateItem, timeSlots: updatedTimeSlots }
         })
-        .filter((dateItem) => dateItem.timeSlots.length > 0)
+
+        if (overlappingSlots.length > 0) {
+          const mergedStart = Math.min(
+            newStartMinutes,
+            ...overlappingSlots.map((slot) => toMinutes(slot.start)),
+          )
+          const mergedEnd = Math.max(
+            newEndMinutes,
+            ...overlappingSlots.map((slot) => toMinutes(slot.end)),
+          )
+
+          timeSlots = timeSlots.filter(
+            (slot) => !overlappingSlots.includes(slot),
+          )
+          const mergedSlot = {
+            start: `${Math.floor(mergedStart / 60)
+              .toString()
+              .padStart(2, '0')}:${(mergedStart % 60)
+              .toString()
+              .padStart(2, '0')}`,
+            end: `${Math.floor(mergedEnd / 60)
+              .toString()
+              .padStart(2, '0')}:${(mergedEnd % 60)
+              .toString()
+              .padStart(2, '0')}`,
+          }
+          timeSlots.push(mergedSlot)
+          newEntry = { date: date, timeSlots: [mergedSlot] }
+        } else {
+          const newSlot = { start, end }
+          timeSlots.push(newSlot)
+          newEntry = { date: date, timeSlots: [newSlot] }
+        }
+        // console.log(date)
+        timeSlots.sort((a, b) => toMinutes(a.start) - toMinutes(b.start))
+
+        updated[existingDateIndex].timeSlots = timeSlots
+        // console.log('새로 추가된 항목:', newEntry)
+        return updated
+      } else {
+        newEntry = { date: date, timeSlots: [{ start, end }] }
+        // console.log('새로 추가된 항목:', newEntry)
+        return [...prev, newEntry]
+      }
     })
+    setIsPurple(true)
+    setIsOpen(false)
   }
 
   useEffect(() => {
-    if (dateTime.length === 0) {
-      setDecideBottomOpen(false)
-      setIsPurple(false) // 선택된 시간이 없으므로 확정 버튼도 비활성화
-    }
+    console.log(`Updated dateTimeData:`, dateTime)
   }, [dateTime])
 
-  const handleEditDelete = () => {
-    setDateTime((prev) => {
-      const dateToDelete = selectedDates[highlightedCol!]?.day
-        .toString()
-        .padStart(2, '0')
-      return prev.filter((item) => item.date !== dateToDelete)
-    })
-    setIsEditBottomSheetOpen(false)
-    setHighlightedCol(null)
-    setIsOpen(false)
-    setIsEditDelete(true)
+  const weekdayMap: { [key: string]: string } = {
+    mon: '월',
+    tue: '화',
+    wed: '수',
+    thu: '목',
+    fri: '금',
+    sat: '토',
+    sun: '일',
   }
 
-  const mode = mockDateTime[0].mode
-  const dayofWeek = mockDateTime[0].selected
+  function convertToSelectedDates(
+    scheduleData: ScheduleData[],
+  ): SelectedDate[] {
+    return scheduleData.flatMap((schedule) =>
+      schedule.date.map(([fullDate, weekday]) => {
+        const [year, month, day] = fullDate.split('-').map(Number)
+        return {
+          year,
+          month,
+          day: day,
+          weekday: weekdayMap[weekday],
+        }
+      }),
+    )
+  }
+
+  const scheduleData: ScheduleData[] = [
+    {
+      title: '팀플 대면 모임',
+      userId: 2,
+      groupId: 1,
+      mode: 'week',
+      selected: ['mon', 'wed', 'fri'],
+      date: [
+        ['2024-01-06', 'mon'],
+        ['2024-02-08', 'wed'],
+        ['2024-01-13', 'mon'],
+        ['2024-02-15', 'wed'],
+        ['2024-01-20', 'mon'],
+        ['2024-02-22', 'wed'],
+        ['2024-01-27', 'mon'],
+        ['2024-03-03', 'fri'],
+        ['2024-03-10', 'fri'],
+        ['2024-03-17', 'fri'],
+        ['2024-03-24', 'fri'],
+        ['2024-03-31', 'fri'],
+      ],
+      // mode: 'range',
+      // selected: null,
+      // date: [
+      //   ['2024-12-30', 'mon'],
+      //   ['2024-12-31', 'tue'],
+      //   ['2024-01-01', 'wed'],
+      //   ['2024-01-02', 'thu'],
+      //   ['2024-01-03', 'fri'],
+      //   ['2024-01-04', 'sat'],
+      //   ['2024-01-05', 'sun'],
+      //   ['2024-01-06', 'mon'],
+      //   ['2024-01-07', 'tue'],
+      //   ['2024-01-08', 'wed'],
+      //   ['2024-01-09', 'thu'],
+      //   ['2024-01-10', 'fri'],
+      //   ['2024-01-11', 'sat'],
+      //   ['2024-01-12', 'sun'],
+      // ],
+    },
+  ]
+
+  const selectedDates: SelectedDate[] = convertToSelectedDates(scheduleData)
+  const mode = scheduleData[0].mode
+  const dayofWeek = scheduleData[0].selected
   const month =
     mode === 'range'
       ? currentPage === Math.floor((highlightedCol ?? 0) / DAYS_PER_PAGE)
@@ -774,115 +307,233 @@ export default function Page() {
         : `${selectedDates[currentPage * DAYS_PER_PAGE]?.month}월`
       : `${groupedDate[currentPage]?.date?.[highlightedIndex ?? 0]?.month ?? groupedDate[currentPage]?.date?.[0]?.month}월`
 
-  const handleDateCountsChange = (
-    counts: number[],
-    groupedData: GroupedDate[],
-  ) => {
-    setDateCounts(counts)
-    setGroupedDate(groupedData)
+  const scheduleModalData = [
+    {
+      id: 2,
+      number: 2,
+      startDate: '12월 30일',
+      startTime: '18:00',
+      endTime: '20:00',
+      participants: [
+        {
+          id: 1,
+          name: '나',
+          image: '/sampleProfile.png',
+          isScheduleSelect: true,
+        },
+        {
+          id: 2,
+          name: '김태엽',
+          image: '/sampleProfile.png',
+          isScheduleSelect: true,
+        },
+        {
+          id: 3,
+          name: '지유진',
+          image: '/sampleProfile.png',
+          isScheduleSelect: true,
+        },
+        {
+          id: 4,
+          name: '이소룡',
+          image: '/sampleProfile.png',
+          isScheduleSelect: false,
+        },
+        {
+          id: 5,
+          name: '박진우',
+          image: '/sampleProfile.png',
+          isScheduleSelect: false,
+        },
+        {
+          id: 6,
+          name: '이예지',
+          image: '/sampleProfile.png',
+          isScheduleSelect: false,
+        },
+        {
+          id: 7,
+          name: '조성하',
+          image: '/sampleProfile.png',
+          isScheduleSelect: true,
+        },
+        {
+          id: 8,
+          name: '성윤정',
+          image: '/sampleProfile.png',
+          isScheduleSelect: false,
+        },
+        {
+          id: 9,
+          name: '김나영',
+          image: '/sampleProfile.png',
+          isScheduleSelect: false,
+        },
+        {
+          id: 10,
+          name: '이채연',
+          image: '/sampleProfile.png',
+          isScheduleSelect: false,
+        },
+      ],
+    },
+  ]
+
+  // 완료 버튼 누르면 나오는 일정 입력 중 모달
+  const [isToDecideModal, setIsToDecideModal] = useState(false)
+  const handleToDecideModal = () => {
+    if (isPurple) {
+      setIsToDecideModal(!isToDecideModal)
+      setIsExpanded(false)
+      setIsDanger(false)
+    } else {
+      setIsNextOpen(!isNextOpen)
+    }
   }
 
+  // 확장 상태 관리, ProfileLarge에서 전달받은 확장 상태 업데이트
+  const [isExpanded, setIsExpanded] = useState(false)
+  const handleExpandChange = (newExpandState: boolean) => {
+    setIsExpanded(newExpandState)
+  }
+
+  // onNext 버튼 누르면 경고 문구 출력 상태 관리
+  const [isDanger, setIsDanger] = useState(false)
+  const handleDanger = () => {
+    const hasIncompleteMember = scheduleModalData[0].participants.some(
+      (participant) => !participant.isScheduleSelect,
+    )
+    setIsDanger(hasIncompleteMember ? !isDanger : isDanger)
+
+    // isDanger가 true로 변경되었을 때 페이지 이동
+    if (hasIncompleteMember) {
+      if (isDanger) {
+        // 경고가 이미 표시된 상태에서 다시 누르면 페이지 이동
+        alert('경고 확인 후 페이지 이동')
+      } else {
+        // 경고 보여주기
+        setIsDanger(true)
+      }
+    } else {
+      // 모두 완료되었으면 바로 페이지 이동
+      alert('경고 없이 페이지 이동')
+    }
+  }
+
+  // const router = useRouter()
+
+  const [isNextOpen, setIsNextOpen] = useState(false)
+
   return (
-    <div className="flex flex-col h-full bg-white">
+    <div>
       <Title
-        buttonText="확정"
-        initialTitle={title} // 하위 컴포넌트에 제목 전달
-        onTitleChange={handleTitleChange} // 제목 수정 함수 전달
+        buttonText={'완료'}
+        initialTitle={scheduleData[0]?.title || title}
+        onTitleChange={handleTitleChange}
         isPurple={isPurple}
-        onClickTitleButton={onClickConfirm}
+        onClickTitleButton={handleToDecideModal}
       />
       <DecideSelectedDays
         selectedDates={selectedDates}
+        month={month}
         mode={mode}
         dayofWeek={dayofWeek}
         currentPage={currentPage}
+        onPageChange={handlePageChange}
         highlightedCol={highlightedCol}
         onDateCountsChange={handleDateCountsChange}
-        month={month}
-        onPageChange={setCurrentPage}
+        isPurple={isPurple}
       />
       <div className="flex-grow overflow-hidden mt-2">
         <DecideTimeStamp
           selectedDates={selectedDates}
           currentPage={currentPage}
-          onPageChange={handlePageChange}
-          handleSelectedCol={handleSelectedCol}
-          getDateTime={getDateTime}
-          mockDateTime={mockDateTime[0].dateData}
-          handleActiveTime={handleActiveTime}
-          isBottomSheetOpen={isOpen}
-          dateTime={dateTime}
-          isEditDelete={isEditDelete}
-          setIsEditDelete={setIsEditDelete}
-          dateCounts={dateCounts}
           mode={mode}
+          groupedDate={groupedDate}
+          onPageChange={handlePageChange}
+          dateCounts={dateCounts}
+          handleSelectedCol={handleSelectedCol}
+          handleActiveTime={handleActiveTime}
+          getDateTime={getDateTime}
+          isBottomSheetOpen={isOpen}
         />
       </div>
-      {!decideBottomOpen && (
-        <div className="z-[1000]">
-          <SelectedBottom isOpen={isOpen} onClose={() => setIsOpen(false)}>
-            {isEditBottomSheetOpen ? (
-              <EditItem
-                key={1}
-                date={
-                  highlightedCol !== null
-                    ? `${selectedDates[0]?.month}월 ${selectedDates[highlightedCol]?.day}일`
-                    : ''
-                }
-                startTime={`${startTime}`}
-                endTime={`${endTime}`}
-                handleEditDelete={handleEditDelete}
-              />
-            ) : (
-              <div>
-                <SelectItem
-                  date={
-                    highlightedCol !== null
-                      ? `${selectedDates[0]?.month}월 ${selectedDates[highlightedCol]?.day}일`
-                      : ''
-                  }
-                  startTime={`${startTime}`}
-                  endTime={`${endTime}`}
-                />
-              </div>
-            )}
-          </SelectedBottom>
+      <SelectedBottom isOpen={isOpen} onClose={() => setIsOpen(false)}>
+        <div>
+          <SelectItem
+            date={
+              highlightedCol !== null && highlightedIndex !== null
+                ? mode === 'range'
+                  ? `${selectedDates[highlightedCol]?.month}월 ${selectedDates[highlightedCol]?.day}일`
+                  : (() => {
+                      const month =
+                        groupedDate[currentPage]?.date?.[highlightedIndex]
+                          ?.month
+                      const day =
+                        groupedDate[currentPage]?.date?.[highlightedIndex]?.day
+                      return month && day ? `${month}월 ${day}일` : ''
+                    })()
+                : ''
+            }
+            startTime={`${startTime}`}
+            endTime={`${endTime}`}
+          />
         </div>
-      )}
-
+      </SelectedBottom>
       <CustomModal
+        open={isToDecideModal}
+        onOpenChange={handleToDecideModal}
+        onNext={handleDanger}
         isFooter={true}
-        footerText="확인"
-        onNext={() => setWarning(false)}
-        open={warning}
-        onOpenChange={() => setWarning(!warning)}
+        footerText={'최적의 일정 찾기'}
       >
-        <div className="text-center pt-4">
-          한 개 이상 일정을 선택해야 <br />
-          확정할 수 있어요
+        <div className="flex flex-col item-center justify-center">
+          <div className="text-center text-[#1e1e1e] text-[18px] font-medium leading-[25px] mb-[24px]">
+            함께하는 친구들이
+            <br /> 시간을 입력하고 있어요!
+          </div>
+          <div className="flex item-center justify-center mb-[12px]">
+            <ProfileLarge
+              key={scheduleModalData[0].id}
+              profiles={scheduleModalData[0].participants}
+              onExpandChange={handleExpandChange}
+            />
+          </div>
+          {isDanger ? (
+            <div className="text-center text-[#ff0000] text-xs font-medium ">
+              아직 입력을 마치지 않은 친구가 있어요!
+              <br />
+              그래도 진행하시겠어요?
+            </div>
+          ) : (
+            <div className="text-center text-[#afafaf] text-xs font-medium">
+              입력을 완료한 친구의 프로필만 활성화돼요!
+            </div>
+          )}
+          <div className="flex item-center justify-center">
+            {isExpanded && (
+              <MembersDefault
+                blackText={false}
+                title={title}
+                members={scheduleModalData[0].participants}
+                memberCount={scheduleModalData[0].participants.length}
+              />
+            )}
+          </div>
         </div>
       </CustomModal>
-
-      <div className="z-[1000]">
-        <DecideBottom
-          isOpen={decideBottomOpen}
-          onClose={() => setDecideBottomOpen(false)}
-        >
-          <div>
-            {finalData.map((item) => (
-              <ScheduleItem
-                key={item.id}
-                id={item.id}
-                number={item.number}
-                startDate={item.startDate}
-                startTime={item.startTime}
-                endTime={item.endTime}
-                onDelete={handleDeleteSchedule}
-              />
-            ))}
-          </div>
-        </DecideBottom>
-      </div>
+      <CustomModal
+        open={isNextOpen}
+        onOpenChange={handleToDecideModal}
+        onNext={() => alert('다음으로 버튼 클릭')}
+        isFooter={true}
+        footerText={'다음으로'}
+      >
+        <div className="flex item-center justify-center text-center text-[#1e1e1e] text-xl font-medium py-4 mt-3">
+          아무것도 선택 <br />
+          안하고 넘어갈까요?
+        </div>
+      </CustomModal>
     </div>
   )
 }
