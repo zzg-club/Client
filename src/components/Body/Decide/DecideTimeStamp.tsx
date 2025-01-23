@@ -212,7 +212,16 @@ export default function DecideTimeStamp({
   const handleMouseClick = (rowIndex: number, colIndex: number) => {
     const scheduleIndex = colIndex
     const schedule = dateTime.find((item) => {
-      return item.id === scheduleIndex
+      // 해당 날짜의 timeSlots 중에서 선택한 rowIndex가 포함되는 시간대가 있는지 확인
+      return item.timeSlots.some((slot) => {
+        const startIdx = timeToIndex(slot.start)
+        const endIdx = timeToIndex(slot.end) - 1
+        return (
+          rowIndex >= startIdx &&
+          rowIndex <= endIdx &&
+          item.id === scheduleIndex
+        )
+      })
     })
 
     console.log('schedule', schedule)
@@ -220,17 +229,14 @@ export default function DecideTimeStamp({
     console.log('index', colIndex)
     console.log('handeleMouseClick')
 
-    // 이전 선택 영역 초기화
-    setActiveSelection(null)
-    setResizingPoint(null)
-    setIsResizing(false)
-    setIsEditBottomSheetOpen(false)
-    setIsEditClick(false)
-    setIsEdit(false)
-
     if (!schedule) {
-      setIsEdit(false)
+      // 이전 선택 영역 초기화
+      setActiveSelection(null)
+      setResizingPoint(null)
+      setIsResizing(false)
       setIsEditBottomSheetOpen(false)
+      setIsEditClick(false)
+      setIsEdit(false)
       const pairStartRow = Math.floor(rowIndex / 2) * 2
       const pairEndRow = pairStartRow + 1
 
@@ -283,13 +289,18 @@ export default function DecideTimeStamp({
         // 바텀시트 열기
         handleSelectedCol(colIndex, rowIndex)
 
-        // 시간 정보 전달
-        handleDateTimeSelect(
-          Number(schedule.date),
-          clickedSlot.start,
-          clickedSlot.end,
-          colIndex,
-        )
+        setTimeout(() => {
+          // 바텀시트 열기
+          handleSelectedCol(colIndex, rowIndex)
+
+          // setTimeout으로 감싸면 editbottomsheet 열리지 않음
+          handleDateTimeSelect(
+            Number(schedule.date),
+            clickedSlot.start,
+            clickedSlot.end,
+            colIndex,
+          )
+        })
       }
     }
   }

@@ -373,7 +373,7 @@ export default function Page() {
     )
   }
 
-  console.log('성하 데이터에 맞춤', transformMockDateTime(mockDateTime))
+  //console.log('성하 데이터에 맞춤', transformMockDateTime(mockDateTime))
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage)
@@ -435,12 +435,20 @@ export default function Page() {
     [isEdit],
   )
 
+  const [isExistSlot, setIsExistSlot] = useState(false)
+
   const getDateTime = (
     col: number,
     start: string,
     end: string,
     colIndex: number,
   ) => {
+    // const generateUniqueId = (colIndex: number, start: string, end: string) => {
+    //   // 예: col과 시간대를 기반으로 고유 ID 생성
+    //   return `${colIndex}-${start}-${end}`
+    // }
+    let existSlot = false
+
     setDateTime((prev) => {
       const existingDateIndex = prev.findIndex(
         (item) => Number(item.date) === col,
@@ -457,22 +465,101 @@ export default function Page() {
         const updated = [...prev]
 
         if (isEdit) {
-          // isEdit일 때는 기존 timeSlots를 새로운 slot으로 교체
+          let timeSlots = updated[existingDateIndex].timeSlots
+          const toMinutes = (time: string) => {
+            const [hours, minutes] = time.split(':').map(Number)
+            return hours * 60 + minutes
+          }
+
+          const newStartMinutes = toMinutes(start)
+          const newEndMinutes = toMinutes(end)
+
+          const overlappingSlots = timeSlots.filter((slot) => {
+            const slotStartMinutes = toMinutes(slot.start)
+            const slotEndMinutes = toMinutes(slot.end)
+
+            if (
+              newStartMinutes >= slotStartMinutes &&
+              newEndMinutes <= slotEndMinutes
+            ) {
+              existSlot = true
+            }
+
+            return (
+              (newStartMinutes <= slotEndMinutes &&
+                newEndMinutes >= slotStartMinutes) ||
+              slotEndMinutes === newStartMinutes ||
+              slotStartMinutes === newEndMinutes
+            )
+          })
+
+          const matchingIndex = timeSlots.findIndex((slot) => {
+            const slotStartMinutes = toMinutes(slot.start)
+            const slotEndMinutes = toMinutes(slot.end)
+            return (
+              newStartMinutes === slotStartMinutes ||
+              newEndMinutes === slotEndMinutes
+            )
+          })
+
+          console.log('매칭인덱스', timeSlots[matchingIndex])
+
+          setIsExistSlot(existSlot)
+          console.log('isExistSlot', existSlot)
+
+          if (overlappingSlots.length > 0 && !existSlot) {
+            console.log('오버래핑')
+            const mergedStart = Math.min(
+              newStartMinutes,
+              ...overlappingSlots.map((slot) => toMinutes(slot.start)),
+            )
+            const mergedEnd = Math.max(
+              newEndMinutes,
+              ...overlappingSlots.map((slot) => toMinutes(slot.end)),
+            )
+
+            timeSlots = timeSlots.filter(
+              (slot) => !overlappingSlots.includes(slot),
+            )
+
+            const mergedSlot = {
+              start: `${Math.floor(mergedStart / 60)
+                .toString()
+                .padStart(2, '0')}:${(mergedStart % 60)
+                .toString()
+                .padStart(2, '0')}`,
+              end: `${Math.floor(mergedEnd / 60)
+                .toString()
+                .padStart(2, '0')}:${(mergedEnd % 60)
+                .toString()
+                .padStart(2, '0')}`,
+            }
+            timeSlots = [...timeSlots, mergedSlot]
+            console.log('병합', mergedSlot)
+          } else if (overlappingSlots.length > 0 && matchingIndex !== -1) {
+            console.log('매칭')
+            timeSlots[matchingIndex] = { start, end }
+          } else {
+            {
+              timeSlots = [...timeSlots, { start, end }]
+            }
+          }
+
+          timeSlots.sort((a, b) => toMinutes(a.start) - toMinutes(b.start))
+
           updated[existingDateIndex] = {
-            id: colIndex,
+            id: prev[existingDateIndex].id,
             date: date,
             month: month,
             year: year!,
-            timeSlots: [{ start, end }], // 단일 slot만 포함
+            timeSlots: timeSlots,
           }
-
-          setTimeout(() => {
-            setIsEdit(false)
-          }, 0)
+          // setTimeout(() => {
+          //   setIsEdit(false)
+          // }, 0)
           return updated
         }
 
-        // isEdit이 아닐 때
         let timeSlots = updated[existingDateIndex].timeSlots
         const toMinutes = (time: string) => {
           const [hours, minutes] = time.split(':').map(Number)
@@ -495,7 +582,7 @@ export default function Page() {
         })
 
         if (overlappingSlots.length > 0) {
-          // 겹치는 시간대가 있을 때는 병합
+          console.log('오버래핑')
           const mergedStart = Math.min(
             newStartMinutes,
             ...overlappingSlots.map((slot) => toMinutes(slot.start)),
@@ -505,12 +592,10 @@ export default function Page() {
             ...overlappingSlots.map((slot) => toMinutes(slot.end)),
           )
 
-          // 겹치지 않는 시간대만 필터링
           timeSlots = timeSlots.filter(
             (slot) => !overlappingSlots.includes(slot),
           )
 
-          // 병합된 새로운 시간대 추가
           const mergedSlot = {
             start: `${Math.floor(mergedStart / 60)
               .toString()
@@ -525,23 +610,24 @@ export default function Page() {
           }
           timeSlots = [...timeSlots, mergedSlot]
         } else {
-          // 겹치는 시간대가 없을 때는 새로운 시간대 추가
           timeSlots = [...timeSlots, { start, end }]
         }
 
-        // 시간순으로 정렬
         timeSlots.sort((a, b) => toMinutes(a.start) - toMinutes(b.start))
 
         updated[existingDateIndex] = {
-          id: colIndex,
+          id: prev[existingDateIndex].id,
           date: date,
           month: month,
           year: year!,
           timeSlots: timeSlots,
         }
+        // setTimeout(() => {
+        //   setIsEdit(false)
+        // }, 0)
         return updated
       } else {
-        // 새로운 날짜 추가
+        console.log('실행')
         return [
           ...prev,
           {
@@ -556,6 +642,9 @@ export default function Page() {
     })
     setIsOpen(false)
     setIsPurple(true)
+    // setTimeout(() => {
+    //   setIsEdit(false)
+    // }, 0)
   }
 
   // 제목 수정 함수
