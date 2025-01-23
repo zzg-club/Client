@@ -35,7 +35,7 @@ interface GroupedDate {
 }
 
 interface ScheduleData {
-  name: string // 일정 이름
+  title: string // 일정 이름
   userId: number // 사용자 ID
   groupId: number // 그룹 ID
   mode: string
@@ -257,7 +257,7 @@ export default function Page() {
 
   const scheduleData: ScheduleData[] = [
     {
-      name: '팀플 대면 모임',
+      title: '팀플 대면 모임',
       userId: 2,
       groupId: 1,
       mode: 'week',
@@ -428,7 +428,7 @@ export default function Page() {
     <div>
       <Title
         buttonText={'완료'}
-        initialTitle={scheduleData[0]?.name || title}
+        initialTitle={scheduleData[0]?.title || title}
         onTitleChange={handleTitleChange}
         isPurple={isPurple}
         onClickTitleButton={handleToDecideModal}

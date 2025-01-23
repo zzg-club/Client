@@ -29,6 +29,7 @@
 }
 
 .touch-target {
-  background: red;
+  /* background: red; */
   border-color: blue;
+  pointer-events: 'none';
 }

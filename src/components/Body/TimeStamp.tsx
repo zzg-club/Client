@@ -331,9 +331,15 @@ export default function TimeStamp({
     colIndex: number,
     isTouchEvent: boolean,
   ) => {
+    // 이미 선택된 상태라면 새로운 선택을 시작하지 않음
+    const cellStatus = getCellStatus(rowIndex, colIndex)
+    if (cellStatus.isSelected) return
+
     if (!isTouchEvent) {
       return
     }
+
+    console.log('handleSelectionStart', rowIndex, colIndex, isTouchEvent)
 
     const pairStartRow = Math.floor(rowIndex / 2) * 2
     const pairEndRow = pairStartRow + 1
@@ -409,9 +415,82 @@ export default function TimeStamp({
     [activeSelection, isResizing, resizingPoint, isOverlapping],
   )
 
+  const handleTouchEnd = () => {
+    if (activeSelection) {
+      const finalizedSelection = {
+        ...activeSelection,
+        isSelected: false,
+        isConfirmed: true,
+      }
+
+      setSelectionsByPage((prev) => {
+        const currentSelections = prev[currentPage] || []
+        const updatedSelections = currentSelections.flatMap((sel) => {
+          const isOverlap =
+            sel.startRow <= finalizedSelection.endRow &&
+            sel.endRow >= finalizedSelection.startRow &&
+            sel.startCol === finalizedSelection.startCol
+
+          if (!isOverlap) {
+            return [sel]
+          }
+
+          const splitSelections = []
+          if (sel.startRow < finalizedSelection.startRow) {
+            splitSelections.push({
+              ...sel,
+              endRow: finalizedSelection.startRow - 1,
+            })
+          }
+          if (sel.endRow > finalizedSelection.endRow) {
+            splitSelections.push({
+              ...sel,
+              startRow: finalizedSelection.endRow + 1,
+            })
+          }
+          return splitSelections
+        })
+
+        const mergedSelections = [...updatedSelections, finalizedSelection]
+
+        const startCol = finalizedSelection.startCol
+        const getTimeLabel = (rowIndex: number) => {
+          const hours = Math.floor(rowIndex / 2)
+          const minutes = (rowIndex % 2) * 30
+          const formattedHour = String(hours).padStart(2, '0')
+          const formattedMinute = String(minutes).padStart(2, '0')
+          return `${formattedHour}:${formattedMinute}`
+        }
+
+        let selectedDate: string
+        if (mode === 'range') {
+          // mode가 'range'일 경우 기존 로직
+          selectedDate = `${currentDates[startCol]?.year}-${String(currentDates[startCol]?.month).padStart(2, '0')}-${String(currentDates[startCol]?.day).padStart(2, '0')}`
+        } else {
+          // mode가 'range'가 아닐 경우 다른 로직
+          const groupedArray = groupedDate?.[currentPage]?.date ?? []
+          selectedDate = `${groupedArray[startCol]?.year}-${String(groupedArray[startCol]?.month).padStart(2, '0')}-${String(groupedArray[startCol]?.day).padStart(2, '0')}`
+        }
+
+        // console.log('selectedDate', selectedDate)
+
+        const startTime = getTimeLabel(finalizedSelection.startRow)
+        const endTime = getTimeLabel(finalizedSelection.endRow + 1)
+
+        handleDateTimeSelect(selectedDate, startTime, endTime)
+
+        return {
+          ...prev,
+          [currentPage]: mergedSelections,
+        }
+      })
+    }
+  }
+
   useEffect(() => {
     const handleMouseUpWithColumnClick = () => {
       handleMouseUp()
+      handleTouchEnd()
       onColumnClick(-1, -1)
     }
 
@@ -419,7 +498,7 @@ export default function TimeStamp({
     const handleTouchMove = (e: TouchEvent) => {
       if (e.touches[0]) {
         e.preventDefault() // 셀 범위 조정과 y축 스크롤 중첩 방지
-        handleMove(e.touches[0].clientY, true)
+        handleMove(e.touches[0].clientY, false)
       }
     }
 
@@ -684,7 +763,8 @@ export default function TimeStamp({
                       {!cellStatus.isConfirmed && cellStatus.isStartCell && (
                         <div
                           className="absolute -top-[0px] left-[0%] w-[100%] h-[100%] touch-target"
-                          onTouchStart={() => {
+                          onTouchStart={(e) => {
+                            e.stopPropagation()
                             handleMouseDown(
                               rowIndex,
                               colIndex,
@@ -701,14 +781,6 @@ export default function TimeStamp({
                                 rowIndex,
                                 colIndex,
                                 true,
-                                cellStatus.selection!,
-                              )
-                            }}
-                            onTouchStart={() => {
-                              handleMouseDown(
-                                rowIndex,
-                                colIndex,
-                                false,
                                 cellStatus.selection!,
                               )
                             }}
@@ -732,15 +804,6 @@ export default function TimeStamp({
                           <div
                             className="absolute -bottom-[5px] right-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move "
                             onMouseDown={() => {
-                              handleMouseDown(
-                                rowIndex,
-                                colIndex,
-                                false,
-                                cellStatus.selection!,
-                              )
-                            }}
-                            onTouchStart={(e) => {
-                              e.stopPropagation()
                               handleMouseDown(
                                 rowIndex,
                                 colIndex,
