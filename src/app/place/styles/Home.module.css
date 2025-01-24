@@ -227,9 +227,8 @@
   border-radius: 24px;
 }
 
-
 .selected {
-  background-color: #D4BEFF80; /* 선택된 버튼 배경색 */
+  background-color: #d4beff80; /* 선택된 버튼 배경색 */
 }
 
 /* MOIM-Pick 컨테이너 */
@@ -255,7 +254,7 @@
 }
 
 .moimPickLine {
-  width: calc(100% - 10px); 
+  width: calc(100% - 10px);
   max-width: 700px;
   height: 1px;
   background-color: var(--MainColor, #9562fb);
@@ -290,31 +289,31 @@
 /* 카드 전체 스타일 */
 .card {
   display: flex;
-  height: auto; 
+  height: auto;
   flex-direction: row;
-  align-items: stretch; 
+  align-items: stretch;
   background: white;
   border-radius: 24px;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-  margin: 0 auto 16px auto; 
-  width: 95%; 
-  max-width: 375px; 
-  height: auto; 
+  margin: 0 auto 16px auto;
+  width: 95%;
+  max-width: 375px;
+  height: auto;
   box-sizing: border-box;
   padding: 0;
-  overflow: hidden; 
+  overflow: hidden;
 }
 
 .cardTitle {
   color: #1e1e1e;
   font-family: Pretendard, sans-serif;
-  font-size: calc(1rem + 0.5vw); 
+  font-size: calc(1rem + 0.5vw);
   font-style: normal;
   font-weight: 500;
-  line-height: 1.2; 
-  letter-spacing:-0.03em;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
   white-space: nowrap;
-  flex: 0 0 60%; 
+  flex: 0 0 60%;
 }
 
 .cardImage {
@@ -342,11 +341,11 @@
 /* 카드 헤더 */
 .cardHeader {
   display: flex;
-  justify-content: space-between; 
+  justify-content: space-between;
   align-items: center;
   margin: 0;
-  padding: 0; 
-  position: relative; 
+  padding: 0;
+  position: relative;
   width: 100%;
 }
 
@@ -354,21 +353,21 @@
 .likes {
   display: flex;
   align-items: center;
-  flex-direction: column; 
-  gap: 0.25rem; 
-  font-size: 0.75rem; 
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.75rem;
   color: #61c56c;
   font-weight: 500;
-  flex-shrink: 0; 
+  flex-shrink: 0;
   position: absolute;
   top: 0;
-  right: 0; 
+  right: 0;
 }
 
 /* 좋아요 배경 */
 .likeBackground {
-  width: calc(2.5rem + 2vw); 
-  height: calc(1.8rem + 1.2vw); 
+  width: calc(2.5rem + 2vw);
+  height: calc(1.8rem + 1.2vw);
   border-radius: 12px;
   background: #a9f3b2;
   display: flex;
@@ -381,41 +380,40 @@
   width: calc(1.5rem + 1vw);
   height: calc(1.5rem + 1vw);
   background: url('/like-icon.svg') no-repeat center center;
-  background-size: contain; 
+  background-size: contain;
 }
 
 /* 좋아요 숫자 */
 .likes span {
-  font-size: calc(0.5rem + 0.3vw); 
+  font-size: calc(0.5rem + 0.3vw);
   color: #61c56c;
-  text-align: center; 
+  text-align: center;
 }
-
 
 /* 태그 섹션 */
 .tags {
-  display: flex; 
-  gap: 8px; 
+  display: flex;
+  gap: 8px;
   margin-top: 10px;
   margin-bottom: 8px;
 }
 
 /* 태그 스타일 */
 .tag {
-  display: inline-flex; 
-  justify-content: center; 
-  align-items: center; 
-  background: rgba(212, 190, 255, 0.5); 
-  border: 1px solid #9562fb; 
-  border-radius: 24px; 
-  padding: 0 12px; 
-  height: 24px; 
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(212, 190, 255, 0.5);
+  border: 1px solid #9562fb;
+  border-radius: 24px;
+  padding: 0 12px;
+  height: 24px;
   font-family: Pretendard, sans-serif;
   font-size: 12px;
   font-weight: 500;
-  line-height: 17px; 
+  line-height: 17px;
   color: #9562fb;
-  white-space: nowrap; 
+  white-space: nowrap;
   padding: 7px 6px;
 }
 

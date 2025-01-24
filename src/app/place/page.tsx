@@ -36,16 +36,16 @@ export default function Home() {
   const threshold = 50
   const router = useRouter()
   const mapRef = useRef<() => void | null>(null)
-  const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
-  const [cardData, setCardData] = useState<any[]>([]); // 카드 데이터를 저장
+  const [selectedFilters, setSelectedFilters] = useState<string[]>([])
+  const [cardData, setCardData] = useState<any[]>([]) // 카드 데이터를 저장
 
   const handleTabClick = async (tabId: string) => {
     // 탭 변경
-    setSelectedTab(tabId);
-    setSelectedFilters([]); // 필터 초기화
-  
-    const categoryIndex = tabs.findIndex((tab) => tab.id === tabId);
-  
+    setSelectedTab(tabId)
+    setSelectedFilters([]) // 필터 초기화
+
+    const categoryIndex = tabs.findIndex((tab) => tab.id === tabId)
+
     if (categoryIndex !== -1) {
       try {
         const response = await fetch(
@@ -53,41 +53,40 @@ export default function Home() {
           {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
-          }
-        );
-  
+          },
+        )
+
         if (response.ok) {
-          const result = await response.json();
-  
+          const result = await response.json()
+
           // 데이터 정규화 (filters가 없는 경우 기본값 처리)
           const normalizedData = (result.data || []).map((card: any) => ({
             ...card,
             filters: card.filters || {}, // filters가 없으면 빈 객체로 초기화
-          }));
-  
-          setCardData(normalizedData); // 카드 데이터 업데이트
+          }))
+
+          setCardData(normalizedData) // 카드 데이터 업데이트
         } else {
           console.error(
-            `Failed to fetch card data. Status code: ${response.status}`
-          );
+            `Failed to fetch card data. Status code: ${response.status}`,
+          )
         }
       } catch (error) {
-        console.error('Error fetching card data:', error);
+        console.error('Error fetching card data:', error)
       }
     } else {
-      console.warn('Invalid tabId provided:', tabId);
+      console.warn('Invalid tabId provided:', tabId)
     }
-  };
-
+  }
 
   const handleFilterButtonClick = (filter: string) => {
-    setSelectedFilters((prevSelected) =>
-      prevSelected.includes(filter)
-        ? prevSelected.filter((item) => item !== filter) // 이미 선택된 경우 해제
-        : [...prevSelected, filter] // 새로 선택
-    );
-  };
-  
+    setSelectedFilters(
+      (prevSelected) =>
+        prevSelected.includes(filter)
+          ? prevSelected.filter((item) => item !== filter) // 이미 선택된 경우 해제
+          : [...prevSelected, filter], // 새로 선택
+    )
+  }
 
   const handleVectorButtonClick = () => {
     if (mapRef.current) {
@@ -97,7 +96,7 @@ export default function Home() {
 
   const handleSearchClick = () => {
     router.push('/search?from=/place')
-  } 
+  }
 
   const handleTouchStart = (e: React.TouchEvent) => {
     startY.current = e.touches[0].clientY
@@ -130,60 +129,62 @@ export default function Home() {
   useEffect(() => {
     const fetchFilters = async () => {
       try {
-        const response = await fetch('http://api.mooim.kro.kr/api/places/filter', {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
-        });
+        const response = await fetch(
+          'http://api.mooim.kro.kr/api/places/filter',
+          {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+          },
+        )
         if (response.ok) {
-          const result = await response.json();
-          console.log('API 응답 데이터:', result); // 디버깅용
+          const result = await response.json()
+          console.log('API 응답 데이터:', result) // 디버깅용
           if (result.success && Array.isArray(result.data)) {
-            setFilters(result.data); // 상태 업데이트
+            setFilters(result.data) // 상태 업데이트
           } else {
-            console.error('유효하지 않은 데이터 형식:', result);
+            console.error('유효하지 않은 데이터 형식:', result)
           }
         } else {
-          console.error('Failed to fetch filters:', response.status);
+          console.error('Failed to fetch filters:', response.status)
         }
       } catch (error) {
-        console.error('Error fetching filters:', error);
+        console.error('Error fetching filters:', error)
       }
-    };
-  
-    fetchFilters();
-  }, []);  
-
-  const getCurrentTabFilters = () => {
-    const currentCategory = tabs.find((tab) => tab.id === selectedTab)?.label;
-    const categoryFilters = filters.find((filter) => filter.category === currentCategory);
-  
-    if (!categoryFilters || !categoryFilters.filters) {
-      return [];
     }
 
-    return Object.values(categoryFilters.filters); // ["24시", "학교", "주점", "룸"]
-  };
-  
+    fetchFilters()
+  }, [])
+
+  const getCurrentTabFilters = () => {
+    const currentCategory = tabs.find((tab) => tab.id === selectedTab)?.label
+    const categoryFilters = filters.find(
+      (filter) => filter.category === currentCategory,
+    )
+
+    if (!categoryFilters || !categoryFilters.filters) {
+      return []
+    }
+
+    return Object.values(categoryFilters.filters) // ["24시", "학교", "주점", "룸"]
+  }
 
   const getCardFiltersWithNames = (
     cardData: Record<string, any>, // 카드 데이터 전체
-    currentFilters: string[] // 현재 탭의 필터 이름 배열
+    currentFilters: string[], // 현재 탭의 필터 이름 배열
   ) => {
     // 1. `filter1`, `filter2` 등 필터 관련 키만 추출
     const trueFilters = Object.entries(cardData)
       .filter(([key, value]) => key.startsWith('filter') && value === true) // "filterX" && true인 경우
-      .map(([key]) => key); // 필터 키 이름 ("filter1", "filter2")
-  
+      .map(([key]) => key) // 필터 키 이름 ("filter1", "filter2")
+
     // 2. 필터 이름 매칭
     const filterNames = trueFilters.map((filterKey) => {
-      const index = parseInt(filterKey.replace('filter', ''), 10) - 1; // filter1 → 0
-      return currentFilters[index]; // 현재 탭 필터 이름과 매칭
-    });
+      const index = parseInt(filterKey.replace('filter', ''), 10) - 1 // filter1 → 0
+      return currentFilters[index] // 현재 탭 필터 이름과 매칭
+    })
 
-    return filterNames.filter(Boolean); // undefined 제거
-  };
-   
-   
+    return filterNames.filter(Boolean) // undefined 제거
+  }
 
   return (
     <div className={styles['mobile-container']}>
@@ -257,7 +258,7 @@ export default function Home() {
               </button>
             ))}
           </div>
-          
+
           <div className={styles.moimPickContainer}>
             <span className={styles.moimPickText}>MOIM-Pick</span>
             <div className={styles.moimPickLine}></div>
@@ -281,12 +282,15 @@ export default function Home() {
                 <div className={styles.cardContent}>
                   {/* 카드 헤더 */}
                   <div className={styles.cardHeader}>
-                    <h3 className={styles.cardTitle}>{card.name || '제목 없음'}</h3>
+                    <h3 className={styles.cardTitle}>
+                      {card.name || '제목 없음'}
+                    </h3>
                     <div className={styles.likes}>
                       <div className={styles.likeBackground}>
                         <div className={styles.likeIcon}></div>
                       </div>
-                      <span>{card.likes.length || 0}명</span> {/* 좋아요 숫자 */}
+                      <span>{card.likes.length || 0}명</span>{' '}
+                      {/* 좋아요 숫자 */}
                     </div>
                   </div>
 
@@ -297,12 +301,11 @@ export default function Home() {
                         <span key={index} className={styles.tag}>
                           {filterName}
                         </span>
-                      )
+                      ),
                     )}
                   </div>
 
-
-                 {/* 설명 */}
+                  {/* 설명 */}
                   <div className={styles.description}>
                     {card.word || '설명이 없습니다.'}
                   </div>

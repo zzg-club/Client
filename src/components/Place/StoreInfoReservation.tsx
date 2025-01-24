@@ -123,41 +123,41 @@ const StoreInfo = ({ selectedPlace }: { selectedPlace: any }) => {
 
         {/* 예약하기 버튼 */}
         <button
+          style={{
+            backgroundColor: '#49C657',
+            color: '#FFFFFF',
+            border: 'none',
+            borderRadius: '24px',
+            padding: '16px 64px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            cursor: 'pointer',
+            width: '200px',
+            height: '60px',
+          }}
+        >
+          <img
+            src="/reservation.svg"
+            alt="Reservation Icon"
+            style={{ width: '24px', height: '24px' }} // 아이콘 크기를 적절히 줄임
+          />
+          <span
             style={{
-                backgroundColor: '#49C657',
-                color: '#FFFFFF',
-                border: 'none',
-                borderRadius: '24px',
-                padding: '16px 64px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                cursor: 'pointer',
-                width: '200px',
-                height: '60px',
+              color: '#FFFFFF',
+              textAlign: 'center',
+              fontFamily: 'Pretendard',
+              fontSize: '18px',
+              fontStyle: 'normal',
+              fontWeight: 600,
+              lineHeight: '17px', // 비율 유지
+              letterSpacing: '-0.5px',
+              whiteSpace: 'nowrap',
             }}
-            >
-            <img
-                src="/reservation.svg"
-                alt="Reservation Icon"
-                style={{ width: '24px', height: '24px' }} // 아이콘 크기를 적절히 줄임
-            />
-            <span
-                style={{
-                color: '#FFFFFF',
-                textAlign: 'center',
-                fontFamily: 'Pretendard',
-                fontSize: '18px',
-                fontStyle: 'normal',
-                fontWeight: 600,
-                lineHeight: '17px', // 비율 유지
-                letterSpacing: '-0.5px',
-                whiteSpace:'nowrap'
-                }}
-            >
-                예약하기
-            </span>
+          >
+            예약하기
+          </span>
         </button>
       </div>
 

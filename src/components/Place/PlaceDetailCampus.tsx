@@ -320,9 +320,7 @@ const PlaceDetail = ({ id }: PlaceDetailProps) => {
                     <div
                       key={tab}
                       className={`${styles.tab} ${activeTab === tab ? styles.selected : ''}`}
-                      onClick={() =>
-                        setActiveTab(tab as '상세' | '사진')
-                      }
+                      onClick={() => setActiveTab(tab as '상세' | '사진')}
                     >
                       {tab}
                     </div>
@@ -339,8 +337,8 @@ const PlaceDetail = ({ id }: PlaceDetailProps) => {
                     style={{ marginBottom: '10px' }}
                   >
                     <StoreInfoCampus selectedPlace={selectedPlace} />
-                    <div style={{marginTop:'35px'}}>
-                        <SectionTitle title="방문자 사진"/>
+                    <div style={{ marginTop: '35px' }}>
+                      <SectionTitle title="방문자 사진" />
                     </div>
                     <VisitorPhoto selectedPlace={selectedPlace} />
                   </div>

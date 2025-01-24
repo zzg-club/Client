@@ -113,10 +113,13 @@ export default function ScheduleLanding() {
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
-        const response = await fetch('https://moimapi.com/api/user/information', {
-          method: 'GET',
-          credentials: 'include', // 쿠키 전송을 위해 필요
-        })
+        const response = await fetch(
+          'https://moimapi.com/api/user/information',
+          {
+            method: 'GET',
+            credentials: 'include', // 쿠키 전송을 위해 필요
+          },
+        )
         if (!response.ok) {
           // 예외 처리
           throw new Error(`서버 에러: ${response.status}`)

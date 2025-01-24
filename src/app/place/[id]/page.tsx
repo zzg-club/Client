@@ -12,9 +12,7 @@ const PlacePage = ({ params }: { params: Promise<{ id: string }> }) => {
   // return <PlaceDetailReservation id={id} />
   // return <PlaceDetailCampus id={id} />
   // return <PlaceDetailFood id={id} />
-   return <PlaceDetailPlay id={id} />
-
-
+  return <PlaceDetailPlay id={id} />
 }
 
 export default PlacePage
