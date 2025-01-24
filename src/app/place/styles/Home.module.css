@@ -289,7 +289,7 @@
 /* 카드 전체 스타일 */
 .card {
   display: flex;
-  height: auto;
+  height: 150px;
   flex-direction: row;
   align-items: stretch;
   background: white;
@@ -307,35 +307,46 @@
 .cardTitle {
   color: #1e1e1e;
   font-family: Pretendard, sans-serif;
-  font-size: calc(1rem + 0.5vw);
+  font-size: 20px;
   font-style: normal;
   font-weight: 500;
   line-height: 1.2;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.5px;
   white-space: nowrap;
   flex: 0 0 60%;
+  white-space: nowrap; 
+  overflow: hidden; 
+  text-overflow: ellipsis; 
+  margin-right: 2px; 
+  max-width: 85%; /* 제목이 카드의 85% 영역을 차지 */
 }
 
 .cardImage {
-  width: 126px;
-  height: auto;
+  flex: 0 0 30%; /* 카드의 30% 너비 */
+  height: 100%; /* 카드의 높이에 맞춤 */
   border-radius: 24px 0 0 24px;
   overflow: hidden;
+  background-color: #f0f0f0; /* 로드 전 배경색 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .cardImage img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  display: block; /* 레이아웃 오류 방지 */
+  width: 100%; /* 컨테이너의 너비에 맞춤 */
+  height: 100%; /* 컨테이너의 높이에 맞춤 */
+  object-fit: cover; /* 비율 유지하면서 컨테이너 채우기 */
 }
 
-/* 카드 콘텐츠 */
+
 .cardContent {
-  flex: 1;
-  padding: 20px 12px; /* 텍스트와 태그 영역에만 패딩 적용 */
+  flex: 1; /* 남은 공간을 채움 */
+  padding: 12px; /* 내용에 여백 추가 */
   display: flex;
   flex-direction: column;
-  gap: 4px; /* 요소 간 간격 최소화 */
+  justify-content: space-between; /* 상단과 하단 간격 조정 */
+  overflow: hidden; /* 카드 내용이 넘칠 경우 숨김 */
 }
 
 /* 카드 헤더 */
@@ -366,8 +377,8 @@
 
 /* 좋아요 배경 */
 .likeBackground {
-  width: calc(2.5rem + 2vw);
-  height: calc(1.8rem + 1.2vw);
+  width: calc(2.5rem + 1vw);
+  height: calc(1.8rem + 0.2vw);
   border-radius: 12px;
   background: #a9f3b2;
   display: flex;
@@ -377,8 +388,8 @@
 
 /* 좋아요 아이콘 */
 .likeIcon {
-  width: calc(1.5rem + 1vw);
-  height: calc(1.5rem + 1vw);
+  width: calc(1.5rem + 0vw);
+  height: calc(1.5rem + 0vw);
   background: url('/like-icon.svg') no-repeat center center;
   background-size: contain;
 }
@@ -396,6 +407,7 @@
   gap: 8px;
   margin-top: 10px;
   margin-bottom: 8px;
+  min-height: 24px;
 }
 
 /* 태그 스타일 */
@@ -422,11 +434,15 @@
   background: #9562fb;
   color: white;
   font-size: 12px;
-  padding: 6px 10px; /* 패딩 축소 */
-  margin-bottom: 4px; /* 아래 간격 축소 */
+  line-height: 1.4; /* 줄 간격 */
+  padding: 6px 10px;
+  margin-bottom: 4px;
   border-radius: 24px 24px 24px 0px;
-  width: auto;
+  overflow: hidden; /* 넘치는 내용 숨김 */
+  word-break: break-word; /* 긴 단어 줄바꿈 */
+  white-space: normal; /* 줄바꿈 허용 */
 }
+
 
 /* 푸터 */
 .footer {

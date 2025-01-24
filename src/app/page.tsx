@@ -204,7 +204,7 @@ export default function Home() {
               try {
                 // 1. 백엔드에서 카카오 로그인 URL 요청
                 const response = await fetch(
-                  'https://moimapi.com/api/start-login',
+                  'https://api.moim.team/api/start-login',
                   {
                     method: 'GET',
                     credentials: 'include',

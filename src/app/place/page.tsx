@@ -5,6 +5,9 @@ import { useRouter } from 'next/navigation'
 import KakaoMap from '@/components/Map/KakaoMap'
 import Navbar from '@/components/Navigate/NavBar'
 import styles from '@/app/place/styles/Home.module.css'
+import ImageLoader from '@/components/Place/ImageLoader'; // ImageLoader 경로는 프로젝트 구조에 맞게 수정
+
+
 
 interface Place {
   lat: number
@@ -39,17 +42,28 @@ export default function Home() {
   const [selectedFilters, setSelectedFilters] = useState<string[]>([])
   const [cardData, setCardData] = useState<any[]>([]) // 카드 데이터를 저장
 
+
+
+  const truncateText = (text: string, maxLength: number) => {
+    return text.length > maxLength ? text.slice(0, maxLength) + '...' : text
+  }   
+  
+
   const handleTabClick = async (tabId: string) => {
     // 탭 변경
     setSelectedTab(tabId)
     setSelectedFilters([]) // 필터 초기화
 
     const categoryIndex = tabs.findIndex((tab) => tab.id === tabId)
+    // 유틸리티 함수: 문자열을 말줄임표로 처리
+    const truncateText = (text: string, maxLength: number) => {
+      return text.length > maxLength ? text.slice(0, maxLength) + '...' : text
+    }   
 
     if (categoryIndex !== -1) {
       try {
         const response = await fetch(
-          `http://api.mooim.kro.kr/api/places/category/${categoryIndex}`,
+          `https://api.moim.team/api/places/category/${categoryIndex}`,
           {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
@@ -130,10 +144,10 @@ export default function Home() {
     const fetchFilters = async () => {
       try {
         const response = await fetch(
-          'http://api.mooim.kro.kr/api/places/filter',
+          'https://api.moim.team/api/places/filter',
           {
             method: 'GET',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json' }
           },
         )
         if (response.ok) {
@@ -185,6 +199,8 @@ export default function Home() {
 
     return filterNames.filter(Boolean) // undefined 제거
   }
+
+  
 
   return (
     <div className={styles['mobile-container']}>
@@ -270,21 +286,22 @@ export default function Home() {
           <div className={styles.content}>
             {cardData.map((card) => (
               <div key={card.id} className={styles.card}>
-                {/* 카드 이미지 */}
                 <div className={styles.cardImage}>
-                  <img
-                    src={card.pictures?.[0]?.url || '/sample-cafe.svg'} // 첫 번째 이미지를 사용하거나 기본 이미지 사용
+                  {console.log('card.pictures[0].url:', card.pictures?.[0])}
+                  <ImageLoader
+                    imageUrl={card.pictures?.[0] || ''}
+                    fallbackUrl="/default-cafe.jpg"
                     alt={card.name || '카드 이미지'}
+                    className={styles.cardImage}
                   />
                 </div>
-
                 {/* 카드 내용 */}
                 <div className={styles.cardContent}>
                   {/* 카드 헤더 */}
                   <div className={styles.cardHeader}>
-                    <h3 className={styles.cardTitle}>
-                      {card.name || '제목 없음'}
-                    </h3>
+                  <h3 className={styles.cardTitle}>
+                    {truncateText(card.name || '제목 없음', 25)} {/* 가게명 말줄임표 */}
+                  </h3>
                     <div className={styles.likes}>
                       <div className={styles.likeBackground}>
                         <div className={styles.likeIcon}></div>
@@ -307,7 +324,7 @@ export default function Home() {
 
                   {/* 설명 */}
                   <div className={styles.description}>
-                    {card.word || '설명이 없습니다.'}
+                    {truncateText(card.word || '설명이 없습니다.', 40, 2)} {/* 줄당 20글자, 최대 2줄 */}
                   </div>
 
                   {/* 운영 시간 */}
@@ -323,123 +340,10 @@ export default function Home() {
               </div>
             ))}
           </div>
-          <div className={styles.bottomSheetLine}></div>
-          <div className={styles.card}>
-            <div className={styles.cardImage}>
-              <img src="/sample-cafe.svg" alt="카페 이미지" />
-            </div>
-            <div className={styles.cardContent}>
-              {/* 카드 헤더 */}
-              <div className={styles.cardHeader}>
-                <h3 className={styles.cardTitle}>서울 공덕 구로토</h3>
-                <div className={styles.likes}>
-                  <div className={styles.likeBackground}>
-                    <div className={styles.likeIcon}></div>
-                  </div>
-                  <span>323명</span>
-                </div>
-              </div>
-
-              {/* 태그 */}
-              <div className={styles.tags}>
-                <span className={styles.tag}>24시</span>
-                <span className={styles.tag}>학교</span>
-              </div>
-
-              {/* 설명 */}
-              <div className={styles.description}>
-                "인테리어가 신선하고 사진 찍기 딱 좋더라, 꼭 가봐!✨"
-              </div>
-
-              {/* 푸터 */}
-              <div className={styles.footer}>
-                <img
-                  src="/clock-icon.svg"
-                  alt="시계 아이콘"
-                  className={styles.clockIcon}
-                />
-                <span>영업시간 00:00 - 24:00</span>
-              </div>
-            </div>
-          </div>
-          <div className={styles.card}>
-            <div className={styles.cardImage}>
-              <img src="/sample-cafe.svg" alt="카페 이미지" />
-            </div>
-            <div className={styles.cardContent}>
-              {/* 카드 헤더 */}
-              <div className={styles.cardHeader}>
-                <h3 className={styles.cardTitle}>서울 공덕 구로토</h3>
-                <div className={styles.likes}>
-                  <div className={styles.likeBackground}>
-                    <div className={styles.likeIcon}></div>
-                  </div>
-                  <span>323명</span>
-                </div>
-              </div>
-
-              {/* 태그 */}
-              <div className={styles.tags}>
-                <span className={styles.tag}>24시</span>
-                <span className={styles.tag}>학교</span>
-              </div>
-
-              {/* 설명 */}
-              <div className={styles.description}>
-                "인테리어가 신선하고 사진 찍기 딱 좋더라, 꼭 가봐!✨"
-              </div>
-
-              {/* 푸터 */}
-              <div className={styles.footer}>
-                <img
-                  src="/clock-icon.svg"
-                  alt="시계 아이콘"
-                  className={styles.clockIcon}
-                />
-                <span>영업시간 00:00 - 24:00</span>
-              </div>
-            </div>
-          </div>
-          <div className={styles.card}>
-            <div className={styles.cardImage}>
-              <img src="/sample-cafe.svg" alt="카페 이미지" />
-            </div>
-            <div className={styles.cardContent}>
-              {/* 카드 헤더 */}
-              <div className={styles.cardHeader}>
-                <h3 className={styles.cardTitle}>서울 공덕 구로토</h3>
-                <div className={styles.likes}>
-                  <div className={styles.likeBackground}>
-                    <div className={styles.likeIcon}></div>
-                  </div>
-                  <span>323명</span>
-                </div>
-              </div>
-
-              {/* 태그 */}
-              <div className={styles.tags}>
-                <span className={styles.tag}>24시</span>
-                <span className={styles.tag}>학교</span>
-              </div>
-
-              {/* 설명 */}
-              <div className={styles.description}>
-                "인테리어가 신선하고 사진 찍기 딱 좋더라, 꼭 가봐!✨"
-              </div>
-
-              {/* 푸터 */}
-              <div className={styles.footer}>
-                <img
-                  src="/clock-icon.svg"
-                  alt="시계 아이콘"
-                  className={styles.clockIcon}
-                />
-                <span>영업시간 00:00 - 24:00</span>
-              </div>
-            </div>
-          </div>
+          <div className={styles.bottomSheetLine}></div>   
         </div>
       </div>
     </div>
   )
 }
+

@@ -114,7 +114,7 @@ export default function ScheduleLanding() {
     const fetchUserInfo = async () => {
       try {
         const response = await fetch(
-          'https://moimapi.com/api/user/information',
+          'https://api.moim.team/api/user/information',
           {
             method: 'GET',
             credentials: 'include', // 쿠키 전송을 위해 필요
