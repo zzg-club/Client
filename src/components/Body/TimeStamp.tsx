@@ -415,7 +415,7 @@ export default function TimeStamp({
     [activeSelection, isResizing, resizingPoint, isOverlapping],
   )
 
-  const handleTouchEnd = () => {
+  const handleTouchUp = useCallback(() => {
     if (activeSelection) {
       const finalizedSelection = {
         ...activeSelection,
@@ -464,15 +464,11 @@ export default function TimeStamp({
 
         let selectedDate: string
         if (mode === 'range') {
-          // mode가 'range'일 경우 기존 로직
           selectedDate = `${currentDates[startCol]?.year}-${String(currentDates[startCol]?.month).padStart(2, '0')}-${String(currentDates[startCol]?.day).padStart(2, '0')}`
         } else {
-          // mode가 'range'가 아닐 경우 다른 로직
           const groupedArray = groupedDate?.[currentPage]?.date ?? []
           selectedDate = `${groupedArray[startCol]?.year}-${String(groupedArray[startCol]?.month).padStart(2, '0')}-${String(groupedArray[startCol]?.day).padStart(2, '0')}`
         }
-
-        // console.log('selectedDate', selectedDate)
 
         const startTime = getTimeLabel(finalizedSelection.startRow)
         const endTime = getTimeLabel(finalizedSelection.endRow + 1)
@@ -485,12 +481,23 @@ export default function TimeStamp({
         }
       })
     }
-  }
+  }, [
+    activeSelection,
+    currentDates,
+    currentPage,
+    groupedDate,
+    handleDateTimeSelect,
+    mode,
+  ])
 
   useEffect(() => {
     const handleMouseUpWithColumnClick = () => {
       handleMouseUp()
-      handleTouchEnd()
+      onColumnClick(-1, -1)
+    }
+
+    const handleTouchUpWithColumnClick = () => {
+      handleTouchUp()
       onColumnClick(-1, -1)
     }
 
@@ -506,13 +513,13 @@ export default function TimeStamp({
       window.addEventListener('mousemove', handleMouseMove)
       window.addEventListener('touchmove', handleTouchMove, { passive: false })
       window.addEventListener('mouseup', handleMouseUpWithColumnClick)
-      window.addEventListener('touchend', handleMouseUpWithColumnClick)
+      window.addEventListener('touchend', handleTouchUpWithColumnClick)
     }
     return () => {
       window.removeEventListener('mousemove', handleMouseMove)
       window.removeEventListener('touchmove', handleTouchMove)
       window.removeEventListener('mouseup', handleMouseUpWithColumnClick)
-      window.removeEventListener('touchend', handleMouseUpWithColumnClick)
+      window.removeEventListener('touchend', handleTouchUpWithColumnClick)
     }
   }, [
     activeSelection,
@@ -522,6 +529,7 @@ export default function TimeStamp({
     onColumnClick,
     currentSelections,
     handleMove,
+    handleTouchUp,
   ])
 
   const getCellStatus = (row: number, col: number) => {
