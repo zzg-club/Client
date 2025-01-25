@@ -201,20 +201,51 @@ export default function TimeStamp({
     return count > 0 ? 0.2 + (count / maxOverlap) * 0.8 : 0
   }
 
-  const onColumnClick = useCallback(
-    (colIndex: number, rowIndex: number) => {
-      if (colIndex === -1) {
-        handleSelectedCol(colIndex, rowIndex)
-        return 0
-      }
+  const onColumnClick = (colIndex: number, rowIndex: number) => {
+    console.log('onColumnClick')
+    // if (colIndex === -1) {
+    //   handleSelectedCol(colIndex, rowIndex)
+    //   return 0
+    // }
 
-      if (gridRef.current) {
-        const actualColIndex = currentPage * COLUMNS_PER_PAGE + colIndex
-        handleSelectedCol(actualColIndex, rowIndex)
-      }
-    },
-    [handleSelectedCol, currentPage],
-  )
+    // colIndex가 -1이면 early return
+    if (colIndex === -1) {
+      handleSelectedCol(colIndex, rowIndex)
+      return 0
+    }
+
+    // 현재 열의 날짜 구하기
+    let currentDate: string
+    if (mode === 'range') {
+      const date = selectedDates[currentPage * COLUMNS_PER_PAGE + colIndex]
+      currentDate = `${date.year}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`
+    } else {
+      const groupedArray = groupedDate[currentPage]?.date ?? []
+      currentDate = `${groupedArray[colIndex]?.year}-${String(groupedArray[colIndex]?.month).padStart(2, '0')}-${String(groupedArray[colIndex]?.day).padStart(2, '0')}`
+    }
+
+    const schedule = dateTime.find((item) => {
+      // 날짜가 일치하는지 먼저 확인
+      if (item.date !== currentDate) return false
+
+      // 해당 날짜의 timeSlots 중에서 선택한 rowIndex가 포함되는 시간대가 있는지 확인
+      return item.timeSlots.some((slot) => {
+        const startIdx = timeToIndex(slot.start)
+        const endIdx = timeToIndex(slot.end) - 1
+        return rowIndex >= startIdx && rowIndex <= endIdx
+      })
+    })
+    console.log('schedule', schedule)
+
+    if (schedule) {
+      return 0
+    }
+
+    if (gridRef.current) {
+      const actualColIndex = currentPage * COLUMNS_PER_PAGE + colIndex
+      handleSelectedCol(actualColIndex, rowIndex)
+    }
+  }
 
   const onActiveTime = useCallback(
     (start: number, end: number) => {
@@ -251,6 +282,35 @@ export default function TimeStamp({
   )
 
   const handleMouseClick = (rowIndex: number, colIndex: number) => {
+    console.log('handleMouseClick')
+
+    // 현재 열의 날짜 구하기
+    let currentDate: string
+    if (mode === 'range') {
+      const date = selectedDates[currentPage * COLUMNS_PER_PAGE + colIndex]
+      currentDate = `${date.year}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`
+    } else {
+      const groupedArray = groupedDate[currentPage]?.date ?? []
+      currentDate = `${groupedArray[colIndex]?.year}-${String(groupedArray[colIndex]?.month).padStart(2, '0')}-${String(groupedArray[colIndex]?.day).padStart(2, '0')}`
+    }
+
+    const schedule = dateTime.find((item) => {
+      // 날짜가 일치하는지 먼저 확인
+      if (item.date !== currentDate) return false
+
+      // 해당 날짜의 timeSlots 중에서 선택한 rowIndex가 포함되는 시간대가 있는지 확인
+      return item.timeSlots.some((slot) => {
+        const startIdx = timeToIndex(slot.start)
+        const endIdx = timeToIndex(slot.end) - 1
+        return rowIndex >= startIdx && rowIndex <= endIdx
+      })
+    })
+    console.log('schedule', schedule)
+
+    if (schedule) {
+      return
+    }
+
     const pairStartRow = Math.floor(rowIndex / 2) * 2
     const pairEndRow = pairStartRow + 1
 
