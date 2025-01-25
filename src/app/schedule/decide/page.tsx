@@ -7,8 +7,8 @@ import DecideTimeStamp from '@/components/Body/Decide/DecideTimeStamp'
 import SelectedBottom from '@/components/Footer/BottomSheet/SelectedBottom'
 import { SelectItem } from '@/components/Footer/ListItem/SelectItem'
 import CustomModal from '@/components/Modals/CustomModal'
-import { ProfileLarge } from '@/components/Profiles/ProfileLarge'
-import MembersDefault from '@/components/Modals/MembersDefault'
+import DecideBottom from '@/components/Footer/BottomSheet/DecideBottom'
+import { ScheduleItem } from '@/components/Footer/ListItem/ScheduleItem'
 // import { useRouter } from 'next/navigation'
 
 interface SelectedDate {
@@ -34,6 +34,26 @@ interface GroupedDate {
   }[]
 }
 
+interface TimeSlot {
+  start: string
+  end: string
+  selectedBy: string[]
+}
+
+interface DateData {
+  date: string
+  timeSlots: TimeSlot[]
+}
+
+interface PrevScheduleData {
+  title: string
+  userId: number
+  groupId: number
+  mode: string
+  selected: string[] | null
+  dateData: DateData[]
+}
+
 interface ScheduleData {
   title: string // 일정 이름
   userId: number // 사용자 ID
@@ -43,6 +63,206 @@ interface ScheduleData {
   date: [string, string][] // 날짜 배열: [날짜, 요일]의 배열
 }
 
+// const mockDateTime: PrevScheduleData[] = [
+//   {
+//     title: '팀플 대면 모임',
+//     userId: 2,
+//     groupId: 1,
+//     mode: 'range',
+//     selected: null,
+//     dateData: [
+//       {
+//         date: '2025-02-01',
+//         timeSlots: [
+//           {
+//             start: '09:30',
+//             end: '17:00',
+//             selectedBy: ['user1', 'user2', 'user3'],
+//           },
+//           { start: '17:00', end: '22:00', selectedBy: ['user1'] },
+//         ],
+//       },
+//       {
+//         date: '2025-02-02',
+//         timeSlots: [
+//           { start: '08:00', end: '13:00', selectedBy: ['user2', 'user3'] },
+//           { start: '13:00', end: '20:00', selectedBy: ['user1', 'user4'] },
+//           { start: '20:00', end: '23:00', selectedBy: ['user3'] },
+//         ],
+//       },
+//       {
+//         date: '2025-02-03',
+//         timeSlots: [
+//           { start: '05:00', end: '10:00', selectedBy: ['user1', 'user2'] },
+//           {
+//             start: '10:00',
+//             end: '16:00',
+//             selectedBy: ['user2', 'user3', 'user4'],
+//           },
+//           { start: '16:00', end: '21:00', selectedBy: ['user1', 'user3'] },
+//         ],
+//       },
+//       {
+//         date: '2025-02-04',
+//         timeSlots: [
+//           {
+//             start: '11:00',
+//             end: '18:00',
+//             selectedBy: ['user1', 'user2', 'user3', 'user4'],
+//           },
+//           { start: '18:00', end: '19:00', selectedBy: ['user2'] },
+//         ],
+//       },
+//       {
+//         date: '2025-02-05',
+//         timeSlots: [
+//           { start: '10:00', end: '15:00', selectedBy: ['user1'] },
+//           {
+//             start: '15:00',
+//             end: '18:00',
+//             selectedBy: ['user1', 'user2', 'user3'],
+//           },
+//           { start: '28:00', end: '22:00', selectedBy: ['user2', 'user4'] },
+//         ],
+//       },
+//       {
+//         date: '2025-02-06',
+//         timeSlots: [
+//           { start: '04:00', end: '06:00', selectedBy: ['user3'] },
+//           {
+//             start: '06:00',
+//             end: '21:00',
+//             selectedBy: ['user1', 'user2', 'user3', 'user4'],
+//           },
+//         ],
+//       },
+//       {
+//         date: '2025-02-07',
+//         timeSlots: [
+//           { start: '06:00', end: '07:00', selectedBy: ['user2'] },
+//           {
+//             start: '07:00',
+//             end: '19:00',
+//             selectedBy: ['user1', 'user3', 'user4'],
+//           },
+//           { start: '19:00', end: '22:00', selectedBy: ['user1', 'user2'] },
+//         ],
+//       },
+//       {
+//         date: '2025-02-08',
+//         timeSlots: [
+//           {
+//             start: '10:00',
+//             end: '19:00',
+//             selectedBy: ['user1', 'user3', 'user4'],
+//           },
+//           { start: '19:00', end: '22:00', selectedBy: ['user1', 'user2'] },
+//         ],
+//       },
+//     ],
+//   },
+// ]
+
+const mockDateTime: PrevScheduleData[] = [
+  {
+    title: '팀플 대면 모임',
+    userId: 2,
+    groupId: 1,
+    mode: 'week',
+    selected: ['mon', 'wed', 'fri'],
+    dateData: [
+      {
+        date: '2025-01-06',
+        timeSlots: [
+          {
+            start: '09:30',
+            end: '17:00',
+            selectedBy: ['user1', 'user2', 'user3'],
+          },
+          { start: '17:00', end: '22:00', selectedBy: ['user1'] },
+        ],
+      },
+      {
+        date: '2025-02-05',
+        timeSlots: [
+          { start: '08:00', end: '13:00', selectedBy: ['user2', 'user3'] },
+          { start: '13:00', end: '20:00', selectedBy: ['user1', 'user4'] },
+          { start: '20:00', end: '23:00', selectedBy: ['user3'] },
+        ],
+      },
+      {
+        date: '2025-01-13',
+        timeSlots: [
+          { start: '05:00', end: '10:00', selectedBy: ['user1', 'user2'] },
+          {
+            start: '10:00',
+            end: '16:00',
+            selectedBy: ['user2', 'user3', 'user4'],
+          },
+          { start: '16:00', end: '21:00', selectedBy: ['user1', 'user3'] },
+        ],
+      },
+      {
+        date: '2025-02-12',
+        timeSlots: [
+          {
+            start: '11:00',
+            end: '18:00',
+            selectedBy: ['user1', 'user2', 'user3', 'user4'],
+          },
+          { start: '18:00', end: '19:00', selectedBy: ['user2'] },
+        ],
+      },
+      {
+        date: '2025-03-07',
+        timeSlots: [
+          { start: '10:00', end: '15:00', selectedBy: ['user1'] },
+          {
+            start: '15:00',
+            end: '18:00',
+            selectedBy: ['user1', 'user2', 'user3'],
+          },
+          { start: '28:00', end: '22:00', selectedBy: ['user2', 'user4'] },
+        ],
+      },
+      {
+        date: '2025-02-19',
+        timeSlots: [
+          { start: '04:00', end: '06:00', selectedBy: ['user3'] },
+          {
+            start: '06:00',
+            end: '21:00',
+            selectedBy: ['user1', 'user2', 'user3', 'user4'],
+          },
+        ],
+      },
+      {
+        date: '2025-01-20',
+        timeSlots: [
+          { start: '06:00', end: '07:00', selectedBy: ['user2'] },
+          {
+            start: '07:00',
+            end: '19:00',
+            selectedBy: ['user1', 'user3', 'user4'],
+          },
+          { start: '19:00', end: '22:00', selectedBy: ['user1', 'user2'] },
+        ],
+      },
+      {
+        date: '2025-01-27',
+        timeSlots: [
+          {
+            start: '10:00',
+            end: '19:00',
+            selectedBy: ['user1', 'user3', 'user4'],
+          },
+          { start: '19:00', end: '22:00', selectedBy: ['user1', 'user2'] },
+        ],
+      },
+    ],
+  },
+]
+
 export default function Page() {
   const [title, setTitle] = useState('제목 없는 일정')
   const [isPurple, setIsPurple] = useState(false)
@@ -50,6 +270,15 @@ export default function Page() {
   const [highlightedCol, setHighlightedCol] = useState<number | null>(null)
   const [startTime, setStartTime] = useState<string | null>(null)
   const [endTime, setEndTime] = useState<string | null>(null)
+  const [finalData, setFinalData] = useState<
+    {
+      id: string
+      number: number
+      startDate: string
+      startTime: string
+      endTime: string
+    }[]
+  >([])
   const [dateTime, setDateTime] = useState<
     { date: string; timeSlots: { start: string; end: string }[] }[]
   >([])
@@ -57,11 +286,56 @@ export default function Page() {
   const [dateCounts, setDateCounts] = useState<number[]>([])
   const [groupedDate, setGroupedDate] = useState<GroupedDate[]>([])
 
+  const [warning, setWarning] = useState(false)
+  const [decideBottomOpen, setDecideBottomOpen] = useState(false)
+
+  const onClickConfirm = () => {
+    if (isPurple && !decideBottomOpen) {
+      setDecideBottomOpen(true)
+    } else if (!isPurple && !decideBottomOpen) {
+      setWarning(true)
+    } else if (isPurple && decideBottomOpen) {
+      alert('확정')
+    }
+  }
+
   const DAYS_PER_PAGE = 7
   const highlightedIndex =
     highlightedCol !== null
       ? highlightedCol - currentPage * DAYS_PER_PAGE
       : null
+
+  function transformDateTime(mockData: PrevScheduleData[]) {
+    const dayNames = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
+
+    // Helper function to get the day name for a given date
+    function getDayName(dateStr: string) {
+      const date = new Date(dateStr)
+      return dayNames[date.getUTCDay()]
+    }
+
+    return mockData.map(
+      ({ title, userId, groupId, mode, selected, dateData }) => {
+        const date = dateData.flatMap(({ date }) => [[date, getDayName(date)]])
+
+        return {
+          title,
+          userId,
+          groupId,
+          mode,
+          selected,
+          date,
+        }
+      },
+    )
+  }
+
+  const transformData = transformDateTime(mockDateTime).map((data) => ({
+    ...data,
+    date: data.date as [string, string][],
+  }))
+
+  console.log('transformData', transformData)
 
   const handleTitleChange = (newTitle: string) => {
     setTitle(newTitle)
@@ -227,6 +501,24 @@ export default function Page() {
 
   useEffect(() => {
     console.log(`Updated dateTimeData:`, dateTime)
+    const transformedData = dateTime.flatMap((dateItem, dateIndex) => {
+      const { date, timeSlots } = dateItem
+
+      const month = date.split('-')[1]
+      const day = date.split('-')[2].padStart(2, '0')
+
+      const startDate = `${month}월 ${day}일`
+
+      return timeSlots.map((slot, slotIndex) => ({
+        id: `${dateIndex}-${slotIndex}`,
+        number: dateIndex + 1,
+        startDate,
+        startTime: slot.start,
+        endTime: slot.end,
+      }))
+    })
+
+    setFinalData(transformedData)
   }, [dateTime])
 
   const weekdayMap: { [key: string]: string } = {
@@ -240,9 +532,9 @@ export default function Page() {
   }
 
   function convertToSelectedDates(
-    scheduleData: ScheduleData[],
+    transformData: ScheduleData[],
   ): SelectedDate[] {
-    return scheduleData.flatMap((schedule) =>
+    return transformData.flatMap((schedule) =>
       schedule.date.map(([fullDate, weekday]) => {
         const [year, month, day] = fullDate.split('-').map(Number)
         return {
@@ -255,51 +547,9 @@ export default function Page() {
     )
   }
 
-  const scheduleData: ScheduleData[] = [
-    {
-      title: '팀플 대면 모임',
-      userId: 2,
-      groupId: 1,
-      mode: 'week',
-      selected: ['mon', 'wed', 'fri'],
-      date: [
-        ['2024-01-06', 'mon'],
-        ['2024-02-08', 'wed'],
-        ['2024-01-13', 'mon'],
-        ['2024-02-15', 'wed'],
-        ['2024-01-20', 'mon'],
-        ['2024-02-22', 'wed'],
-        ['2024-01-27', 'mon'],
-        ['2024-03-03', 'fri'],
-        ['2024-03-10', 'fri'],
-        ['2024-03-17', 'fri'],
-        ['2024-03-24', 'fri'],
-        ['2024-03-31', 'fri'],
-      ],
-      // mode: 'range',
-      // selected: null,
-      // date: [
-      //   ['2024-12-30', 'mon'],
-      //   ['2024-12-31', 'tue'],
-      //   ['2024-01-01', 'wed'],
-      //   ['2024-01-02', 'thu'],
-      //   ['2024-01-03', 'fri'],
-      //   ['2024-01-04', 'sat'],
-      //   ['2024-01-05', 'sun'],
-      //   ['2024-01-06', 'mon'],
-      //   ['2024-01-07', 'tue'],
-      //   ['2024-01-08', 'wed'],
-      //   ['2024-01-09', 'thu'],
-      //   ['2024-01-10', 'fri'],
-      //   ['2024-01-11', 'sat'],
-      //   ['2024-01-12', 'sun'],
-      // ],
-    },
-  ]
-
-  const selectedDates: SelectedDate[] = convertToSelectedDates(scheduleData)
-  const mode = scheduleData[0].mode
-  const dayofWeek = scheduleData[0].selected
+  const selectedDates: SelectedDate[] = convertToSelectedDates(transformData)
+  const mode = mockDateTime[0].mode
+  const dayofWeek = mockDateTime[0].selected
   const month =
     mode === 'range'
       ? currentPage === Math.floor((highlightedCol ?? 0) / DAYS_PER_PAGE)
@@ -307,131 +557,40 @@ export default function Page() {
         : `${selectedDates[currentPage * DAYS_PER_PAGE]?.month}월`
       : `${groupedDate[currentPage]?.date?.[highlightedIndex ?? 0]?.month ?? groupedDate[currentPage]?.date?.[0]?.month}월`
 
-  const scheduleModalData = [
-    {
-      id: 2,
-      number: 2,
-      startDate: '12월 30일',
-      startTime: '18:00',
-      endTime: '20:00',
-      participants: [
-        {
-          id: 1,
-          name: '나',
-          image: '/sampleProfile.png',
-          isScheduleSelect: true,
-        },
-        {
-          id: 2,
-          name: '김태엽',
-          image: '/sampleProfile.png',
-          isScheduleSelect: true,
-        },
-        {
-          id: 3,
-          name: '지유진',
-          image: '/sampleProfile.png',
-          isScheduleSelect: true,
-        },
-        {
-          id: 4,
-          name: '이소룡',
-          image: '/sampleProfile.png',
-          isScheduleSelect: false,
-        },
-        {
-          id: 5,
-          name: '박진우',
-          image: '/sampleProfile.png',
-          isScheduleSelect: false,
-        },
-        {
-          id: 6,
-          name: '이예지',
-          image: '/sampleProfile.png',
-          isScheduleSelect: false,
-        },
-        {
-          id: 7,
-          name: '조성하',
-          image: '/sampleProfile.png',
-          isScheduleSelect: true,
-        },
-        {
-          id: 8,
-          name: '성윤정',
-          image: '/sampleProfile.png',
-          isScheduleSelect: false,
-        },
-        {
-          id: 9,
-          name: '김나영',
-          image: '/sampleProfile.png',
-          isScheduleSelect: false,
-        },
-        {
-          id: 10,
-          name: '이채연',
-          image: '/sampleProfile.png',
-          isScheduleSelect: false,
-        },
-      ],
-    },
-  ]
-
-  // 완료 버튼 누르면 나오는 일정 입력 중 모달
-  const [isToDecideModal, setIsToDecideModal] = useState(false)
-  const handleToDecideModal = () => {
-    if (isPurple) {
-      setIsToDecideModal(!isToDecideModal)
-      setIsExpanded(false)
-      setIsDanger(false)
-    } else {
-      setIsNextOpen(!isNextOpen)
-    }
-  }
-
-  // 확장 상태 관리, ProfileLarge에서 전달받은 확장 상태 업데이트
-  const [isExpanded, setIsExpanded] = useState(false)
-  const handleExpandChange = (newExpandState: boolean) => {
-    setIsExpanded(newExpandState)
-  }
-
-  // onNext 버튼 누르면 경고 문구 출력 상태 관리
-  const [isDanger, setIsDanger] = useState(false)
-  const handleDanger = () => {
-    const hasIncompleteMember = scheduleModalData[0].participants.some(
-      (participant) => !participant.isScheduleSelect,
-    )
-    setIsDanger(hasIncompleteMember ? !isDanger : isDanger)
-
-    // isDanger가 true로 변경되었을 때 페이지 이동
-    if (hasIncompleteMember) {
-      if (isDanger) {
-        // 경고가 이미 표시된 상태에서 다시 누르면 페이지 이동
-        alert('경고 확인 후 페이지 이동')
-      } else {
-        // 경고 보여주기
-        setIsDanger(true)
-      }
-    } else {
-      // 모두 완료되었으면 바로 페이지 이동
-      alert('경고 없이 페이지 이동')
-    }
-  }
-
   // const router = useRouter()
 
-  const [isNextOpen, setIsNextOpen] = useState(false)
+  const handleDeleteSchedule = (id: string | undefined) => {
+    if (id === undefined) return
+
+    setFinalData((prevFinalData) =>
+      prevFinalData.filter((item) => item.id !== id),
+    )
+
+    // dateTime에서 해당 시간대 찾기
+    const [dateIndex, slotIndex] = id.split('-').map(Number)
+
+    setDateTime((prevDateTime) => {
+      return prevDateTime
+        .map((dateItem, index) => {
+          if (index !== dateIndex) return dateItem
+
+          const updatedTimeSlots = dateItem.timeSlots.filter(
+            (_, idx) => idx !== slotIndex,
+          )
+          return { ...dateItem, timeSlots: updatedTimeSlots }
+        })
+        .filter((dateItem) => dateItem.timeSlots.length > 0)
+    })
+  }
 
   return (
-    <div>
+    <div className="flex flex-col h-full bg-white">
       <Title
-        buttonText={'완료'}
-        initialTitle={scheduleData[0]?.title || title}
+        buttonText={'확정'}
+        initialTitle={mockDateTime[0]?.title || title}
         onTitleChange={handleTitleChange}
         isPurple={isPurple}
-        onClickTitleButton={handleToDecideModal}
+        onClickTitleButton={onClickConfirm}
       />
       <DecideSelectedDays
         selectedDates={selectedDates}
@@ -456,84 +615,71 @@ export default function Page() {
           handleActiveTime={handleActiveTime}
           getDateTime={getDateTime}
           isBottomSheetOpen={isOpen}
+          mockDateTime={mockDateTime[0].dateData}
+          dateTime={dateTime}
         />
       </div>
-      <SelectedBottom isOpen={isOpen} onClose={() => setIsOpen(false)}>
-        <div>
-          <SelectItem
-            date={
-              highlightedCol !== null && highlightedIndex !== null
-                ? mode === 'range'
-                  ? `${selectedDates[highlightedCol]?.month}월 ${selectedDates[highlightedCol]?.day}일`
-                  : (() => {
-                      const month =
-                        groupedDate[currentPage]?.date?.[highlightedIndex]
-                          ?.month
-                      const day =
-                        groupedDate[currentPage]?.date?.[highlightedIndex]?.day
-                      return month && day ? `${month}월 ${day}일` : ''
-                    })()
-                : ''
-            }
-            startTime={`${startTime}`}
-            endTime={`${endTime}`}
-          />
-        </div>
-      </SelectedBottom>
-      <CustomModal
-        open={isToDecideModal}
-        onOpenChange={handleToDecideModal}
-        onNext={handleDanger}
-        isFooter={true}
-        footerText={'최적의 일정 찾기'}
-      >
-        <div className="flex flex-col item-center justify-center">
-          <div className="text-center text-[#1e1e1e] text-[18px] font-medium leading-[25px] mb-[24px]">
-            함께하는 친구들이
-            <br /> 시간을 입력하고 있어요!
-          </div>
-          <div className="flex item-center justify-center mb-[12px]">
-            <ProfileLarge
-              key={scheduleModalData[0].id}
-              profiles={scheduleModalData[0].participants}
-              onExpandChange={handleExpandChange}
-            />
-          </div>
-          {isDanger ? (
-            <div className="text-center text-[#ff0000] text-xs font-medium ">
-              아직 입력을 마치지 않은 친구가 있어요!
-              <br />
-              그래도 진행하시겠어요?
-            </div>
-          ) : (
-            <div className="text-center text-[#afafaf] text-xs font-medium">
-              입력을 완료한 친구의 프로필만 활성화돼요!
-            </div>
-          )}
-          <div className="flex item-center justify-center">
-            {isExpanded && (
-              <MembersDefault
-                blackText={false}
-                title={title}
-                members={scheduleModalData[0].participants}
-                memberCount={scheduleModalData[0].participants.length}
+      {!decideBottomOpen && (
+        <div className="z-[1000]">
+          <SelectedBottom isOpen={isOpen} onClose={() => setIsOpen(false)}>
+            <div>
+              <SelectItem
+                date={
+                  highlightedCol !== null && highlightedIndex !== null
+                    ? mode === 'range'
+                      ? `${selectedDates[highlightedCol]?.month}월 ${selectedDates[highlightedCol]?.day}일`
+                      : (() => {
+                          const month =
+                            groupedDate[currentPage]?.date?.[highlightedIndex]
+                              ?.month
+                          const day =
+                            groupedDate[currentPage]?.date?.[highlightedIndex]
+                              ?.day
+                          return month && day ? `${month}월 ${day}일` : ''
+                        })()
+                    : ''
+                }
+                startTime={`${startTime}`}
+                endTime={`${endTime}`}
               />
-            )}
-          </div>
+            </div>
+          </SelectedBottom>
         </div>
-      </CustomModal>
+      )}
+
       <CustomModal
-        open={isNextOpen}
-        onOpenChange={handleToDecideModal}
-        onNext={() => alert('다음으로 버튼 클릭')}
         isFooter={true}
-        footerText={'다음으로'}
+        footerText="확인"
+        onNext={() => setWarning(false)}
+        open={warning}
+        onOpenChange={() => setWarning(!warning)}
       >
-        <div className="flex item-center justify-center text-center text-[#1e1e1e] text-xl font-medium py-4 mt-3">
-          아무것도 선택 <br />
-          안하고 넘어갈까요?
+        <div className="text-center pt-4">
+          한 개 이상 일정을 선택해야 <br />
+          확정할 수 있어요
         </div>
       </CustomModal>
+
+      <div className="z-[1000]">
+        <DecideBottom
+          isOpen={decideBottomOpen}
+          onClose={() => setDecideBottomOpen(false)}
+        >
+          <div>
+            {finalData.map((item) => (
+              <ScheduleItem
+                key={item.id}
+                id={item.id}
+                number={item.number}
+                startDate={item.startDate}
+                startTime={item.startTime}
+                endTime={item.endTime}
+                onDelete={handleDeleteSchedule}
+              />
+            ))}
+          </div>
+        </DecideBottom>
+      </div>
     </div>
   )
 }

@@ -1,6 +1,13 @@
 'use client'
 
-import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
+import {
+  useState,
+  useRef,
+  useCallback,
+  useEffect,
+  useMemo,
+  CSSProperties,
+} from 'react'
 import '@/styles/TimeStamp.css'
 
 interface Selection {
@@ -28,6 +35,17 @@ interface GroupedDate {
   }[]
 }
 
+interface TimeSlot {
+  start: string
+  end: string
+  selectedBy: string[]
+}
+
+interface DateData {
+  date: string
+  timeSlots: TimeSlot[]
+}
+
 interface TimeStampProps {
   selectedDates: { year: number; month: number; day: number }[]
   currentPage: number
@@ -39,6 +57,8 @@ interface TimeStampProps {
   getDateTime: (date: string, start: string, end: string) => void
   isBottomSheetOpen: boolean
   groupedDate: GroupedDate[]
+  mockDateTime: DateData[]
+  dateTime: { date: string; timeSlots: { start: string; end: string }[] }[]
 }
 
 const COLUMNS_PER_PAGE = 7
@@ -53,6 +73,8 @@ export default function TimeStamp({
   handleActiveTime,
   getDateTime,
   isBottomSheetOpen,
+  mockDateTime,
+  dateTime,
 }: TimeStampProps) {
   const [selections] = useState<Selection[]>([])
   const [isResizing, setIsResizing] = useState(false)
@@ -93,6 +115,91 @@ export default function TimeStamp({
   const currentSelections = useMemo(() => {
     return selectionsByPage[currentPage] || []
   }, [selectionsByPage, currentPage])
+
+  // Helper function to convert time string to index
+  const timeToIndex = (time: string) => {
+    const [hours, minutes] = time.split(':').map(Number)
+    return hours * 2 + (minutes >= 30 ? 1 : 0)
+  }
+
+  // Process mockDateTime data
+  const processedMockData = useMemo(() => {
+    // week 모드일 경우 데이터 순서를 재정렬
+    if (mode === 'week') {
+      // 요일의 정렬 우선순위
+      const weekdayOrder = ['월', '화', '수', '목', '금', '토', '일']
+
+      // 날짜를 요일로 변환하는 함수
+      const getWeekday = (dateStr: string) => {
+        const date = new Date(dateStr)
+        const weekdays = ['일', '월', '화', '수', '목', '금', '토']
+        return weekdays[date.getDay()]
+      }
+
+      // 정렬된 데이터 생성
+      const sortedData = [...mockDateTime].sort((a, b) => {
+        const weekdayA = getWeekday(a.date)
+        const weekdayB = getWeekday(b.date)
+
+        // 요일 우선순위 비교
+        const orderA = weekdayOrder.indexOf(weekdayA)
+        const orderB = weekdayOrder.indexOf(weekdayB)
+
+        if (orderA !== orderB) {
+          return orderA - orderB
+        }
+
+        // 같은 요일이라면 날짜 비교
+        return new Date(a.date).getTime() - new Date(b.date).getTime()
+      })
+
+      return sortedData.map((dateData) => {
+        const slots = new Array(48).fill(0)
+        dateData.timeSlots.forEach((slot) => {
+          const startIndex = timeToIndex(slot.start)
+          const endIndex = timeToIndex(slot.end)
+          for (let i = startIndex; i < endIndex; i++) {
+            slots[i] += slot.selectedBy.length
+          }
+        })
+        return { date: dateData.date, slots }
+      })
+    }
+
+    // range 모드일 때는 기존 로직 유지
+    const startDate = new Date(mockDateTime[0].date)
+    const pageStartDate = new Date(
+      startDate.getTime() + currentPage * 7 * 24 * 60 * 60 * 1000,
+    )
+
+    return mockDateTime
+      .filter((dateData) => {
+        const date = new Date(dateData.date)
+        return (
+          date >= pageStartDate &&
+          date < new Date(pageStartDate.getTime() + 7 * 24 * 60 * 60 * 1000)
+        )
+      })
+      .map((dateData) => {
+        const slots = new Array(48).fill(0)
+        dateData.timeSlots.forEach((slot) => {
+          const startIndex = timeToIndex(slot.start)
+          const endIndex = timeToIndex(slot.end)
+          for (let i = startIndex; i < endIndex; i++) {
+            slots[i] += slot.selectedBy.length
+          }
+        })
+        return { date: dateData.date, slots }
+      })
+  }, [mockDateTime, currentPage, mode])
+
+  const maxOverlap = useMemo(() => {
+    return Math.max(...processedMockData.flatMap((data) => data.slots))
+  }, [processedMockData])
+
+  const getOpacity = (count: number) => {
+    return count > 0 ? 0.2 + (count / maxOverlap) * 0.8 : 0
+  }
 
   const onColumnClick = useCallback(
     (colIndex: number, rowIndex: number) => {
@@ -472,6 +579,8 @@ export default function TimeStamp({
           selectedDate = `${groupedArray[startCol]?.year}-${String(groupedArray[startCol]?.month).padStart(2, '0')}-${String(groupedArray[startCol]?.day).padStart(2, '0')}`
         }
 
+        console.log('groupedDate', groupedDate)
+
         // console.log('selectedDate', selectedDate)
 
         const startTime = getTimeLabel(finalizedSelection.startRow)
@@ -586,7 +695,7 @@ export default function TimeStamp({
     ) as Selection[]
 
     const cellStatus = getCellStatus(row, col)
-    if (!cellStatus.isSelected || cellStatus.isConfirmed) return {}
+    if (!cellStatus.isSelected) return {}
 
     const isSelected = (r: number, c: number) =>
       allSelections.some(
@@ -604,23 +713,36 @@ export default function TimeStamp({
       Math.min(activeSelection.startCol, activeSelection.endCol) <= c &&
       Math.max(activeSelection.startCol, activeSelection.endCol) >= c
 
-    // console.log(activeSelection)
     if (activeSelection) {
       onActiveTime(activeSelection.startRow, activeSelection.endRow)
     }
 
-    return {
-      borderTop:
-        !isSelected(row - 1, col) && !isActiveSelection(row - 1, col)
-          ? '2px solid #9562fa'
-          : 'none',
-      borderBottom:
-        !isSelected(row + 1, col) && !isActiveSelection(row + 1, col)
-          ? '2px solid #9562fa'
-          : 'none',
-      borderLeft: '2px solid #9562fa',
-      borderRight: '2px solid #9562fa',
+    const borderStyle = cellStatus.isConfirmed
+      ? '2px solid #9562FB'
+      : '2px solid #ffffff'
+
+    const top = !isSelected(row - 1, col) && !isActiveSelection(row - 1, col)
+    const bottom = !isSelected(row + 1, col) && !isActiveSelection(row + 1, col)
+
+    const styles: CSSProperties = {
+      // height: `${18 * scale}px`,
+      borderTop: top ? borderStyle : 'none',
+      borderBottom: bottom ? borderStyle : 'none',
+      borderLeft: borderStyle,
+      borderRight: borderStyle,
+      boxShadow: [
+        top ? '0 -4px 8px -2px rgba(255, 255, 255, 0.7)' : '',
+        bottom ? '0 4px 8px -2px rgba(255, 255, 255, 0.7)' : '',
+        //left ? '-4px 0 8px -20px rgba(255, 255, 255, 0.7)' : '',
+        //right ? '4px 0 8px -2px rgba(255, 255, 255, 0.7)' : '',
+      ]
+        .filter(Boolean)
+        .join(', '),
+      position: 'relative' as const,
+      zIndex: cellStatus.isSelected ? 1000 : 'auto',
     }
+
+    return styles
   }
 
   useEffect(() => {
@@ -708,7 +830,7 @@ export default function TimeStamp({
           </div>
           <div
             ref={gridRef}
-            className=" w-full relative grid z-100 border-[1px] border-[#d9d9d9] rounded-3xl"
+            className=" w-full relative grid z-500 border-[1px] border-[#d9d9d9] rounded-3xl"
             style={{
               gridTemplateColumns: `repeat(${currentDates.length}, 1fr)`,
               backgroundImage: 'linear-gradient(#d9d9d9 1px, transparent 1px)',
@@ -738,19 +860,24 @@ export default function TimeStamp({
                     ${isBottomLeftCorner ? 'rounded-bl-[20px]' : ''}
                     ${isBottomRightCorner ? 'rounded-br-[20px]' : ''}
                   `
+
+                  const mockDataForDate = processedMockData.find(
+                    (data) =>
+                      new Date(data.date).getDate() ===
+                      currentDates[colIndex].day,
+                  )
+                  const overlayOpacity = mockDataForDate
+                    ? getOpacity(mockDataForDate.slots[rowIndex])
+                    : 0
+
                   return (
                     <div
                       key={rowIndex}
-                      className={`relative cursor-pointer ${cornerStyleRound} ${
-                        cellStatus.isSelected
-                          ? cellStatus.isConfirmed
-                            ? 'bg-[#9562fa]/60 z-200'
-                            : 'bg-[#9562fa]/20 z-200'
-                          : ''
-                      }`}
+                      className={`relative cursor-pointer ${cornerStyleRound}`}
                       style={{
                         ...cellBorder,
                         height: `${18 * scale}px`,
+                        // borderCollapse: 'separate',
                       }}
                       onMouseDown={() => {
                         handleMouseClick(rowIndex, colIndex)
@@ -760,9 +887,26 @@ export default function TimeStamp({
                         handleSelectionStart(rowIndex, colIndex, true)
                       }}
                     >
+                      <div
+                        className={`absolute inset-0 ${cornerStyleRound}`}
+                        style={{
+                          backgroundColor: `rgba(149, 98, 251, ${overlayOpacity})`,
+                          zIndex: 50,
+                        }}
+                      />
+                      <div
+                        className={`absolute inset-0 ${cornerStyleRound} ${
+                          cellStatus.isSelected
+                            ? cellStatus.isConfirmed
+                              ? 'opacity-50 bg-[#2a027a]'
+                              : 'opacity-50 bg-[#2a027a]'
+                            : ''
+                        }`}
+                        style={{ zIndex: 100 }}
+                      />
                       {!cellStatus.isConfirmed && cellStatus.isStartCell && (
                         <div
-                          className="absolute -top-[0px] left-[0%] w-[100%] h-[100%] touch-target"
+                          className="absolute -top-[0px] left-[0%] w-[100%] h-[100%] touch-target z-[2000]"
                           onTouchStart={(e) => {
                             e.stopPropagation()
                             handleMouseDown(
@@ -790,6 +934,7 @@ export default function TimeStamp({
                       {!cellStatus.isConfirmed && cellStatus.isEndCell && (
                         <div
                           className="absolute -bottom-[0px] right-[0%] w-[100%] h-[100%] touch-target"
+                          style={{ zIndex: 3000 }}
                           onTouchStart={(e) => {
                             e.stopPropagation()
                             handleMouseDown(
