@@ -61,10 +61,10 @@ const DecideBottom: React.FC<DecideBottomProps> = ({
           display: isOpen ? 'block' : 'none', // 추가: isOpen이 false일 때는 아예 display: none
         }}
       >
-        <div className="py-3 overflow-hidden">
+        <div className="py-3 h-full flex flex-col">
           <div className="h-[4px] w-[64px] bg-[#afafaf] rounded-full mx-auto" />
           <div
-            className={`px-3 overflow-auto ${
+            className={`px-3 flex-1 overflow-y-auto ${
               isDragging ? 'pointer-events-none' : ''
             }`}
             style={{
@@ -72,7 +72,7 @@ const DecideBottom: React.FC<DecideBottomProps> = ({
               pointerEvents: isOpen ? 'auto' : 'none',
             }}
           >
-            {children}
+            <div className="flex flex-col gap-2">{children}</div>
           </div>
         </div>
       </motion.div>
