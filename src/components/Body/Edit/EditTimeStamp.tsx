@@ -217,24 +217,24 @@ export default function EditTimeStamp({
         isSelected: true,
         isConfirmed: false,
       })
-      // setSelectionsByPage((prev) => {
-      //   const currentSelections = prev[currentPage] || []
-      //   // console.log('curselections:', currentSelections)
-      //   return {
-      //     ...prev,
-      //     [currentPage]: [
-      //       ...currentSelections,
-      //       {
-      //         startRow: startIdx,
-      //         startCol: colIndex,
-      //         endRow: endIdx - 1,
-      //         endCol: colIndex,
-      //         isSelected: true,
-      //         isConfirmed: true, // 클릭 시 즉시 확정
-      //       },
-      //     ],
-      //   }
-      // })
+      setSelectionsByPage((prev) => {
+        const currentSelections = prev[currentPage] || []
+        // console.log('curselections:', currentSelections)
+        return {
+          ...prev,
+          [currentPage]: [
+            ...currentSelections,
+            {
+              startRow: startIdx,
+              startCol: colIndex,
+              endRow: endIdx - 1,
+              endCol: colIndex,
+              isSelected: true,
+              isConfirmed: true,
+            },
+          ],
+        }
+      })
 
       // 바텀시트 열기
       handleSelectedCol(colIndex, rowIndex)
@@ -348,52 +348,132 @@ export default function EditTimeStamp({
         isSelected: true,
         isConfirmed: true,
       }
-      const startCol = finalizedSelection.startCol
-      // 수정된 시간 계산
-      const startTime = indexToTime(finalizedSelection.startRow)
-      const endTime = indexToTime(finalizedSelection.endRow + 1)
 
-      //현재 페이지의 목데이터 인덱스 계산
+      const startCol = finalizedSelection.startCol
+
+      const getTimeLabel = (rowIndex: number) => {
+        const hours = Math.floor(rowIndex / 2)
+        const minutes = (rowIndex % 2) * 30
+        return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`
+      }
+
       const schedule = currentDates[startCol]
       if (schedule) {
         let selectedSlotId = null
-        // 수정된 시간 슬롯 업데이트
-        schedule.timeSlots = schedule.timeSlots.map((slot) => {
-          if (
-            timeToIndex(slot.start) <= finalizedSelection.endRow &&
-            timeToIndex(slot.end) - 1 >= finalizedSelection.startRow
-          ) {
-            selectedSlotId = slot.slotId
-            return {
-              ...slot,
-              start: startTime,
-              end: endTime,
+
+        // 병합 및 업데이트
+        const updatedTimeSlots = []
+        let mergedStartRow = finalizedSelection.startRow
+        let mergedEndRow = finalizedSelection.endRow
+
+        schedule.timeSlots.forEach((slot) => {
+          const slotStart = timeToIndex(slot.start)
+          const slotEnd = timeToIndex(slot.end) - 1
+
+          const isOverlap =
+            slotStart <= finalizedSelection.endRow + 1 &&
+            slotEnd >= finalizedSelection.startRow - 1
+
+          const isReducingSize =
+            finalizedSelection.startRow >= slotStart &&
+            finalizedSelection.endRow <= slotEnd
+
+          if (isOverlap) {
+            if (isReducingSize) {
+              // 크기 줄이는 경우 finalizedSelection 적용
+              mergedStartRow = finalizedSelection.startRow
+              mergedEndRow = finalizedSelection.endRow
+              selectedSlotId = slot.slotId // 기존 ID 유지
+            } else {
+              // 병합 범위 확장
+              mergedStartRow = Math.min(mergedStartRow, slotStart)
+              mergedEndRow = Math.max(mergedEndRow, slotEnd)
+              selectedSlotId = slot.slotId // 기존 ID 유지
             }
+          } else {
+            // 겹치지 않는 경우 기존 슬롯 유지
+            updatedTimeSlots.push(slot)
           }
-          return slot
         })
 
-        // 콘솔에 수정된 날짜와 시간 출력
-        const selectedDate = currentDates[finalizedSelection.startCol]
-        console.log(`${selectedDate.date} ${startTime} - ${endTime}`)
-        console.log('selectedSlotId:', selectedSlotId) // 클릭된 slotId 출력
+        const mergedStartTime = getTimeLabel(mergedStartRow)
+        const mergedEndTime = getTimeLabel(mergedEndRow + 1)
 
-        // 선택된 시간 정보 전달
-        handleDateTimeSelect(String(startCol), startTime, endTime)
-        // console.log('final', finalizedSelection.startCol)
+        // 병합된 슬롯 추가
+        updatedTimeSlots.push({
+          slotId: selectedSlotId || finalizedSelection.startCol,
+          start: mergedStartTime,
+          end: mergedEndTime,
+        })
+
+        schedule.timeSlots = updatedTimeSlots
+
+        // console.log(`병합된 슬롯: ${mergedStartTime} - ${mergedEndTime} `)
+
+        // 시각화 상태 업데이트
+        setSelectionsByPage((prev) => {
+          const currentSelections = prev[currentPage] || []
+          const updatedSelections = currentSelections.flatMap((sel) => {
+            const isOverlap =
+              sel.startRow <= finalizedSelection.endRow + 1 &&
+              sel.endRow >= finalizedSelection.startRow - 1 &&
+              sel.startCol === finalizedSelection.startCol
+
+            if (!isOverlap) {
+              return [sel]
+            }
+
+            const splitSelections = []
+            if (sel.startRow < finalizedSelection.startRow) {
+              splitSelections.push({
+                ...sel,
+                endRow: finalizedSelection.startRow - 1,
+              })
+            }
+            if (sel.endRow > finalizedSelection.endRow) {
+              splitSelections.push({
+                ...sel,
+                startRow: finalizedSelection.endRow + 1,
+              })
+            }
+            return splitSelections
+          })
+
+          const mergedSelections = [
+            ...updatedSelections,
+            {
+              ...finalizedSelection,
+              startRow: mergedStartRow,
+              endRow: mergedEndRow,
+            },
+          ]
+
+          console.log('mergedSelections:', mergedSelections)
+
+          handleDateTimeSelect(String(startCol), mergedStartTime, mergedEndTime)
+
+          return {
+            ...prev,
+            [currentPage]: mergedSelections,
+          }
+        })
+
+        console.log(
+          `최종 병합 영역:${selectedSlotId} ${mergedStartTime} - ${mergedEndTime}`,
+        )
       }
-    }
 
-    // 리사이징 상태 초기화
-    setIsResizing(false)
-    setActiveSelection(null)
-    setResizingPoint(null)
+      // 리사이징 상태 초기화
+      setIsResizing(false)
+      setActiveSelection(null)
+      setResizingPoint(null)
+    }
   }, [
     activeSelection,
     currentPage,
     currentDates,
     handleDateTimeSelect,
-    mockSelectedSchedule,
+    setSelectionsByPage,
   ])
 
   useEffect(() => {
