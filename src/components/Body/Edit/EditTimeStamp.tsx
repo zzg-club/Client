@@ -76,7 +76,7 @@ const indexToTime = (index: number) => {
 }
 
 export default function EditTimeStamp({
-  selectedDates,
+  // selectedDates,
   currentPage,
   handleSelectedCol,
   getDateTime,
@@ -85,8 +85,8 @@ export default function EditTimeStamp({
   handleTimeSelect,
   mode,
   dateCounts,
-  handleActiveTime,
-  groupedDate,
+  // handleActiveTime,
+  // groupedDate,
 }: EditTimeStampProps) {
   const [selections] = useState<Selection[]>([])
   const [isResizing, setIsResizing] = useState(false)
@@ -133,14 +133,14 @@ export default function EditTimeStamp({
     [handleSelectedCol, currentPage],
   )
 
-  const onActiveTime = useCallback(
-    (start: number, end: number) => {
-      setTimeout(() => {
-        handleActiveTime(start, end)
-      }, 0)
-    },
-    [handleActiveTime],
-  )
+  // const onActiveTime = useCallback(
+  //   (start: number, end: number) => {
+  //     setTimeout(() => {
+  //       handleActiveTime(start, end)
+  //     }, 0)
+  //   },
+  //   [handleActiveTime],
+  // )
 
   const handleDateTimeSelect = useCallback(
     (date: string, start: string, end: string) => {
@@ -200,6 +200,9 @@ export default function EditTimeStamp({
       const endIdx = timeToIndex(slot.end) - 1
       return rowIndex >= startIdx && rowIndex <= endIdx
     })
+
+    if (!clickedSlot) return
+
     console.log(schedule.date, clickedSlot?.start, '-', clickedSlot?.end)
 
     if (clickedSlot) {
@@ -286,7 +289,8 @@ export default function EditTimeStamp({
 
         const newSelection = { ...prev }
         const scheduleIndex = currentPage * COLUMNS_PER_PAGE + prev.startCol
-        const schedule = mockSelectedSchedule[scheduleIndex]
+        const schedule = currentDates[scheduleIndex]
+        // const schedule = currentDates[col]
         const slotId =
           schedule?.timeSlots.find(
             (slot) =>
