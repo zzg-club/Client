@@ -665,19 +665,17 @@ export default function Page() {
           isOpen={decideBottomOpen}
           onClose={() => setDecideBottomOpen(false)}
         >
-          <div>
-            {finalData.map((item) => (
-              <ScheduleItem
-                key={item.id}
-                id={item.id}
-                number={item.number}
-                startDate={item.startDate}
-                startTime={item.startTime}
-                endTime={item.endTime}
-                onDelete={handleDeleteSchedule}
-              />
-            ))}
-          </div>
+          {finalData.map((item) => (
+            <ScheduleItem
+              key={item.id}
+              id={item.id}
+              number={item.number}
+              startDate={item.startDate}
+              startTime={item.startTime}
+              endTime={item.endTime}
+              onDelete={handleDeleteSchedule}
+            />
+          ))}
         </DecideBottom>
       </div>
     </div>
