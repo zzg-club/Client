@@ -167,6 +167,8 @@ export default function TimeStamp({
         isConfirmed: false,
       }
 
+      console.log('handleMouseClick')
+
       return {
         ...updatedSelections,
         [currentPage]: [
@@ -183,6 +185,8 @@ export default function TimeStamp({
     isEndpoint: boolean,
     selection?: Selection,
   ) => {
+    console.log(selection)
+
     if (selection) {
       setIsResizing(true)
       setActiveSelection(selection)
@@ -191,7 +195,8 @@ export default function TimeStamp({
           ? 'start'
           : 'end',
       )
-      console.log('Resizing started on', resizingPoint, selection)
+      // console.log('Resizing started on', resizingPoint, selection)
+      console.log('handleMouseDown')
     }
   }
 
@@ -224,6 +229,8 @@ export default function TimeStamp({
             }
           }
         }
+
+        console.log('handleMouseMove')
         return !isOverlapping(newSelection) ? newSelection : prev
       })
     },
@@ -307,6 +314,8 @@ export default function TimeStamp({
 
         handleDateTimeSelect(selectedDate, startTime, endTime)
 
+        console.log('handleMouseUp')
+
         return {
           ...prev,
           [currentPage]: mergedSelections,
@@ -364,6 +373,8 @@ export default function TimeStamp({
         isConfirmed: false,
       }
 
+      console.log('handleSelectionStart')
+
       return {
         ...updatedSelections,
         [currentPage]: [
@@ -374,23 +385,16 @@ export default function TimeStamp({
     })
   }
 
-  const handleMove = useCallback(
-    (clientY: number, isTouchEvent: boolean) => {
+  const handleTouchMove = useCallback(
+    (clientY: number) => {
       if (!gridRef.current || !activeSelection) return
 
       const rect = gridRef.current.getBoundingClientRect()
       const cellHeight = rect.height / 48
-      let row = Math.min(
+      const row = Math.min(
         Math.max(Math.floor((clientY - rect.top) / cellHeight), 0),
         47,
       )
-
-      if (isTouchEvent) {
-        row = Math.min(
-          Math.max(Math.floor((clientY - rect.top) / cellHeight), 0),
-          47,
-        )
-      }
 
       setActiveSelection((prev) => {
         if (!prev) return null
@@ -462,18 +466,37 @@ export default function TimeStamp({
           return `${formattedHour}:${formattedMinute}`
         }
 
+        // console.log(
+        //   '현재 상황',
+        //   currentDates,
+        //   '시작 열',
+        //   startCol,
+        //   '현재 일자',
+        //   currentDates[startCol],
+        //   '현재 페이지',
+        //   currentPage,
+        //   '그룹 데이터',
+        //   groupedDate,
+        // )
+
         let selectedDate: string
         if (mode === 'range') {
+          // mode가 'range'일 경우 기존 로직
           selectedDate = `${currentDates[startCol]?.year}-${String(currentDates[startCol]?.month).padStart(2, '0')}-${String(currentDates[startCol]?.day).padStart(2, '0')}`
         } else {
+          // mode가 'range'가 아닐 경우 다른 로직
           const groupedArray = groupedDate?.[currentPage]?.date ?? []
           selectedDate = `${groupedArray[startCol]?.year}-${String(groupedArray[startCol]?.month).padStart(2, '0')}-${String(groupedArray[startCol]?.day).padStart(2, '0')}`
         }
+
+        // console.log('selectedDate', selectedDate)
 
         const startTime = getTimeLabel(finalizedSelection.startRow)
         const endTime = getTimeLabel(finalizedSelection.endRow + 1)
 
         handleDateTimeSelect(selectedDate, startTime, endTime)
+
+        console.log('handleTouchUp')
 
         return {
           ...prev,
@@ -481,6 +504,10 @@ export default function TimeStamp({
         }
       })
     }
+
+    setIsResizing(false)
+    setActiveSelection(null)
+    setResizingPoint(null)
   }, [
     activeSelection,
     currentDates,
@@ -494,30 +521,42 @@ export default function TimeStamp({
     const handleMouseUpWithColumnClick = () => {
       handleMouseUp()
       onColumnClick(-1, -1)
+      console.log('handleMouseUpWithColumnClick')
     }
 
     const handleTouchUpWithColumnClick = () => {
       handleTouchUp()
       onColumnClick(-1, -1)
-    }
-
-    const handleMouseMove = (e: MouseEvent) => handleMove(e.clientY, false)
-    const handleTouchMove = (e: TouchEvent) => {
-      if (e.touches[0]) {
-        e.preventDefault() // 셀 범위 조정과 y축 스크롤 중첩 방지
-        handleMove(e.touches[0].clientY, false)
-      }
+      console.log('handleTouchUpWithColumnClick')
     }
 
     if (activeSelection || isResizing) {
       window.addEventListener('mousemove', handleMouseMove)
-      window.addEventListener('touchmove', handleTouchMove, { passive: false })
+      window.addEventListener(
+        'touchmove',
+        (e: TouchEvent) => {
+          if (e.touches[0]) {
+            e.preventDefault() // 셀 범위 조정과 y축 스크롤 중첩 방지
+            handleTouchMove(e.touches[0].clientY)
+          }
+        },
+        { passive: false },
+      )
       window.addEventListener('mouseup', handleMouseUpWithColumnClick)
       window.addEventListener('touchend', handleTouchUpWithColumnClick)
     }
     return () => {
       window.removeEventListener('mousemove', handleMouseMove)
-      window.removeEventListener('touchmove', handleTouchMove)
+      window.addEventListener(
+        'touchmove',
+        (e: TouchEvent) => {
+          if (e.touches[0]) {
+            e.preventDefault()
+            handleTouchMove(e.touches[0].clientY)
+          }
+        },
+        { passive: false },
+      )
       window.removeEventListener('mouseup', handleMouseUpWithColumnClick)
       window.removeEventListener('touchend', handleTouchUpWithColumnClick)
     }
@@ -528,8 +567,8 @@ export default function TimeStamp({
     handleMouseUp,
     onColumnClick,
     currentSelections,
-    handleMove,
     handleTouchUp,
+    handleTouchMove,
   ])
 
   const getCellStatus = (row: number, col: number) => {
