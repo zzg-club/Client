@@ -335,8 +335,6 @@ export default function Page() {
     date: data.date as [string, string][],
   }))
 
-  console.log('transformData', transformData)
-
   const handleTitleChange = (newTitle: string) => {
     setTitle(newTitle)
   }
@@ -501,24 +499,47 @@ export default function Page() {
 
   useEffect(() => {
     console.log(`Updated dateTimeData:`, dateTime)
-    const transformedData = dateTime.flatMap((dateItem, dateIndex) => {
-      const { date, timeSlots } = dateItem
 
-      const month = date.split('-')[1]
-      const day = date.split('-')[2].padStart(2, '0')
+    // 먼저 모든 날짜와 시간대를 하나의 배열로 변환
+    const allTimeSlots = dateTime
+      .sort((a, b) => a.date.localeCompare(b.date)) // 날짜순 정렬
+      .reduce(
+        (acc, dateItem) => {
+          const month = dateItem.date.split('-')[1]
+          const day = dateItem.date.split('-')[2].padStart(2, '0')
+          const startDate = `${month}월 ${day}일`
 
-      const startDate = `${month}월 ${day}일`
+          // 각 날짜의 timeSlots을 시간순 정렬
+          const sortedTimeSlots = dateItem.timeSlots
+            .sort((a, b) => a.start.localeCompare(b.start))
+            .map((slot) => ({
+              date: dateItem.date,
+              startDate,
+              startTime: slot.start,
+              endTime: slot.end,
+            }))
 
-      return timeSlots.map((slot, slotIndex) => ({
-        id: `${dateIndex}-${slotIndex}`,
-        number: dateIndex + 1,
-        startDate,
-        startTime: slot.start,
-        endTime: slot.end,
-      }))
-    })
+          return [...acc, ...sortedTimeSlots]
+        },
+        [] as Array<{
+          date: string
+          startDate: string
+          startTime: string
+          endTime: string
+        }>,
+      )
+
+    // 정렬된 전체 배열에 번호 부여
+    const transformedData = allTimeSlots.map((slot, index) => ({
+      id: `${index}`,
+      number: index + 1,
+      startDate: slot.startDate,
+      startTime: slot.startTime,
+      endTime: slot.endTime,
+    }))
 
     setFinalData(transformedData)
+    console.log('transformedData', transformedData)
   }, [dateTime])
 
   const weekdayMap: { [key: string]: string } = {
@@ -562,24 +583,52 @@ export default function Page() {
   const handleDeleteSchedule = (id: string | undefined) => {
     if (id === undefined) return
 
-    setFinalData((prevFinalData) =>
-      prevFinalData.filter((item) => item.id !== id),
-    )
+    // finalData에서 해당 항목 찾기
+    const itemToDelete = finalData.find((item) => item.id === id)
+    if (!itemToDelete) return
 
-    // dateTime에서 해당 시간대 찾기
-    const [dateIndex, slotIndex] = id.split('-').map(Number)
-
+    // dateTime에서 해당 날짜와 시간대 찾아서 삭제
     setDateTime((prevDateTime) => {
       return prevDateTime
-        .map((dateItem, index) => {
-          if (index !== dateIndex) return dateItem
+        .map((dateItem) => {
+          // 날짜가 일치하는 항목 찾기
+          if (
+            dateItem.date ===
+            itemToDelete.startDate.replace(/(\d+)월\s+(\d+)일/, '2025-$1-$2')
+          ) {
+            // 해당 시간대 제거
+            const updatedTimeSlots = dateItem.timeSlots.filter(
+              (slot) =>
+                !(
+                  slot.start === itemToDelete.startTime &&
+                  slot.end === itemToDelete.endTime
+                ),
+            )
 
-          const updatedTimeSlots = dateItem.timeSlots.filter(
-            (_, idx) => idx !== slotIndex,
-          )
-          return { ...dateItem, timeSlots: updatedTimeSlots }
+            // timeSlots가 비어있으면 해당 날짜 항목 제거
+            if (updatedTimeSlots.length === 0) {
+              return null
+            }
+
+            return {
+              ...dateItem,
+              timeSlots: updatedTimeSlots,
+            }
+          }
+          return dateItem
         })
-        .filter((dateItem) => dateItem.timeSlots.length > 0)
+        .filter((item): item is NonNullable<typeof item> => item !== null)
+    })
+
+    // finalData 업데이트
+    setFinalData((prevFinalData) => {
+      const newData = prevFinalData.filter((item) => item.id !== id)
+      // 번호 재할당
+      return newData.map((item, index) => ({
+        ...item,
+        id: `${index}`,
+        number: index + 1,
+      }))
     })
   }
 
