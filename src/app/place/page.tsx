@@ -43,11 +43,59 @@ export default function Home() {
   const [cardData, setCardData] = useState<any[]>([]) // 카드 데이터를 저장
   const [userName, setUserName] = useState('');
 
-  const getCookie = (name) => {
-    const matches = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
-    return matches ? decodeURIComponent(matches[1]) : null;
+   // 좋아요 상태 확인 함수
+   const fetchLikedState = async (placeId: string) => {
+    try {
+      const response = await fetch(`https://api.moim.team/api/places/places/${placeId}/liked`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // 쿠키 포함
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to fetch like status for placeId ${placeId}`);
+      }
+      const data = await response.json();
+      return data.liked; // API 응답에서 liked 상태 반환
+    } catch (error) {
+      console.error('Error fetching like state:', error);
+      return false;
+    }
   };
+
+  const toggleLike = async (placeId: number, liked: boolean) => {
+    try {
+      const url = liked
+        ? `https://api.moim.team/api/places/unlike`
+        : `https://api.moim.team/api/places/like`;
   
+      console.log('Place ID:', placeId, 'Type:', typeof placeId); // 값과 타입 확인
+  
+      // URL 인코딩된 데이터 생성
+      const body = new URLSearchParams();
+      body.append('placeId', placeId.toString()); // placeId를 문자열로 변환하여 추가
+  
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        credentials: 'include', // 쿠키 포함
+        body: body.toString(), // URL 인코딩된 문자열을 본문으로 설정
+      });
+  
+      if (!response.ok) {
+        throw new Error(`Failed to toggle like status for placeId ${placeId}`);
+      }
+  
+      return !liked; // 반대 상태 반환
+    } catch (error) {
+      console.error('Error toggling like:', error);
+      return liked; // 실패 시 기존 상태 유지
+    }
+  };
+    
 
   const fetchUserInformation = async () => {
     try {
@@ -91,47 +139,61 @@ export default function Home() {
 
   const handleTabClick = async (tabId: string) => {
     // 탭 변경
-    setSelectedTab(tabId)
-    setSelectedFilters([]) // 필터 초기화
-
-    const categoryIndex = tabs.findIndex((tab) => tab.id === tabId)
-    // 유틸리티 함수: 문자열을 말줄임표로 처리
-    const truncateText = (text: string, maxLength: number) => {
-      return text.length > maxLength ? text.slice(0, maxLength) + '...' : text
-    }   
-
+    setSelectedTab(tabId);
+    setSelectedFilters([]); // 필터 초기화
+  
+    const categoryIndex = tabs.findIndex((tab) => tab.id === tabId);
+  
     if (categoryIndex !== -1) {
       try {
         const response = await fetch(
           `https://api.moim.team/api/places/category/${categoryIndex}`,
           {
             method: 'GET',
-            headers: { 'Content-Type': 'application/json' },
-          },
-        )
-
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+  
         if (response.ok) {
-          const result = await response.json()
-
-          // 데이터 정규화 (filters가 없는 경우 기본값 처리)
-          const normalizedData = (result.data || []).map((card: any) => ({
-            ...card,
-            filters: card.filters || {}, // filters가 없으면 빈 객체로 초기화
-          }))
-
-          setCardData(normalizedData) // 카드 데이터 업데이트
+          const result = await response.json();
+  
+          // 좋아요 상태 확인 요청
+          const updatedData = await Promise.all(
+            (result.data || []).map(async (card: any) => {
+              const likeResponse = await fetch(
+                `https://api.moim.team/api/places/places/${card.id}/liked`,
+                {
+                  method: 'GET',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  credentials: 'include', // 쿠키 포함
+                }
+              );
+  
+              const likeResult = likeResponse.ok ? await likeResponse.json() : { liked: false };
+  
+              return {
+                ...card,
+                filters: card.filters || {}, // filters가 없으면 빈 객체로 초기화
+                liked: likeResult.liked || false, // 좋아요 상태 추가
+              };
+            })
+          );
+  
+          setCardData(updatedData); // 카드 데이터 업데이트
         } else {
-          console.error(
-            `Failed to fetch card data. Status code: ${response.status}`,
-          )
+          console.error(`Failed to fetch card data. Status code: ${response.status}`);
         }
       } catch (error) {
-        console.error('Error fetching card data:', error)
+        console.error('Error fetching card data:', error);
       }
     } else {
-      console.warn('Invalid tabId provided:', tabId)
+      console.warn('Invalid tabId provided:', tabId);
     }
-  }
+  };  
 
   const handleFilterButtonClick = (filter: string) => {
     setSelectedFilters(
@@ -141,6 +203,16 @@ export default function Home() {
           : [...prevSelected, filter], // 새로 선택
     )
   }
+
+  const handleLikeButtonClick = async (placeId: number, liked: boolean) => {
+    const updatedLiked = await toggleLike(placeId, liked);
+    setCardData((prev) =>
+      prev.map((card) =>
+        card.id === placeId ? { ...card, liked: updatedLiked } : card
+      )
+    );
+  };
+  
 
   const handleVectorButtonClick = () => {
     if (mapRef.current) {
@@ -340,8 +412,8 @@ export default function Home() {
                     {truncateText(card.name || '제목 없음', 25)} {/* 가게명 말줄임표 */}
                   </h3>
                     <div className={styles.likes}>
-                      <div className={styles.likeBackground}>
-                        <div className={styles.likeIcon}></div>
+                      <div className={`${styles.likeBackground} ${card.liked ? styles.liked : ''}`} onClick={() => handleLikeButtonClick(card.id, card.liked)}>
+                          <div className={styles.likeIcon}></div>
                       </div>
                       <span>{card.likes.length || 0}명</span>{' '}
                       {/* 좋아요 숫자 */}

@@ -388,6 +388,11 @@
   align-items: center;
 }
 
+/* 좋아요 상태인 경우 */
+.likeBackground.liked {
+  background: #49C657; /* 좋아요 눌린 상태의 배경색 */
+}
+
 /* 좋아요 아이콘 */
 .likeIcon {
   width: calc(1.5rem + 0vw);
