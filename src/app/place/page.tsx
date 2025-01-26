@@ -41,13 +41,53 @@ export default function Home() {
   const mapRef = useRef<() => void | null>(null)
   const [selectedFilters, setSelectedFilters] = useState<string[]>([])
   const [cardData, setCardData] = useState<any[]>([]) // 카드 데이터를 저장
+  const [userName, setUserName] = useState('');
 
+  const getCookie = (name) => {
+    const matches = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+    return matches ? decodeURIComponent(matches[1]) : null;
+  };
+  
+
+  const fetchUserInformation = async () => {
+    try {
+      const response = await fetch('https://api.moim.team/api/user/information', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // 쿠키 포함
+      });
+  
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error fetching user information:', error);
+      return null;
+    }
+  };
+  
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data = await fetchUserInformation();
+        setUserName(data.data.userNickname || '알 수 없는 사용자');
+      } catch (error) {
+        console.error('Error fetching user information:', error);
+      }
+    };
+  
+    fetchData();
+  }, []);
 
 
   const truncateText = (text: string, maxLength: number) => {
     return text.length > maxLength ? text.slice(0, maxLength) + '...' : text
   }   
-  
 
   const handleTabClick = async (tabId: string) => {
     // 탭 변경
@@ -280,14 +320,12 @@ export default function Home() {
             <div className={styles.moimPickLine}></div>
           </div>
           <div className={styles.moimPickSubText}>
-            <span className={styles.highlight}>박진우</span>님을 위해 선배들이
-            픽 했어요!
+            <span className={styles.highlight}>{userName}</span>님을 위해 선배들이 픽 했어요!
           </div>
           <div className={styles.content}>
             {cardData.map((card) => (
               <div key={card.id} className={styles.card}>
                 <div className={styles.cardImage}>
-                  {console.log('card.pictures[0].url:', card.pictures?.[0])}
                   <ImageLoader
                     imageUrl={card.pictures?.[0] || ''}
                     fallbackUrl="/default-cafe.jpg"
