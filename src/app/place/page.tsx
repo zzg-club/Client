@@ -53,16 +53,20 @@ export default function Home() {
         },
         credentials: 'include', // 쿠키 포함
       });
+  
       if (!response.ok) {
-        throw new Error(`Failed to fetch like status for placeId ${placeId}`);
+        console.error(`Failed to fetch like status for placeId ${placeId}. Status: ${response.status}`);
+        return false; // 기본값 반환
       }
+  
       const data = await response.json();
-      return data.liked; // API 응답에서 liked 상태 반환
+      return data.data; // liked 값 반환
     } catch (error) {
-      console.error('Error fetching like state:', error);
-      return false;
+      console.error(`Error fetching like state for placeId ${placeId}:`, error);
+      return false; // 기본값 반환
     }
   };
+  
 
   const toggleLike = async (placeId: number, liked: boolean) => {
     try {
@@ -70,7 +74,6 @@ export default function Home() {
         ? `https://api.moim.team/api/places/unlike`
         : `https://api.moim.team/api/places/like`;
   
-      console.log('Place ID:', placeId, 'Type:', typeof placeId); // 값과 타입 확인
   
       // URL 인코딩된 데이터 생성
       const body = new URLSearchParams();
@@ -138,7 +141,6 @@ export default function Home() {
   }   
 
   const handleTabClick = async (tabId: string) => {
-    // 탭 변경
     setSelectedTab(tabId);
     setSelectedFilters([]); // 필터 초기화
   
@@ -162,23 +164,11 @@ export default function Home() {
           // 좋아요 상태 확인 요청
           const updatedData = await Promise.all(
             (result.data || []).map(async (card: any) => {
-              const likeResponse = await fetch(
-                `https://api.moim.team/api/places/places/${card.id}/liked`,
-                {
-                  method: 'GET',
-                  headers: {
-                    'Content-Type': 'application/json',
-                  },
-                  credentials: 'include', // 쿠키 포함
-                }
-              );
-  
-              const likeResult = likeResponse.ok ? await likeResponse.json() : { liked: false };
-  
+              const liked = await fetchLikedState(card.id);
               return {
                 ...card,
                 filters: card.filters || {}, // filters가 없으면 빈 객체로 초기화
-                liked: likeResult.liked || false, // 좋아요 상태 추가
+                liked, // 좋아요 상태 추가
               };
             })
           );
@@ -193,7 +183,13 @@ export default function Home() {
     } else {
       console.warn('Invalid tabId provided:', tabId);
     }
-  };  
+  };
+  
+
+  useEffect(() => {
+    handleTabClick(selectedTab);
+  }, []); // 빈 배열로 한 번만 실행
+    
 
   const handleFilterButtonClick = (filter: string) => {
     setSelectedFilters(
@@ -264,7 +260,6 @@ export default function Home() {
         )
         if (response.ok) {
           const result = await response.json()
-          console.log('API 응답 데이터:', result) // 디버깅용
           if (result.success && Array.isArray(result.data)) {
             setFilters(result.data) // 상태 업데이트
           } else {
@@ -415,7 +410,7 @@ export default function Home() {
                       <div className={`${styles.likeBackground} ${card.liked ? styles.liked : ''}`} onClick={() => handleLikeButtonClick(card.id, card.liked)}>
                           <div className={styles.likeIcon}></div>
                       </div>
-                      <span>{card.likes.length || 0}명</span>{' '}
+                      <span>{card.likes || 0}명</span>{' '}
                       {/* 좋아요 숫자 */}
                     </div>
                   </div>
