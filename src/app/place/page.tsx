@@ -292,7 +292,6 @@ export default function Home() {
                     imageUrl={card.pictures?.[0] || ''}
                     fallbackUrl="/default-cafe.jpg"
                     alt={card.name || '카드 이미지'}
-                    className={styles.cardImage}
                   />
                 </div>
                 {/* 카드 내용 */}

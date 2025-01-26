@@ -322,21 +322,23 @@
 }
 
 .cardImage {
-  flex: 0 0 30%; /* 카드의 30% 너비 */
-  height: 100%; /* 카드의 높이에 맞춤 */
+  flex: 0 0 35%; /* 카드의 30% 너비 */
+  height: 175px;
   border-radius: 24px 0 0 24px;
   overflow: hidden;
   background-color: #f0f0f0; /* 로드 전 배경색 */
   display: flex;
   justify-content: center;
   align-items: center;
+  /* position: relative; 자식 요소 위치를 기준으로 배치 */
 }
 
 .cardImage img {
-  display: block; /* 레이아웃 오류 방지 */
-  width: 100%; /* 컨테이너의 너비에 맞춤 */
-  height: 100%; /* 컨테이너의 높이에 맞춤 */
-  object-fit: cover; /* 비율 유지하면서 컨테이너 채우기 */
+  /* position: absolute; 부모 컨테이너에 강제로 맞춤 */
+  display: block;
+  width: 100%; /* 컨테이너 너비를 강제로 맞춤 */
+  height: 100%; /* 컨테이너 높이를 강제로 맞춤 */
+  object-fit: fill; /* 비율 무시하고 컨테이너를 완전히 채움 */
 }
 
 
