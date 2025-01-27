@@ -6,6 +6,11 @@ import KakaoMap from '@/components/Map/KakaoMap'
 import Navbar from '@/components/Navigate/NavBar'
 import styles from '@/app/place/styles/Home.module.css'
 import ImageLoader from '@/components/Place/ImageLoader'; // ImageLoader 경로는 프로젝트 구조에 맞게 수정
+import { fetchFilters } from '@/app/api/places/filter/route'
+import { fetchCategoryData } from '@/app/api/places/category/[categoryIndex]/route'
+import { fetchLikedStates } from '@/app/api/places/liked/route'
+import { fetchUserInformation } from '@/app/api/user/information/route'
+import { toggleLike } from '@/app/api/places/like/route'
 
 
 
@@ -42,99 +47,35 @@ export default function Home() {
   const [selectedFilters, setSelectedFilters] = useState<string[]>([])
   const [cardData, setCardData] = useState<any[]>([]) // 카드 데이터를 저장
   const [userName, setUserName] = useState('');
-
-   // 좋아요 상태 확인 함수
-   const fetchLikedState = async (placeId: string) => {
-    try {
-      const response = await fetch(`https://api.moim.team/api/places/places/${placeId}/liked`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include', // 쿠키 포함
-      });
-  
-      if (!response.ok) {
-        console.error(`Failed to fetch like status for placeId ${placeId}. Status: ${response.status}`);
-        return false; // 기본값 반환
-      }
-  
-      const data = await response.json();
-      return data.data; // liked 값 반환
-    } catch (error) {
-      console.error(`Error fetching like state for placeId ${placeId}:`, error);
-      return false; // 기본값 반환
-    }
-  };
   
 
-  const toggleLike = async (placeId: number, liked: boolean) => {
+  const handleLikeButtonClick = async (placeId: number, liked: boolean) => {
     try {
-      const url = liked
-        ? `https://api.moim.team/api/places/unlike`
-        : `https://api.moim.team/api/places/like`;
-  
-  
-      // URL 인코딩된 데이터 생성
-      const body = new URLSearchParams();
-      body.append('placeId', placeId.toString()); // placeId를 문자열로 변환하여 추가
-  
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        credentials: 'include', // 쿠키 포함
-        body: body.toString(), // URL 인코딩된 문자열을 본문으로 설정
-      });
-  
-      if (!response.ok) {
-        throw new Error(`Failed to toggle like status for placeId ${placeId}`);
-      }
-  
-      return !liked; // 반대 상태 반환
+      const updatedLiked = await toggleLike(placeId, liked);
+      setCardData((prev) =>
+        prev.map((card) =>
+          card.id === placeId ? { ...card, liked: updatedLiked } : card
+        )
+      );
     } catch (error) {
-      console.error('Error toggling like:', error);
-      return liked; // 실패 시 기존 상태 유지
-    }
-  };
-    
-
-  const fetchUserInformation = async () => {
-    try {
-      const response = await fetch('https://api.moim.team/api/user/information', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include', // 쿠키 포함
-      });
-  
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error('Error fetching user information:', error);
-      return null;
+      console.error('Failed to toggle like:', error);
     }
   };
   
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const data = await fetchUserInformation();
-        setUserName(data.data.userNickname || '알 수 없는 사용자');
-      } catch (error) {
-        console.error('Error fetching user information:', error);
+    const loadUserInformation = async () => {
+      const userInfo = await fetchUserInformation();
+      if (userInfo) {
+        console.log('User Information:', userInfo);
+        setUserName(userInfo.data?.userNickname || '알 수 없는 사용자');
+      } else {
+        console.warn('Failed to load user information.');
       }
     };
   
-    fetchData();
+    loadUserInformation();
   }, []);
-
 
   const truncateText = (text: string, maxLength: number) => {
     return text.length > maxLength ? text.slice(0, maxLength) + '...' : text
@@ -146,49 +87,36 @@ export default function Home() {
   
     const categoryIndex = tabs.findIndex((tab) => tab.id === tabId);
   
-    if (categoryIndex !== -1) {
-      try {
-        const response = await fetch(
-          `https://api.moim.team/api/places/category/${categoryIndex}`,
-          {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          }
-        );
-  
-        if (response.ok) {
-          const result = await response.json();
-  
-          // 좋아요 상태 확인 요청
-          const updatedData = await Promise.all(
-            (result.data || []).map(async (card: any) => {
-              const liked = await fetchLikedState(card.id);
-              return {
-                ...card,
-                filters: card.filters || {}, // filters가 없으면 빈 객체로 초기화
-                liked, // 좋아요 상태 추가
-              };
-            })
-          );
-  
-          setCardData(updatedData); // 카드 데이터 업데이트
-        } else {
-          console.error(`Failed to fetch card data. Status code: ${response.status}`);
-        }
-      } catch (error) {
-        console.error('Error fetching card data:', error);
-      }
-    } else {
+    if (categoryIndex === -1) {
       console.warn('Invalid tabId provided:', tabId);
+      return;
+    }
+  
+    try {
+      // 카테고리 데이터 가져오기
+      const categoryData = await fetchCategoryData(categoryIndex);
+  
+      // 좋아요 상태 확인 및 데이터 업데이트
+      const updatedData = await Promise.all(
+        categoryData.map(async (card: any) => {
+          const liked = await fetchLikedStates(card.id);
+          return {
+            ...card,
+            filters: card.filters || {}, // filters가 없으면 빈 객체로 초기화
+            liked, // 좋아요 상태 추가
+          };
+        })
+      );
+  
+      setCardData(updatedData); // 카드 데이터 업데이트
+    } catch (error) {
+      console.error('Error fetching category data:', error);
     }
   };
   
-
   useEffect(() => {
     handleTabClick(selectedTab);
-  }, []); // 빈 배열로 한 번만 실행
+  }, []);
     
 
   const handleFilterButtonClick = (filter: string) => {
@@ -199,16 +127,6 @@ export default function Home() {
           : [...prevSelected, filter], // 새로 선택
     )
   }
-
-  const handleLikeButtonClick = async (placeId: number, liked: boolean) => {
-    const updatedLiked = await toggleLike(placeId, liked);
-    setCardData((prev) =>
-      prev.map((card) =>
-        card.id === placeId ? { ...card, liked: updatedLiked } : card
-      )
-    );
-  };
-  
 
   const handleVectorButtonClick = () => {
     if (mapRef.current) {
@@ -249,32 +167,24 @@ export default function Home() {
   }
 
   useEffect(() => {
-    const fetchFilters = async () => {
+    const loadFilters = async () => {
       try {
-        const response = await fetch(
-          'https://api.moim.team/api/places/filter',
-          {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' }
-          },
-        )
-        if (response.ok) {
-          const result = await response.json()
-          if (result.success && Array.isArray(result.data)) {
-            setFilters(result.data) // 상태 업데이트
-          } else {
-            console.error('유효하지 않은 데이터 형식:', result)
-          }
+        const response = await fetchFilters(); // 분리된 함수 호출
+        const { success, data, error } = await response.json(); // 응답 처리
+
+        if (success && Array.isArray(data)) {
+          setFilters(data); // 상태 업데이트
         } else {
-          console.error('Failed to fetch filters:', response.status)
+          console.error('Failed to fetch filters:', error || 'Unknown error');
         }
       } catch (error) {
-        console.error('Error fetching filters:', error)
+        console.error('Error fetching filters:', error);
       }
-    }
+    };
 
-    fetchFilters()
-  }, [])
+    loadFilters(); // 필터 데이터 로드
+  }, []);
+
 
   const getCurrentTabFilters = () => {
     const currentCategory = tabs.find((tab) => tab.id === selectedTab)?.label
