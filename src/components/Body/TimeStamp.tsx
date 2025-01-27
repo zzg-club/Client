@@ -42,6 +42,7 @@ interface TimeStampProps {
 }
 
 const COLUMNS_PER_PAGE = 7
+let isTouchInProgress = false // 터치 진행 중 플래그
 
 export default function TimeStamp({
   selectedDates,
@@ -72,8 +73,6 @@ export default function TimeStamp({
       : (() => {
           let startIndex = 0
           let endIndex = 0
-
-          // dateCounts에 따라 날짜 범위 계산
           for (let i = 0; i < dateCounts.length; i++) {
             const pageSize = dateCounts[i]
             if (currentPage === i) {
@@ -144,6 +143,11 @@ export default function TimeStamp({
   )
 
   const handleMouseClick = (rowIndex: number, colIndex: number) => {
+    if (isTouchInProgress) {
+      // 터치 이벤트로 인해 호출된 경우, 무시
+      return
+    }
+
     const pairStartRow = Math.floor(rowIndex / 2) * 2
     const pairEndRow = pairStartRow + 1
 
@@ -335,20 +339,33 @@ export default function TimeStamp({
     mode,
   ])
 
-  const handleSelectionStart = (
-    rowIndex: number,
-    colIndex: number,
-    isTouchEvent: boolean,
-  ) => {
-    // 이미 선택된 상태라면 새로운 선택을 시작하지 않음
-    const cellStatus = getCellStatus(rowIndex, colIndex)
-    if (cellStatus.isSelected) return
+  useEffect(() => {
+    // 터치 이벤트 기본 동작 방지
+    const grid = gridRef.current
+    if (!grid) return
 
-    if (!isTouchEvent) {
-      return
+    const preventDefaultForScrolling = (e: TouchEvent) => {
+      e.preventDefault()
     }
 
-    console.log('handleSelectionStart', rowIndex, colIndex, isTouchEvent)
+    grid.addEventListener('touchstart', preventDefaultForScrolling, {
+      passive: false,
+    })
+
+    return () => {
+      grid.removeEventListener('touchstart', preventDefaultForScrolling)
+    }
+  }, [])
+
+  const handleTouchClick = (rowIndex: number, colIndex: number) => {
+    isTouchInProgress = true // 터치 진행 중 플래그 활성화
+
+    setTimeout(() => {
+      isTouchInProgress = false // 플래그 초기화
+    }, 300) // 300ms 뒤 플래그 초기화
+
+    const cellStatus = getCellStatus(rowIndex, colIndex)
+    if (cellStatus.isSelected) return
 
     const pairStartRow = Math.floor(rowIndex / 2) * 2
     const pairEndRow = pairStartRow + 1
@@ -373,7 +390,7 @@ export default function TimeStamp({
         isConfirmed: false,
       }
 
-      console.log('handleSelectionStart')
+      console.log('handleTouchClick')
 
       return {
         ...updatedSelections,
@@ -383,6 +400,25 @@ export default function TimeStamp({
         ],
       }
     })
+  }
+
+  const handleTouchDown = (
+    rowIndex: number,
+    colIndex: number,
+    isEndpoint: boolean,
+    selection?: Selection,
+  ) => {
+    if (selection) {
+      setIsResizing(true)
+      setActiveSelection(selection)
+      setResizingPoint(
+        rowIndex === selection.startRow && colIndex === selection.startCol
+          ? 'start'
+          : 'end',
+      )
+      // console.log('Resizing started on', resizingPoint, selection)
+      console.log('handleTouchDown', selection)
+    }
   }
 
   const handleTouchMove = useCallback(
@@ -413,6 +449,7 @@ export default function TimeStamp({
           }
         }
 
+        console.log('handleTouchMove', activeSelection)
         return !isOverlapping(newSelection) ? newSelection : prev
       })
     },
@@ -804,15 +841,15 @@ export default function TimeStamp({
                         onColumnClick(colIndex, rowIndex)
                       }}
                       onTouchStart={() => {
-                        handleSelectionStart(rowIndex, colIndex, true)
+                        handleTouchClick(rowIndex, colIndex)
+                        onColumnClick(colIndex, rowIndex)
                       }}
                     >
                       {!cellStatus.isConfirmed && cellStatus.isStartCell && (
                         <div
                           className="absolute -top-[0px] left-[0%] w-[100%] h-[100%] touch-target"
-                          onTouchStart={(e) => {
-                            e.stopPropagation()
-                            handleMouseDown(
+                          onTouchStart={() => {
+                            handleTouchDown(
                               rowIndex,
                               colIndex,
                               true,
@@ -837,9 +874,8 @@ export default function TimeStamp({
                       {!cellStatus.isConfirmed && cellStatus.isEndCell && (
                         <div
                           className="absolute -bottom-[0px] right-[0%] w-[100%] h-[100%] touch-target"
-                          onTouchStart={(e) => {
-                            e.stopPropagation()
-                            handleMouseDown(
+                          onTouchStart={() => {
+                            handleTouchDown(
                               rowIndex,
                               colIndex,
                               false,
