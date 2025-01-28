@@ -5,14 +5,12 @@ import { useRouter } from 'next/navigation'
 import KakaoMap from '@/components/Map/KakaoMap'
 import Navbar from '@/components/Navigate/NavBar'
 import styles from '@/app/place/styles/Home.module.css'
-import ImageLoader from '@/components/Place/ImageLoader'; // ImageLoader 경로는 프로젝트 구조에 맞게 수정
 import { fetchFilters } from '@/app/api/places/filter/route'
 import { fetchCategoryData } from '@/app/api/places/category/[categoryIndex]/route'
 import { fetchLikedStates } from '@/app/api/places/liked/route'
 import { fetchUserInformation } from '@/app/api/user/information/route'
 import { toggleLike } from '@/app/api/places/like/route'
-
-
+import { fetchFilteredCategoryData } from '@/app/api/places/category/[categoryIndex]/route'; // 필터 데이터 API
 
 interface Place {
   lat: number
@@ -22,7 +20,7 @@ interface Place {
 
 interface FilterResponse {
   category: string
-  filters: Record<string, string> // filter1, filter2, ...
+  filters: Record<string, string> 
 }
 
 const tabs = [
@@ -93,12 +91,26 @@ export default function Home() {
     }
   
     try {
-      // 카테고리 데이터 가져오기
-      const categoryData = await fetchCategoryData(categoryIndex);
+      let data;
+  
+      if (selectedFilters.length === 0) {
+        // 필터가 선택되지 않았을 때 기본 데이터를 가져옵니다.
+        console.log('Fetching default category data for categoryIndex:', categoryIndex);
+        data = await fetchCategoryData(categoryIndex);
+      } else {
+        // 선택된 필터를 기반으로 필터링된 데이터를 가져옵니다.
+        const filters = getCurrentTabFilters().reduce((acc, filter, index) => {
+          acc[`filter${index + 1}`] = selectedFilters.includes(filter); // 선택된 필터를 boolean으로 변환
+          return acc;
+        }, {} as { filter1?: boolean; filter2?: boolean; filter3?: boolean; filter4?: boolean });
+  
+        console.log('Fetching filtered category data with filters:', filters);
+        data = await fetchFilteredCategoryData(categoryIndex, filters);
+      }
   
       // 좋아요 상태 확인 및 데이터 업데이트
       const updatedData = await Promise.all(
-        categoryData.map(async (card: any) => {
+        data.map(async (card: any) => {
           const liked = await fetchLikedStates(card.id);
           return {
             ...card,
@@ -108,25 +120,86 @@ export default function Home() {
         })
       );
   
+      console.log('Updated card data:', updatedData);
       setCardData(updatedData); // 카드 데이터 업데이트
     } catch (error) {
       console.error('Error fetching category data:', error);
     }
   };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const categoryIndex = tabs.findIndex((tab) => tab.id === selectedTab);
+  
+      if (categoryIndex === -1) {
+        console.warn('Invalid tabId provided:', selectedTab);
+        return;
+      }
+  
+      try {
+        let data;
+  
+        if (selectedFilters.length === 0) {
+          // 필터가 선택되지 않았을 때 기본 데이터를 가져옵니다.
+          console.log('Fetching default category data for categoryIndex:', categoryIndex);
+          data = await fetchCategoryData(categoryIndex);
+        } else {
+          try {
+            const filters = getCurrentTabFilters().reduce((acc, filter, index) => {
+              acc[`filter${index + 1}`] = selectedFilters.includes(filter); // 선택된 필터를 boolean으로 변환
+              return acc;
+            }, {} as { filter1?: boolean; filter2?: boolean; filter3?: boolean; filter4?: boolean });
+          
+            console.log('Fetching filtered category data with filters:', filters);
+          
+            data = await fetchFilteredCategoryData(categoryIndex, filters);
+          
+            if (!data || data.length === 0) {
+              console.warn('No data returned for the selected filters:', filters);
+              data = []; // 기본값으로 빈 배열 설정
+            }
+          } catch (error) {
+            console.error('Error fetching filtered category data:', error);
+            data = []; // 예외 발생 시 빈 배열 설정
+          }
+        }
+  
+        // 좋아요 상태 확인 및 데이터 업데이트
+        const updatedData = await Promise.all(
+          data.map(async (card: any) => {
+            const liked = await fetchLikedStates(card.id);
+            return {
+              ...card,
+              filters: card.filters || {}, // filters가 없으면 빈 객체로 초기화
+              liked, // 좋아요 상태 추가
+            };
+          })
+        );
+  
+        console.log('Updated card data:', updatedData);
+        setCardData(updatedData); // 카드 데이터 업데이트
+      } catch (error) {
+        console.error('Error fetching category data:', error);
+      }
+    };
+  
+    fetchData();
+  }, [selectedTab, selectedFilters]); // 탭 상태 및 필터 상태가 변경될 때 호출
   
   useEffect(() => {
     handleTabClick(selectedTab);
   }, []);
-    
 
   const handleFilterButtonClick = (filter: string) => {
-    setSelectedFilters(
-      (prevSelected) =>
-        prevSelected.includes(filter)
-          ? prevSelected.filter((item) => item !== filter) // 이미 선택된 경우 해제
-          : [...prevSelected, filter], // 새로 선택
-    )
-  }
+    setSelectedFilters((prevSelected) => {
+      const updatedFilters = prevSelected.includes(filter)
+        ? prevSelected.filter((item) => item !== filter) // 이미 선택된 경우 해제
+        : [...prevSelected, filter]; // 새로 선택
+  
+      console.log('Updated Filters:', updatedFilters); // 선택된 필터 로그
+      return updatedFilters;
+    });
+  };
 
   const handleVectorButtonClick = () => {
     if (mapRef.current) {
@@ -303,11 +376,19 @@ export default function Home() {
             {cardData.map((card) => (
               <div key={card.id} className={styles.card}>
                 <div className={styles.cardImage}>
-                  <ImageLoader
-                    imageUrl={card.pictures?.[0] || ''}
-                    fallbackUrl="/default-cafe.jpg"
-                    alt={card.name || '카드 이미지'}
+                  {card.pictures?.[0]? (
+                  <img
+                  src={card.pictures[0] || '/default-cafe.jpg'}
+                  alt={card.name || '카드 이미지'}
+                  loading="lazy"
                   />
+                ) : (
+                  <img
+                    src="/default-cafe.jpg"
+                    alt={card.name || '기본 이미지'}
+                    className={styles.cardImage} // 필요한 스타일 추가
+                  />
+                )}
                 </div>
                 {/* 카드 내용 */}
                 <div className={styles.cardContent}>
