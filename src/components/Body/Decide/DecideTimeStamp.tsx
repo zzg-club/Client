@@ -868,6 +868,102 @@ export default function TimeStamp({
     }
   }, [])
 
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setSelectionsByPage((prev) => {
+        const newSelections = { ...prev }
+
+        Object.keys(newSelections).forEach((pageKey) => {
+          const page = Number.parseInt(pageKey, 10)
+          const pageSelections = newSelections[page]
+          if (!pageSelections) return
+
+          // 현재 페이지의 선택 영역을 필터링
+          newSelections[page] = pageSelections.filter((selection) => {
+            // 아직 확정되지 않은 선택 영역은 항상 유지
+            if (!selection.isConfirmed) return true
+
+            // 선택 영역의 날짜와 시간 정보 계산
+            const colDate =
+              mode === 'range'
+                ? selectedDates[selection.startCol + page * COLUMNS_PER_PAGE]
+                  ? `${selectedDates[selection.startCol + page * COLUMNS_PER_PAGE]?.year}-${String(
+                      selectedDates[
+                        selection.startCol + page * COLUMNS_PER_PAGE
+                      ]?.month,
+                    ).padStart(2, '0')}-${String(
+                      selectedDates[
+                        selection.startCol + page * COLUMNS_PER_PAGE
+                      ]?.day,
+                    ).padStart(2, '0')}`
+                  : undefined
+                : groupedDate[page]?.date?.[selection.startCol]
+                  ? `${groupedDate[page]?.date?.[selection.startCol]?.year}-${String(
+                      groupedDate[page]?.date?.[selection.startCol]?.month,
+                    ).padStart(
+                      2,
+                      '0',
+                    )}-${String(groupedDate[page]?.date?.[selection.startCol]?.day).padStart(2, '0')}`
+                  : undefined
+
+            console.log('colDate', colDate)
+
+            if (!colDate) {
+              console.log(
+                `Removing selection due to missing colDate:`,
+                selection,
+              )
+              return false
+            }
+
+            const getTimeFromRow = (row: number) => {
+              const hours = Math.floor(row / 2)
+              const minutes = (row % 2) * 30
+              return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`
+            }
+
+            const selectionStart = getTimeFromRow(selection.startRow)
+            const selectionEnd = getTimeFromRow(selection.endRow + 1)
+
+            // dateTime에서 해당 날짜와 시간대가 존재하는지 확인
+            const exists = dateTime.some(
+              (dateItem) =>
+                dateItem.date === colDate &&
+                dateItem.timeSlots.some(
+                  (slot) =>
+                    slot.start === selectionStart && slot.end === selectionEnd,
+                ),
+            )
+
+            console.log('exists', exists)
+
+            if (!exists) {
+              console.log(`Removing selection due to missing timeSlot:`, {
+                selection,
+                colDate,
+                selectionStart,
+                selectionEnd,
+              })
+            }
+
+            return exists // dateTime에 존재하는 경우만 유지
+          })
+
+          // 빈 페이지 제거
+          if (newSelections[page].length === 0) {
+            console.log(`Removing empty page          `, page)
+            delete newSelections[page]
+          }
+        })
+
+        console.log('Updated selectionsByPage:', newSelections)
+        return newSelections
+      })
+    }, 500) // 1000ms (1초) 지연
+
+    return () => clearTimeout(timeoutId) // 컴포넌트 언마운트 시 타이머 클리어
+  }, [dateTime, selectedDates, mode, groupedDate])
+
   return (
     <div
       className={`timestamp-container ${isBottomSheetOpen ? 'pb-[100px]' : 'pb-[40px]'}`}
