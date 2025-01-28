@@ -582,79 +582,174 @@ export default function TimeStamp({
     [activeSelection, isResizing, resizingPoint, isOverlapping],
   )
 
+  // 원래 성하의 handleTouchEnd 함수
+  // const handleTouchEnd = () => {
+  //   if (activeSelection) {
+  //     const finalizedSelection = {
+  //       ...activeSelection,
+  //       isSelected: false,
+  //       isConfirmed: true,
+  //     }
+
+  //     setSelectionsByPage((prev) => {
+  //       const currentSelections = prev[currentPage] || []
+  //       const updatedSelections = currentSelections.flatMap((sel) => {
+  //         const isOverlap =
+  //           sel.startRow <= finalizedSelection.endRow &&
+  //           sel.endRow >= finalizedSelection.startRow &&
+  //           sel.startCol === finalizedSelection.startCol
+
+  //         if (!isOverlap) {
+  //           return [sel]
+  //         }
+
+  //         const splitSelections = []
+  //         if (sel.startRow < finalizedSelection.startRow) {
+  //           splitSelections.push({
+  //             ...sel,
+  //             endRow: finalizedSelection.startRow - 1,
+  //           })
+  //         }
+  //         if (sel.endRow > finalizedSelection.endRow) {
+  //           splitSelections.push({
+  //             ...sel,
+  //             startRow: finalizedSelection.endRow + 1,
+  //           })
+  //         }
+  //         return splitSelections
+  //       })
+
+  //       const mergedSelections = [...updatedSelections, finalizedSelection]
+
+  //       const startCol = finalizedSelection.startCol
+  //       const getTimeLabel = (rowIndex: number) => {
+  //         const hours = Math.floor(rowIndex / 2)
+  //         const minutes = (rowIndex % 2) * 30
+  //         const formattedHour = String(hours).padStart(2, '0')
+  //         const formattedMinute = String(minutes).padStart(2, '0')
+  //         return `${formattedHour}:${formattedMinute}`
+  //       }
+
+  //       let selectedDate: string
+  //       if (mode === 'range') {
+  //         // mode가 'range'일 경우 기존 로직
+  //         selectedDate = `${currentDates[startCol]?.year}-${String(currentDates[startCol]?.month).padStart(2, '0')}-${String(currentDates[startCol]?.day).padStart(2, '0')}`
+  //       } else {
+  //         // mode가 'range'가 아닐 경우 다른 로직
+  //         const groupedArray = groupedDate?.[currentPage]?.date ?? []
+  //         selectedDate = `${groupedArray[startCol]?.year}-${String(groupedArray[startCol]?.month).padStart(2, '0')}-${String(groupedArray[startCol]?.day).padStart(2, '0')}`
+  //       }
+
+  //       console.log('groupedDate', groupedDate)
+
+  //       // console.log('selectedDate', selectedDate)
+
+  //       const startTime = getTimeLabel(finalizedSelection.startRow)
+  //       const endTime = getTimeLabel(finalizedSelection.endRow + 1)
+
+  //       handleDateTimeSelect(selectedDate, startTime, endTime)
+
+  //       return {
+  //         ...prev,
+  //         [currentPage]: mergedSelections,
+  //       }
+  //     })
+  //   }
+  // }
+
+  // 윤정언니 handleTouchEnd 함수
   const handleTouchEnd = () => {
-    if (activeSelection) {
-      const finalizedSelection = {
-        ...activeSelection,
-        isSelected: false,
-        isConfirmed: true,
-      }
+    handleMouseUp()
+  }
 
-      setSelectionsByPage((prev) => {
-        const currentSelections = prev[currentPage] || []
-        const updatedSelections = currentSelections.flatMap((sel) => {
-          const isOverlap =
-            sel.startRow <= finalizedSelection.endRow &&
-            sel.endRow >= finalizedSelection.startRow &&
-            sel.startCol === finalizedSelection.startCol
+  // 윤정언니 handleTouchStart 함수
+  const handleTouchStart = (
+    e: React.TouchEvent<HTMLDivElement>,
+    rowIndex: number,
+    colIndex: number,
+    isStartPoint: boolean,
+    selection: Selection,
+  ) => {
+    e.preventDefault()
+    // 현재 열의 날짜 구하기
+    let currentDate: string
+    if (mode === 'range') {
+      const date = selectedDates[currentPage * COLUMNS_PER_PAGE + colIndex]
+      currentDate = `${date.year}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`
+    } else {
+      const groupedArray = groupedDate[currentPage]?.date ?? []
+      currentDate = `${groupedArray[colIndex]?.year}-${String(groupedArray[colIndex]?.month).padStart(2, '0')}-${String(groupedArray[colIndex]?.day).padStart(2, '0')}`
+    }
 
-          if (!isOverlap) {
-            return [sel]
-          }
+    const schedule = dateTime.find((item) => {
+      // 날짜가 일치하는지 먼저 확인
+      if (item.date !== currentDate) return false
 
-          const splitSelections = []
-          if (sel.startRow < finalizedSelection.startRow) {
-            splitSelections.push({
-              ...sel,
-              endRow: finalizedSelection.startRow - 1,
-            })
-          }
-          if (sel.endRow > finalizedSelection.endRow) {
-            splitSelections.push({
-              ...sel,
-              startRow: finalizedSelection.endRow + 1,
-            })
-          }
-          return splitSelections
-        })
-
-        const mergedSelections = [...updatedSelections, finalizedSelection]
-
-        const startCol = finalizedSelection.startCol
-        const getTimeLabel = (rowIndex: number) => {
-          const hours = Math.floor(rowIndex / 2)
-          const minutes = (rowIndex % 2) * 30
-          const formattedHour = String(hours).padStart(2, '0')
-          const formattedMinute = String(minutes).padStart(2, '0')
-          return `${formattedHour}:${formattedMinute}`
-        }
-
-        let selectedDate: string
-        if (mode === 'range') {
-          // mode가 'range'일 경우 기존 로직
-          selectedDate = `${currentDates[startCol]?.year}-${String(currentDates[startCol]?.month).padStart(2, '0')}-${String(currentDates[startCol]?.day).padStart(2, '0')}`
-        } else {
-          // mode가 'range'가 아닐 경우 다른 로직
-          const groupedArray = groupedDate?.[currentPage]?.date ?? []
-          selectedDate = `${groupedArray[startCol]?.year}-${String(groupedArray[startCol]?.month).padStart(2, '0')}-${String(groupedArray[startCol]?.day).padStart(2, '0')}`
-        }
-
-        console.log('groupedDate', groupedDate)
-
-        // console.log('selectedDate', selectedDate)
-
-        const startTime = getTimeLabel(finalizedSelection.startRow)
-        const endTime = getTimeLabel(finalizedSelection.endRow + 1)
-
-        handleDateTimeSelect(selectedDate, startTime, endTime)
-
-        return {
-          ...prev,
-          [currentPage]: mergedSelections,
-        }
+      // 해당 날짜의 timeSlots 중에서 선택한 rowIndex가 포함되는 시간대가 있는지 확인
+      return item.timeSlots.some((slot) => {
+        const startIdx = timeToIndex(slot.start)
+        const endIdx = timeToIndex(slot.end) - 1
+        return rowIndex >= startIdx && rowIndex <= endIdx
       })
+    })
+    console.log('schedule', schedule)
+
+    if (schedule) {
+      return
+    }
+    if (selection) {
+      setIsResizing(true)
+      setActiveSelection(selection)
+      setResizingPoint(isStartPoint ? 'start' : 'end')
     }
   }
+
+  useEffect(() => {
+    const element = gridRef.current
+    if (!element) return
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!gridRef.current || !activeSelection) return
+
+      const rect = gridRef.current.getBoundingClientRect()
+      const cellHeight = rect.height / 48
+      const clientY = e.touches[0]?.clientY // 첫 번째 터치의 Y 좌표
+      const row = Math.min(
+        Math.max(Math.floor((clientY - rect.top) / cellHeight), 0),
+        47,
+      )
+
+      // console.log('ActiveSelection', activeSelection);
+
+      setActiveSelection((prev) => {
+        if (!prev) return null
+
+        const newSelection = { ...prev }
+
+        if (isResizing) {
+          if (resizingPoint === 'start') {
+            if (row < prev.endRow) {
+              newSelection.startRow = row
+            }
+          } else if (resizingPoint === 'end') {
+            if (row > prev.startRow) {
+              newSelection.endRow = row
+            }
+          }
+        }
+        return !isOverlapping(newSelection) ? newSelection : prev
+      })
+
+      e.preventDefault() // 터치 스크롤 방지
+    }
+    element.addEventListener('touchmove', handleTouchMove, {
+      passive: false, // preventDefault 사용 가능하도록 설정
+    })
+
+    return () => {
+      element.removeEventListener('touchmove', handleTouchMove)
+    }
+  }, [isResizing, activeSelection, resizingPoint, isOverlapping])
 
   useEffect(() => {
     const handleMouseUpWithColumnClick = () => {
@@ -814,7 +909,6 @@ export default function TimeStamp({
 
     const handleTouchStart = (e: TouchEvent) => {
       if (e.touches.length === 2) {
-        e.preventDefault()
         const touch1 = e.touches[0]
         const touch2 = e.touches[1]
         initialDistance = Math.sqrt(
@@ -931,7 +1025,7 @@ export default function TimeStamp({
                 dateItem.date === colDate &&
                 dateItem.timeSlots.some(
                   (slot) =>
-                    slot.start === selectionStart && slot.end === selectionEnd,
+                    slot.start === selectionStart || slot.end === selectionEnd,
                 ),
             )
 
@@ -1059,12 +1153,34 @@ export default function TimeStamp({
                             : ''
                         }`}
                         style={{ zIndex: 100 }}
+                        onTouchStart={(e) =>
+                          handleTouchStart(
+                            e,
+                            rowIndex,
+                            colIndex,
+                            cellStatus.isStartCell,
+                            cellStatus.selection!,
+                          )
+                        }
+                        onTouchEnd={handleTouchEnd}
                       />
                       {!cellStatus.isConfirmed && cellStatus.isStartCell && (
+                        // <div
+                        //   className="absolute -top-[0px] left-[0%] w-[100%] h-[100%] touch-target z-[2000]"
+                        //   onMouseDown={() => {
+                        //     // e.stopPropagation()
+                        //     handleMouseDown(
+                        //       rowIndex,
+                        //       colIndex,
+                        //       true,
+                        //       cellStatus.selection!,
+                        //     )
+                        //     onColumnClick(colIndex, rowIndex)
+                        //   }}
+                        // >
                         <div
-                          className="absolute -top-[0px] left-[0%] w-[100%] h-[100%] touch-target z-[2000]"
-                          onTouchStart={(e) => {
-                            e.stopPropagation()
+                          className="absolute -top-[5px] left-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move"
+                          onMouseDown={() => {
                             handleMouseDown(
                               rowIndex,
                               colIndex,
@@ -1073,47 +1189,36 @@ export default function TimeStamp({
                             )
                             onColumnClick(colIndex, rowIndex)
                           }}
-                        >
-                          <div
-                            className="absolute -top-[5px] left-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move"
-                            onMouseDown={() => {
-                              handleMouseDown(
-                                rowIndex,
-                                colIndex,
-                                true,
-                                cellStatus.selection!,
-                              )
-                            }}
-                          />
-                        </div>
+                        />
+                        // </div>
                       )}
                       {!cellStatus.isConfirmed && cellStatus.isEndCell && (
+                        // <div
+                        //   className="absolute -bottom-[0px] right-[0%] w-[100%] h-[100%] touch-target"
+                        //   style={{ zIndex: 3000 }}
+                        //   // onTouchStart={(e) => {
+                        //   //   e.stopPropagation()
+                        //   //   handleMouseDown(
+                        //   //     rowIndex,
+                        //   //     colIndex,
+                        //   //     false,
+                        //   //     cellStatus.selection!,
+                        //   //   )
+                        //   //   onColumnClick(colIndex, rowIndex)
+                        //   // }}
+                        // >
                         <div
-                          className="absolute -bottom-[0px] right-[0%] w-[100%] h-[100%] touch-target"
-                          style={{ zIndex: 3000 }}
-                          onTouchStart={(e) => {
-                            e.stopPropagation()
+                          className="absolute -bottom-[5px] right-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move "
+                          onMouseDown={() => {
                             handleMouseDown(
                               rowIndex,
                               colIndex,
                               false,
                               cellStatus.selection!,
                             )
-                            onColumnClick(colIndex, rowIndex)
                           }}
-                        >
-                          <div
-                            className="absolute -bottom-[5px] right-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move "
-                            onMouseDown={() => {
-                              handleMouseDown(
-                                rowIndex,
-                                colIndex,
-                                false,
-                                cellStatus.selection!,
-                              )
-                            }}
-                          />
-                        </div>
+                        />
+                        // </div>
                       )}
                     </div>
                   )
