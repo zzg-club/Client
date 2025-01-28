@@ -1,67 +1,22 @@
 'use client'
 
-import React, { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import styles from './LocationPage.module.css'
-import SearchBar from '@/components/SearchBar/SearchBar'
+import React from 'react'
+import { LocationPage } from '@/components/Search'
+import { useSearchParams } from 'next/navigation'
 
-const LocationPage: React.FC = () => {
-  const router = useRouter()
-  const [locations, setLocations] = useState([
-    {
-      name: '성북역 롯데골드타운아파트',
-      address: '경기 용인시 수지구 성북로 10',
-    },
-    {
-      name: '성북역 롯데골드타운아파트',
-      address: '경기 용인시 수지구 성북로 10',
-    },
-    {
-      name: '성북역 롯데골드타운아파트',
-      address: '경기 용인시 수지구 성북로 10',
-    },
-    {
-      name: '성북역 롯데골드타운아파트',
-      address: '경기 용인시 수지구 성북로 10',
-    },
-  ])
+const Location = () => {
+  const searchParams = useSearchParams()
+  const from = searchParams.get('from')
 
-  const handleBack = () => {
-    router.push('/letsmeet') // 'place' 페이지로 이동
+  const handleLocationClick = () => {
+    if (from === '/place') {
+      //플레이스 탭에서 왔다면
+      window.location.href = `/place`
+    } else {
+      window.location.href = `/letsmeet/middle?from=${from}`
+    }
   }
-
-  return (
-    <div className={styles.container}>
-      {/* 검색창 */}
-      <div className={styles.searchBar}>
-        {/* 뒤로가기 버튼 */}
-        <img
-          src="/arrow_back.svg"
-          alt="뒤로 가기"
-          className={styles.arrowIcon}
-          onClick={handleBack} // 함수 호출로 변경
-        />
-
-        <SearchBar placeholder="출발지를 입력해주세요!" />
-        {/* 검색 버튼 */}
-        <button
-          className={styles.searchButton}
-          onClick={() => console.log('검색 버튼 클릭')}
-        >
-          검색
-        </button>
-      </div>
-      {/* 위치 리스트 */}
-      <div className={styles.locationList}>
-        {locations.map((location, index) => (
-          <div key={index} className={styles.locationItem}>
-            <p className={styles.locationName}>{location.name}</p>
-            <p className={styles.locationAddress}>{location.address}</p>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
+  return <LocationPage onLocationClick={handleLocationClick} />
 }
 
-export default LocationPage
+export default Location

@@ -5,51 +5,54 @@ import { useState, useRef } from 'react'
 export default function Home() {
   const [isSheetExpanded, setIsSheetExpanded] = useState(false) // Bottom Sheet 상태
   const startYRef = useRef<number | null>(null) // 드래그 시작 위치 저장
+  const isDraggingRef = useRef<boolean>(false) // 드래그 여부 확인
 
   // 드래그 시작
-  const handleTouchStart = (event: React.TouchEvent) => {
-    console.log('Touch Start:', event.touches[0].clientY)
-    startYRef.current = event.touches[0].clientY
+  const handleStart = (y: number) => {
+    startYRef.current = y
+    isDraggingRef.current = true
   }
 
   // 드래그 동작
-  const handleTouchMove = (event: React.TouchEvent) => {
-    event.preventDefault() // 기본 이벤트 방지
-    event.stopPropagation() // 이벤트 전파 방지
+  const handleMove = (y: number) => {
+    if (!isDraggingRef.current || startYRef.current === null) return
+    const deltaY = startYRef.current - y
 
-    if (startYRef.current === null) return
-    const currentY = event.touches[0].clientY
-    const deltaY = startYRef.current - currentY
-
-    console.log('Touch Move:', { deltaY })
+    console.log('Drag Move:', { deltaY })
 
     // 위로 드래그했을 때
     if (deltaY > 50) {
       console.log('Swiped Up')
-      setTimeout(() => setIsSheetExpanded(true), 0) // 상태 업데이트 지연
+      setTimeout(() => setIsSheetExpanded(true), 0)
       startYRef.current = null
+      isDraggingRef.current = false
     }
 
     // 아래로 드래그했을 때
     if (deltaY < -50) {
       console.log('Swiped Down')
-      setTimeout(() => setIsSheetExpanded(false), 0) // 상태 업데이트 지연
+      setTimeout(() => setIsSheetExpanded(false), 0)
       startYRef.current = null
+      isDraggingRef.current = false
     }
   }
 
   // 드래그 종료
-  const handleTouchEnd = () => {
-    console.log('Touch End')
-    startYRef.current = null // 초기화
+  const handleEnd = () => {
+    console.log('Drag End')
+    startYRef.current = null
+    isDraggingRef.current = false
   }
 
   return (
     <div
       className="flex h-screen overflow-hidden items-center justify-center relative"
       style={{
-        background: 'linear-gradient(180deg, #9562FB 0%, #F9F0FF 100%)', // 배경 그라데이션
+        background: 'linear-gradient(180deg, #9562FB 0%, #F9F0FF 100%)',
       }}
+      onMouseMove={(e) => isDraggingRef.current && handleMove(e.clientY)}
+      onMouseUp={handleEnd}
+      onMouseLeave={handleEnd} // 마우스가 화면 밖으로 나갔을 때 초기화
     >
       {/* Splash 화면 */}
       <div
@@ -75,7 +78,7 @@ export default function Home() {
             fontSize: '32px',
             fontStyle: 'normal',
             fontWeight: 500,
-            lineHeight: '17px', // 53.125%
+            lineHeight: '17px',
             letterSpacing: '-0.5px',
           }}
         >
@@ -92,102 +95,100 @@ export default function Home() {
             : 'translateY(calc(100% - 42px))',
           boxShadow: '0 -4px 6px rgba(0, 0, 0, 0.1)',
         }}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
+        onTouchStart={(e) => handleStart(e.touches[0].clientY)} // 모바일 터치
+        onTouchMove={(e) => handleMove(e.touches[0].clientY)} // 모바일 터치 이동
+        onTouchEnd={handleEnd} // 모바일 터치 종료
+        onMouseDown={(e) => handleStart(e.clientY)} // 데스크탑 드래그 시작
+        onMouseMove={(e) => isDraggingRef.current && handleMove(e.clientY)} // 데스크탑 드래그 이동
+        onMouseUp={handleEnd} // 데스크탑 드래그 종료
       >
         <div className="w-16 h-1 bg-gray-300 rounded-full mx-auto mt-4"></div>
         <div
           className="p-6"
           style={{
             padding: '40px 48px',
+            display: 'block',
           }}
         >
+          <h2
+            style={{
+              color: 'var(--glassmorph-black, #1E1E1E)',
+              textAlign: 'left',
+              fontFamily: 'Pretendard',
+              fontSize: '24px',
+              fontStyle: 'normal',
+              fontWeight: 500,
+              lineHeight: '28px',
+              letterSpacing: '-0.5px',
+              marginBottom: '16px',
+            }}
+          >
+            환영해요!
+          </h2>
+          <p
+            style={{
+              color: 'var(--glassmorph-black, #1E1E1E)',
+              textAlign: 'left',
+              fontFamily: 'Pretendard',
+              fontSize: '16px',
+              fontStyle: 'normal',
+              fontWeight: 300,
+              lineHeight: '22px',
+              letterSpacing: '-0.5px',
+              marginBottom: '48px',
+            }}
+          >
+            대학 새내기를 위한 캠퍼스 라이프 필수템
+          </p>
+
+          {/* 간편 로그인 + 실선 */}
           <div
+            className="flex items-center justify-center mb-8"
             style={{
               marginBottom: '48px',
             }}
           >
-            <h2
+            {/* 왼쪽 실선 */}
+            <div
               style={{
-                color: 'var(--glassmorph-black, #1E1E1E)',
-                textAlign: 'left', // 왼쪽 정렬
-                fontFamily: 'Pretendard',
-                fontSize: '24px',
-                fontStyle: 'normal',
-                fontWeight: 500,
-                lineHeight: '28px', // 조정된 라인 높이
-                letterSpacing: '-0.5px',
-                marginBottom: '16px', // 간격 조정
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis', // 넘침 처리
+                flex: 1, // 공간을 채우도록 설정
+                height: '0.5px',
+                backgroundColor: 'var(--NavBarColor, #AFAFAF)',
               }}
-            >
-              환영해요!
-            </h2>
+            ></div>
+
+            {/* 텍스트 */}
             <p
               style={{
-                color: 'var(--glassmorph-black, #1E1E1E)',
-                textAlign: 'left',
+                color: 'var(--NavBarColor, #AFAFAF)',
                 fontFamily: 'Pretendard',
-                fontSize: '16px',
+                fontSize: '12px',
                 fontStyle: 'normal',
-                fontWeight: 300,
-                lineHeight: '22px',
-                letterSpacing: '-0.5px',
-
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
+                fontWeight: 400,
+                lineHeight: 'normal',
+                margin: '0 12px', // 텍스트와 실선 간격
+                whiteSpace: 'nowrap', // 텍스트 줄바꿈 방지
               }}
             >
-              대학 새내기를 위한 캠퍼스 라이프 필수템
+              간편 로그인
             </p>
+
+            {/* 오른쪽 실선 */}
+            <div
+              style={{
+                flex: 1, // 공간을 채우도록 설정
+                height: '0.5px',
+                backgroundColor: 'var(--NavBarColor, #AFAFAF)',
+              }}
+            ></div>
           </div>
-          <div
-            style={{
-              marginBottom: '48px',
-            }}
-          >
-            {/* 간편 로그인과 실선 */}
-            <div className="flex items-center justify-center mb-8">
-              <div
-                style={{
-                  width: '93px',
-                  height: '0.5px',
-                  backgroundColor: 'var(--NavBarColor, #AFAFAF)',
-                }}
-              ></div>
-              <p
-                style={{
-                  color: 'var(--NavBarColor, #AFAFAF)',
-                  fontFamily: 'Pretendard',
-                  fontSize: '12px',
-                  fontStyle: 'normal',
-                  fontWeight: 400,
-                  lineHeight: 'normal',
-                  margin: '0 12px',
-                }}
-              >
-                간편 로그인
-              </p>
-              <div
-                style={{
-                  width: '93px',
-                  height: '0.5px',
-                  backgroundColor: 'var(--NavBarColor, #AFAFAF)',
-                }}
-              ></div>
-            </div>
-          </div>
+          {/* 카카오 로그인 버튼 */}
           <div
             className="kakao_button"
             style={{
               display: 'flex',
               width: '300px',
               height: '45px',
-              padding: '10px 64px',
               justifyContent: 'center',
               alignItems: 'center',
               gap: '8px',
@@ -195,9 +196,48 @@ export default function Home() {
               borderRadius: '12px',
               background: '#FEE500',
               cursor: 'pointer',
-              marginBottom: '125px',
+              marginBottom: '20px',
+              marginLeft: 'auto',
+              marginRight: 'auto',
             }}
-            onClick={() => console.log('Kakao Login Clicked')}
+            onClick={async () => {
+              try {
+                // 1. 백엔드에서 카카오 로그인 URL 요청
+                const response = await fetch(
+                  'https://api.moim.team/api/start-login',
+                  {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                      'Content-Type': 'application/json',
+                    },
+                  },
+                )
+
+                if (response.ok) {
+                  const kakaoLoginUrl = await response.text() // 서버에서 반환된 문자열 (URL)
+                  console.log('Kakao Login URL:', kakaoLoginUrl)
+
+                  // 2. 반환된 URL로 리다이렉트
+                  if (kakaoLoginUrl.startsWith('http')) {
+                    window.location.href = kakaoLoginUrl // 카카오 로그인 페이지로 이동
+                  } else {
+                    console.error('잘못된 로그인 URL:', kakaoLoginUrl)
+                    alert('로그인 URL이 유효하지 않습니다.')
+                  }
+                } else {
+                  console.error(
+                    '로그인 URL 요청 실패:',
+                    response.status,
+                    response.statusText,
+                  )
+                  alert('로그인 요청이 실패했습니다.')
+                }
+              } catch (error) {
+                console.error('요청 중 오류 발생:', error)
+                alert('네트워크 오류가 발생했습니다. 다시 시도해주세요.')
+              }
+            }}
           >
             <img
               src="/kakao.svg"

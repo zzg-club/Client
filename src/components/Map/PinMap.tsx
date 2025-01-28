@@ -26,7 +26,11 @@ const PinMap = ({ kakaoMap, participants, destination }) => {
     // 내 위치 핀 추가 (participants 배열의 첫 번째 항목)
     if (participants.length > 0) {
       const myPinHtml = ReactDOMServer.renderToString(
-        <CustomPin imagePath={participants[0].icon} isMine={true} />,
+        <CustomPin
+          imagePath={participants[0].icon}
+          isMine={true}
+          depart={participants[0].depart}
+        />,
       )
 
       const myOverlay = new window.kakao.maps.CustomOverlay({
@@ -48,7 +52,11 @@ const PinMap = ({ kakaoMap, participants, destination }) => {
     // 나머지 참여자 핀 추가
     participants.slice(1).forEach((participant) => {
       const participantPinHtml = ReactDOMServer.renderToString(
-        <CustomPin imagePath={participant.icon} isMine={false} />,
+        <CustomPin
+          imagePath={participant.icon}
+          isMine={false}
+          depart={participant.depart}
+        />,
       )
 
       const participantOverlay = new window.kakao.maps.CustomOverlay({
@@ -70,7 +78,7 @@ const PinMap = ({ kakaoMap, participants, destination }) => {
     // 목적지 핀 추가
     if (destination) {
       const destinationPinHtml = ReactDOMServer.renderToString(
-        <DestinationPin />,
+        <DestinationPin stationName={destination.name} />,
       )
 
       const destinationOverlay = new window.kakao.maps.CustomOverlay({
