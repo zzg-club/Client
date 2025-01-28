@@ -408,7 +408,7 @@ export default function EditTimeStamp({
 
         schedule.timeSlots = updatedTimeSlots
 
-        // console.log(`병합된 슬롯: ${mergedStartTime} - ${mergedEndTime} `)
+        // console.log('병합 슬롯', mergedStartTime, '-', mergedEndTime)
 
         // 시각화 상태 업데이트
         setSelectionsByPage((prev) => {
@@ -577,6 +577,90 @@ export default function EditTimeStamp({
     }
   }
 
+  const handleTouchStart = (
+    e: React.TouchEvent<HTMLDivElement>,
+    rowIndex: number,
+    colIndex: number,
+    isStartPoint: boolean,
+    selection: Selection,
+  ) => {
+    e.preventDefault()
+    setIsResizing(true)
+    setActiveSelection(selection)
+    setResizingPoint(isStartPoint ? 'start' : 'end')
+  }
+
+  useEffect(() => {
+    const element = gridRef.current
+    if (!element) return
+
+    const handleTouchMove = (e: TouchEvent) => {
+      e.preventDefault()
+      if (!isResizing || !activeSelection || !gridRef.current) return
+
+      const touch = e.touches[0]
+      const rect = gridRef.current.getBoundingClientRect()
+      const cellHeight = rect.height / 48
+      const endRow = Math.min(
+        Math.max(Math.floor((touch.clientY - rect.top) / cellHeight), 0),
+        47,
+      )
+
+      setActiveSelection((prev) => {
+        if (!prev) return null
+
+        const newSelection = { ...prev }
+
+        if (isResizing) {
+          if (resizingPoint === 'start' && endRow - 1 < prev.endRow) {
+            newSelection.startRow = endRow
+          } else if (resizingPoint === 'end' && endRow + 1 > prev.startRow) {
+            newSelection.endRow = endRow
+          }
+        } else {
+          newSelection.endRow = endRow
+        }
+
+        const isOverlap = isOverlapping(newSelection)
+        if (!isOverlap) {
+          const scheduleIndex = currentPage * COLUMNS_PER_PAGE + prev.startCol
+          const schedule = currentDates[scheduleIndex]
+          const slotId =
+            schedule?.timeSlots.find((slot) => {
+              const startIdx = timeToIndex(slot.start)
+              const endIdx = timeToIndex(slot.end) - 1
+              return endRow >= startIdx && endRow <= endIdx
+            })?.slotId || 0
+
+          if (handleTimeSelect) {
+            handleTimeSelect(
+              prev.startCol,
+              indexToTime(newSelection.startRow),
+              indexToTime(newSelection.endRow + 1),
+              slotId,
+            )
+          }
+
+          return newSelection
+        }
+        return prev
+      })
+    }
+
+    element.addEventListener('touchmove', handleTouchMove, {
+      passive: false,
+      // cancelable: false,
+    })
+
+    return () => {
+      element.removeEventListener('touchmove', handleTouchMove)
+    }
+  }, [isResizing, activeSelection])
+
+  const handleTouchEnd = () => {
+    handleMouseUp()
+  }
+
   // 터치 줌 이벤트
   useEffect(() => {
     const element = gridRef.current
@@ -710,6 +794,17 @@ export default function EditTimeStamp({
                         handleMouseClick(rowIndex, colIndex)
                         onColumnClick(colIndex, rowIndex)
                       }}
+                      onTouchStart={(e) =>
+                        handleTouchStart(
+                          e,
+                          rowIndex,
+                          colIndex,
+                          cellStatus.isStartCell,
+                          cellStatus.selection!,
+                        )
+                      }
+                      // onTouchMove={handleTouchMove}
+                      onTouchEnd={handleTouchEnd}
                     >
                       {!cellStatus.isConfirmed && cellStatus.isStartCell && (
                         <div
@@ -736,16 +831,6 @@ export default function EditTimeStamp({
                               false,
                               cellStatus.selection!,
                             )
-                          }}
-                          onTouchStart={(e) => {
-                            e.stopPropagation()
-                            handleResizeStart(
-                              rowIndex,
-                              colIndex,
-                              false,
-                              cellStatus.selection!,
-                            )
-                            onColumnClick(colIndex, rowIndex)
                           }}
                         />
                       )}
