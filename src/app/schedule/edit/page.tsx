@@ -394,7 +394,6 @@ export default function SchedulePage() {
   >([])
   const [highlightedCol, setHighlightedCol] = useState<number | null>(null)
   const [isOpen, setIsOpen] = useState(false)
-  const [id, setId] = useState<number | null>(null)
   const [startTime, setStartTime] = useState<string | null>(null)
   const [endTime, setEndTime] = useState<string | null>(null)
   const [updateData, setUpdateData] = useState<
@@ -683,7 +682,6 @@ export default function SchedulePage() {
     setDateCounts(counts)
     setGroupedDate(groupedData)
   }
-
   const handleSelectedCol = useCallback(
     (colIndex: number, rowIndex: number) => {
       if (rowIndex === -1) {
@@ -713,6 +711,8 @@ export default function SchedulePage() {
 
       const DefaultStartTime = getStartLabel(pairStartRow)
       const DefaultEndTime = getEndLabel(pairEndRow)
+      console.log('DefaultStartTime', DefaultStartTime)
+      console.log('DefaultEndTime', DefaultEndTime)
 
       setStartTime(DefaultStartTime)
       setEndTime(DefaultEndTime)
@@ -735,7 +735,8 @@ export default function SchedulePage() {
         if (!selectedDate) return
         setTimeout(() => {
           setSelectedTimeInfo({
-            date: `${selectedDate.year}년 ${selectedDate.month}월 ${selectedDate.day}일`,
+            date: `${selectedDate.month}월 ${selectedDate.day}일`,
+            // date: `${selectedDate.year}년 ${selectedDate.month}월 ${selectedDate.day}일`,
             startTime,
             endTime,
             slotId,
