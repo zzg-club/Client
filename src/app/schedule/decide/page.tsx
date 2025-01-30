@@ -317,7 +317,7 @@ const participants = [
 ]
 
 export default function Page() {
-  const [title, setTitle] = useState('제목 없는 일정')
+  const [title, setTitle] = useState(mockDateTime[0].title)
   const [isPurple, setIsPurple] = useState(false)
   const [currentPage, setCurrentPage] = useState(0)
   const [highlightedCol, setHighlightedCol] = useState<number | null>(null)
