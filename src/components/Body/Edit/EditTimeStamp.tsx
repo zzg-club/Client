@@ -60,6 +60,7 @@ interface EditTimeStampProps {
   groupedDate: GroupedDate[]
 }
 
+let isTouchInProgress = false
 const COLUMNS_PER_PAGE = 7
 
 // 시간 문자열을 인덱스로 변환하는 함수
@@ -76,7 +77,7 @@ const indexToTime = (index: number) => {
 }
 
 export default function EditTimeStamp({
-  // selectedDates,
+  selectedDates,
   currentPage,
   handleSelectedCol,
   getDateTime,
@@ -86,7 +87,7 @@ export default function EditTimeStamp({
   mode,
   dateCounts,
   handleActiveTime,
-  // groupedDate,
+  groupedDate,
 }: EditTimeStampProps) {
   const [selections] = useState<Selection[]>([])
   const [isResizing, setIsResizing] = useState(false)
@@ -96,6 +97,7 @@ export default function EditTimeStamp({
   )
   const [scale, setScale] = useState(1)
   const gridRef = useRef<HTMLDivElement>(null)
+  const [initialTouchRow, setInitialTouchRow] = useState<number | null>(null)
   const [sortedMockData, setSortedMockData] = useState<DateData[]>([]) // 정렬된 데이터를 상태로 관리
 
   const currentDates =
@@ -196,10 +198,12 @@ export default function EditTimeStamp({
   )
 
   const handleMouseClick = (rowIndex: number, colIndex: number) => {
+    if (isTouchInProgress) {
+      return
+    }
     if (isBottomSheetOpen) return
 
     // console.log('currentDates: ', currentDates)
-
     // const scheduleIndex = currentPage * COLUMNS_PER_PAGE + colIndex
     // const schedule = currentDates[scheduleIndex]
     // console.log('schedule', schedule)
@@ -286,6 +290,22 @@ export default function EditTimeStamp({
         Math.max(Math.floor((e.clientY - rect.top) / cellHeight), 0),
         47,
       )
+
+      if (isResizing) {
+        const timestampContainer = gridRef.current.closest(
+          '.timestamp-container',
+        )
+        if (timestampContainer) {
+          const containerRect = timestampContainer.getBoundingClientRect()
+          const scrollThreshold = 300
+
+          if (e.clientY > containerRect.bottom - scrollThreshold) {
+            timestampContainer.scrollTop += 5
+          } else if (e.clientY < containerRect.top + scrollThreshold) {
+            timestampContainer.scrollTop -= 5
+          }
+        }
+      }
 
       // console.log('ActiveSelection', activeSelection)
 
@@ -481,19 +501,365 @@ export default function EditTimeStamp({
     setSelectionsByPage,
   ])
 
+  const handleTouchClick = (rowIndex: number, colIndex: number) => {
+    isTouchInProgress = true
+
+    setTimeout(() => {
+      isTouchInProgress = false
+    }, 500)
+
+    const cellStatus = getCellStatus(rowIndex, colIndex)
+    if (!cellStatus.isSelected && cellStatus.isConfirmed) return
+
+    const schedule = currentDates[colIndex]
+    // console.log('schedule', schedule)
+    if (!schedule) return
+
+    // 클릭된 슬롯을 찾기
+    const clickedSlot = schedule.timeSlots.find((slot) => {
+      const startIdx = timeToIndex(slot.start)
+      const endIdx = timeToIndex(slot.end) - 1
+      return rowIndex >= startIdx && rowIndex <= endIdx
+    })
+    if (!clickedSlot) return
+
+    // setInitialTouchRow(pairStartRow)
+
+    if (clickedSlot) {
+      const startIdx = timeToIndex(clickedSlot.start)
+      const endIdx = timeToIndex(clickedSlot.end)
+
+      setActiveSelection({
+        startRow: startIdx,
+        startCol: colIndex,
+        endRow: endIdx - 1,
+        endCol: colIndex,
+        isSelected: true,
+        isConfirmed: false,
+      })
+
+      setSelectionsByPage((prev) => {
+        const currentSelections = prev[currentPage] || []
+        // console.log('curselections:', currentSelections)
+        return {
+          ...prev,
+          [currentPage]: [
+            ...currentSelections,
+            {
+              startRow: startIdx,
+              startCol: colIndex,
+              endRow: endIdx - 1,
+              endCol: colIndex,
+              isSelected: true,
+              isConfirmed: true,
+            },
+          ],
+        }
+      })
+    }
+  }
+
+  const handleTouchDown = (
+    rowIndex: number,
+    colIndex: number,
+    selection?: Selection,
+  ) => {
+    isTouchInProgress = true
+
+    if (selection) {
+      setIsResizing(true)
+      setActiveSelection(selection)
+
+      if (!resizingPoint) {
+        if (rowIndex == selection.startRow) {
+          setResizingPoint('start')
+        } else if (rowIndex == selection.endRow) {
+          setResizingPoint('end')
+        }
+      }
+    }
+    console.log('handleTouchDown', rowIndex, initialTouchRow)
+  }
+
+  const handleTouchMove = useCallback(
+    (e: TouchEvent | React.TouchEvent) => {
+      if (!gridRef.current || !activeSelection) return
+
+      const touch = e.touches[0]
+      if (!touch) return
+
+      if (isResizing) {
+        const timestampContainer = gridRef.current.closest(
+          '.timestamp-container',
+        )
+        if (timestampContainer) {
+          const containerRect = timestampContainer.getBoundingClientRect()
+          const scrollThreshold = 300
+
+          if (touch.clientY > containerRect.bottom - scrollThreshold) {
+            timestampContainer.scrollTop += 5
+          } else if (touch.clientY < containerRect.top + scrollThreshold) {
+            timestampContainer.scrollTop -= 5
+          }
+        }
+      }
+
+      const rect = gridRef.current.getBoundingClientRect()
+      const cellHeight = rect.height / 48
+      const row = Math.min(
+        Math.max(Math.floor((touch.clientY - rect.top) / cellHeight), 0),
+        47,
+      )
+
+      setActiveSelection((prev) => {
+        if (!prev) return null
+
+        const newSelection = { ...prev }
+        const scheduleIndex = currentPage * COLUMNS_PER_PAGE + prev.startCol
+        const schedule = currentDates[scheduleIndex]
+        // const schedule = currentDates[col]
+        const slotId =
+          schedule?.timeSlots.find(
+            (slot) =>
+              slot.start === indexToTime(row) &&
+              slot.end === indexToTime(prev.endRow + 1),
+          )?.slotId || 0 // ID 가져오기
+
+        if (isResizing) {
+          if (resizingPoint === 'start') {
+            // 시작 핸들은 종료 핸들 위치까지 이동 가능
+            if (row - 1 < prev.endRow) {
+              newSelection.startRow = row
+              if (isBottomSheetOpen) {
+                handleTimeSelect(
+                  prev.startCol,
+                  indexToTime(row),
+                  indexToTime(prev.endRow + 1),
+                  slotId, // ID 추가
+                )
+              }
+            }
+          } else if (resizingPoint === 'end') {
+            // 종료 핸들은 시작 핸들 위치까지 이동 가능
+            if (row + 1 > prev.startRow) {
+              newSelection.endRow = row
+              if (isBottomSheetOpen) {
+                handleTimeSelect(
+                  prev.startCol,
+                  indexToTime(prev.startRow),
+                  indexToTime(row + 1),
+                  slotId,
+                )
+              }
+            }
+          }
+        }
+        // console.log('handleMouseMove')
+        return !isOverlapping(newSelection) ? newSelection : prev
+      })
+    },
+    [
+      activeSelection,
+      isResizing,
+      resizingPoint,
+      isOverlapping,
+      handleTimeSelect,
+      isBottomSheetOpen,
+    ],
+  )
+
+  const handleTouchUp = useCallback(() => {
+    if (activeSelection) {
+      const finalizedSelection = {
+        ...activeSelection,
+        isSelected: false,
+        isConfirmed: true,
+      }
+
+      const startCol = finalizedSelection.startCol
+      const getTimeLabel = (rowIndex: number) => {
+        const hours = Math.floor(rowIndex / 2)
+        const minutes = (rowIndex % 2) * 30
+        return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`
+      }
+
+      const schedule = currentDates[startCol]
+      if (schedule) {
+        let selectedSlotId = null
+
+        // 병합 및 업데이트
+        const updatedTimeSlots = []
+        let mergedStartRow = finalizedSelection.startRow
+        let mergedEndRow = finalizedSelection.endRow
+
+        schedule.timeSlots.forEach((slot) => {
+          const slotStart = timeToIndex(slot.start)
+          const slotEnd = timeToIndex(slot.end) - 1
+
+          const isOverlap =
+            slotStart <= finalizedSelection.endRow + 1 &&
+            slotEnd >= finalizedSelection.startRow - 1
+
+          const isReducingSize =
+            finalizedSelection.startRow >= slotStart &&
+            finalizedSelection.endRow <= slotEnd
+
+          if (isOverlap) {
+            if (isReducingSize) {
+              // 크기 줄이는 경우 finalizedSelection 적용
+              mergedStartRow = finalizedSelection.startRow
+              mergedEndRow = finalizedSelection.endRow
+              selectedSlotId = slot.slotId // 기존 ID 유지
+            } else {
+              // 병합 범위 확장
+              mergedStartRow = Math.min(mergedStartRow, slotStart)
+              mergedEndRow = Math.max(mergedEndRow, slotEnd)
+              selectedSlotId = slot.slotId // 기존 ID 유지
+            }
+          } else {
+            // 겹치지 않는 경우 기존 슬롯 유지
+            updatedTimeSlots.push(slot)
+          }
+        })
+
+        const mergedStartTime = getTimeLabel(mergedStartRow)
+        const mergedEndTime = getTimeLabel(mergedEndRow + 1)
+
+        // 병합된 슬롯 추가
+        updatedTimeSlots.push({
+          slotId: selectedSlotId || finalizedSelection.startCol,
+          start: mergedStartTime,
+          end: mergedEndTime,
+        })
+
+        schedule.timeSlots = updatedTimeSlots
+
+        // console.log('병합 슬롯', mergedStartTime, '-', mergedEndTime)
+
+        // 시각화 상태 업데이트
+        setSelectionsByPage((prev) => {
+          const currentSelections = prev[currentPage] || []
+          const updatedSelections = currentSelections.flatMap((sel) => {
+            const isOverlap =
+              sel.startRow <= finalizedSelection.endRow + 1 &&
+              sel.endRow >= finalizedSelection.startRow - 1 &&
+              sel.startCol === finalizedSelection.startCol
+
+            if (!isOverlap) {
+              return [sel]
+            }
+
+            const splitSelections = []
+            if (sel.startRow < finalizedSelection.startRow) {
+              splitSelections.push({
+                ...sel,
+                endRow: finalizedSelection.startRow - 1,
+              })
+            }
+            if (sel.endRow > finalizedSelection.endRow) {
+              splitSelections.push({
+                ...sel,
+                startRow: finalizedSelection.endRow + 1,
+              })
+            }
+            return splitSelections
+          })
+
+          const mergedSelections = [
+            ...updatedSelections,
+            {
+              ...finalizedSelection,
+              startRow: mergedStartRow,
+              endRow: mergedEndRow,
+            },
+          ]
+
+          // console.log('mergedSelections:', mergedSelections)
+
+          handleDateTimeSelect(String(startCol), mergedStartTime, mergedEndTime)
+          console.log('handleMouseUp')
+          return {
+            ...prev,
+            [currentPage]: mergedSelections,
+          }
+        })
+
+        console.log(
+          `최종 병합 영역:${selectedSlotId} ${mergedStartTime} - ${mergedEndTime}`,
+        )
+      }
+
+      setIsResizing(false)
+      setActiveSelection(null)
+      setResizingPoint(null)
+    }
+  }, [
+    activeSelection,
+    currentDates,
+    currentPage,
+    groupedDate,
+    handleDateTimeSelect,
+    mode,
+  ])
+
   useEffect(() => {
     const handleMouseUpWithColumnClick = () => {
       handleMouseUp()
       onColumnClick(-1, -1)
     }
 
+    const handleTouchUpWithColumnClick = () => {
+      handleTouchUp()
+      onColumnClick(-1, -1)
+    }
+
+    const grid = gridRef.current
+    if (!grid) return
+
+    let touchStartY = 0
+    let isDragging = false
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches[0]) {
+        touchStartY = e.touches[0].clientY
+      }
+    }
+
+    const handleTouchMoveWithCheck = (e: TouchEvent) => {
+      if (!e.touches[0]) return
+
+      const touchCurrentY = e.touches[0].clientY
+      const deltaY = Math.abs(touchCurrentY - touchStartY)
+
+      if (!isDragging && deltaY > 10) {
+        isDragging = true
+      }
+
+      if (isDragging && (activeSelection || isResizing)) {
+        e.preventDefault()
+        handleTouchMove(e)
+      }
+    }
+
     if (activeSelection || isResizing) {
       window.addEventListener('mousemove', handleMouseMove)
       window.addEventListener('mouseup', handleMouseUpWithColumnClick)
+
+      grid.addEventListener('touchstart', handleTouchStart)
+      grid.addEventListener('touchmove', handleTouchMoveWithCheck, {
+        passive: false,
+      })
+      grid.addEventListener('touchend', handleTouchUpWithColumnClick)
     }
+
     return () => {
       window.removeEventListener('mousemove', handleMouseMove)
       window.removeEventListener('mouseup', handleMouseUpWithColumnClick)
+      if (grid) {
+        grid.removeEventListener('touchstart', handleTouchStart)
+        grid.removeEventListener('touchmove', handleTouchMoveWithCheck)
+        grid.removeEventListener('touchend', handleTouchUpWithColumnClick)
+      }
     }
   }, [
     activeSelection,
@@ -502,6 +868,8 @@ export default function EditTimeStamp({
     handleMouseUp,
     onColumnClick,
     currentSelections,
+    handleTouchUp,
+    handleTouchMove,
   ])
 
   // 셀 상태 계산
@@ -580,89 +948,6 @@ export default function EditTimeStamp({
       borderLeft: '2px solid #9562fa',
       borderRight: '2px solid #9562fa',
     }
-  }
-
-  const handleTouchStart = (
-    e: React.TouchEvent<HTMLDivElement>,
-    rowIndex: number,
-    colIndex: number,
-    isStartPoint: boolean,
-    selection: Selection,
-  ) => {
-    e.preventDefault()
-    setIsResizing(true)
-    setActiveSelection(selection)
-    setResizingPoint(isStartPoint ? 'start' : 'end')
-  }
-
-  useEffect(() => {
-    const element = gridRef.current
-    if (!element) return
-
-    const handleTouchMove = (e: TouchEvent) => {
-      e.preventDefault()
-      if (!isResizing || !activeSelection || !gridRef.current) return
-
-      const touch = e.touches[0]
-      const rect = gridRef.current.getBoundingClientRect()
-      const cellHeight = rect.height / 48
-      const endRow = Math.min(
-        Math.max(Math.floor((touch.clientY - rect.top) / cellHeight), 0),
-        47,
-      )
-
-      setActiveSelection((prev) => {
-        if (!prev) return null
-
-        const newSelection = { ...prev }
-
-        if (isResizing) {
-          if (resizingPoint === 'start' && endRow - 1 < prev.endRow) {
-            newSelection.startRow = endRow
-          } else if (resizingPoint === 'end' && endRow + 1 > prev.startRow) {
-            newSelection.endRow = endRow
-          }
-        } else {
-          newSelection.endRow = endRow
-        }
-
-        const isOverlap = isOverlapping(newSelection)
-        if (!isOverlap) {
-          const scheduleIndex = currentPage * COLUMNS_PER_PAGE + prev.startCol
-          const schedule = currentDates[scheduleIndex]
-          const slotId =
-            schedule?.timeSlots.find((slot) => {
-              const startIdx = timeToIndex(slot.start)
-              const endIdx = timeToIndex(slot.end) - 1
-              return endRow >= startIdx && endRow <= endIdx
-            })?.slotId || 0
-
-          if (handleTimeSelect) {
-            handleTimeSelect(
-              prev.startCol,
-              indexToTime(newSelection.startRow),
-              indexToTime(newSelection.endRow + 1),
-              slotId,
-            )
-          }
-
-          return newSelection
-        }
-        return prev
-      })
-    }
-
-    element.addEventListener('touchmove', handleTouchMove, {
-      passive: false,
-    })
-
-    return () => {
-      element.removeEventListener('touchmove', handleTouchMove)
-    }
-  }, [isResizing, activeSelection])
-
-  const handleTouchEnd = () => {
-    handleMouseUp()
   }
 
   // 터치 줌 이벤트
@@ -801,17 +1086,16 @@ export default function EditTimeStamp({
                           onColumnClick(colIndex, rowIndex)
                         }
                       }}
-                      onTouchStart={(e) =>
-                        handleTouchStart(
-                          e,
-                          rowIndex,
-                          colIndex,
-                          cellStatus.isStartCell,
-                          cellStatus.selection!,
-                        )
-                      }
-                      // onTouchMove={handleTouchMove}
-                      onTouchEnd={handleTouchEnd}
+                      onTouchStart={() => {
+                        if (!cellStatus.isConfirmed) {
+                          handleTouchClick(rowIndex, colIndex)
+                          handleTouchDown(
+                            rowIndex,
+                            colIndex,
+                            cellStatus.selection!,
+                          )
+                        }
+                      }}
                     >
                       {!cellStatus.isConfirmed && cellStatus.isStartCell && (
                         <div
