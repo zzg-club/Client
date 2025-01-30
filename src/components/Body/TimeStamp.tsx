@@ -63,6 +63,7 @@ export default function TimeStamp({
   )
   const [scale, setScale] = useState(1)
   const gridRef = useRef<HTMLDivElement>(null)
+  const [initialTouchRow, setInitialTouchRow] = useState<number | null>(null)
 
   const currentDates =
     mode === 'range'
@@ -144,9 +145,11 @@ export default function TimeStamp({
 
   const handleMouseClick = (rowIndex: number, colIndex: number) => {
     if (isTouchInProgress) {
-      // 터치 이벤트로 인해 호출된 경우, 무시
       return
     }
+
+    const cellStatus = getCellStatus(rowIndex, colIndex)
+    if (cellStatus.isSelected || cellStatus.isConfirmed) return
 
     const pairStartRow = Math.floor(rowIndex / 2) * 2
     const pairEndRow = pairStartRow + 1
@@ -200,7 +203,7 @@ export default function TimeStamp({
           : 'end',
       )
       // console.log('Resizing started on', resizingPoint, selection)
-      console.log('handleMouseDown')
+      console.log('handleMouseDown', selection, resizingPoint)
     }
   }
 
@@ -288,19 +291,6 @@ export default function TimeStamp({
           return `${formattedHour}:${formattedMinute}`
         }
 
-        // console.log(
-        //   '현재 상황',
-        //   currentDates,
-        //   '시작 열',
-        //   startCol,
-        //   '현재 일자',
-        //   currentDates[startCol],
-        //   '현재 페이지',
-        //   currentPage,
-        //   '그룹 데이터',
-        //   groupedDate,
-        // )
-
         let selectedDate: string
         if (mode === 'range') {
           // mode가 'range'일 경우 기존 로직
@@ -339,33 +329,15 @@ export default function TimeStamp({
     mode,
   ])
 
-  useEffect(() => {
-    // 터치 이벤트 기본 동작 방지
-    const grid = gridRef.current
-    if (!grid) return
-
-    const preventDefaultForScrolling = (e: TouchEvent) => {
-      e.preventDefault()
-    }
-
-    grid.addEventListener('touchstart', preventDefaultForScrolling, {
-      passive: false,
-    })
-
-    return () => {
-      grid.removeEventListener('touchstart', preventDefaultForScrolling)
-    }
-  }, [])
-
   const handleTouchClick = (rowIndex: number, colIndex: number) => {
-    isTouchInProgress = true // 터치 진행 중 플래그 활성화
+    isTouchInProgress = true
 
     setTimeout(() => {
-      isTouchInProgress = false // 플래그 초기화
-    }, 300) // 300ms 뒤 플래그 초기화
+      isTouchInProgress = false
+    }, 300)
 
     const cellStatus = getCellStatus(rowIndex, colIndex)
-    if (cellStatus.isSelected) return
+    if (cellStatus.isSelected || cellStatus.isConfirmed) return
 
     const pairStartRow = Math.floor(rowIndex / 2) * 2
     const pairEndRow = pairStartRow + 1
@@ -405,30 +377,31 @@ export default function TimeStamp({
   const handleTouchDown = (
     rowIndex: number,
     colIndex: number,
-    isEndpoint: boolean,
     selection?: Selection,
   ) => {
+    isTouchInProgress = true
+
     if (selection) {
       setIsResizing(true)
       setActiveSelection(selection)
-      setResizingPoint(
-        rowIndex === selection.startRow && colIndex === selection.startCol
-          ? 'start'
-          : 'end',
-      )
-      // console.log('Resizing started on', resizingPoint, selection)
-      console.log('handleTouchDown', selection)
+
+      setInitialTouchRow(selection.startRow)
+
+      console.log('handleTouchDown', selection, resizingPoint)
     }
   }
 
   const handleTouchMove = useCallback(
-    (clientY: number) => {
+    (e: TouchEvent | React.TouchEvent) => {
       if (!gridRef.current || !activeSelection) return
+
+      const touch = e.touches[0]
+      if (!touch) return
 
       const rect = gridRef.current.getBoundingClientRect()
       const cellHeight = rect.height / 48
       const row = Math.min(
-        Math.max(Math.floor((clientY - rect.top) / cellHeight), 0),
+        Math.max(Math.floor((touch.clientY - rect.top) / cellHeight), 0),
         47,
       )
 
@@ -437,14 +410,24 @@ export default function TimeStamp({
 
         const newSelection = { ...prev }
 
-        if (isResizing) {
+        if (!resizingPoint) {
+          if (row < prev.endRow) {
+            setResizingPoint('start')
+          } else if (row > prev.startRow) {
+            setResizingPoint('end')
+          }
+        }
+
+        if (isResizing && initialTouchRow !== null) {
           if (resizingPoint === 'start') {
-            if (row < prev.endRow) {
+            if (row < initialTouchRow + 1) {
               newSelection.startRow = row
+              newSelection.endRow = initialTouchRow + 1
             }
           } else if (resizingPoint === 'end') {
-            if (row > prev.startRow) {
+            if (row > initialTouchRow) {
               newSelection.endRow = row
+              newSelection.startRow = initialTouchRow
             }
           }
         }
@@ -453,7 +436,13 @@ export default function TimeStamp({
         return !isOverlapping(newSelection) ? newSelection : prev
       })
     },
-    [activeSelection, isResizing, resizingPoint, isOverlapping],
+    [
+      activeSelection,
+      resizingPoint,
+      isResizing,
+      initialTouchRow,
+      isOverlapping,
+    ],
   )
 
   const handleTouchUp = useCallback(() => {
@@ -503,31 +492,26 @@ export default function TimeStamp({
           return `${formattedHour}:${formattedMinute}`
         }
 
-        // console.log(
-        //   '현재 상황',
-        //   currentDates,
-        //   '시작 열',
-        //   startCol,
-        //   '현재 일자',
-        //   currentDates[startCol],
-        //   '현재 페이지',
-        //   currentPage,
-        //   '그룹 데이터',
-        //   groupedDate,
-        // )
-
         let selectedDate: string
         if (mode === 'range') {
-          // mode가 'range'일 경우 기존 로직
-          selectedDate = `${currentDates[startCol]?.year}-${String(currentDates[startCol]?.month).padStart(2, '0')}-${String(currentDates[startCol]?.day).padStart(2, '0')}`
+          // 모드가 'range'일 경우
+          selectedDate = `${currentDates[startCol]?.year}-${String(
+            currentDates[startCol]?.month,
+          ).padStart(
+            2,
+            '0',
+          )}-${String(currentDates[startCol]?.day).padStart(2, '0')}`
         } else {
-          // mode가 'range'가 아닐 경우 다른 로직
+          // 모드가 'range'가 아닐 경우 다른 날짜 계산 방식 사용
           const groupedArray = groupedDate?.[currentPage]?.date ?? []
-          selectedDate = `${groupedArray[startCol]?.year}-${String(groupedArray[startCol]?.month).padStart(2, '0')}-${String(groupedArray[startCol]?.day).padStart(2, '0')}`
+          selectedDate = `${groupedArray[startCol]?.year}-${String(
+            groupedArray[startCol]?.month,
+          ).padStart(
+            2,
+            '0',
+          )}-${String(groupedArray[startCol]?.day).padStart(2, '0')}`
         }
-
         // console.log('selectedDate', selectedDate)
-
         const startTime = getTimeLabel(finalizedSelection.startRow)
         const endTime = getTimeLabel(finalizedSelection.endRow + 1)
 
@@ -573,8 +557,8 @@ export default function TimeStamp({
         'touchmove',
         (e: TouchEvent) => {
           if (e.touches[0]) {
-            e.preventDefault() // 셀 범위 조정과 y축 스크롤 중첩 방지
-            handleTouchMove(e.touches[0].clientY)
+            e.preventDefault()
+            handleTouchMove(e)
           }
         },
         { passive: false },
@@ -584,16 +568,7 @@ export default function TimeStamp({
     }
     return () => {
       window.removeEventListener('mousemove', handleMouseMove)
-      window.addEventListener(
-        'touchmove',
-        (e: TouchEvent) => {
-          if (e.touches[0]) {
-            e.preventDefault()
-            handleTouchMove(e.touches[0].clientY)
-          }
-        },
-        { passive: false },
-      )
+      window.removeEventListener('touchmove', handleTouchMove)
       window.removeEventListener('mouseup', handleMouseUpWithColumnClick)
       window.removeEventListener('touchend', handleTouchUpWithColumnClick)
     }
@@ -838,64 +813,74 @@ export default function TimeStamp({
                       }}
                       onMouseDown={() => {
                         handleMouseClick(rowIndex, colIndex)
-                        onColumnClick(colIndex, rowIndex)
+                        if (!cellStatus.isConfirmed) {
+                          onColumnClick(colIndex, rowIndex)
+                        }
                       }}
                       onTouchStart={() => {
-                        handleTouchClick(rowIndex, colIndex)
-                        onColumnClick(colIndex, rowIndex)
+                        if (!cellStatus.isConfirmed) {
+                          // isConfirmed가 아닐 때만 실행
+                          handleTouchClick(rowIndex, colIndex)
+                          handleTouchDown(
+                            rowIndex,
+                            colIndex,
+                            cellStatus.selection!,
+                          )
+                          onColumnClick(colIndex, rowIndex)
+                        }
                       }}
                     >
                       {!cellStatus.isConfirmed && cellStatus.isStartCell && (
+                        // <div
+                        //   className="absolute -top-[0px] left-[0%] w-[100%] h-[100%] touch-target"
+                        //   onTouchStart={() => {
+                        //     handleTouchDown(
+                        //       rowIndex,
+                        //       colIndex,
+                        //       true,
+                        //       cellStatus.selection!,
+                        //     )
+                        //     onColumnClick(colIndex, rowIndex)
+                        //   }}
+                        // >
                         <div
-                          className="absolute -top-[0px] left-[0%] w-[100%] h-[100%] touch-target"
-                          onTouchStart={() => {
-                            handleTouchDown(
+                          className="absolute -top-[5px] left-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move"
+                          onMouseDown={() => {
+                            handleMouseDown(
                               rowIndex,
                               colIndex,
                               true,
                               cellStatus.selection!,
                             )
-                            onColumnClick(colIndex, rowIndex)
                           }}
-                        >
-                          <div
-                            className="absolute -top-[5px] left-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move"
-                            onMouseDown={() => {
-                              handleMouseDown(
-                                rowIndex,
-                                colIndex,
-                                true,
-                                cellStatus.selection!,
-                              )
-                            }}
-                          />
-                        </div>
+                        />
+                        // </div>
                       )}
                       {!cellStatus.isConfirmed && cellStatus.isEndCell && (
+                        // <div
+                        //   className="absolute -bottom-[0px] right-[0%] w-[100%] h-[100%] touch-target"
+                        //   onTouchStart={() => {
+                        //     handleTouchDown(
+                        //       rowIndex,
+                        //       colIndex,
+                        //       false,
+                        //       cellStatus.selection!,
+                        //     )
+                        //     onColumnClick(colIndex, rowIndex)
+                        //   }}
+                        // >
                         <div
-                          className="absolute -bottom-[0px] right-[0%] w-[100%] h-[100%] touch-target"
-                          onTouchStart={() => {
-                            handleTouchDown(
+                          className="absolute -bottom-[5px] right-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move "
+                          onMouseDown={() => {
+                            handleMouseDown(
                               rowIndex,
                               colIndex,
                               false,
                               cellStatus.selection!,
                             )
-                            onColumnClick(colIndex, rowIndex)
                           }}
-                        >
-                          <div
-                            className="absolute -bottom-[5px] right-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move "
-                            onMouseDown={() => {
-                              handleMouseDown(
-                                rowIndex,
-                                colIndex,
-                                false,
-                                cellStatus.selection!,
-                              )
-                            }}
-                          />
-                        </div>
+                        />
+                        // </div>
                       )}
                     </div>
                   )
