@@ -342,6 +342,8 @@ export default function TimeStamp({
     const pairStartRow = Math.floor(rowIndex / 2) * 2
     const pairEndRow = pairStartRow + 1
 
+    setInitialTouchRow(pairStartRow)
+
     setSelectionsByPage((prev) => {
       const updatedSelections = Object.keys(prev).reduce(
         (acc, page) => {
@@ -385,10 +387,15 @@ export default function TimeStamp({
       setIsResizing(true)
       setActiveSelection(selection)
 
-      setInitialTouchRow(selection.startRow)
-
-      console.log('handleTouchDown', selection, resizingPoint)
+      if (!resizingPoint) {
+        if (rowIndex == selection.startRow) {
+          setResizingPoint('start')
+        } else if (rowIndex == selection.endRow) {
+          setResizingPoint('end')
+        }
+      }
     }
+    console.log('handleTouchDown', rowIndex, initialTouchRow)
   }
 
   const handleTouchMove = useCallback(
@@ -410,29 +417,18 @@ export default function TimeStamp({
 
         const newSelection = { ...prev }
 
-        if (!resizingPoint) {
-          if (row < prev.endRow) {
-            setResizingPoint('start')
-          } else if (row > prev.startRow) {
-            setResizingPoint('end')
-          }
-        }
-
         if (isResizing && initialTouchRow !== null) {
           if (resizingPoint === 'start') {
-            if (row < initialTouchRow + 1) {
-              newSelection.startRow = row
-              newSelection.endRow = initialTouchRow + 1
-            }
+            const limitedRow = Math.min(row, initialTouchRow)
+            newSelection.startRow = limitedRow
+            newSelection.endRow = initialTouchRow + 1
           } else if (resizingPoint === 'end') {
-            if (row > initialTouchRow) {
-              newSelection.endRow = row
-              newSelection.startRow = initialTouchRow
-            }
+            const limitedRow = Math.max(row, initialTouchRow + 1)
+            newSelection.endRow = limitedRow
+            newSelection.startRow = initialTouchRow
           }
         }
-
-        console.log('handleTouchMove', activeSelection)
+        console.log('handleTouchMove')
         return !isOverlapping(newSelection) ? newSelection : prev
       })
     },
@@ -516,6 +512,7 @@ export default function TimeStamp({
         const endTime = getTimeLabel(finalizedSelection.endRow + 1)
 
         handleDateTimeSelect(selectedDate, startTime, endTime)
+        setInitialTouchRow(null)
 
         console.log('handleTouchUp')
 
