@@ -27,9 +27,3 @@
 .timestamp-container::-webkit-scrollbar-thumb:hover {
   background: #a1a1a1;
 }
-
-.touch-target {
-  background: red;
-  border-color: blue;
-  pointer-events: 'none';
-}
