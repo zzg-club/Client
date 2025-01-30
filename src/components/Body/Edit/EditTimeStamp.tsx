@@ -297,7 +297,7 @@ export default function EditTimeStamp({
         )
         if (timestampContainer) {
           const containerRect = timestampContainer.getBoundingClientRect()
-          const scrollThreshold = 300
+          const scrollThreshold = 10
 
           if (e.clientY > containerRect.bottom - scrollThreshold) {
             timestampContainer.scrollTop += 5
@@ -836,7 +836,7 @@ export default function EditTimeStamp({
       }
 
       if (isDragging && (activeSelection || isResizing)) {
-        e.preventDefault()
+        if (e.cancelable) e.preventDefault()
         handleTouchMove(e)
       }
     }
@@ -1014,7 +1014,7 @@ export default function EditTimeStamp({
 
   return (
     <div
-      className={`timestamp-container ${isBottomSheetOpen ? 'pb-[100px]' : 'pb-[40px]'}`}
+      className={`timestamp-container ${isBottomSheetOpen ? 'pb-[32%]' : 'pb-[12%]'}`}
     >
       <div className="timestamp-content">
         <div className="w-full max-w-4xl mx-auto bg-white pl-2 pr-8 pt-3 pb-8 flex grid grid-cols-[auto_1fr]">
