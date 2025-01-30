@@ -810,7 +810,6 @@ export default function SchedulePage() {
         onPageChange={handlePageChange}
         highlightedCol={highlightedCol}
         onDateCountsChange={handleDateCountsChange}
-        isPurple={isPurple}
       />
       <div className="flex-grow overflow-hidden mt-2">
         <EditTimeStamp
