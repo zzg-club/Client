@@ -129,11 +129,6 @@ export default function EditTimeStamp({
 
   const onColumnClick = useCallback(
     (colIndex: number, rowIndex: number) => {
-      // const cellStatus = getCellStatus(rowIndex, colIndex)
-      // if (cellStatus.isConfirmed && !cellStatus.isSelected) {
-      //   return handleSelectedCol(colIndex, rowIndex)
-      // }
-
       if (colIndex === -1 && rowIndex === -1) {
         console.log('oncolumnindex:', colIndex)
         handleSelectedCol(colIndex, rowIndex)
@@ -141,7 +136,6 @@ export default function EditTimeStamp({
       }
       if (gridRef.current) {
         const actualColIndex = currentPage * COLUMNS_PER_PAGE + colIndex
-        console.log('actualColIndex', actualColIndex)
         handleSelectedCol(actualColIndex, rowIndex)
       }
     },
@@ -211,7 +205,7 @@ export default function EditTimeStamp({
     // console.log('schedule', schedule)
 
     const schedule = currentDates[colIndex]
-    console.log('schedule', schedule)
+    // console.log('schedule', schedule)
     if (!schedule) return
 
     // 클릭된 슬롯을 찾기
@@ -239,7 +233,7 @@ export default function EditTimeStamp({
       })
       setSelectionsByPage((prev) => {
         const currentSelections = prev[currentPage] || []
-        console.log('curselections:', currentSelections)
+        // console.log('curselections:', currentSelections)
         return {
           ...prev,
           [currentPage]: [
@@ -257,6 +251,7 @@ export default function EditTimeStamp({
       })
 
       // 바텀시트 열기
+      console.log('handleMouseClick')
       handleSelectedCol(colIndex, rowIndex)
       console.log('colIndex', colIndex, 'rowIndex', rowIndex)
 
@@ -337,7 +332,7 @@ export default function EditTimeStamp({
             }
           }
         }
-
+        // console.log('handleMouseMove')
         return !isOverlapping(newSelection) ? newSelection : prev
       })
     },
@@ -355,7 +350,7 @@ export default function EditTimeStamp({
     if (activeSelection) {
       const finalizedSelection = {
         ...activeSelection,
-        isSelected: true,
+        isSelected: false,
         isConfirmed: true,
       }
 
@@ -458,7 +453,7 @@ export default function EditTimeStamp({
             },
           ]
 
-          console.log('mergedSelections:', mergedSelections)
+          // console.log('mergedSelections:', mergedSelections)
 
           handleDateTimeSelect(String(startCol), mergedStartTime, mergedEndTime)
           console.log('handleMouseUp')
@@ -801,7 +796,8 @@ export default function EditTimeStamp({
                       }}
                       onClick={() => {
                         handleMouseClick(rowIndex, colIndex)
-                        if (cellStatus.isConfirmed) {
+                        // if (cellStatus.isConfirmed) {
+                        if (cellStatus.isConfirmed && !cellStatus.isSelected) {
                           onColumnClick(colIndex, rowIndex)
                         }
                       }}
