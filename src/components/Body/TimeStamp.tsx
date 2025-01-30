@@ -218,6 +218,22 @@ export default function TimeStamp({
         47,
       )
 
+      if (isResizing) {
+        const timestampContainer = gridRef.current.closest(
+          '.timestamp-container',
+        )
+        if (timestampContainer) {
+          const containerRect = timestampContainer.getBoundingClientRect()
+          const scrollThreshold = 300
+
+          if (e.clientY > containerRect.bottom - scrollThreshold) {
+            timestampContainer.scrollTop += 5
+          } else if (e.clientY < containerRect.top + scrollThreshold) {
+            timestampContainer.scrollTop -= 5
+          }
+        }
+      }
+
       // console.log('ActiveSelection', activeSelection)
 
       setActiveSelection((prev) => {
@@ -404,6 +420,22 @@ export default function TimeStamp({
 
       const touch = e.touches[0]
       if (!touch) return
+
+      if (isResizing) {
+        const timestampContainer = gridRef.current.closest(
+          '.timestamp-container',
+        )
+        if (timestampContainer) {
+          const containerRect = timestampContainer.getBoundingClientRect()
+          const scrollThreshold = 300
+
+          if (touch.clientY > containerRect.bottom - scrollThreshold) {
+            timestampContainer.scrollTop += 5
+          } else if (touch.clientY < containerRect.top + scrollThreshold) {
+            timestampContainer.scrollTop -= 5
+          }
+        }
+      }
 
       const rect = gridRef.current.getBoundingClientRect()
       const cellHeight = rect.height / 48
