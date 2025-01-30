@@ -801,7 +801,7 @@ export default function TimeStamp({
 
   return (
     <div
-      className={`timestamp-container ${isBottomSheetOpen ? 'pb-[100px]' : 'pb-[40px]'}`}
+      className={`timestamp-container ${isBottomSheetOpen ? 'pb-[32%]' : 'pb-[12%]'}`}
     >
       <div className="timestamp-content">
         <div className="w-full max-w-4xl mx-auto bg-white pl-2 pr-8 pt-3 pb-8 flex grid grid-cols-[auto_1fr]">
@@ -873,7 +873,6 @@ export default function TimeStamp({
                       }}
                       onTouchStart={() => {
                         if (!cellStatus.isConfirmed) {
-                          // isConfirmed가 아닐 때만 실행
                           handleTouchClick(rowIndex, colIndex)
                           handleTouchDown(
                             rowIndex,
@@ -885,18 +884,6 @@ export default function TimeStamp({
                       }}
                     >
                       {!cellStatus.isConfirmed && cellStatus.isStartCell && (
-                        // <div
-                        //   className="absolute -top-[0px] left-[0%] w-[100%] h-[100%] touch-target"
-                        //   onTouchStart={() => {
-                        //     handleTouchDown(
-                        //       rowIndex,
-                        //       colIndex,
-                        //       true,
-                        //       cellStatus.selection!,
-                        //     )
-                        //     onColumnClick(colIndex, rowIndex)
-                        //   }}
-                        // >
                         <div
                           className="absolute -top-[5px] left-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move"
                           onMouseDown={() => {
@@ -908,21 +895,8 @@ export default function TimeStamp({
                             )
                           }}
                         />
-                        // </div>
                       )}
                       {!cellStatus.isConfirmed && cellStatus.isEndCell && (
-                        // <div
-                        //   className="absolute -bottom-[0px] right-[0%] w-[100%] h-[100%] touch-target"
-                        //   onTouchStart={() => {
-                        //     handleTouchDown(
-                        //       rowIndex,
-                        //       colIndex,
-                        //       false,
-                        //       cellStatus.selection!,
-                        //     )
-                        //     onColumnClick(colIndex, rowIndex)
-                        //   }}
-                        // >
                         <div
                           className="absolute -bottom-[5px] right-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move "
                           onMouseDown={() => {
@@ -934,7 +908,6 @@ export default function TimeStamp({
                             )
                           }}
                         />
-                        // </div>
                       )}
                     </div>
                   )
