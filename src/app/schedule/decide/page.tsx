@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Title from '@/components/Header/Title'
-import DecideSelectedDays from '@/components/Body/Decide/DecideSelectedDays'
+import DecideSelectedDays from '@/components/Header/Decide/DecideSelectedDays'
 import DecideTimeStamp from '@/components/Body/Decide/DecideTimeStamp'
 import SelectedBottom from '@/components/Footer/BottomSheet/SelectedBottom'
 import { SelectItem } from '@/components/Footer/ListItem/SelectItem'
@@ -63,16 +63,116 @@ interface ScheduleData {
   date: [string, string][] // 날짜 배열: [날짜, 요일]의 배열
 }
 
+const mockDateTime: PrevScheduleData[] = [
+  {
+    title: '팀플 대면 모임',
+    userId: 2,
+    groupId: 1,
+    mode: 'range',
+    selected: null,
+    dateData: [
+      {
+        date: '2025-02-01',
+        timeSlots: [
+          {
+            start: '09:30',
+            end: '17:00',
+            selectedBy: ['user1', 'user2', 'user3'],
+          },
+          { start: '17:00', end: '22:00', selectedBy: ['user1'] },
+        ],
+      },
+      {
+        date: '2025-02-02',
+        timeSlots: [
+          { start: '08:00', end: '13:00', selectedBy: ['user2', 'user3'] },
+          { start: '13:00', end: '20:00', selectedBy: ['user1', 'user4'] },
+          { start: '20:00', end: '23:00', selectedBy: ['user3'] },
+        ],
+      },
+      {
+        date: '2025-02-03',
+        timeSlots: [
+          { start: '05:00', end: '10:00', selectedBy: ['user1', 'user2'] },
+          {
+            start: '10:00',
+            end: '16:00',
+            selectedBy: ['user2', 'user3', 'user4'],
+          },
+          { start: '16:00', end: '21:00', selectedBy: ['user1', 'user3'] },
+        ],
+      },
+      {
+        date: '2025-02-04',
+        timeSlots: [
+          {
+            start: '11:00',
+            end: '18:00',
+            selectedBy: ['user1', 'user2', 'user3', 'user4'],
+          },
+          { start: '18:00', end: '19:00', selectedBy: ['user2'] },
+        ],
+      },
+      {
+        date: '2025-02-05',
+        timeSlots: [
+          { start: '10:00', end: '15:00', selectedBy: ['user1'] },
+          {
+            start: '15:00',
+            end: '18:00',
+            selectedBy: ['user1', 'user2', 'user3'],
+          },
+          { start: '28:00', end: '22:00', selectedBy: ['user2', 'user4'] },
+        ],
+      },
+      {
+        date: '2025-02-06',
+        timeSlots: [
+          { start: '04:00', end: '06:00', selectedBy: ['user3'] },
+          {
+            start: '06:00',
+            end: '21:00',
+            selectedBy: ['user1', 'user2', 'user3', 'user4'],
+          },
+        ],
+      },
+      {
+        date: '2025-02-07',
+        timeSlots: [
+          { start: '06:00', end: '07:00', selectedBy: ['user2'] },
+          {
+            start: '07:00',
+            end: '19:00',
+            selectedBy: ['user1', 'user3', 'user4'],
+          },
+          { start: '19:00', end: '22:00', selectedBy: ['user1', 'user2'] },
+        ],
+      },
+      {
+        date: '2025-02-08',
+        timeSlots: [
+          {
+            start: '10:00',
+            end: '19:00',
+            selectedBy: ['user1', 'user3', 'user4'],
+          },
+          { start: '19:00', end: '22:00', selectedBy: ['user1', 'user2'] },
+        ],
+      },
+    ],
+  },
+]
+
 // const mockDateTime: PrevScheduleData[] = [
 //   {
 //     title: '팀플 대면 모임',
 //     userId: 2,
 //     groupId: 1,
-//     mode: 'range',
-//     selected: null,
+//     mode: 'week',
+//     selected: ['mon', 'wed', 'fri'],
 //     dateData: [
 //       {
-//         date: '2025-02-01',
+//         date: '2025-01-06',
 //         timeSlots: [
 //           {
 //             start: '09:30',
@@ -83,7 +183,7 @@ interface ScheduleData {
 //         ],
 //       },
 //       {
-//         date: '2025-02-02',
+//         date: '2025-02-05',
 //         timeSlots: [
 //           { start: '08:00', end: '13:00', selectedBy: ['user2', 'user3'] },
 //           { start: '13:00', end: '20:00', selectedBy: ['user1', 'user4'] },
@@ -91,7 +191,7 @@ interface ScheduleData {
 //         ],
 //       },
 //       {
-//         date: '2025-02-03',
+//         date: '2025-01-13',
 //         timeSlots: [
 //           { start: '05:00', end: '10:00', selectedBy: ['user1', 'user2'] },
 //           {
@@ -103,7 +203,7 @@ interface ScheduleData {
 //         ],
 //       },
 //       {
-//         date: '2025-02-04',
+//         date: '2025-02-12',
 //         timeSlots: [
 //           {
 //             start: '11:00',
@@ -114,7 +214,7 @@ interface ScheduleData {
 //         ],
 //       },
 //       {
-//         date: '2025-02-05',
+//         date: '2025-03-07',
 //         timeSlots: [
 //           { start: '10:00', end: '15:00', selectedBy: ['user1'] },
 //           {
@@ -126,7 +226,7 @@ interface ScheduleData {
 //         ],
 //       },
 //       {
-//         date: '2025-02-06',
+//         date: '2025-02-19',
 //         timeSlots: [
 //           { start: '04:00', end: '06:00', selectedBy: ['user3'] },
 //           {
@@ -137,7 +237,7 @@ interface ScheduleData {
 //         ],
 //       },
 //       {
-//         date: '2025-02-07',
+//         date: '2025-01-20',
 //         timeSlots: [
 //           { start: '06:00', end: '07:00', selectedBy: ['user2'] },
 //           {
@@ -149,7 +249,7 @@ interface ScheduleData {
 //         ],
 //       },
 //       {
-//         date: '2025-02-08',
+//         date: '2025-01-27',
 //         timeSlots: [
 //           {
 //             start: '10:00',
@@ -163,103 +263,56 @@ interface ScheduleData {
 //   },
 // ]
 
-const mockDateTime: PrevScheduleData[] = [
+const participants = [
   {
-    title: '팀플 대면 모임',
-    userId: 2,
-    groupId: 1,
-    mode: 'week',
-    selected: ['mon', 'wed', 'fri'],
-    dateData: [
-      {
-        date: '2025-01-06',
-        timeSlots: [
-          {
-            start: '09:30',
-            end: '17:00',
-            selectedBy: ['user1', 'user2', 'user3'],
-          },
-          { start: '17:00', end: '22:00', selectedBy: ['user1'] },
-        ],
-      },
-      {
-        date: '2025-02-05',
-        timeSlots: [
-          { start: '08:00', end: '13:00', selectedBy: ['user2', 'user3'] },
-          { start: '13:00', end: '20:00', selectedBy: ['user1', 'user4'] },
-          { start: '20:00', end: '23:00', selectedBy: ['user3'] },
-        ],
-      },
-      {
-        date: '2025-01-13',
-        timeSlots: [
-          { start: '05:00', end: '10:00', selectedBy: ['user1', 'user2'] },
-          {
-            start: '10:00',
-            end: '16:00',
-            selectedBy: ['user2', 'user3', 'user4'],
-          },
-          { start: '16:00', end: '21:00', selectedBy: ['user1', 'user3'] },
-        ],
-      },
-      {
-        date: '2025-02-12',
-        timeSlots: [
-          {
-            start: '11:00',
-            end: '18:00',
-            selectedBy: ['user1', 'user2', 'user3', 'user4'],
-          },
-          { start: '18:00', end: '19:00', selectedBy: ['user2'] },
-        ],
-      },
-      {
-        date: '2025-03-07',
-        timeSlots: [
-          { start: '10:00', end: '15:00', selectedBy: ['user1'] },
-          {
-            start: '15:00',
-            end: '18:00',
-            selectedBy: ['user1', 'user2', 'user3'],
-          },
-          { start: '28:00', end: '22:00', selectedBy: ['user2', 'user4'] },
-        ],
-      },
-      {
-        date: '2025-02-19',
-        timeSlots: [
-          { start: '04:00', end: '06:00', selectedBy: ['user3'] },
-          {
-            start: '06:00',
-            end: '21:00',
-            selectedBy: ['user1', 'user2', 'user3', 'user4'],
-          },
-        ],
-      },
-      {
-        date: '2025-01-20',
-        timeSlots: [
-          { start: '06:00', end: '07:00', selectedBy: ['user2'] },
-          {
-            start: '07:00',
-            end: '19:00',
-            selectedBy: ['user1', 'user3', 'user4'],
-          },
-          { start: '19:00', end: '22:00', selectedBy: ['user1', 'user2'] },
-        ],
-      },
-      {
-        date: '2025-01-27',
-        timeSlots: [
-          {
-            start: '10:00',
-            end: '19:00',
-            selectedBy: ['user1', 'user3', 'user4'],
-          },
-          { start: '19:00', end: '22:00', selectedBy: ['user1', 'user2'] },
-        ],
-      },
-    ],
+    id: 1,
+    name: '나',
+    image: '/sampleProfile.png',
+  },
+  {
+    id: 2,
+    name: '김태엽',
+    image: '/sampleProfile.png',
+  },
+  {
+    id: 3,
+    name: '지유진',
+    image: '/sampleProfile.png',
+  },
+  {
+    id: 4,
+    name: '이소룡',
+    image: '/sampleProfile.png',
+  },
+  {
+    id: 5,
+    name: '박진우',
+    image: '/sampleProfile.png',
+  },
+  {
+    id: 6,
+    name: '이예지',
+    image: '/sampleProfile.png',
+  },
+  {
+    id: 7,
+    name: '조성하',
+    image: '/sampleProfile.png',
+  },
+  {
+    id: 8,
+    name: '성윤정',
+    image: '/sampleProfile.png',
+  },
+  {
+    id: 9,
+    name: '김나영',
+    image: '/sampleProfile.png',
+  },
+  {
+    id: 10,
+    name: '이채연',
+    image: '/sampleProfile.png',
   },
 ]
 
@@ -651,6 +704,8 @@ export default function Page() {
         highlightedCol={highlightedCol}
         onDateCountsChange={handleDateCountsChange}
         isPurple={isPurple}
+        participants={participants}
+        title={title}
       />
       <div className="flex-grow overflow-hidden mt-2">
         <DecideTimeStamp
