@@ -1066,7 +1066,7 @@ export default function TimeStamp({
 
   return (
     <div
-      className={`timestamp-container ${isBottomSheetOpen ? 'pb-[100px]' : 'pb-[40px]'}`}
+      className={`timestamp-container ${isBottomSheetOpen ? 'pb-[32%]' : 'pb-[12%]'}`}
     >
       <div className="timestamp-content">
         <div className="w-full max-w-4xl mx-auto bg-white pl-2 pr-8 pt-3 pb-8 flex grid grid-cols-[auto_1fr]">
