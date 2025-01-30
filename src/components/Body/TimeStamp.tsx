@@ -539,35 +539,60 @@ export default function TimeStamp({
     const handleMouseUpWithColumnClick = () => {
       handleMouseUp()
       onColumnClick(-1, -1)
-      console.log('handleMouseUpWithColumnClick')
     }
 
     const handleTouchUpWithColumnClick = () => {
       handleTouchUp()
       onColumnClick(-1, -1)
-      console.log('handleTouchUpWithColumnClick')
+    }
+
+    const grid = gridRef.current
+    if (!grid) return
+
+    let touchStartY = 0
+    let isDragging = false
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches[0]) {
+        touchStartY = e.touches[0].clientY
+      }
+    }
+
+    const handleTouchMoveWithCheck = (e: TouchEvent) => {
+      if (!e.touches[0]) return
+
+      const touchCurrentY = e.touches[0].clientY
+      const deltaY = Math.abs(touchCurrentY - touchStartY)
+
+      if (!isDragging && deltaY > 10) {
+        isDragging = true
+      }
+
+      if (isDragging && (activeSelection || isResizing)) {
+        e.preventDefault()
+        handleTouchMove(e)
+      }
     }
 
     if (activeSelection || isResizing) {
       window.addEventListener('mousemove', handleMouseMove)
-      window.addEventListener(
-        'touchmove',
-        (e: TouchEvent) => {
-          if (e.touches[0]) {
-            e.preventDefault()
-            handleTouchMove(e)
-          }
-        },
-        { passive: false },
-      )
       window.addEventListener('mouseup', handleMouseUpWithColumnClick)
-      window.addEventListener('touchend', handleTouchUpWithColumnClick)
+
+      grid.addEventListener('touchstart', handleTouchStart)
+      grid.addEventListener('touchmove', handleTouchMoveWithCheck, {
+        passive: false,
+      })
+      grid.addEventListener('touchend', handleTouchUpWithColumnClick)
     }
+
     return () => {
       window.removeEventListener('mousemove', handleMouseMove)
-      window.removeEventListener('touchmove', handleTouchMove)
       window.removeEventListener('mouseup', handleMouseUpWithColumnClick)
-      window.removeEventListener('touchend', handleTouchUpWithColumnClick)
+      if (grid) {
+        grid.removeEventListener('touchstart', handleTouchStart)
+        grid.removeEventListener('touchmove', handleTouchMoveWithCheck)
+        grid.removeEventListener('touchend', handleTouchUpWithColumnClick)
+      }
     }
   }, [
     activeSelection,
