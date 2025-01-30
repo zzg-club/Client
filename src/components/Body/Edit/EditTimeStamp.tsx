@@ -85,7 +85,7 @@ export default function EditTimeStamp({
   handleTimeSelect,
   mode,
   dateCounts,
-  // handleActiveTime,
+  handleActiveTime,
   // groupedDate,
 }: EditTimeStampProps) {
   const [selections] = useState<Selection[]>([])
@@ -98,49 +98,64 @@ export default function EditTimeStamp({
   const gridRef = useRef<HTMLDivElement>(null)
   const [sortedMockData, setSortedMockData] = useState<DateData[]>([]) // 정렬된 데이터를 상태로 관리
 
-  const currentDates = useMemo(() => {
-    if (mode === 'range') {
-      return sortedMockData.slice(
-        currentPage * COLUMNS_PER_PAGE,
-        (currentPage + 1) * COLUMNS_PER_PAGE,
-      )
-    } else {
-      let startIndex = 0
-      let endIndex = 0
+  const currentDates =
+    mode === 'range'
+      ? sortedMockData.slice(
+          currentPage * COLUMNS_PER_PAGE,
+          (currentPage + 1) * COLUMNS_PER_PAGE,
+        )
+      : (() => {
+          let startIndex = 0
+          let endIndex = 0
 
-      for (let i = 0; i <= currentPage; i++) {
-        startIndex = endIndex
-        endIndex = startIndex + (dateCounts[i] || 0)
-        // console.log('dataIndex:', dateCounts[i])
-      }
+          // for (let i = 0; i <= currentPage; i++) {
+          //   startIndex = endIndex
+          //   endIndex = startIndex + (dateCounts[i] || 0)
+          //   // console.log('dataIndex:', dateCounts[i])
+          // }
+          for (let i = 0; i <= dateCounts.length; i++) {
+            const pageSize = dateCounts[i]
+            if (currentPage === i) {
+              endIndex = startIndex + pageSize
+              break
+            }
+            startIndex += pageSize
+            // console.log('dataIndex:', dateCounts[i])
+          }
 
-      // console.log('slicing', sortedMockData.slice(startIndex, endIndex))
-      return sortedMockData.slice(startIndex, endIndex)
-    }
-  }, [sortedMockData, dateCounts, currentPage])
+          // console.log('slicing', sortedMockData.slice(startIndex, endIndex))
+          return sortedMockData.slice(startIndex, endIndex)
+        })()
 
   const onColumnClick = useCallback(
     (colIndex: number, rowIndex: number) => {
-      if (colIndex == -1) {
+      // const cellStatus = getCellStatus(rowIndex, colIndex)
+      // if (cellStatus.isConfirmed && !cellStatus.isSelected) {
+      //   return handleSelectedCol(colIndex, rowIndex)
+      // }
+
+      if (colIndex === -1 && rowIndex === -1) {
+        console.log('oncolumnindex:', colIndex)
         handleSelectedCol(colIndex, rowIndex)
-        return 0
+        return
       }
       if (gridRef.current) {
         const actualColIndex = currentPage * COLUMNS_PER_PAGE + colIndex
+        console.log('actualColIndex', actualColIndex)
         handleSelectedCol(actualColIndex, rowIndex)
       }
     },
     [handleSelectedCol, currentPage],
   )
 
-  // const onActiveTime = useCallback(
-  //   (start: number, end: number) => {
-  //     setTimeout(() => {
-  //       handleActiveTime(start, end)
-  //     }, 0)
-  //   },
-  //   [handleActiveTime],
-  // )
+  const onActiveTime = useCallback(
+    (start: number, end: number) => {
+      setTimeout(() => {
+        handleActiveTime(start, end)
+      }, 0)
+    },
+    [handleActiveTime],
+  )
 
   const handleDateTimeSelect = useCallback(
     (date: string, start: string, end: string) => {
@@ -191,7 +206,12 @@ export default function EditTimeStamp({
 
     // console.log('currentDates: ', currentDates)
 
+    // const scheduleIndex = currentPage * COLUMNS_PER_PAGE + colIndex
+    // const schedule = currentDates[scheduleIndex]
+    // console.log('schedule', schedule)
+
     const schedule = currentDates[colIndex]
+    console.log('schedule', schedule)
     if (!schedule) return
 
     // 클릭된 슬롯을 찾기
@@ -219,7 +239,7 @@ export default function EditTimeStamp({
       })
       setSelectionsByPage((prev) => {
         const currentSelections = prev[currentPage] || []
-        // console.log('curselections:', currentSelections)
+        console.log('curselections:', currentSelections)
         return {
           ...prev,
           [currentPage]: [
@@ -238,6 +258,7 @@ export default function EditTimeStamp({
 
       // 바텀시트 열기
       handleSelectedCol(colIndex, rowIndex)
+      console.log('colIndex', colIndex, 'rowIndex', rowIndex)
 
       // 시간 정보 전달
       handleTimeSelect(
@@ -250,17 +271,6 @@ export default function EditTimeStamp({
   }
 
   const handleMouseDown = (
-    rowIndex: number,
-    colIndex: number,
-    isStartPoint: boolean,
-    selection: Selection,
-  ) => {
-    setIsResizing(true)
-    setActiveSelection(selection)
-    setResizingPoint(isStartPoint ? 'start' : 'end')
-  }
-
-  const handleResizeStart = (
     rowIndex: number,
     colIndex: number,
     isStartPoint: boolean,
@@ -451,7 +461,7 @@ export default function EditTimeStamp({
           console.log('mergedSelections:', mergedSelections)
 
           handleDateTimeSelect(String(startCol), mergedStartTime, mergedEndTime)
-
+          console.log('handleMouseUp')
           return {
             ...prev,
             [currentPage]: mergedSelections,
@@ -649,7 +659,6 @@ export default function EditTimeStamp({
 
     element.addEventListener('touchmove', handleTouchMove, {
       passive: false,
-      // cancelable: false,
     })
 
     return () => {
@@ -792,7 +801,9 @@ export default function EditTimeStamp({
                       }}
                       onClick={() => {
                         handleMouseClick(rowIndex, colIndex)
-                        onColumnClick(colIndex, rowIndex)
+                        if (cellStatus.isConfirmed) {
+                          onColumnClick(colIndex, rowIndex)
+                        }
                       }}
                       onTouchStart={(e) =>
                         handleTouchStart(
@@ -816,7 +827,6 @@ export default function EditTimeStamp({
                               true,
                               cellStatus.selection!,
                             )
-                            onColumnClick(colIndex, rowIndex)
                           }}
                         />
                       )}
@@ -825,7 +835,7 @@ export default function EditTimeStamp({
                           className="absolute -bottom-[5px] right-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move"
                           onMouseDown={(e) => {
                             e.stopPropagation()
-                            handleResizeStart(
+                            handleMouseDown(
                               rowIndex,
                               colIndex,
                               false,
