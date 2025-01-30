@@ -1173,6 +1173,7 @@ export default function TimeStamp({
                       {!cellStatus.isConfirmed && cellStatus.isStartCell && (
                         <div
                           className="absolute -top-[5px] left-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move"
+                          style={{ zIndex: 3000 }}
                           onMouseDown={() => {
                             handleMouseDown(
                               rowIndex,
@@ -1186,6 +1187,7 @@ export default function TimeStamp({
                       {!cellStatus.isConfirmed && cellStatus.isEndCell && (
                         <div
                           className="absolute -bottom-[5px] right-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move "
+                          style={{ zIndex: 3000 }}
                           onMouseDown={() => {
                             handleMouseDown(
                               rowIndex,
