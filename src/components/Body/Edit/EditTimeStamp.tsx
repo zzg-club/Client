@@ -326,7 +326,7 @@ export default function EditTimeStamp({
         if (isResizing) {
           if (resizingPoint === 'start') {
             // 시작 핸들은 종료 핸들 위치까지 이동 가능
-            if (row - 1 < prev.endRow) {
+            if (row < prev.endRow) {
               newSelection.startRow = row
               if (isBottomSheetOpen) {
                 handleTimeSelect(
@@ -339,7 +339,7 @@ export default function EditTimeStamp({
             }
           } else if (resizingPoint === 'end') {
             // 종료 핸들은 시작 핸들 위치까지 이동 가능
-            if (row + 1 > prev.startRow) {
+            if (row > prev.startRow) {
               newSelection.endRow = row
               if (isBottomSheetOpen) {
                 handleTimeSelect(
@@ -628,7 +628,7 @@ export default function EditTimeStamp({
         if (isResizing) {
           if (resizingPoint === 'start') {
             // 시작 핸들은 종료 핸들 위치까지 이동 가능
-            if (row - 1 < prev.endRow) {
+            if (row < prev.endRow) {
               newSelection.startRow = row
               if (isBottomSheetOpen) {
                 handleTimeSelect(
@@ -641,7 +641,7 @@ export default function EditTimeStamp({
             }
           } else if (resizingPoint === 'end') {
             // 종료 핸들은 시작 핸들 위치까지 이동 가능
-            if (row + 1 > prev.startRow) {
+            if (row > prev.startRow) {
               newSelection.endRow = row
               if (isBottomSheetOpen) {
                 handleTimeSelect(
