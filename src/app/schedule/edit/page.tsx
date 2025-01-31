@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import SelectedDays from '@/components/Header/SelectedDays'
+import EditSelectedDays from '@/components/Header/EditSelectedDays'
 import Title from '@/components/Header/Title'
 import EditTimeStamp from '@/components/Body/Edit/EditTimeStamp'
 import SelectedBottom from '@/components/Footer/BottomSheet/SelectedBottom'
@@ -800,7 +800,7 @@ export default function SchedulePage() {
         onTitleChange={handleTitleChange}
         isPurple={isPurple}
       />
-      <SelectedDays
+      <EditSelectedDays
         selectedDates={selectedDates}
         month={month}
         mode={mode}
@@ -809,6 +809,7 @@ export default function SchedulePage() {
         onPageChange={handlePageChange}
         highlightedCol={highlightedCol}
         onDateCountsChange={handleDateCountsChange}
+        isPurple={isPurple}
       />
       <div className="flex-grow overflow-hidden mt-2">
         <EditTimeStamp
