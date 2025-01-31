@@ -47,6 +47,10 @@ export default function Home() {
   const [cardData, setCardData] = useState<any[]>([]) // 카드 데이터를 저장
   const [userName, setUserName] = useState('')
 
+  const handleCardClick = (placeId: number) => {
+    router.push(`/place/${placeId}`); // 클릭한 카드의 ID로 이동
+  };
+
   const handleLikeButtonClick = async (placeId: number, liked: boolean) => {
     try {
       // 좋아요 상태 토글
@@ -407,7 +411,7 @@ export default function Home() {
           </div>
           <div className={styles.content}>
             {cardData.map((card) => (
-              <div key={card.id} className={styles.card}>
+              <div key={card.id} className={styles.card} onClick={() => handleCardClick(card.id)}>
                 <div className={styles.cardImage}>
                   {card.pictures?.[0] ? (
                     <img
@@ -434,9 +438,10 @@ export default function Home() {
                     <div className={styles.likes}>
                       <div
                         className={`${styles.likeBackground} ${card.liked ? styles.liked : ''}`}
-                        onClick={() =>
+                        onClick={(e) => {
+                          e.stopPropagation(); 
                           handleLikeButtonClick(card.id, card.liked)
-                        }
+                        }}
                       >
                         <div className={styles.likeIcon}></div>
                       </div>
