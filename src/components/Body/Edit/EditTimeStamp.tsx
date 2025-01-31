@@ -297,7 +297,7 @@ export default function EditTimeStamp({
         )
         if (timestampContainer) {
           const containerRect = timestampContainer.getBoundingClientRect()
-          const scrollThreshold = 10
+          const scrollThreshold = 250
 
           if (e.clientY > containerRect.bottom - scrollThreshold) {
             timestampContainer.scrollTop += 5
