@@ -13,8 +13,8 @@ export const toggleLike = async (
   try {
     // 요청 URL 설정
     const url = liked
-      ? `${API_BASE_URL}/api/places/unlike`
-      : `${API_BASE_URL}/api/places/like`
+      ? `${API_BASE_URL}/api/place/like/unlike`
+      : `${API_BASE_URL}/api/place/like/like`
 
     // URL 인코딩된 데이터 생성
     const body = new URLSearchParams()

@@ -16,7 +16,7 @@ export const fetchLikedStates = async (placeId: string): Promise<boolean> => {
   try {
     // API 요청
     const response = await fetch(
-      `${API_BASE_URL}/api/places/places/${placeId}/liked`,
+      `${API_BASE_URL}/api/place/like/places/${placeId}/liked`,
       {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
