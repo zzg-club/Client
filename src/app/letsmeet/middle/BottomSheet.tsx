@@ -28,41 +28,49 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
   const [isExpanded, setIsExpanded] = useState(false)
   const [translateY, setTranslateY] = useState(0)
   const [maxHeight, setMaxHeight] = useState(400)
+  const [highestMaxHeight, setHighestMaxHeight] = useState(400) // 최고 높이
   const [arrowHeight, setArrowHeight] = useState(110)
-  const [activeIndex, setActiveIndex] = useState(0)
   const minHeight = 229
   const paddingBottom = 42
 
   const sheetRef = useRef<HTMLDivElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
+  const startXRef = useRef<number | null>(null)
   const startYRef = useRef<number | null>(null)
 
-  useEffect(() => {
-    const updateHeight = () => {
-      if (sheetRef.current) {
-        const contentHeight = sheetRef.current.scrollHeight
-        setMaxHeight(contentHeight + paddingBottom)
+  const updateHeight = () => {
+    if (sheetRef.current) {
+      const contentHeight = sheetRef.current.scrollHeight
+      const calculatedMaxHeight = contentHeight
+
+      // 현재 높이와 비교하여 최대 높이 추적
+      if (calculatedMaxHeight > highestMaxHeight) {
+        setHighestMaxHeight(calculatedMaxHeight) // 최고 높이 갱신
       }
 
-      if (listRef.current && !isExpanded) {
-        setArrowHeight(110)
-      }
+      // 현재 높이를 최고 높이로 고정
+      setMaxHeight(highestMaxHeight)
 
-      if (listRef.current && isExpanded) {
-        const listHeight = listRef.current.offsetHeight
-        setArrowHeight(listHeight / 1.3)
+      // arrowHeight 업데이트
+      if (isExpanded) {
+        setArrowHeight(highestMaxHeight / 2.3) // 최대 높이의 절반
+      } else {
+        setArrowHeight(110) // 기본 높이
       }
     }
+  }
 
+  useEffect(() => {
     window.addEventListener('resize', updateHeight)
     updateHeight()
 
     return () => {
       window.removeEventListener('resize', updateHeight)
     }
-  }, [participants, isExpanded])
+  }, [isExpanded, participants.length])
 
   const handleTouchStart = (event: React.TouchEvent) => {
+    startXRef.current = event.touches[0].clientX
     startYRef.current = event.touches[0].clientY
   }
 
@@ -78,26 +86,47 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
     }
   }
 
-  const handleTouchEnd = () => {
-    if (translateY < -50) {
-      setIsExpanded(true)
-      setTranslateY(0)
-    } else if (translateY > 50) {
-      setIsExpanded(false)
-      setTranslateY(0)
-    } else {
-      setTranslateY(0)
+  const handleTouchEnd = (event: React.TouchEvent) => {
+    const endX = event.changedTouches[0].clientX
+
+    // 캐러셀 슬라이드 감지
+    const deltaX = (startXRef.current ?? 0) - endX
+    const deltaY = translateY
+
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
+      // 가로 슬라이드
+      if (deltaX > 0) {
+        onSlideChange('right') // 오른쪽 슬라이드
+      } else {
+        onSlideChange('left') // 왼쪽 슬라이드
+      }
+    } else if (Math.abs(deltaY) > 50) {
+      // 위로 당겨질 경우
+      if (deltaY < -50 && totalParticipants > 4) {
+        setIsExpanded(true)
+        setTranslateY(0)
+      } else if (deltaY > 50) {
+        // 아래로 당겨질 경우
+        setIsExpanded(false)
+        setTranslateY(0)
+      } else {
+        // 변화 없을 경우 원위치로
+        setTranslateY(0)
+      }
     }
 
+    setTranslateY(0)
+    startXRef.current = null
     startYRef.current = null
   }
 
-  const handleLeftClick = () => {
-    setActiveIndex((prev) => (prev > 0 ? prev - 1 : 0)) // 왼쪽 슬라이드
-  }
-
-  const handleRightClick = () => {
-    setActiveIndex((prev) => (prev < 1 ? prev + 1 : 1)) // 오른쪽 슬라이드
+  const handleSlideChange = (direction: 'left' | 'right') => {
+    if (direction === 'left') {
+      onSlideChange('left')
+    } else {
+      onSlideChange('right')
+    }
+    setMaxHeight(highestMaxHeight) // 슬라이드 변경 시 최고 높이를 유지
   }
 
   return (
@@ -141,9 +170,9 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
         <div
           className={`${styles.arrow} ${styles.arrowLeft}`}
           style={{ top: `${arrowHeight}px` }}
-          onClick={() => onSlideChange('left')}
+          onClick={() => handleSlideChange('left')}
         >
-          <MiddleFooter2Left onClick={handleLeftClick} />
+          <MiddleFooter2Left />
         </div>
 
         <div ref={listRef} className={styles.participantList}>
@@ -185,9 +214,9 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
         <div
           className={`${styles.arrow} ${styles.arrowRight}`}
           style={{ top: `${arrowHeight}px` }}
-          onClick={() => onSlideChange('right')}
+          onClick={() => handleSlideChange('right')}
         >
-          <MiddleFooter2Right onClick={handleRightClick} />
+          <MiddleFooter2Right />
         </div>
       </div>
     </div>
