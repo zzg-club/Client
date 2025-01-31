@@ -12,7 +12,7 @@ interface TitleProps {
   buttonText: string
   onClickTitleButton?: () => void
   initialTitle: string // 초기 제목
-  isPurple: boolean
+  isPurple?: boolean
   onTitleChange: (newTitle: string) => void // 제목 수정 후 부모로 전달
 }
 
@@ -21,7 +21,7 @@ export default function Title({
   onClickTitleButton,
   initialTitle,
   onTitleChange,
-  isPurple,
+  isPurple = false,
 }: TitleProps) {
   const router = useRouter()
   const [isShareOpen, setIsShareOpen] = useState(false)
