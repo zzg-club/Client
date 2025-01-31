@@ -10,7 +10,7 @@ import { fetchCategoryData } from '@/app/api/places/category/[categoryIndex]/rou
 import { fetchLikedStates } from '@/app/api/places/liked/route'
 import { fetchUserInformation } from '@/app/api/user/information/route'
 import { toggleLike } from '@/app/api/places/like/route'
-import { fetchFilteredCategoryData } from '@/app/api/places/category/[categoryIndex]/route'; // 필터 데이터 API
+import { fetchFilteredCategoryData } from '@/app/api/places/category/[categoryIndex]/route' // 필터 데이터 API
 import { fetchLikeCount } from '../api/places/updateLike/route'
 
 interface Place {
@@ -21,7 +21,7 @@ interface Place {
 
 interface FilterResponse {
   category: string
-  filters: Record<string, string> 
+  filters: Record<string, string>
 }
 
 const tabs = [
@@ -45,170 +45,196 @@ export default function Home() {
   const mapRef = useRef<() => void | null>(null)
   const [selectedFilters, setSelectedFilters] = useState<string[]>([])
   const [cardData, setCardData] = useState<any[]>([]) // 카드 데이터를 저장
-  const [userName, setUserName] = useState('');
-  
+  const [userName, setUserName] = useState('')
 
   const handleLikeButtonClick = async (placeId: number, liked: boolean) => {
     try {
       // 좋아요 상태 토글
-      const updatedLiked = await toggleLike(placeId, liked);
-  
+      const updatedLiked = await toggleLike(placeId, liked)
+
       // 최신 좋아요 개수 가져오기
-      const updatedLikesCount = await fetchLikeCount(placeId);
-  
+      const updatedLikesCount = await fetchLikeCount(placeId)
+
       // 카드 데이터 업데이트 (좋아요 상태 + 좋아요 개수)
       setCardData((prev) =>
         prev.map((card) =>
           card.id === placeId
             ? { ...card, liked: updatedLiked, likes: updatedLikesCount }
-            : card
-        )
-      );
+            : card,
+        ),
+      )
     } catch (error) {
-      console.error('Failed to toggle like:', error);
+      console.error('Failed to toggle like:', error)
     }
-  };
-  
+  }
 
   useEffect(() => {
     const loadUserInformation = async () => {
-      const userInfo = await fetchUserInformation();
+      const userInfo = await fetchUserInformation()
       if (userInfo) {
-        console.log('User Information:', userInfo);
-        setUserName(userInfo.data?.userNickname || '알 수 없는 사용자');
+        console.log('User Information:', userInfo)
+        setUserName(userInfo.data?.userNickname || '알 수 없는 사용자')
       } else {
-        console.warn('Failed to load user information.');
+        console.warn('Failed to load user information.')
       }
-    };
-  
-    loadUserInformation();
-  }, []);
+    }
+
+    loadUserInformation()
+  }, [])
 
   const truncateText = (text: string, maxLength: number) => {
     return text.length > maxLength ? text.slice(0, maxLength) + '...' : text
-  }   
+  }
 
   const handleTabClick = async (tabId: string) => {
-    setSelectedTab(tabId);
-    setSelectedFilters([]); // 필터 초기화
-  
-    const categoryIndex = tabs.findIndex((tab) => tab.id === tabId);
-  
+    setSelectedTab(tabId)
+    setSelectedFilters([]) // 필터 초기화
+
+    const categoryIndex = tabs.findIndex((tab) => tab.id === tabId)
+
     if (categoryIndex === -1) {
-      console.warn('Invalid tabId provided:', tabId);
-      return;
+      console.warn('Invalid tabId provided:', tabId)
+      return
     }
-  
+
     try {
-      let data;
-  
+      let data
+
       if (selectedFilters.length === 0) {
         // 필터가 선택되지 않았을 때 기본 데이터를 가져옵니다.
-        console.log('Fetching default category data for categoryIndex:', categoryIndex);
-        data = await fetchCategoryData(categoryIndex);
+        console.log(
+          'Fetching default category data for categoryIndex:',
+          categoryIndex,
+        )
+        data = await fetchCategoryData(categoryIndex)
       } else {
         // 선택된 필터를 기반으로 필터링된 데이터를 가져옵니다.
-        const filters = getCurrentTabFilters().reduce((acc, filter, index) => {
-          acc[`filter${index + 1}`] = selectedFilters.includes(filter); // 선택된 필터를 boolean으로 변환
-          return acc;
-        }, {} as { filter1?: boolean; filter2?: boolean; filter3?: boolean; filter4?: boolean });
-  
-        console.log('Fetching filtered category data with filters:', filters);
-        data = await fetchFilteredCategoryData(categoryIndex, filters);
+        const filters = getCurrentTabFilters().reduce(
+          (acc, filter, index) => {
+            acc[`filter${index + 1}`] = selectedFilters.includes(filter) // 선택된 필터를 boolean으로 변환
+            return acc
+          },
+          {} as {
+            filter1?: boolean
+            filter2?: boolean
+            filter3?: boolean
+            filter4?: boolean
+          },
+        )
+
+        console.log('Fetching filtered category data with filters:', filters)
+        data = await fetchFilteredCategoryData(categoryIndex, filters)
       }
-  
+
       // 좋아요 상태 확인 및 데이터 업데이트
       const updatedData = await Promise.all(
         data.map(async (card: any) => {
-          const liked = await fetchLikedStates(card.id);
+          const liked = await fetchLikedStates(card.id)
           return {
             ...card,
             filters: card.filters || {}, // filters가 없으면 빈 객체로 초기화
             liked, // 좋아요 상태 추가
-          };
-        })
-      );
-  
-      console.log('Updated card data:', updatedData);
-      setCardData(updatedData); // 카드 데이터 업데이트
+          }
+        }),
+      )
+
+      console.log('Updated card data:', updatedData)
+      setCardData(updatedData) // 카드 데이터 업데이트
     } catch (error) {
-      console.error('Error fetching category data:', error);
+      console.error('Error fetching category data:', error)
     }
-  };
+  }
 
   useEffect(() => {
     const fetchData = async () => {
-      const categoryIndex = tabs.findIndex((tab) => tab.id === selectedTab);
-  
+      const categoryIndex = tabs.findIndex((tab) => tab.id === selectedTab)
+
       if (categoryIndex === -1) {
-        console.warn('Invalid tabId provided:', selectedTab);
-        return;
+        console.warn('Invalid tabId provided:', selectedTab)
+        return
       }
-  
+
       try {
-        let data;
-  
+        let data
+
         if (selectedFilters.length === 0) {
           // 필터가 선택되지 않았을 때 기본 데이터를 가져옵니다.
-          console.log('Fetching default category data for categoryIndex:', categoryIndex);
-          data = await fetchCategoryData(categoryIndex);
+          console.log(
+            'Fetching default category data for categoryIndex:',
+            categoryIndex,
+          )
+          data = await fetchCategoryData(categoryIndex)
         } else {
           try {
-            const filters = getCurrentTabFilters().reduce((acc, filter, index) => {
-              acc[`filter${index + 1}`] = selectedFilters.includes(filter); // 선택된 필터를 boolean으로 변환
-              return acc;
-            }, {} as { filter1?: boolean; filter2?: boolean; filter3?: boolean; filter4?: boolean });
-          
-            console.log('Fetching filtered category data with filters:', filters);
-          
-            data = await fetchFilteredCategoryData(categoryIndex, filters);
-          
+            const filters = getCurrentTabFilters().reduce(
+              (acc, filter, index) => {
+                acc[`filter${index + 1}`] = selectedFilters.includes(filter) // 선택된 필터를 boolean으로 변환
+                return acc
+              },
+              {} as {
+                filter1?: boolean
+                filter2?: boolean
+                filter3?: boolean
+                filter4?: boolean
+              },
+            )
+
+            console.log(
+              'Fetching filtered category data with filters:',
+              filters,
+            )
+
+            data = await fetchFilteredCategoryData(categoryIndex, filters)
+
             if (!data || data.length === 0) {
-              console.warn('No data returned for the selected filters:', filters);
-              data = []; // 기본값으로 빈 배열 설정
+              console.warn(
+                'No data returned for the selected filters:',
+                filters,
+              )
+              data = [] // 기본값으로 빈 배열 설정
             }
           } catch (error) {
-            console.error('Error fetching filtered category data:', error);
-            data = []; // 예외 발생 시 빈 배열 설정
+            console.error('Error fetching filtered category data:', error)
+            data = [] // 예외 발생 시 빈 배열 설정
           }
         }
-  
+
         // 좋아요 상태 확인 및 데이터 업데이트
         const updatedData = await Promise.all(
           data.map(async (card: any) => {
-            const liked = await fetchLikedStates(card.id);
+            const liked = await fetchLikedStates(card.id)
             return {
               ...card,
               filters: card.filters || {}, // filters가 없으면 빈 객체로 초기화
               liked, // 좋아요 상태 추가
-            };
-          })
-        );
-  
-        console.log('Updated card data:', updatedData);
-        setCardData(updatedData); // 카드 데이터 업데이트
+            }
+          }),
+        )
+
+        console.log('Updated card data:', updatedData)
+        setCardData(updatedData) // 카드 데이터 업데이트
       } catch (error) {
-        console.error('Error fetching category data:', error);
+        console.error('Error fetching category data:', error)
       }
-    };
-  
-    fetchData();
-  }, [selectedTab, selectedFilters]); // 탭 상태 및 필터 상태가 변경될 때 호출
-  
+    }
+
+    fetchData()
+  }, [selectedTab, selectedFilters]) // 탭 상태 및 필터 상태가 변경될 때 호출
+
   useEffect(() => {
-    handleTabClick(selectedTab);
-  }, []);
+    handleTabClick(selectedTab)
+  }, [])
 
   const handleFilterButtonClick = (filter: string) => {
     setSelectedFilters((prevSelected) => {
       const updatedFilters = prevSelected.includes(filter)
         ? prevSelected.filter((item) => item !== filter) // 이미 선택된 경우 해제
-        : [...prevSelected, filter]; // 새로 선택
-  
-      console.log('Updated Filters:', updatedFilters); // 선택된 필터 로그
-      return updatedFilters;
-    });
-  };
+        : [...prevSelected, filter] // 새로 선택
+
+      console.log('Updated Filters:', updatedFilters) // 선택된 필터 로그
+      return updatedFilters
+    })
+  }
 
   const handleVectorButtonClick = () => {
     if (mapRef.current) {
@@ -251,22 +277,21 @@ export default function Home() {
   useEffect(() => {
     const loadFilters = async () => {
       try {
-        const response = await fetchFilters(); // 분리된 함수 호출
-        const { success, data, error } = await response.json(); // 응답 처리
+        const response = await fetchFilters() // 분리된 함수 호출
+        const { success, data, error } = await response.json() // 응답 처리
 
         if (success && Array.isArray(data)) {
-          setFilters(data); // 상태 업데이트
+          setFilters(data) // 상태 업데이트
         } else {
-          console.error('Failed to fetch filters:', error || 'Unknown error');
+          console.error('Failed to fetch filters:', error || 'Unknown error')
         }
       } catch (error) {
-        console.error('Error fetching filters:', error);
+        console.error('Error fetching filters:', error)
       }
-    };
+    }
 
-    loadFilters(); // 필터 데이터 로드
-  }, []);
-
+    loadFilters() // 필터 데이터 로드
+  }, [])
 
   const getCurrentTabFilters = () => {
     const currentCategory = tabs.find((tab) => tab.id === selectedTab)?.label
@@ -298,8 +323,6 @@ export default function Home() {
 
     return filterNames.filter(Boolean) // undefined 제거
   }
-
-  
 
   return (
     <div className={styles['mobile-container']}>
@@ -379,39 +402,45 @@ export default function Home() {
             <div className={styles.moimPickLine}></div>
           </div>
           <div className={styles.moimPickSubText}>
-            <span className={styles.highlight}>{userName}</span>님을 위해 선배들이 픽 했어요!
+            <span className={styles.highlight}>{userName}</span>님을 위해
+            선배들이 픽 했어요!
           </div>
           <div className={styles.content}>
             {cardData.map((card) => (
               <div key={card.id} className={styles.card}>
                 <div className={styles.cardImage}>
-                  {card.pictures?.[0]? (
-                  <img
-                  src={card.pictures[0] || '/default-cafe.jpg'}
-                  alt={card.name || '카드 이미지'}
-                  loading="lazy"
-                  />
-                ) : (
-                  <img
-                    src="/default-cafe.jpg"
-                    alt={card.name || '기본 이미지'}
-                    className={styles.cardImage} // 필요한 스타일 추가
-                  />
-                )}
+                  {card.pictures?.[0] ? (
+                    <img
+                      src={card.pictures[0] || '/default-cafe.jpg'}
+                      alt={card.name || '카드 이미지'}
+                      loading="lazy"
+                    />
+                  ) : (
+                    <img
+                      src="/default-cafe.jpg"
+                      alt={card.name || '기본 이미지'}
+                      className={styles.cardImage} // 필요한 스타일 추가
+                    />
+                  )}
                 </div>
                 {/* 카드 내용 */}
                 <div className={styles.cardContent}>
                   {/* 카드 헤더 */}
                   <div className={styles.cardHeader}>
-                  <h3 className={styles.cardTitle}>
-                    {truncateText(card.name || '제목 없음', 25)} {/* 가게명 말줄임표 */}
-                  </h3>
+                    <h3 className={styles.cardTitle}>
+                      {truncateText(card.name || '제목 없음', 25)}{' '}
+                      {/* 가게명 말줄임표 */}
+                    </h3>
                     <div className={styles.likes}>
-                      <div className={`${styles.likeBackground} ${card.liked ? styles.liked : ''}`} onClick={() => handleLikeButtonClick(card.id, card.liked)}>
-                          <div className={styles.likeIcon}></div>
+                      <div
+                        className={`${styles.likeBackground} ${card.liked ? styles.liked : ''}`}
+                        onClick={() =>
+                          handleLikeButtonClick(card.id, card.liked)
+                        }
+                      >
+                        <div className={styles.likeIcon}></div>
                       </div>
-                      <span>{card.likes || 0}명</span>{' '}
-                      {/* 좋아요 숫자 */}
+                      <span>{card.likes || 0}명</span> {/* 좋아요 숫자 */}
                     </div>
                   </div>
 
@@ -428,7 +457,8 @@ export default function Home() {
 
                   {/* 설명 */}
                   <div className={styles.description}>
-                    {truncateText(card.word || '설명이 없습니다.', 40, 2)} {/* 줄당 20글자, 최대 2줄 */}
+                    {truncateText(card.word || '설명이 없습니다.', 40, 2)}{' '}
+                    {/* 줄당 20글자, 최대 2줄 */}
                   </div>
 
                   {/* 운영 시간 */}
@@ -444,10 +474,9 @@ export default function Home() {
               </div>
             ))}
           </div>
-          <div className={styles.bottomSheetLine}></div>   
+          <div className={styles.bottomSheetLine}></div>
         </div>
       </div>
     </div>
   )
 }
-

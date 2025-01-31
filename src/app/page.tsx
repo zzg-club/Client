@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { fetchKakaoLoginUrl } from './api/start-login/route';
+import { fetchKakaoLoginUrl } from './api/start-login/route'
 
 export default function Home() {
   const [isSheetExpanded, setIsSheetExpanded] = useState(false) // Bottom Sheet 상태
@@ -10,20 +10,20 @@ export default function Home() {
 
   const handleKakaoLogin = async () => {
     try {
-      const kakaoLoginUrl = await fetchKakaoLoginUrl(); // API 호출
-      console.log('Kakao Login URL:', kakaoLoginUrl);
+      const kakaoLoginUrl = await fetchKakaoLoginUrl() // API 호출
+      console.log('Kakao Login URL:', kakaoLoginUrl)
 
       // 반환된 URL로 이동
       if (kakaoLoginUrl.startsWith('http')) {
-        window.location.href = kakaoLoginUrl; // 카카오 로그인 페이지로 이동
+        window.location.href = kakaoLoginUrl // 카카오 로그인 페이지로 이동
       } else {
-        console.error('잘못된 로그인 URL:', kakaoLoginUrl);
-        alert('로그인 URL이 유효하지 않습니다.');
+        console.error('잘못된 로그인 URL:', kakaoLoginUrl)
+        alert('로그인 URL이 유효하지 않습니다.')
       }
     } catch (error) {
-      console.error((error as Error).message); // 타입 단언
+      console.error((error as Error).message) // 타입 단언
     }
-  };
+  }
 
   // 드래그 시작
   const handleStart = (y: number) => {
