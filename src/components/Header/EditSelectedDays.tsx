@@ -191,13 +191,8 @@ export default function EditSelectedDays({
                   : ''}
               </span>
             </div>
-            {/* <SquareCheckBig
-              className={`mt-1 ${isPurple ? 'text-[#9562fa]' : 'text-[#afafaf]'}`}
-              size={29}
-              strokeWidth={2.25}
-            /> */}
             <SquareCheckBig
-              className="mt-1 text-[#9562fa]"
+              className="mt-1 text-[#9562fa] cursor-pointer"
               size={29}
               strokeWidth={2.25}
             />
