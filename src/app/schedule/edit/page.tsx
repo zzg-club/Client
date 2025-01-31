@@ -798,7 +798,7 @@ export default function SchedulePage() {
         buttonText="완료"
         initialTitle={title}
         onTitleChange={handleTitleChange}
-        isPurple={isPurple}
+        // isPurple={isPurple}
       />
       <EditSelectedDays
         selectedDates={selectedDates}
