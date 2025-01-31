@@ -79,11 +79,11 @@ const KakaoMap = ({
 
         // 장소 타입에 따른 마커 이미지 설정
         const markerImageSrc =
-          selectedPlace.type === 'food'
+          selectedPlace.category === 0
             ? '/food_location.svg'
-            : selectedPlace.type === 'cafe'
+            : selectedPlace.category === 1
               ? '/cafe_location.svg'
-              : selectedPlace.type === 'play'
+              : selectedPlace.category === 2
                 ? '/game_location.svg'
                 : '/default_location.svg'
 
