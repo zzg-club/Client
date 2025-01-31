@@ -459,7 +459,7 @@ export default function TimeStamp({
 
     setTimeout(() => {
       isTouchInProgress = false
-    }, 300)
+    }, 500)
 
     const cellStatus = getCellStatus(rowIndex, colIndex)
     if (cellStatus.isSelected || cellStatus.isConfirmed) return
