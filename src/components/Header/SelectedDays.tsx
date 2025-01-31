@@ -191,7 +191,7 @@ export default function SelectedDays({
               </span>
             </div>
             <FaRegEdit
-              className={`text-[30px] mt-1 ${isPurple ? 'text-[#9562fa]' : 'text-[#afafaf]'}`} //Edit 페이지와 연결
+              className={`text-[30px] mt-1 cursor-pointer ${isPurple ? 'text-[#9562fa]' : 'text-[#afafaf]'}`} //Edit 페이지와 연결
             />
           </div>
         </div>
