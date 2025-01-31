@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Title from '@/components/Header/Title'
-import DecideSelectedDays from '@/components/Header/Decide/DecideSelectedDays'
-import DecideTimeStamp from '@/components/Body/Decide/DecideTimeStamp'
+import DecideSelectedDays from '@/components/Header/DecideSelectedDays'
+import DecideTimeStamp from '@/components/Body/DecideTimeStamp'
 import SelectedBottom from '@/components/Footer/BottomSheet/SelectedBottom'
 import { SelectItem } from '@/components/Footer/ListItem/SelectItem'
 import CustomModal from '@/components/Modals/CustomModal'
