@@ -11,6 +11,7 @@ import { fetchLikedStates } from '@/app/api/places/liked/route'
 import { fetchUserInformation } from '@/app/api/user/information/route'
 import { toggleLike } from '@/app/api/places/like/route'
 import { fetchFilteredCategoryData } from '@/app/api/places/category/[categoryIndex]/route'; // 필터 데이터 API
+import { fetchLikeCount } from '../api/places/updateLike/route'
 
 interface Place {
   lat: number
@@ -49,10 +50,18 @@ export default function Home() {
 
   const handleLikeButtonClick = async (placeId: number, liked: boolean) => {
     try {
+      // 좋아요 상태 토글
       const updatedLiked = await toggleLike(placeId, liked);
+  
+      // 최신 좋아요 개수 가져오기
+      const updatedLikesCount = await fetchLikeCount(placeId);
+  
+      // 카드 데이터 업데이트 (좋아요 상태 + 좋아요 개수)
       setCardData((prev) =>
         prev.map((card) =>
-          card.id === placeId ? { ...card, liked: updatedLiked } : card
+          card.id === placeId
+            ? { ...card, liked: updatedLiked, likes: updatedLikesCount }
+            : card
         )
       );
     } catch (error) {
