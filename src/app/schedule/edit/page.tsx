@@ -394,6 +394,7 @@ export default function SchedulePage() {
   const [currentPage, setCurrentPage] = useState(0)
   const [title, setTitle] = useState('제목 없는 일정')
   const [isPurple, setIsPurple] = useState(false)
+  const [isEdit, setIsEdit] = useState(true)
   const [dateTime, setDateTime] = useState<
     { date: string; timeSlots: { start: string; end: string }[] }[]
   >([])
@@ -798,7 +799,7 @@ export default function SchedulePage() {
         buttonText="완료"
         initialTitle={title}
         onTitleChange={handleTitleChange}
-        // isPurple={isPurple}
+        isEdit={isEdit}
       />
       <EditSelectedDays
         selectedDates={selectedDates}

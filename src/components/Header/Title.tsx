@@ -13,6 +13,7 @@ interface TitleProps {
   onClickTitleButton?: () => void
   initialTitle: string // 초기 제목
   isPurple?: boolean
+  isEdit?: boolean
   onTitleChange: (newTitle: string) => void // 제목 수정 후 부모로 전달
 }
 
@@ -22,6 +23,7 @@ export default function Title({
   initialTitle,
   onTitleChange,
   isPurple = false,
+  isEdit,
 }: TitleProps) {
   const router = useRouter()
   const [isShareOpen, setIsShareOpen] = useState(false)
@@ -49,7 +51,8 @@ export default function Title({
         </button>
         <button
           className={`text-center text-xl font-medium font-['Pretendard'] leading-[25px] 
-          ${isPurple ? 'text-[#9562fa]' : 'text-[#afafaf]'}`}
+          ${isPurple ? 'text-[#9562fa]' : 'text-[#afafaf]'} 
+          ${isEdit ? 'cursor-not-allowed' : ''}`}
           onClick={onClickTitleButton}
         >
           {buttonText}
