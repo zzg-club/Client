@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import EditSelectedDays from '@/components/Header/EditSelectedDays'
 import Title from '@/components/Header/Title'
-import EditTimeStamp from '@/components/Body/Edit/EditTimeStamp'
+import EditTimeStamp from '@/components/Body/EditTimeStamp'
 import SelectedBottom from '@/components/Footer/BottomSheet/SelectedBottom'
 import { EditItem } from '@/components/Footer/ListItem/EditItem'
 
