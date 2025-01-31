@@ -1,11 +1,29 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import { fetchKakaoLoginUrl } from './api/start-login/route'
 
 export default function Home() {
   const [isSheetExpanded, setIsSheetExpanded] = useState(false) // Bottom Sheet 상태
   const startYRef = useRef<number | null>(null) // 드래그 시작 위치 저장
   const isDraggingRef = useRef<boolean>(false) // 드래그 여부 확인
+
+  const handleKakaoLogin = async () => {
+    try {
+      const kakaoLoginUrl = await fetchKakaoLoginUrl() // API 호출
+      console.log('Kakao Login URL:', kakaoLoginUrl)
+
+      // 반환된 URL로 이동
+      if (kakaoLoginUrl.startsWith('http')) {
+        window.location.href = kakaoLoginUrl // 카카오 로그인 페이지로 이동
+      } else {
+        console.error('잘못된 로그인 URL:', kakaoLoginUrl)
+        alert('로그인 URL이 유효하지 않습니다.')
+      }
+    } catch (error) {
+      console.error((error as Error).message) // 타입 단언
+    }
+  }
 
   // 드래그 시작
   const handleStart = (y: number) => {
@@ -200,44 +218,7 @@ export default function Home() {
               marginLeft: 'auto',
               marginRight: 'auto',
             }}
-            onClick={async () => {
-              try {
-                // 1. 백엔드에서 카카오 로그인 URL 요청
-                const response = await fetch(
-                  'https://api.moim.team/api/start-login',
-                  {
-                    method: 'GET',
-                    credentials: 'include',
-                    headers: {
-                      'Content-Type': 'application/json',
-                    },
-                  },
-                )
-
-                if (response.ok) {
-                  const kakaoLoginUrl = await response.text() // 서버에서 반환된 문자열 (URL)
-                  console.log('Kakao Login URL:', kakaoLoginUrl)
-
-                  // 2. 반환된 URL로 리다이렉트
-                  if (kakaoLoginUrl.startsWith('http')) {
-                    window.location.href = kakaoLoginUrl // 카카오 로그인 페이지로 이동
-                  } else {
-                    console.error('잘못된 로그인 URL:', kakaoLoginUrl)
-                    alert('로그인 URL이 유효하지 않습니다.')
-                  }
-                } else {
-                  console.error(
-                    '로그인 URL 요청 실패:',
-                    response.status,
-                    response.statusText,
-                  )
-                  alert('로그인 요청이 실패했습니다.')
-                }
-              } catch (error) {
-                console.error('요청 중 오류 발생:', error)
-                alert('네트워크 오류가 발생했습니다. 다시 시도해주세요.')
-              }
-            }}
+            onClick={handleKakaoLogin}
           >
             <img
               src="/kakao.svg"

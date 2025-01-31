@@ -314,10 +314,10 @@
   letter-spacing: -0.5px;
   white-space: nowrap;
   flex: 0 0 60%;
-  white-space: nowrap; 
-  overflow: hidden; 
-  text-overflow: ellipsis; 
-  margin-right: 2px; 
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-right: 2px;
   max-width: 85%; /* 제목이 카드의 85% 영역을 차지 */
 }
 
@@ -340,7 +340,6 @@
   height: 100%; /* 컨테이너 높이를 강제로 맞춤 */
   object-fit: fill; /* 비율 무시하고 컨테이너를 완전히 채움 */
 }
-
 
 .cardContent {
   flex: 1; /* 남은 공간을 채움 */
@@ -386,6 +385,11 @@
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+/* 좋아요 상태인 경우 */
+.likeBackground.liked {
+  background: #49c657; /* 좋아요 눌린 상태의 배경색 */
 }
 
 /* 좋아요 아이콘 */
@@ -444,7 +448,6 @@
   word-break: break-word; /* 긴 단어 줄바꿈 */
   white-space: normal; /* 줄바꿈 허용 */
 }
-
 
 /* 푸터 */
 .footer {
