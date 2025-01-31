@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { ScheduleOptions } from '@/components/Buttons/Floating/Options'
 import CustomModal from '@/components/Modals/CustomModal'
 import CustomCalendar from '@/components/Calendars/CustomCalendar'
@@ -109,6 +109,30 @@ export default function ScheduleLanding() {
   const { selectedDates, stringDates, handleSelect } = useHandleSelect() // 커스텀 훅으로 날짜 선택 기능 가져오기 (백에 보낼때 stringDates 가져오면 됨)
   const [startDate, setStartDate] = useState<string | null>(null) // 직접입력하기-시작날짜,시간
   const [endDate, setEndDate] = useState<string | null>(null) // 직접입력하기-끝날짜,시간
+
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        const response = await fetch(
+          'https://api.moim.team/api/user/information',
+          {
+            method: 'GET',
+            credentials: 'include', // 쿠키 전송을 위해 필요
+          },
+        )
+        if (!response.ok) {
+          // 예외 처리
+          throw new Error(`서버 에러: ${response.status}`)
+        }
+        const data = await response.json()
+        console.log('유저 정보:', data)
+      } catch (error) {
+        console.error('유저 정보 불러오기 실패:', error)
+      }
+    }
+
+    fetchUserInfo()
+  }, [])
 
   // 제목 수정 함수
   const handleTitleChange = (newTitle: string) => {
