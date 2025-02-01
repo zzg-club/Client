@@ -53,10 +53,10 @@ export default function EditTitle({
             onBlur={handleSave}
             onKeyDown={handleKeyDown}
             autoFocus
-            className="text-white text-2xl font-semibold font-['Pretendard'] leading-[17px] tracking-tight bg-transparent outline-none placeholder-white overflow-hidden whitespace-nowrap w-[250px] max-w-full" // 가로 길이 제한 추가
+            className="text-white text-[26px] font-semibold font-['Pretendard'] leading-[17px] tracking-tight bg-transparent outline-none placeholder-white overflow-hidden whitespace-nowrap w-[250px] max-w-full" // 가로 길이 제한 추가
           />
         ) : (
-          <span className="text-center text-[#afafaf] text-2xl font-semibold font-['Pretendard'] leading-[30px] tracking-tight overflow-hidden whitespace-nowrap">
+          <span className="text-center text-[#afafaf] text-[26px] font-semibold font-['Pretendard'] leading-[30px] tracking-tight overflow-hidden whitespace-nowrap">
             {truncateTitle(title, 10)}
           </span>
         )}
