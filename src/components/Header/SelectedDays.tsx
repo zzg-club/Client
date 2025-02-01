@@ -6,6 +6,7 @@ import { FaRegEdit } from 'react-icons/fa'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { GoTriangleUp, GoTriangleDown } from 'react-icons/go'
 import { LuDot } from 'react-icons/lu'
+import { useRouter } from 'next/navigation'
 
 interface SelectedDate {
   year: number
@@ -173,6 +174,8 @@ export default function SelectedDays({
     onPageChange(Math.min(totalPages - 1, currentPage + 1))
   }
 
+  const router = useRouter()
+
   return (
     <div className="pt-0 relative">
       <div
@@ -191,7 +194,12 @@ export default function SelectedDays({
               </span>
             </div>
             <FaRegEdit
-              className={`text-[30px] mt-1 cursor-pointer ${isPurple ? 'text-[#9562fa]' : 'text-[#afafaf]'}`} //Edit 페이지와 연결
+              className={`text-[30px] mt-1 cursor-pointer ${isPurple ? 'text-[#9562fa]' : 'text-[#afafaf]'}`}
+              onClick={() => {
+                if (isPurple) {
+                  router.push('/schedule/edit')
+                }
+              }}
             />
           </div>
         </div>
