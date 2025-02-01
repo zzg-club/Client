@@ -258,7 +258,75 @@ export default function TimeStamp({
     }
 
     const cellStatus = getCellStatus(rowIndex, colIndex)
-    if (cellStatus.isSelected || cellStatus.isConfirmed) return
+
+    if (cellStatus.isConfirmed) return
+    else if (cellStatus.isSelected && cellStatus.selection) {
+      const finalizedSelection = {
+        ...cellStatus.selection,
+        isSelected: false,
+        isConfirmed: true,
+      }
+
+      setSelectionsByPage((prev) => {
+        const currentSelections = prev[currentPage] || []
+        const updatedSelections = currentSelections.flatMap((sel) => {
+          const isOverlap =
+            sel.startRow <= finalizedSelection.endRow &&
+            sel.endRow >= finalizedSelection.startRow &&
+            sel.startCol === finalizedSelection.startCol
+
+          if (!isOverlap) {
+            return [sel]
+          }
+
+          const splitSelections = []
+          if (sel.startRow < finalizedSelection.startRow) {
+            splitSelections.push({
+              ...sel,
+              endRow: finalizedSelection.startRow - 1,
+            })
+          }
+          if (sel.endRow > finalizedSelection.endRow) {
+            splitSelections.push({
+              ...sel,
+              startRow: finalizedSelection.endRow + 1,
+            })
+          }
+          return splitSelections
+        })
+
+        const mergedSelections = [...updatedSelections, finalizedSelection]
+
+        const startCol = finalizedSelection.startCol
+        const getTimeLabel = (rowIndex: number) => {
+          const hours = Math.floor(rowIndex / 2)
+          const minutes = (rowIndex % 2) * 30
+          const formattedHour = String(hours).padStart(2, '0')
+          const formattedMinute = String(minutes).padStart(2, '0')
+          return `${formattedHour}:${formattedMinute}`
+        }
+
+        let selectedDate: string
+        if (mode === 'range') {
+          selectedDate = `${currentDates[startCol]?.year}-${String(currentDates[startCol]?.month).padStart(2, '0')}-${String(currentDates[startCol]?.day).padStart(2, '0')}`
+        } else {
+          const groupedArray = groupedDate?.[currentPage]?.date ?? []
+          selectedDate = `${groupedArray[startCol]?.year}-${String(groupedArray[startCol]?.month).padStart(2, '0')}-${String(groupedArray[startCol]?.day).padStart(2, '0')}`
+        }
+
+        const startTime = getTimeLabel(finalizedSelection.startRow)
+        const endTime = getTimeLabel(finalizedSelection.endRow + 1)
+
+        handleDateTimeSelect(selectedDate, startTime, endTime)
+
+        return {
+          ...prev,
+          [currentPage]: mergedSelections,
+        }
+      })
+
+      return
+    }
 
     const pairStartRow = Math.floor(rowIndex / 2) * 2
     const pairEndRow = pairStartRow + 1
@@ -1063,6 +1131,12 @@ export default function TimeStamp({
 
     return () => clearTimeout(timeoutId) // 컴포넌트 언마운트 시 타이머 클리어
   }, [dateTime, selectedDates, mode, groupedDate])
+
+  useEffect(() => {
+    if (!isBottomSheetOpen) {
+      onColumnClick(-1, -1)
+    }
+  }, [isBottomSheetOpen, onColumnClick])
 
   return (
     <div
