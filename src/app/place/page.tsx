@@ -5,9 +5,13 @@ import { useRouter } from 'next/navigation'
 import KakaoMap from '@/components/Map/KakaoMap'
 import Navbar from '@/components/Navigate/NavBar'
 import styles from '@/app/place/styles/Home.module.css'
-import ImageLoader from '@/components/Place/ImageLoader'; // ImageLoader 경로는 프로젝트 구조에 맞게 수정
-
-
+import { fetchFilters } from '@/app/api/places/filter/route'
+import { fetchCategoryData } from '@/app/api/places/category/[categoryIndex]/route'
+import { fetchLikedStates } from '@/app/api/places/liked/route'
+import { fetchUserInformation } from '@/app/api/user/information/route'
+import { toggleLike } from '@/app/api/places/like/route'
+import { fetchFilteredCategoryData } from '@/app/api/places/category/[categoryIndex]/route' // 필터 데이터 API
+import { fetchLikeCount } from '../api/places/updateLike/route'
 
 interface Place {
   lat: number
@@ -17,7 +21,7 @@ interface Place {
 
 interface FilterResponse {
   category: string
-  filters: Record<string, string> // filter1, filter2, ...
+  filters: Record<string, string>
 }
 
 const tabs = [
@@ -41,105 +45,199 @@ export default function Home() {
   const mapRef = useRef<() => void | null>(null)
   const [selectedFilters, setSelectedFilters] = useState<string[]>([])
   const [cardData, setCardData] = useState<any[]>([]) // 카드 데이터를 저장
-  const [userName, setUserName] = useState('');
+  const [userName, setUserName] = useState('')
 
-  const getCookie = (name) => {
-    const matches = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
-    return matches ? decodeURIComponent(matches[1]) : null;
+  const handleCardClick = (placeId: number) => {
+    router.push(`/place/${placeId}`); // 클릭한 카드의 ID로 이동
   };
-  
 
-  const fetchUserInformation = async () => {
+  const handleLikeButtonClick = async (placeId: number, liked: boolean) => {
     try {
-      const response = await fetch('https://api.moim.team/api/user/information', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include', // 쿠키 포함
-      });
-  
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      return data;
+      // 좋아요 상태 토글
+      const updatedLiked = await toggleLike(placeId, liked)
+
+      // 최신 좋아요 개수 가져오기
+      const updatedLikesCount = await fetchLikeCount(placeId)
+
+      // 카드 데이터 업데이트 (좋아요 상태 + 좋아요 개수)
+      setCardData((prev) =>
+        prev.map((card) =>
+          card.id === placeId
+            ? { ...card, liked: updatedLiked, likes: updatedLikesCount }
+            : card,
+        ),
+      )
     } catch (error) {
-      console.error('Error fetching user information:', error);
-      return null;
+      console.error('Failed to toggle like:', error)
     }
-  };
-  
+  }
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const data = await fetchUserInformation();
-        setUserName(data.data.userNickname || '알 수 없는 사용자');
-      } catch (error) {
-        console.error('Error fetching user information:', error);
+    const loadUserInformation = async () => {
+      const userInfo = await fetchUserInformation()
+      if (userInfo) {
+        console.log('User Information:', userInfo)
+        setUserName(userInfo.data?.userNickname || '알 수 없는 사용자')
+      } else {
+        console.warn('Failed to load user information.')
       }
-    };
-  
-    fetchData();
-  }, []);
+    }
 
+    loadUserInformation()
+  }, [])
 
   const truncateText = (text: string, maxLength: number) => {
     return text.length > maxLength ? text.slice(0, maxLength) + '...' : text
-  }   
+  }
 
   const handleTabClick = async (tabId: string) => {
-    // 탭 변경
     setSelectedTab(tabId)
     setSelectedFilters([]) // 필터 초기화
 
     const categoryIndex = tabs.findIndex((tab) => tab.id === tabId)
-    // 유틸리티 함수: 문자열을 말줄임표로 처리
-    const truncateText = (text: string, maxLength: number) => {
-      return text.length > maxLength ? text.slice(0, maxLength) + '...' : text
-    }   
 
-    if (categoryIndex !== -1) {
-      try {
-        const response = await fetch(
-          `https://api.moim.team/api/places/category/${categoryIndex}`,
-          {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' },
+    if (categoryIndex === -1) {
+      console.warn('Invalid tabId provided:', tabId)
+      return
+    }
+
+    try {
+      let data
+
+      if (selectedFilters.length === 0) {
+        // 필터가 선택되지 않았을 때 기본 데이터를 가져옵니다.
+        console.log(
+          'Fetching default category data for categoryIndex:',
+          categoryIndex,
+        )
+        data = await fetchCategoryData(categoryIndex)
+      } else {
+        // 선택된 필터를 기반으로 필터링된 데이터를 가져옵니다.
+        const filters = getCurrentTabFilters().reduce(
+          (acc, filter, index) => {
+            acc[`filter${index + 1}`] = selectedFilters.includes(filter) // 선택된 필터를 boolean으로 변환
+            return acc
+          },
+          {} as {
+            filter1?: boolean
+            filter2?: boolean
+            filter3?: boolean
+            filter4?: boolean
           },
         )
 
-        if (response.ok) {
-          const result = await response.json()
+        console.log('Fetching filtered category data with filters:', filters)
+        data = await fetchFilteredCategoryData(categoryIndex, filters)
+      }
 
-          // 데이터 정규화 (filters가 없는 경우 기본값 처리)
-          const normalizedData = (result.data || []).map((card: any) => ({
+      // 좋아요 상태 확인 및 데이터 업데이트
+      const updatedData = await Promise.all(
+        data.map(async (card: any) => {
+          const liked = await fetchLikedStates(card.id)
+          return {
             ...card,
             filters: card.filters || {}, // filters가 없으면 빈 객체로 초기화
-          }))
+            liked, // 좋아요 상태 추가
+          }
+        }),
+      )
 
-          setCardData(normalizedData) // 카드 데이터 업데이트
-        } else {
-          console.error(
-            `Failed to fetch card data. Status code: ${response.status}`,
-          )
-        }
-      } catch (error) {
-        console.error('Error fetching card data:', error)
-      }
-    } else {
-      console.warn('Invalid tabId provided:', tabId)
+      console.log('Updated card data:', updatedData)
+      setCardData(updatedData) // 카드 데이터 업데이트
+    } catch (error) {
+      console.error('Error fetching category data:', error)
     }
   }
 
+  useEffect(() => {
+    const fetchData = async () => {
+      const categoryIndex = tabs.findIndex((tab) => tab.id === selectedTab)
+
+      if (categoryIndex === -1) {
+        console.warn('Invalid tabId provided:', selectedTab)
+        return
+      }
+
+      try {
+        let data
+
+        if (selectedFilters.length === 0) {
+          // 필터가 선택되지 않았을 때 기본 데이터를 가져옵니다.
+          console.log(
+            'Fetching default category data for categoryIndex:',
+            categoryIndex,
+          )
+          data = await fetchCategoryData(categoryIndex)
+        } else {
+          try {
+            const filters = getCurrentTabFilters().reduce(
+              (acc, filter, index) => {
+                acc[`filter${index + 1}`] = selectedFilters.includes(filter) // 선택된 필터를 boolean으로 변환
+                return acc
+              },
+              {} as {
+                filter1?: boolean
+                filter2?: boolean
+                filter3?: boolean
+                filter4?: boolean
+              },
+            )
+
+            console.log(
+              'Fetching filtered category data with filters:',
+              filters,
+            )
+
+            data = await fetchFilteredCategoryData(categoryIndex, filters)
+
+            if (!data || data.length === 0) {
+              console.warn(
+                'No data returned for the selected filters:',
+                filters,
+              )
+              data = [] // 기본값으로 빈 배열 설정
+            }
+          } catch (error) {
+            console.error('Error fetching filtered category data:', error)
+            data = [] // 예외 발생 시 빈 배열 설정
+          }
+        }
+
+        // 좋아요 상태 확인 및 데이터 업데이트
+        const updatedData = await Promise.all(
+          data.map(async (card: any) => {
+            const liked = await fetchLikedStates(card.id)
+            return {
+              ...card,
+              filters: card.filters || {}, // filters가 없으면 빈 객체로 초기화
+              liked, // 좋아요 상태 추가
+            }
+          }),
+        )
+
+        console.log('Updated card data:', updatedData)
+        setCardData(updatedData) // 카드 데이터 업데이트
+      } catch (error) {
+        console.error('Error fetching category data:', error)
+      }
+    }
+
+    fetchData()
+  }, [selectedTab, selectedFilters]) // 탭 상태 및 필터 상태가 변경될 때 호출
+
+  useEffect(() => {
+    handleTabClick(selectedTab)
+  }, [])
+
   const handleFilterButtonClick = (filter: string) => {
-    setSelectedFilters(
-      (prevSelected) =>
-        prevSelected.includes(filter)
-          ? prevSelected.filter((item) => item !== filter) // 이미 선택된 경우 해제
-          : [...prevSelected, filter], // 새로 선택
-    )
+    setSelectedFilters((prevSelected) => {
+      const updatedFilters = prevSelected.includes(filter)
+        ? prevSelected.filter((item) => item !== filter) // 이미 선택된 경우 해제
+        : [...prevSelected, filter] // 새로 선택
+
+      console.log('Updated Filters:', updatedFilters) // 선택된 필터 로그
+      return updatedFilters
+    })
   }
 
   const handleVectorButtonClick = () => {
@@ -181,32 +279,22 @@ export default function Home() {
   }
 
   useEffect(() => {
-    const fetchFilters = async () => {
+    const loadFilters = async () => {
       try {
-        const response = await fetch(
-          'https://api.moim.team/api/places/filter',
-          {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' }
-          },
-        )
-        if (response.ok) {
-          const result = await response.json()
-          console.log('API 응답 데이터:', result) // 디버깅용
-          if (result.success && Array.isArray(result.data)) {
-            setFilters(result.data) // 상태 업데이트
-          } else {
-            console.error('유효하지 않은 데이터 형식:', result)
-          }
+        const response = await fetchFilters() // 분리된 함수 호출
+        const { success, data, error } = await response.json() // 응답 처리
+
+        if (success && Array.isArray(data)) {
+          setFilters(data) // 상태 업데이트
         } else {
-          console.error('Failed to fetch filters:', response.status)
+          console.error('Failed to fetch filters:', error || 'Unknown error')
         }
       } catch (error) {
         console.error('Error fetching filters:', error)
       }
     }
 
-    fetchFilters()
+    loadFilters() // 필터 데이터 로드
   }, [])
 
   const getCurrentTabFilters = () => {
@@ -239,8 +327,6 @@ export default function Home() {
 
     return filterNames.filter(Boolean) // undefined 제거
   }
-
-  
 
   return (
     <div className={styles['mobile-container']}>
@@ -320,31 +406,46 @@ export default function Home() {
             <div className={styles.moimPickLine}></div>
           </div>
           <div className={styles.moimPickSubText}>
-            <span className={styles.highlight}>{userName}</span>님을 위해 선배들이 픽 했어요!
+            <span className={styles.highlight}>{userName}</span>님을 위해
+            선배들이 픽 했어요!
           </div>
           <div className={styles.content}>
             {cardData.map((card) => (
-              <div key={card.id} className={styles.card}>
+              <div key={card.id} className={styles.card} onClick={() => handleCardClick(card.id)}>
                 <div className={styles.cardImage}>
-                  <ImageLoader
-                    imageUrl={card.pictures?.[0] || ''}
-                    fallbackUrl="/default-cafe.jpg"
-                    alt={card.name || '카드 이미지'}
-                  />
+                  {card.pictures?.[0] ? (
+                    <img
+                      src={card.pictures[0] || '/default-cafe.jpg'}
+                      alt={card.name || '카드 이미지'}
+                      loading="lazy"
+                    />
+                  ) : (
+                    <img
+                      src="/default-cafe.jpg"
+                      alt={card.name || '기본 이미지'}
+                      className={styles.cardImage} // 필요한 스타일 추가
+                    />
+                  )}
                 </div>
                 {/* 카드 내용 */}
                 <div className={styles.cardContent}>
                   {/* 카드 헤더 */}
                   <div className={styles.cardHeader}>
-                  <h3 className={styles.cardTitle}>
-                    {truncateText(card.name || '제목 없음', 25)} {/* 가게명 말줄임표 */}
-                  </h3>
+                    <h3 className={styles.cardTitle}>
+                      {truncateText(card.name || '제목 없음', 25)}{' '}
+                      {/* 가게명 말줄임표 */}
+                    </h3>
                     <div className={styles.likes}>
-                      <div className={styles.likeBackground}>
+                      <div
+                        className={`${styles.likeBackground} ${card.liked ? styles.liked : ''}`}
+                        onClick={(e) => {
+                          e.stopPropagation(); 
+                          handleLikeButtonClick(card.id, card.liked)
+                        }}
+                      >
                         <div className={styles.likeIcon}></div>
                       </div>
-                      <span>{card.likes.length || 0}명</span>{' '}
-                      {/* 좋아요 숫자 */}
+                      <span>{card.likes || 0}명</span> {/* 좋아요 숫자 */}
                     </div>
                   </div>
 
@@ -361,7 +462,8 @@ export default function Home() {
 
                   {/* 설명 */}
                   <div className={styles.description}>
-                    {truncateText(card.word || '설명이 없습니다.', 40, 2)} {/* 줄당 20글자, 최대 2줄 */}
+                    {truncateText(card.word || '설명이 없습니다.', 40, 2)}{' '}
+                    {/* 줄당 20글자, 최대 2줄 */}
                   </div>
 
                   {/* 운영 시간 */}
@@ -377,10 +479,9 @@ export default function Home() {
               </div>
             ))}
           </div>
-          <div className={styles.bottomSheetLine}></div>   
+          <div className={styles.bottomSheetLine}></div>
         </div>
       </div>
     </div>
   )
 }
-
