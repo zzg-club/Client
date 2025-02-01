@@ -11,6 +11,7 @@ import EditTitle from '@/components/Header/EditTitle'
 import CarouselNotification from '@/components/Notification/CarouselNotification'
 import DateTimeModal from '@/components/Modals/DirectSelect/DateTimeModal'
 import { useHandleSelect } from '@/hooks/useHandleSelect'
+import { useDateTimeStore } from '@/store/dateTimeStore'
 
 // 스케줄 카드 목데이터
 const mockSchedules = [
@@ -111,6 +112,8 @@ export default function ScheduleLanding() {
   const [startDate, setStartDate] = useState<string | null>(null) // 직접입력하기-시작날짜,시간
   const [endDate, setEndDate] = useState<string | null>(null) // 직접입력하기-끝날짜,시간
 
+  const { resetDateTime } = useDateTimeStore()
+
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
@@ -144,9 +147,17 @@ export default function ScheduleLanding() {
     setIsOpen(!isOpen)
   }
   const handleOpenCdialog = () => {
+    if (isCdialogOpen) {
+      // 모달이 닫힐 때 선택된 날짜 초기화
+      handleSelect(undefined)
+    }
     setIsCdialogOpen(!isCdialogOpen)
   }
   const handleOpenDdialg = () => {
+    if (isDdialogOpen) {
+      // 직접 입력 모달이 닫힐 때 시작/끝 날짜,시간 초기화
+      resetDateTime()
+    }
     setIsDdialogOpen(!isDdialogOpen)
   }
 
