@@ -12,7 +12,8 @@ interface TitleProps {
   buttonText: string
   onClickTitleButton?: () => void
   initialTitle: string // 초기 제목
-  isPurple: boolean
+  isPurple?: boolean
+  isEdit?: boolean
   onTitleChange: (newTitle: string) => void // 제목 수정 후 부모로 전달
 }
 
@@ -21,7 +22,8 @@ export default function Title({
   onClickTitleButton,
   initialTitle,
   onTitleChange,
-  isPurple,
+  isPurple = false,
+  isEdit,
 }: TitleProps) {
   const router = useRouter()
   const [isShareOpen, setIsShareOpen] = useState(false)
@@ -48,8 +50,9 @@ export default function Title({
           <IoShareSocialOutline className="w-8 h-8 text-[#1e1e1e]" />
         </button>
         <button
-          className={`text-center text-[23px] font-medium font-['Pretendard'] leading-[25px] 
-          ${isPurple ? 'text-[#9562fa]' : 'text-[#afafaf]'}`}
+          className={`text-center text-xl font-medium font-['Pretendard'] leading-[25px] 
+          ${isPurple ? 'text-[#9562fa]' : 'text-[#afafaf]'} 
+          ${isEdit ? 'cursor-not-allowed' : ''}`}
           onClick={onClickTitleButton}
         >
           {buttonText}
