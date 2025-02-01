@@ -1,13 +1,13 @@
 'use client'
 
 import {
-  DateRange,
+  type DateRange,
   DayPicker,
-  SelectMultipleEventHandler,
-  SelectRangeEventHandler,
-  SelectSingleEventHandler,
+  type SelectMultipleEventHandler,
+  type SelectRangeEventHandler,
+  type SelectSingleEventHandler,
 } from 'react-day-picker'
-import { useState } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import '../../styles/CustomCalendarStyle.css'
 import { ChevronLeft } from 'lucide-react'
 import { ChevronRight } from 'lucide-react'
@@ -28,73 +28,133 @@ export default function CustomCalendar({
 }: CustomCalendarProps) {
   const [month, setMonth] = useState<Date>(new Date())
   const [mode, setMode] = useState<Mode>(initialMode)
-  const [selectedWeekdays, setSelectedWeekdays] = useState<number[]>([])
+  const [selectedWeekdaysByMonth, setSelectedWeekdaysByMonth] = useState<
+    Record<string, number[]>
+  >({})
+  const [rangeSelection, setRangeSelection] = useState<DateRange | undefined>()
   const today = new Date()
   today.setHours(0, 0, 0, 0) // 오늘 날짜의 시간을 초기화
 
-  const getDatesByWeekdays = (weekdays: number[], month: Date) => {
-    const dates: Date[] = []
-    const firstDayOfMonth = new Date(month.getFullYear(), month.getMonth(), 1)
-    const lastDayOfMonth = new Date(
-      month.getFullYear(),
-      month.getMonth() + 1,
-      0,
-    )
+  const getMonthKey = useCallback((date: Date) => {
+    return `${date.getFullYear()}-${date.getMonth()}`
+  }, [])
 
-    for (
-      let day = new Date(firstDayOfMonth);
-      day <= lastDayOfMonth;
-      day.setDate(day.getDate() + 1)
-    ) {
-      if (weekdays.includes(day.getDay()) && !isBefore(day, today)) {
-        dates.push(new Date(day))
+  const getDatesByWeekdays = useCallback(
+    (weekdays: number[], month: Date) => {
+      const dates: Date[] = []
+      const firstDayOfMonth = new Date(month.getFullYear(), month.getMonth(), 1)
+      const lastDayOfMonth = new Date(
+        month.getFullYear(),
+        month.getMonth() + 1,
+        0,
+      )
+
+      for (
+        let day = new Date(firstDayOfMonth);
+        day <= lastDayOfMonth;
+        day.setDate(day.getDate() + 1)
+      ) {
+        if (weekdays.includes(day.getDay()) && !isBefore(day, today)) {
+          dates.push(new Date(day))
+        }
       }
-    }
-    return dates
-  }
+      return dates
+    },
+    [today],
+  )
 
-  const handleWeekdayClick = (weekday: number) => {
-    let newSelectedWeekdays: number[]
+  let isNewSelect = false
 
-    if (selectedWeekdays.includes(weekday)) {
-      // 이미 선택된 요일을 클릭한 경우 제거
-      newSelectedWeekdays = selectedWeekdays.filter((day) => day !== weekday)
-    } else {
-      // 새로운 요일을 선택한 경우 추가
-      newSelectedWeekdays = [...selectedWeekdays, weekday]
-    }
+  const handleWeekdayClick = useCallback(
+    (weekday: number) => {
+      isNewSelect = true
+      const monthKey = getMonthKey(month)
+      console.log(monthKey)
+      setSelectedWeekdaysByMonth((prev) => {
+        const currentMonthWeekdays = prev[monthKey] || []
+        let newWeekdays: number[]
 
-    setSelectedWeekdays(newSelectedWeekdays)
+        if (currentMonthWeekdays.includes(weekday)) {
+          // 이미 선택된 요일을 클릭한 경우 제거
+          newWeekdays = currentMonthWeekdays.filter((day) => day !== weekday)
+        } else {
+          // 새로운 요일을 선택한 경우 추가
+          newWeekdays = [...currentMonthWeekdays, weekday]
+        }
 
-    if (newSelectedWeekdays.length > 0) {
-      // 요일이 하나라도 선택된 경우
-      setMode('multiple')
-      const dates = getDatesByWeekdays(newSelectedWeekdays, month)
-      onSelect?.(dates)
-    } else {
-      // 모든 요일 선택이 해제된 경우
-      setMode('range')
-      onSelect?.({ from: undefined, to: undefined })
-    }
-  }
+        const newSelectedWeekdaysByMonth = {
+          [monthKey]: newWeekdays,
+        }
 
-  const handleDayClick = (day: Date) => {
-    if (mode === 'multiple') {
-      setMode('range')
-      setSelectedWeekdays([])
-      onSelect?.({ from: day, to: undefined })
-    }
-  }
+        if (newWeekdays.length > 0) {
+          // 요일이 하나라도 선택된 경우
+          setMode('multiple')
+          const dates = getDatesByWeekdays(newWeekdays, month)
+          console.log('dates', dates)
+          onSelect?.(dates)
+        } else {
+          // 모든 요일 선택이 해제된 경우
+          setMode('range')
+          onSelect?.({ from: undefined, to: undefined })
+        }
+
+        return newSelectedWeekdaysByMonth
+      })
+    },
+    [month, getMonthKey, getDatesByWeekdays, onSelect],
+  )
+
+  const handleMonthChange = useCallback(
+    (newMonth: Date) => {
+      setMonth(newMonth)
+      console.log('swdbm', selectedWeekdaysByMonth)
+      if (mode === 'multiple') {
+        console.log(isNewSelect)
+        if (!isNewSelect) {
+          return
+        } else {
+          // // Reset weekday selections when changing months in multiple mode
+          setSelectedWeekdaysByMonth({})
+          setMode('range')
+          onSelect?.({ from: undefined, to: undefined })
+        }
+      }
+    },
+    [mode, onSelect],
+  )
+
+  const handleDayClick = useCallback(
+    (day: Date) => {
+      if (mode === 'multiple') {
+        setMode('range')
+        const monthKey = getMonthKey(day)
+        setSelectedWeekdaysByMonth((prev) => ({ ...prev, [monthKey]: [] }))
+        onSelect?.({ from: day, to: undefined })
+      }
+    },
+    [mode, getMonthKey, onSelect],
+  )
 
   const handleRangeSelect: SelectRangeEventHandler = (range) => {
     if (mode === 'range') {
-      onSelect?.(range)
+      setRangeSelection(range)
+      if (!range || !range.from) {
+        // ✅ 범위가 유효하지 않을 경우 초기화
+        onSelect?.({ from: undefined, to: undefined })
+      } else {
+        onSelect?.(range)
+      }
     }
   }
 
   const handleMultipleSelect: SelectMultipleEventHandler = (dates) => {
     if (mode === 'multiple') {
-      onSelect?.(dates || [])
+      if (!Array.isArray(dates)) {
+        // ✅ 배열이 아닐 경우 빈 배열을 전달하여 안전하게 처리
+        onSelect?.([])
+      } else {
+        onSelect?.(dates)
+      }
     }
   }
 
@@ -104,18 +164,26 @@ export default function CustomCalendar({
     }
   }
 
+  useEffect(() => {
+    if (selected && 'from' in selected) {
+      setRangeSelection(selected)
+    }
+  }, [selected])
+
   const commonProps = {
     month,
-    onMonthChange: setMonth,
+    onMonthChange: handleMonthChange,
     showOutsideDays: false,
     onDayClick: handleDayClick,
     disabled: (date: Date) => isBefore(date, today), // 오늘 이전 날짜를 비활성화
     modifiers: {
       firstWeekday: (date: Date) => {
         // 요일별 첫번째 날짜 찾기
+        const monthKey = getMonthKey(date)
+        const selectedWeekdays = selectedWeekdaysByMonth[monthKey] || []
         const weekdayToFirstDateMap = selectedWeekdays.reduce(
           (acc, weekday) => {
-            const dates = getDatesByWeekdays([weekday], month)
+            const dates = getDatesByWeekdays([weekday], date)
             if (dates.length > 0) {
               acc[weekday] = dates[0].getTime() // 요일별 첫 번째 날짜
             }
@@ -127,9 +195,11 @@ export default function CustomCalendar({
       },
       lastWeekday: (date: Date) => {
         // 요일별 마지막 날짜 찾기
+        const monthKey = getMonthKey(date)
+        const selectedWeekdays = selectedWeekdaysByMonth[monthKey] || []
         const weekdayToLastDateMap = selectedWeekdays.reduce(
           (acc, weekday) => {
-            const dates = getDatesByWeekdays([weekday], month)
+            const dates = getDatesByWeekdays([weekday], date)
             if (dates.length > 0) {
               acc[weekday] = dates[dates.length - 1].getTime() // 요일별 마지막 날짜
             }
@@ -180,7 +250,7 @@ export default function CustomCalendar({
             <button
               onClick={(e) => {
                 e.stopPropagation()
-                setMonth(
+                handleMonthChange(
                   new Date(
                     displayMonth.getFullYear(),
                     displayMonth.getMonth() - 1,
@@ -194,7 +264,7 @@ export default function CustomCalendar({
             <button
               onClick={(e) => {
                 e.stopPropagation()
-                setMonth(
+                handleMonthChange(
                   new Date(
                     displayMonth.getFullYear(),
                     displayMonth.getMonth() + 1,
@@ -208,25 +278,29 @@ export default function CustomCalendar({
           </div>
         </div>
       ),
-      Head: () => (
-        <thead>
-          <tr className="calendar-head-row">
-            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(
-              (day, index) => (
-                <th
-                  key={index}
-                  className={`calendar-head-cell cursor-pointer ${
-                    selectedWeekdays.includes(index) ? 'text-[#9562fa]' : ''
-                  }`}
-                  onClick={() => handleWeekdayClick(index)}
-                >
-                  {day}
-                </th>
-              ),
-            )}
-          </tr>
-        </thead>
-      ),
+      Head: () => {
+        const monthKey = getMonthKey(month)
+        const selectedWeekdays = selectedWeekdaysByMonth[monthKey] || []
+        return (
+          <thead>
+            <tr className="calendar-head-row">
+              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(
+                (day, index) => (
+                  <th
+                    key={index}
+                    className={`calendar-head-cell cursor-pointer ${
+                      selectedWeekdays.includes(index) ? 'text-[#9562fa]' : ''
+                    }`}
+                    onClick={() => handleWeekdayClick(index)}
+                  >
+                    {day}
+                  </th>
+                ),
+              )}
+            </tr>
+          </thead>
+        )
+      },
     },
   }
 
@@ -235,7 +309,7 @@ export default function CustomCalendar({
       {mode === 'range' && (
         <DayPicker
           mode="range"
-          selected={selected as DateRange | undefined}
+          selected={rangeSelection}
           onSelect={handleRangeSelect}
           {...commonProps}
         />
@@ -243,7 +317,7 @@ export default function CustomCalendar({
       {mode === 'multiple' && (
         <DayPicker
           mode="multiple"
-          selected={selected as Date[] | undefined}
+          selected={Array.isArray(selected) ? (selected as Date[]) : undefined}
           onSelect={handleMultipleSelect}
           {...commonProps}
         />
@@ -251,7 +325,7 @@ export default function CustomCalendar({
       {mode === 'single' && (
         <DayPicker
           mode="single"
-          selected={selected as Date | undefined}
+          selected={selected instanceof Date ? selected : undefined}
           onSelect={handleSingleSelect}
           {...commonProps}
         />
