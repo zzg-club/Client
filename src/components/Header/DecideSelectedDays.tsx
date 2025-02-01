@@ -201,7 +201,7 @@ export default function SelectedDays({
       >
         <div className="text-[#1e1e1e] font-['Pretendard'] leading-[17px] tracking-tight pl-5 pr-4 pt-3 pb-5">
           <div className="flex justify-between">
-            <div className="flex">
+            <div className="flex items-center">
               <span className="text-3xl">{month}</span>
               <span className="text-[21px] ml-2 pt-3">
                 {dayofWeek && dayofWeek[currentPage] !== null
@@ -215,8 +215,9 @@ export default function SelectedDays({
                 <ProfileSmall profiles={participants} />
               </div>
             </div>
-            <FaRegEdit onClick={handleEdit}
-              className={`text-[30px] mt-1 ${isPurple ? 'text-[#9562fa]' : 'text-[#afafaf]'}`} //Edit 페이지와 연결
+            <FaRegEdit
+              onClick={handleEdit}
+              className={`cursor-pointer text-[30px] mt-1 ${isPurple ? 'text-[#9562fa]' : 'text-[#afafaf]'}`} //Edit 페이지와 연결
             />
           </div>
         </div>
