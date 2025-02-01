@@ -112,7 +112,7 @@ export default function ScheduleLanding() {
   const [startDate, setStartDate] = useState<string | null>(null) // 직접입력하기-시작날짜,시간
   const [endDate, setEndDate] = useState<string | null>(null) // 직접입력하기-끝날짜,시간
 
-  const { resetDateTime } = useDateTimeStore()
+  const resetDateTime = useDateTimeStore((state) => state.resetDateTime)
 
   useEffect(() => {
     const fetchUserInfo = async () => {
