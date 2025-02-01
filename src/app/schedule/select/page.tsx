@@ -9,7 +9,7 @@ import { SelectItem } from '@/components/Footer/ListItem/SelectItem'
 import CustomModal from '@/components/Modals/CustomModal'
 import { ProfileLarge } from '@/components/Profiles/ProfileLarge'
 import MembersDefault from '@/components/Modals/MembersDefault'
-// import { useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 
 interface SelectedDate {
   year: number
@@ -379,6 +379,7 @@ export default function Page() {
     },
   ]
 
+  const router = useRouter()
   // 완료 버튼 누르면 나오는 일정 입력 중 모달
   const [isToDecideModal, setIsToDecideModal] = useState(false)
   const handleToDecideModal = () => {
@@ -409,18 +410,16 @@ export default function Page() {
     if (hasIncompleteMember) {
       if (isDanger) {
         // 경고가 이미 표시된 상태에서 다시 누르면 페이지 이동
-        alert('경고 확인 후 페이지 이동')
+        router.push('/schedule/decide')
       } else {
         // 경고 보여주기
         setIsDanger(true)
       }
     } else {
       // 모두 완료되었으면 바로 페이지 이동
-      alert('경고 없이 페이지 이동')
+      router.push('/schedule/decide')
     }
   }
-
-  // const router = useRouter()
 
   const [isNextOpen, setIsNextOpen] = useState(false)
 
@@ -525,7 +524,7 @@ export default function Page() {
       <CustomModal
         open={isNextOpen}
         onOpenChange={handleToDecideModal}
-        onNext={() => alert('다음으로 버튼 클릭')}
+        onNext={() => router.push('/schedule/decide')}
         isFooter={true}
         footerText={'다음으로'}
       >
