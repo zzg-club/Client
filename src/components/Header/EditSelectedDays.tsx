@@ -7,6 +7,7 @@ import { SquareCheckBig } from 'lucide-react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { GoTriangleUp, GoTriangleDown } from 'react-icons/go'
 import { LuDot } from 'react-icons/lu'
+import { useRouter } from 'next/navigation'
 
 interface SelectedDate {
   year: number
@@ -64,7 +65,6 @@ export default function EditSelectedDays({
   onPageChange,
   highlightedCol,
   onDateCountsChange,
-  isPurple,
 }: EditSelectedDaysProps) {
   const [dateCounts, setDateCounts] = useState<number[]>([])
   const [groupedData, setGroupedData] = useState<GroupedDate[]>([])
@@ -174,6 +174,8 @@ export default function EditSelectedDays({
     onPageChange(Math.min(totalPages - 1, currentPage + 1))
   }
 
+  const router = useRouter()
+
   return (
     <div className="pt-0 relative">
       <div
@@ -195,6 +197,7 @@ export default function EditSelectedDays({
               className="mt-1 text-[#9562fa] cursor-pointer"
               size={29}
               strokeWidth={2.25}
+              onClick={() => router.push('/schedule/select')}
             />
           </div>
         </div>
