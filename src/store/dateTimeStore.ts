@@ -11,6 +11,7 @@ interface DateTimeState {
   setStartTime: (time: string) => void
   setEndTime: (time: string) => void
   adjustEndDateTime: () => void // 하루를 기준으로 endTime이 startTime보다 앞 시간일 때 endDate +1
+  resetDateTime: () => void // 모달 닫힐 때 datetime reset
 }
 
 export const useDateTimeStore = create<DateTimeState>((set, get) => ({
@@ -36,4 +37,11 @@ export const useDateTimeStore = create<DateTimeState>((set, get) => ({
       }
     }
   },
+  resetDateTime: () =>
+    set({
+      startDate: undefined,
+      endDate: undefined,
+      startTime: '08:00 PM',
+      endTime: '09:00 PM',
+    }),
 }))
