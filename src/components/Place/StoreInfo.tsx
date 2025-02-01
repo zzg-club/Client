@@ -175,36 +175,6 @@ const StoreInfo = ({ selectedPlace }: { selectedPlace: any }) => {
         </div>
       )}
 
-      {/* 최대 인원 드롭다운 */}
-      {activeDropdown === 'capacity' && (
-        <div
-          style={{
-            display: 'flex',
-            width: '393px',
-            padding: '16px 32px',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'flex-start',
-            gap: '8px',
-            fontSize: '14px',
-            fontStyle: 'normal',
-            fontWeight: '500',
-            lineHeight: '17px',
-            letterSpacing: '-0.5px',
-            marginBottom: '8px',
-          }}
-        >
-          <p>1팀 최대 인원 12명</p>
-          <p style={{ color: '#AFAFAF' }}>
-            ✔ 4인 이상 착석 가능한 테이블이 많아요
-          </p>
-          <p style={{ color: '#AFAFAF' }}>✔ 창가 쪽에 혼밥존 있어요</p>
-          <p style={{ color: '#AFAFAF' }}>
-            ✔ 예약석 테이블에 12명 착석 가능해요
-          </p>
-        </div>
-      )}
-
       {/* 지도 */}
       <div>
         {/* 지도 영역 */}
@@ -243,20 +213,11 @@ const StoreInfo = ({ selectedPlace }: { selectedPlace: any }) => {
             <p
               style={{
                 fontSize: '12px',
-                color: '#9562FB',
-                margin: 0,
-              }}
-            >
-              판교 분당에서 차로 15분
-            </p>
-            <p
-              style={{
-                fontSize: '12px',
                 color: '#AFAFAF',
                 margin: 0,
               }}
             >
-              경기 용인시 수지구 성복2로 376
+              {selectedPlace.address}
             </p>
           </div>
         </div>

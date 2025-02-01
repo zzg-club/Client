@@ -156,7 +156,7 @@
 
 /* Bottom Sheet 상태별 높이 */
 .bottomSheet.collapsed {
-  --bottomSheetHeight: 180px;
+  --bottomSheetHeight: 200px;
 }
 
 .bottomSheet.middle {
@@ -368,8 +368,8 @@
 
 /* 좋아요 배경 */
 .likeBackground {
-  width: 52px;
-  height: 36px;
+  width: calc(2.5rem + 1vw);
+  height: calc(1.8rem + 0.2vw);
   border-radius: 12px;
   background: #a9f3b2; /* 배경 색상 */
   display: flex;
@@ -378,10 +378,15 @@
   margin-top: 10px;
 }
 
+/* 좋아요 상태인 경우 */
+.likeBackground.liked {
+  background: #49c657; /* 좋아요 눌린 상태의 배경색 */
+}
+
 /* 좋아요 아이콘 */
 .likeIcon {
-  width: 28px;
-  height: 28px;
+  width: calc(1.5rem + 0vw);
+  height: calc(1.5rem + 0vw);
   background: url('/like-icon.svg') no-repeat center center;
 }
 
@@ -395,8 +400,8 @@
 .tags {
   display: flex; /* Flexbox로 가로 정렬 */
   gap: 8px; /* 태그 간 간격 */
-  margin-top: 10px;
-  margin-bottom: 8px;
+  margin-top: 5px;
+  /* margin-bottom: 8px; */
 }
 
 /* 태그 스타일 */
@@ -536,7 +541,7 @@
 }
 
 .bottomSheetTopRightButton.collapsed {
-  bottom: calc(210px + 16px); /* BottomSheet collapsed 상태 */
+  bottom: calc(220px + 16px); /* BottomSheet collapsed 상태 */
   opacity: 1;
 }
 
