@@ -12,6 +12,7 @@ import CarouselNotification from '@/components/Notification/CarouselNotification
 import DateTimeModal from '@/components/Modals/DirectSelect/DateTimeModal'
 import { useHandleSelect } from '@/hooks/useHandleSelect'
 import { useDateTimeStore } from '@/store/dateTimeStore'
+import { useRouter } from 'next/navigation'
 
 // 스케줄 카드 목데이터
 const mockSchedules = [
@@ -112,7 +113,8 @@ export default function ScheduleLanding() {
   const [startDate, setStartDate] = useState<string | null>(null) // 직접입력하기-시작날짜,시간
   const [endDate, setEndDate] = useState<string | null>(null) // 직접입력하기-끝날짜,시간
 
-  const { resetDateTime } = useDateTimeStore()
+  const resetDateTime = useDateTimeStore((state) => state.resetDateTime)
+  const router = useRouter()
 
   useEffect(() => {
     const fetchUserInfo = async () => {
@@ -197,6 +199,21 @@ export default function ScheduleLanding() {
     alert('오른쪽 버튼 클릭')
   }
 
+  const handlePostSchedule = () => {
+    console.log('선택날짜', stringDates)
+    console.log('mode', mode)
+    console.log('selected',selected)
+
+    router.push('/schedule/select')
+  }
+
+  const handlePostDirectSchedule = () => {
+    console.log('startDate', startDate)
+    console.log('endDate', endDate)
+
+    router.push('/schedule')
+  }
+
   return (
     <div className="flex flex-col min-h-screen h-screen">
       {/* Add Moim Button */}
@@ -265,11 +282,7 @@ export default function ScheduleLanding() {
       <CustomModal
         open={isCdialogOpen}
         onOpenChange={handleOpenCdialog}
-        onNext={() =>
-          alert(
-            `선택한 날짜들: ${stringDates} //// mode: ${mode} ///// selected: ${selected}`,
-          )
-        }
+        onNext={handlePostSchedule}
         isFooter={true}
         footerText={'다음으로'}
         isDisabled={stringDates[0] ? false : true}
@@ -285,7 +298,7 @@ export default function ScheduleLanding() {
       <CustomModal
         open={isDdialogOpen}
         onOpenChange={handleOpenDdialg}
-        onNext={() => alert(`startDate: ${startDate} / endDate: ${endDate}`)}
+        onNext={handlePostDirectSchedule}
         isFooter={true}
         footerText={'입력완료'}
       >
