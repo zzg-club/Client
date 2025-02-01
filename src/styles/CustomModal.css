@@ -1,8 +1,10 @@
 [data-state='open'][data-aria-hidden='true'] {
   position: absolute;
+  z-index: 9998;
 }
 
 [role='dialog'][data-state='open'] {
   position: absolute;
   border-radius: 24px;
+  z-index: 9999;
 }

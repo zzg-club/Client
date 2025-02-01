@@ -3,6 +3,7 @@
 import { Copy } from 'lucide-react'
 import { useState } from 'react'
 import Image from 'next/image'
+import { QRCodeSVG } from 'qrcode.react'
 
 interface ScheduleSelectShareModalProps {
   inviteUrl: string
@@ -30,7 +31,7 @@ export default function ScheduleSelectShareModal({
       <div className="flex flex-col items-center space-y-[12px] mt-[28px]">
         <div className="flex w-full flex-col items-center">
           <div className="w-[120px] h-[120px] bg-[#afafaf]">
-            {/*QR 들어갈 자리*/}
+            <QRCodeSVG value="https://moim.team/" />
           </div>
         </div>
 

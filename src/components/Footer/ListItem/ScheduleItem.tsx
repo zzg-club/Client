@@ -3,20 +3,22 @@ import { X } from 'lucide-react'
 import SelectModal from '@/components/Modals/SelectModal'
 
 export interface ScheduleItemProps {
+  id: string
   number: number
-  // title: string
   startDate: string
   startTime: string
   endTime: string
-  // participants: { id: number; name: string; image: string }[]
+  onDelete: (id: string) => void
 }
 
 export function ScheduleItem({
+  id,
   number,
   // title,
   startDate,
   startTime,
   endTime,
+  onDelete,
   // participants,
 }: ScheduleItemProps) {
   const [isSelectDeleteOpen, setIsSelectDeleteOpen] = useState(false)
@@ -27,9 +29,9 @@ export function ScheduleItem({
   }
 
   // 실제 삭제 api 연동할 함수
-  const DeleteSchedule = () => {
-    alert('삭제되었습니다')
-    setIsSelectDeleteOpen(!isSelectDeleteOpen)
+  const deleteSchedule = () => {
+    onDelete(id) // Call the onDelete function with the item's id
+    setIsSelectDeleteOpen(false)
   }
 
   return (
@@ -49,7 +51,7 @@ export function ScheduleItem({
         onOpenChange={handleDeleteModal}
         leftText={'예'}
         rightText={'아니오'}
-        onClickLeft={DeleteSchedule}
+        onClickLeft={deleteSchedule}
         onClickRight={handleDeleteModal}
       >
         <div className="flex item-center justify-center text-[#1e1e1e] text-xl font-medium leading-snug py-4 mt-3">
