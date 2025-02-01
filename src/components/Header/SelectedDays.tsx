@@ -2,6 +2,7 @@
 
 import { useCallback, useState, useEffect, useRef } from 'react'
 import { isEqual } from 'lodash'
+import { FaRegEdit } from 'react-icons/fa'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { GoTriangleUp, GoTriangleDown } from 'react-icons/go'
 import { LuDot } from 'react-icons/lu'
@@ -38,6 +39,7 @@ interface SelectedDaysProps {
   onPageChange: (newPage: number) => void
   highlightedCol: number | null
   onDateCountsChange: (counts: number[], groupedData: GroupedDate[]) => void
+  isPurple: boolean
 }
 
 const DAYS_PER_PAGE = 7
@@ -61,6 +63,7 @@ export default function SelectedDays({
   onPageChange,
   highlightedCol,
   onDateCountsChange,
+  isPurple,
 }: SelectedDaysProps) {
   const [dateCounts, setDateCounts] = useState<number[]>([])
   const [groupedData, setGroupedData] = useState<GroupedDate[]>([])
@@ -177,13 +180,20 @@ export default function SelectedDays({
           isExpanded ? 'h-auto opacity-100' : 'h-0 opacity-0 overflow-hidden'
         }`}
       >
-        <div className="text-[#1e1e1e] font-['Pretendard'] leading-[17px] tracking-tight pl-5 pt-3 pb-5">
-          <span className="text-3xl">{month}</span>
-          <span className="text-xl ml-2">
-            {dayofWeek && dayofWeek[currentPage] !== null
-              ? dayofWeek[currentPage].toUpperCase()
-              : ''}
-          </span>
+        <div className="text-[#1e1e1e] font-['Pretendard'] leading-[17px] tracking-tight pl-5 pr-4 pt-3 pb-5">
+          <div className="flex justify-between">
+            <div>
+              <span className="text-3xl">{month}</span>
+              <span className="text-[21px] ml-2 pt-3">
+                {dayofWeek && dayofWeek[currentPage] !== null
+                  ? dayofWeek[currentPage].toUpperCase()
+                  : ''}
+              </span>
+            </div>
+            <FaRegEdit
+              className={`text-[30px] mt-1 cursor-pointer ${isPurple ? 'text-[#9562fa]' : 'text-[#afafaf]'}`} //Edit 페이지와 연결
+            />
+          </div>
         </div>
       </div>
       <div className="w-full px-0 pb-3 bg-white rounded-bl-3xl rounded-br-3xl shadow-[0_4px_6px_-1px_rgba(30,30,30,0.1),0_2px_4px_-2px_rgba(30,30,30,0.1)] flex items-center">
