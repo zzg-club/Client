@@ -9,7 +9,7 @@ import { SelectItem } from '@/components/Footer/ListItem/SelectItem'
 import CustomModal from '@/components/Modals/CustomModal'
 import DecideBottom from '@/components/Footer/BottomSheet/DecideBottom'
 import { ScheduleItem } from '@/components/Footer/ListItem/ScheduleItem'
-// import { useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 
 interface SelectedDate {
   year: number
@@ -342,13 +342,16 @@ export default function Page() {
   const [warning, setWarning] = useState(false)
   const [decideBottomOpen, setDecideBottomOpen] = useState(false)
 
+  const router = useRouter()
+
+
   const onClickConfirm = () => {
     if (isPurple && !decideBottomOpen) {
       setDecideBottomOpen(true)
     } else if (!isPurple && !decideBottomOpen) {
       setWarning(true)
     } else if (isPurple && decideBottomOpen) {
-      alert('확정')
+      router.push('/schedule')
     }
   }
 
