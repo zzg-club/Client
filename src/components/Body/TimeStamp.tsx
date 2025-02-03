@@ -30,6 +30,7 @@ interface GroupedDate {
 
 interface TimeStampProps {
   selectedDates: { year: number; month: number; day: number }[]
+  confirmedData: { date: string; timeSlots: { start: string; end: string }[] }[]
   currentPage: number
   mode: string
   onPageChange: (newPage: number) => void
@@ -46,6 +47,7 @@ let isTouchInProgress = false // 터치 진행 중 플래그
 
 export default function TimeStamp({
   selectedDates,
+  confirmedData,
   currentPage,
   mode,
   dateCounts,
@@ -64,6 +66,12 @@ export default function TimeStamp({
   const [scale, setScale] = useState(1)
   const gridRef = useRef<HTMLDivElement>(null)
   const [initialTouchRow, setInitialTouchRow] = useState<number | null>(null)
+  // const [confirmedTimeSlots, setConfirmedTimeSlots] = useState<
+  //   {
+  //     confirmedCol: number
+  //     timeSlots: { start: number; end: number }[]
+  //   }[]
+  // >([])
 
   const currentDates =
     mode === 'range'
@@ -704,13 +712,87 @@ export default function TimeStamp({
     handleTouchMove,
   ])
 
+  const initialConfirmedTimeSlots: {
+    confirmedCol: number
+    timeSlots: { start: number; end: number; isConfirmed: boolean }[]
+  }[] = []
+
+  if (confirmedData.length > 0) {
+    const getTimeRow = (time: string) => {
+      const [hours, minutes] = time.split(':').map(Number)
+      return hours * 2 + (minutes === 30 ? 1 : 0)
+    }
+
+    if (mode === 'range') {
+      currentDates.forEach((date, col) => {
+        const dateString = `${date.year}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`
+        confirmedData.forEach((confirmed) => {
+          if (confirmed.date === dateString) {
+            confirmed.timeSlots.forEach((slot) => {
+              const startRow = getTimeRow(slot.start)
+              const endRow = getTimeRow(slot.end)
+              initialConfirmedTimeSlots.push({
+                confirmedCol: col,
+                timeSlots: [
+                  { start: startRow, end: endRow, isConfirmed: true },
+                ],
+              })
+            })
+          }
+        })
+      })
+      console.log('initialConfirmedTimeSlots', initialConfirmedTimeSlots)
+    } else {
+      console.log('groupedDate', groupedDate)
+      const groupedArray = groupedDate?.[currentPage]?.date ?? []
+      groupedArray.forEach((date, col) => {
+        const dateString = `${date.year}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`
+        confirmedData.forEach((confirmed) => {
+          if (confirmed.date === dateString) {
+            confirmed.timeSlots.forEach((slot) => {
+              const startRow = getTimeRow(slot.start)
+              const endRow = getTimeRow(slot.end)
+              initialConfirmedTimeSlots.push({
+                confirmedCol: col,
+                timeSlots: [
+                  { start: startRow, end: endRow, isConfirmed: true },
+                ],
+              })
+            })
+          }
+        })
+      })
+    }
+    console.log('initialConfirmedTimeSlots', initialConfirmedTimeSlots)
+  }
+
   const getCellStatus = (row: number, col: number) => {
+    // console.log('getconfirmedTimeSlots', confirmedTimeSlots)
+
+    const confirmedTimeSlot = initialConfirmedTimeSlots.find(
+      (slot) =>
+        slot.confirmedCol === col &&
+        slot.timeSlots.some(
+          (timeSlot) => timeSlot.start <= row && row < timeSlot.end,
+        ),
+    )
+    if (confirmedTimeSlot) {
+      // 새로운 로직: 초기 확인된 시간 슬롯이 존재할 경우
+      return {
+        isSelected: true,
+        isConfirmed: true,
+        isStartCell: false,
+        isEndCell: false,
+      }
+    }
+
     const allSelections = [...currentSelections, ...selections].filter(
       Boolean,
     ) as Selection[]
 
     if (activeSelection) {
       const minRow = Math.min(activeSelection.startRow, activeSelection.endRow)
+
       const maxRow = Math.max(activeSelection.startRow, activeSelection.endRow)
       const minCol = Math.min(activeSelection.startCol, activeSelection.endCol)
       const maxCol = Math.min(activeSelection.startCol, activeSelection.endCol)
