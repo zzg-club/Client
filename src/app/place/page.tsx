@@ -46,6 +46,7 @@ export default function Home() {
   const [selectedFilters, setSelectedFilters] = useState<string[]>([])
   const [cardData, setCardData] = useState<any[]>([]) // 카드 데이터를 저장
   const [userName, setUserName] = useState('')
+  const isDraggingRef = useRef<boolean>(false)
 
   const handleCardClick = (placeId: number) => {
     router.push(`/place/${placeId}`); // 클릭한 카드의 ID로 이동
@@ -250,32 +251,44 @@ export default function Home() {
     router.push('/search?from=/place')
   }
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    startY.current = e.touches[0].clientY
+  // 드래그 시작
+  const handleStart = (y: number) => {
+    startY.current = y
+    isDraggingRef.current = true
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleEnd)
   }
 
-  const handleTouchMove = (e: React.TouchEvent) => {
-    currentY.current = e.touches[0].clientY
-  }
+  const handleMove = (y: number) => {
+    if (!isDraggingRef.current || startY.current === null) return
+    const deltaY = startY.current - y
 
-  const handleTouchEnd = () => {
-    if (startY.current !== null && currentY.current !== null) {
-      const delta = startY.current - currentY.current
-
-      if (delta > threshold) {
-        // 확장 상태로 변경
-        setBottomSheetState((prevState) =>
-          prevState === 'collapsed' ? 'middle' : 'expanded',
-        )
-      } else if (delta < -threshold) {
-        // 축소 상태로 변경
-        setBottomSheetState((prevState) =>
-          prevState === 'expanded' ? 'middle' : 'collapsed',
-        )
-      }
+    // **단계별 상태 변경 (중간 상태 유지)**
+    if (deltaY > threshold && bottomSheetState === 'collapsed') {
+      setBottomSheetState('middle')
+      startY.current = y // 중간 상태에서 다시 기준점 설정
+    } else if (deltaY > threshold && bottomSheetState === 'middle') {
+      setBottomSheetState('expanded')
+      startY.current = y // 확장 상태에서 다시 기준점 설정
+    } else if (deltaY < -threshold && bottomSheetState === 'expanded') {
+      setBottomSheetState('middle')
+      startY.current = y // 중간 상태에서 다시 기준점 설정
+    } else if (deltaY < -threshold && bottomSheetState === 'middle') {
+      setBottomSheetState('collapsed')
+      startY.current = y // 축소 상태에서 다시 기준점 설정
     }
+  }
+
+  const handleMouseMove = (e: MouseEvent) => {
+    handleMove(e.clientY)
+  }
+
+  const handleEnd = () => {
     startY.current = null
-    currentY.current = null
+    isDraggingRef.current = false
+
+    document.removeEventListener('mousemove', handleMouseMove)
+    document.removeEventListener('mouseup', handleEnd)
   }
 
   useEffect(() => {
@@ -380,9 +393,10 @@ export default function Home() {
       {/* Bottom Sheet */}
       <div
         className={`${styles.bottomSheet} ${styles[bottomSheetState]}`}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
+        onTouchStart={(e) => handleStart(e.touches[0].clientY)}
+        onTouchMove={(e) => handleMove(e.touches[0].clientY)}
+        onTouchEnd={handleEnd}
+        onMouseDown={(e) => handleStart(e.clientY)}
       >
         <div className={styles.dragHandle}></div>
         <div className={styles.content}>
