@@ -26,6 +26,7 @@ const PlaceDetailFood = ({ placeData }: PlaceDetailProps) => {
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const [liked, setLiked] = useState<boolean>(false)
   const [likeCount, setLikeCount] = useState<number>(0)
+  const isDraggingRef = useRef<boolean>(false)
 
   // 좋아요 상태와 개수 가져오기
   useEffect(() => {
@@ -135,25 +136,48 @@ const PlaceDetailFood = ({ placeData }: PlaceDetailProps) => {
     fetchAndSetFilters();
   }, [placeData]);
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    startY.current = e.touches[0].clientY
+  // 드래그 시작
+  const handleStart = (y: number) => {
+    startY.current = y
+    isDraggingRef.current = true
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleEnd)
   }
 
-  const handleTouchMove = (e: React.TouchEvent) => {
-    currentY.current = e.touches[0].clientY
-  }
+  // 드래그 진행
+  const handleMove = (y: number) => {
+    if (!isDraggingRef.current || startY.current === null) return
+    const deltaY = startY.current - y
 
-  const handleTouchEnd = () => {
-    if (startY.current !== null && currentY.current !== null) {
-      const delta = startY.current - currentY.current
-      if (delta > threshold) {
-        setBottomSheetState((prevState) => prevState === 'collapsed' ? 'middle' : 'expanded')
-      } else if (delta < -threshold) {
-        setBottomSheetState((prevState) => prevState === 'expanded' ? 'middle' : 'collapsed')
-      }
+    if (deltaY > threshold) {
+      // 위로 드래그 (다음 단계로 확장)
+      setBottomSheetState((prev) => {
+        if (prev === 'collapsed') return 'middle'
+        if (prev === 'middle') return 'expanded'
+        return 'expanded' // 이미 expanded면 유지
+      })
+      startY.current = y
+    } else if (deltaY < -threshold) {
+      // 아래로 드래그 (다음 단계로 축소)
+      setBottomSheetState((prev) => {
+        if (prev === 'expanded') return 'middle'
+        if (prev === 'middle') return 'collapsed'
+        return 'collapsed' // 이미 collapsed면 유지
+      })
+      startY.current = y
     }
+  }
+
+  // 드래그 종료
+  const handleMouseMove = (e: MouseEvent) => {
+    handleMove(e.clientY)
+  }
+
+  const handleEnd = () => {
     startY.current = null
-    currentY.current = null
+    isDraggingRef.current = false
+    document.removeEventListener('mousemove', handleMouseMove)
+    document.removeEventListener('mouseup', handleEnd)
   }
 
   return (
@@ -227,9 +251,10 @@ const PlaceDetailFood = ({ placeData }: PlaceDetailProps) => {
       {/* Bottom Sheet */}
       <div
         className={`${styles.bottomSheet} ${styles[bottomSheetState]}`}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
+        onTouchStart={(e) => handleStart(e.touches[0].clientY)}
+        onTouchMove={(e) => handleMove(e.touches[0].clientY)}
+        onTouchEnd={handleEnd}
+        onMouseDown={(e) => handleStart(e.clientY)}
       >
         <div className={styles.dragHandle}></div>
 
