@@ -1,7 +1,7 @@
 'use client'
 
-import { useRouter, useSearchParams } from 'next/navigation'
 import React, { useEffect, useState, useRef } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import PinMap from '@/components/Map/PinMap'
 import RouteMap from '@/components/Map/RouteMap'
 import Title from '@/components/Header/Middle/TitleMiddle'
@@ -25,7 +25,7 @@ interface Participant {
 
 export default function Middle() {
   const [kakaoMap, setKakaoMap] = useState<kakao.maps.Map | null>(null)
-  const [currentIndex, setCurrentIndex] = useState(0)
+  const [currentIndex, setCurrentIndex] = useState(0) // 현재 인덱스
   const [participants, setParticipants] = useState<Participant[]>([])
   const [destination, setDestination] = useState(dummyDataArray[0].destination)
   const searchParams = useSearchParams()
@@ -42,10 +42,10 @@ export default function Middle() {
 
         const kakaoMapInstance = new window.kakao.maps.Map(mapContainer, {
           center: new window.kakao.maps.LatLng(
-            dummyDataArray[currentIndex].destination.lat,
-            dummyDataArray[currentIndex].destination.lng,
+            destination.lat,
+            destination.lng,
           ),
-          level: 4,
+          level: 3,
         })
 
         setKakaoMap(kakaoMapInstance)
@@ -81,7 +81,6 @@ export default function Middle() {
         setParticipants(updatedParticipants)
       } catch (error) {
         console.error('현재 위치를 가져오지 못했습니다:', error)
-
         const fallbackInfo = {
           id: 0,
           name: '기본 위치',
@@ -120,17 +119,11 @@ export default function Middle() {
     })
   }
 
-  const handleConfirm = () => {
-    console.log(`현재 도착지 확정: ${destination.name}`)
-    // 추가 작업 (예: 서버로 확정 상태 전송)
-  }
-
   return (
     <div className="flex flex-col h-screen relative">
       <div
-        className="absolute inset-0 z-0"
+        className="absolute inset-0 z-0 w-full h-full"
         ref={mapContainerRef}
-        style={{ width: '100%', height: '100%' }}
       ></div>
 
       {kakaoMap && destination && participants.length > 0 && (
@@ -148,20 +141,14 @@ export default function Middle() {
         </>
       )}
 
-      <header
-        className="absolute top-0 left-0 right-0 z-10 bg-white shadow-md"
-        style={{
-          borderRadius: '0px 0px 24px 24px',
-        }}
-      >
+      <header className="absolute top-0 left-0 right-0 shadow-md rounded-b-[24px]">
         <Title
           buttonText="확정"
           buttonLink="#"
           initialTitle="제목 없는 일정"
           onTitleChange={(newTitle) => console.log('새 제목:', newTitle)}
-          isPurple={true}
-          isDisabled={participants.length <= 1} // 참여 인원이 1명 이하일 경우 비활성화
-          onConfirm={handleConfirm} // 확정 동작
+          isPurple
+          isDisabled={participants.length <= 1}
         />
       </header>
 
