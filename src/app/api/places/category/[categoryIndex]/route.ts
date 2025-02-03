@@ -1,9 +1,26 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
 
+interface CategoryData {
+  id: number
+  category: number
+  name: string
+  filter1:boolean
+  filter2:boolean
+  filter3:boolean
+  filter4:boolean
+  word:string
+  time:string
+  address:string
+  phoneNumber:string
+  likes:number
+  pictures:string[]
+  englishName?: string | null  
+}
+
+
 export const fetchCategoryData = async (
   categoryIndex: number,
-): Promise<any[]> => {
-  // 환경 변수 유효성 검사
+): Promise<CategoryData[]> => {
   if (!API_BASE_URL) {
     throw new Error('API_BASE_URL is not defined in environment variables.')
   }
@@ -48,7 +65,7 @@ export const fetchFilteredCategoryData = async (
     filter3?: boolean
     filter4?: boolean
   },
-): Promise<any[]> => {
+): Promise<CategoryData[]> => {
   // 환경 변수 유효성 검사
   if (!API_BASE_URL) {
     console.error('API_BASE_URL is not defined in environment variables.')
@@ -94,21 +111,19 @@ export const fetchFilteredCategoryData = async (
 
     const result = await response.json()
 
-    // 반환된 데이터의 유효성 검사
     if (!result?.data || !Array.isArray(result.data)) {
       console.error('Invalid response format received from the API:', result)
-      return [] // 유효하지 않은 응답 시 빈 배열 반환
+      return [] 
     }
 
-    // 데이터가 비어 있는 경우 처리
     if (result.data.length === 0) {
       console.warn('No data returned for the selected filters:', filters)
-      return [] // 데이터가 없을 때 빈 배열 반환
+      return [] 
     }
 
-    return result.data // 데이터 반환
+    return result.data 
   } catch (error) {
     console.error('Error in fetchFilteredCategoryData:', error)
-    return [] // 예외 발생 시 빈 배열 반환
+    return [] 
   }
 }

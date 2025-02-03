@@ -2,8 +2,10 @@
 
 import React, { useState } from 'react'
 import KakaoMap from '@/components/Map/KakaoMap' // KakaoMap 컴포넌트 임포트
+import { Place } from '@/types/place'
 
-const StoreInfo = ({ selectedPlace }: { selectedPlace: any }) => {
+
+const StoreInfo = ({ selectedPlace }: { selectedPlace: Place }) => {
   const [activeDropdown, setActiveDropdown] = useState<
     'time' | 'capacity' | null
   >(null) // 드롭다운 상태 관리
@@ -192,12 +194,16 @@ const StoreInfo = ({ selectedPlace }: { selectedPlace: any }) => {
           <div
             style={{
               width: '100%',
-              height: '200px', // 지도의 높이를 조정
+              height: '200px',
               position: 'relative',
             }}
           >
             {/* KakaoMap 컴포넌트 삽입 */}
-            <KakaoMap selectedPlace={selectedPlace} />
+            <KakaoMap 
+              selectedPlace={selectedPlace}
+              bottomSheetState=""  
+              onMoveToCurrentLocation={() => {}}
+            />
           </div>
           {/* 하단 텍스트 영역 */}
           <div

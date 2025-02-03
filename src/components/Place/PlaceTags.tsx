@@ -4,6 +4,11 @@ import React, { useEffect, useState } from 'react'
 import styles from '@/app/place/styles/Detail.module.css'
 import { fetchFilters } from '@/app/api/places/filter/route'
 
+interface FilterData {
+  category: number;
+  filters: { [key: string]: string };
+}
+
 interface PlaceTagsProps {
   category: number;
   placeData: {
@@ -25,7 +30,7 @@ const PlaceTags: React.FC<PlaceTagsProps> = ({ category, placeData }) => {
 
         if (filterData.success) {
           const categoryFilters = filterData.data.find(
-            (filter: any) => filter.category === ['음식점', '카페', '놀이', '캠퍼스'][category]
+            (filter: FilterData) => filter.category === category
           );
 
           if (categoryFilters) {

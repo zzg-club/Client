@@ -8,7 +8,6 @@ import StoreInfo from '@/components/Place/StoreInfo'
 import VisitorPhoto from '@/components/Place/VisitorPhoto'
 import SectionTitle from '@/components/Place/SectionTitle'
 import { fetchFilters } from '@/app/api/places/filter/route'
-import PlaceTags from '@/components/Place/PlaceTags';
 import { fetchLikedStates } from '@/app/api/places/liked/route'
 import { fetchLikeCount } from '@/app/api/places/updateLike/route'
 import { toggleLike } from '@/app/api/places/like/route'
@@ -32,8 +31,8 @@ const PlaceDetailFood = ({ placeData }: PlaceDetailProps) => {
   useEffect(() => {
     const fetchLikes = async () => {
       try {
-        const likedState = await fetchLikedStates(placeData.id.toString())
-        const likes = await fetchLikeCount(placeData.id)
+        const likedState = await fetchLikedStates(String(placeData.id)) // 안전하게 변환
+        const likes = await fetchLikeCount(Number(placeData.id)) 
         setLiked(likedState)
         setLikeCount(likes)
       } catch (error) {
@@ -46,7 +45,7 @@ const PlaceDetailFood = ({ placeData }: PlaceDetailProps) => {
 
   // 활성 필터 가져오기
   useEffect(() => {
-    const getActiveFilters = async (category: number, placeData: any) => {
+    const getActiveFilters = async (category: number, placeData: Place) => {
       try {
         const filterResponse = await fetchFilters()
         const filterData = await filterResponse.json()
@@ -60,9 +59,13 @@ const PlaceDetailFood = ({ placeData }: PlaceDetailProps) => {
         if (!categoryFilters) return []
 
         const { filters } = categoryFilters
-        return Object.keys(filters)
-          .filter((key) => placeData[key])
-          .map((key) => filters[key])
+        const activeFilters = Object.keys(filters)
+              .filter((key): key is keyof Place => key in placeData && typeof placeData[key as keyof Place] === 'boolean' && placeData[key as keyof Place] === true)
+              .map((key) => filters[key]);
+
+        console.log('활성 필터:', activeFilters);
+
+        return activeFilters; 
       } catch (error) {
         console.error('필터 가져오기 오류:', error)
         return []
@@ -80,8 +83,8 @@ const PlaceDetailFood = ({ placeData }: PlaceDetailProps) => {
   // 좋아요 버튼 클릭 이벤트
   const handleLikeButtonClick = async () => {
     try {
-      const updatedLiked = await toggleLike(placeData.id, liked)
-      const updatedLikeCount = await fetchLikeCount(placeData.id)
+      const updatedLiked = await toggleLike(Number(placeData.id), liked)
+      const updatedLikeCount = await fetchLikeCount(Number(placeData.id))
       setLiked(updatedLiked)
       setLikeCount(updatedLikeCount)
     } catch (error) {
@@ -90,7 +93,7 @@ const PlaceDetailFood = ({ placeData }: PlaceDetailProps) => {
   }
 
 
-  const getActiveFilters = async (category: number, placeData: any) => {
+  const getActiveFilters = async (category: number, placeData: Place) => {
     try {
       // /api/places/filter 호출하여 필터 데이터 가져오기
       const filterResponse = await fetchFilters();
@@ -109,10 +112,10 @@ const PlaceDetailFood = ({ placeData }: PlaceDetailProps) => {
       }
   
       const { filters } = categoryFilters; 
-  
+
       const activeFilters = Object.keys(filters)
-        .filter((key) => placeData[key]) 
-        .map((key) => filters[key]);
+      .filter((key): key is keyof Place => key in placeData && typeof placeData[key as keyof Place] === 'boolean' && placeData[key as keyof Place] === true)
+      .map((key) => filters[key]);
   
       console.log('활성 필터:', activeFilters);
       return activeFilters;
@@ -159,6 +162,7 @@ const PlaceDetailFood = ({ placeData }: PlaceDetailProps) => {
         <KakaoMap
           bottomSheetState={bottomSheetState}
           selectedPlace={placeData}
+          onMoveToCurrentLocation={() => {}}
         />
         {/* 뒤로가기 버튼 */}
         <div
@@ -246,7 +250,11 @@ const PlaceDetailFood = ({ placeData }: PlaceDetailProps) => {
             </div>
 
             <div className={styles.tags}>
-              <PlaceTags category={placeData.category} placeData={placeData} />
+              {activeFilters.map((filter, index) => (
+                <span key={index} className={styles.tag}>
+                  {filter}
+                </span>
+              ))}
             </div>
 
             <h3>{placeData.word}</h3>
@@ -372,7 +380,11 @@ const PlaceDetailFood = ({ placeData }: PlaceDetailProps) => {
                 </div>
 
                 <div className={styles.tags}>
-                  <PlaceTags category={placeData.category} placeData={placeData} />
+                {activeFilters.map((filter, index) => (
+                  <span key={index} className={styles.tag}>
+                    {filter}
+                  </span>
+                ))}
                 </div>
 
                 <div className={styles.description}>{placeData.word}</div>

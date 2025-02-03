@@ -2,8 +2,9 @@
 
 import React, { useState } from 'react'
 import KakaoMap from '@/components/Map/KakaoMap' // KakaoMap 컴포넌트 임포트
+import { Place } from '@/types/place'
 
-const StoreInfo = ({ selectedPlace }: { selectedPlace: any }) => {
+const StoreInfo = ({ selectedPlace }: { selectedPlace: Place }) => {
   const [activeDropdown, setActiveDropdown] = useState<
     'time' | 'capacity' | null
   >(null) // 드롭다운 상태 관리

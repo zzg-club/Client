@@ -1,11 +1,18 @@
 export interface Place {
+  id: string
+  category: number
   name: string
-  address: string
-  description: string
-  tags: string[]
-  operatingHours: string
-  maxGuests: number
-  likes: number
-  images: string[]
-  additionalInfo: string
+  filter1:boolean
+  filter2:boolean
+  filter3:boolean
+  filter4:boolean
+  word:string
+  time:string
+  address:string
+  phoneNumber:string
+  likes:number
+  liked: boolean
+  pictures:string[]
+  englishName?: string | null  
+  tags?: string[];
 }
