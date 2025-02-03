@@ -63,116 +63,16 @@ interface ScheduleData {
   date: [string, string][] // 날짜 배열: [날짜, 요일]의 배열
 }
 
-const mockDateTime: PrevScheduleData[] = [
-  {
-    title: '팀플 대면 모임',
-    userId: 2,
-    groupId: 1,
-    mode: 'range',
-    selected: null,
-    dateData: [
-      {
-        date: '2025-02-01',
-        timeSlots: [
-          {
-            start: '09:30',
-            end: '17:00',
-            selectedBy: ['user1', 'user2', 'user3'],
-          },
-          { start: '17:00', end: '22:00', selectedBy: ['user1'] },
-        ],
-      },
-      {
-        date: '2025-02-02',
-        timeSlots: [
-          { start: '08:00', end: '13:00', selectedBy: ['user2', 'user3'] },
-          { start: '13:00', end: '20:00', selectedBy: ['user1', 'user4'] },
-          { start: '20:00', end: '23:00', selectedBy: ['user3'] },
-        ],
-      },
-      {
-        date: '2025-02-03',
-        timeSlots: [
-          { start: '05:00', end: '10:00', selectedBy: ['user1', 'user2'] },
-          {
-            start: '10:00',
-            end: '16:00',
-            selectedBy: ['user2', 'user3', 'user4'],
-          },
-          { start: '16:00', end: '21:00', selectedBy: ['user1', 'user3'] },
-        ],
-      },
-      {
-        date: '2025-02-04',
-        timeSlots: [
-          {
-            start: '11:00',
-            end: '18:00',
-            selectedBy: ['user1', 'user2', 'user3', 'user4'],
-          },
-          { start: '18:00', end: '19:00', selectedBy: ['user2'] },
-        ],
-      },
-      {
-        date: '2025-02-05',
-        timeSlots: [
-          { start: '10:00', end: '15:00', selectedBy: ['user1'] },
-          {
-            start: '15:00',
-            end: '18:00',
-            selectedBy: ['user1', 'user2', 'user3'],
-          },
-          { start: '28:00', end: '22:00', selectedBy: ['user2', 'user4'] },
-        ],
-      },
-      {
-        date: '2025-02-06',
-        timeSlots: [
-          { start: '04:00', end: '06:00', selectedBy: ['user3'] },
-          {
-            start: '06:00',
-            end: '21:00',
-            selectedBy: ['user1', 'user2', 'user3', 'user4'],
-          },
-        ],
-      },
-      {
-        date: '2025-02-07',
-        timeSlots: [
-          { start: '06:00', end: '07:00', selectedBy: ['user2'] },
-          {
-            start: '07:00',
-            end: '19:00',
-            selectedBy: ['user1', 'user3', 'user4'],
-          },
-          { start: '19:00', end: '22:00', selectedBy: ['user1', 'user2'] },
-        ],
-      },
-      {
-        date: '2025-02-08',
-        timeSlots: [
-          {
-            start: '10:00',
-            end: '19:00',
-            selectedBy: ['user1', 'user3', 'user4'],
-          },
-          { start: '19:00', end: '22:00', selectedBy: ['user1', 'user2'] },
-        ],
-      },
-    ],
-  },
-]
-
 // const mockDateTime: PrevScheduleData[] = [
 //   {
 //     title: '팀플 대면 모임',
 //     userId: 2,
 //     groupId: 1,
-//     mode: 'week',
-//     selected: ['mon', 'wed', 'fri'],
+//     mode: 'range',
+//     selected: null,
 //     dateData: [
 //       {
-//         date: '2025-01-06',
+//         date: '2025-02-01',
 //         timeSlots: [
 //           {
 //             start: '09:30',
@@ -183,7 +83,7 @@ const mockDateTime: PrevScheduleData[] = [
 //         ],
 //       },
 //       {
-//         date: '2025-02-05',
+//         date: '2025-02-02',
 //         timeSlots: [
 //           { start: '08:00', end: '13:00', selectedBy: ['user2', 'user3'] },
 //           { start: '13:00', end: '20:00', selectedBy: ['user1', 'user4'] },
@@ -191,7 +91,7 @@ const mockDateTime: PrevScheduleData[] = [
 //         ],
 //       },
 //       {
-//         date: '2025-01-13',
+//         date: '2025-02-03',
 //         timeSlots: [
 //           { start: '05:00', end: '10:00', selectedBy: ['user1', 'user2'] },
 //           {
@@ -203,7 +103,7 @@ const mockDateTime: PrevScheduleData[] = [
 //         ],
 //       },
 //       {
-//         date: '2025-02-12',
+//         date: '2025-02-04',
 //         timeSlots: [
 //           {
 //             start: '11:00',
@@ -214,7 +114,7 @@ const mockDateTime: PrevScheduleData[] = [
 //         ],
 //       },
 //       {
-//         date: '2025-03-07',
+//         date: '2025-02-05',
 //         timeSlots: [
 //           { start: '10:00', end: '15:00', selectedBy: ['user1'] },
 //           {
@@ -226,7 +126,7 @@ const mockDateTime: PrevScheduleData[] = [
 //         ],
 //       },
 //       {
-//         date: '2025-02-19',
+//         date: '2025-02-06',
 //         timeSlots: [
 //           { start: '04:00', end: '06:00', selectedBy: ['user3'] },
 //           {
@@ -237,7 +137,7 @@ const mockDateTime: PrevScheduleData[] = [
 //         ],
 //       },
 //       {
-//         date: '2025-01-20',
+//         date: '2025-02-07',
 //         timeSlots: [
 //           { start: '06:00', end: '07:00', selectedBy: ['user2'] },
 //           {
@@ -249,7 +149,7 @@ const mockDateTime: PrevScheduleData[] = [
 //         ],
 //       },
 //       {
-//         date: '2025-01-27',
+//         date: '2025-02-08',
 //         timeSlots: [
 //           {
 //             start: '10:00',
@@ -262,6 +162,106 @@ const mockDateTime: PrevScheduleData[] = [
 //     ],
 //   },
 // ]
+
+const mockDateTime: PrevScheduleData[] = [
+  {
+    title: '팀플 대면 모임',
+    userId: 2,
+    groupId: 1,
+    mode: 'week',
+    selected: ['mon', 'wed', 'fri'],
+    dateData: [
+      {
+        date: '2025-01-06',
+        timeSlots: [
+          {
+            start: '09:30',
+            end: '17:00',
+            selectedBy: ['user1', 'user2', 'user3'],
+          },
+          { start: '17:00', end: '22:00', selectedBy: ['user1'] },
+        ],
+      },
+      {
+        date: '2025-02-05',
+        timeSlots: [
+          { start: '08:00', end: '13:00', selectedBy: ['user2', 'user3'] },
+          { start: '13:00', end: '20:00', selectedBy: ['user1', 'user4'] },
+          { start: '20:00', end: '23:00', selectedBy: ['user3'] },
+        ],
+      },
+      {
+        date: '2025-01-13',
+        timeSlots: [
+          { start: '05:00', end: '10:00', selectedBy: ['user1', 'user2'] },
+          {
+            start: '10:00',
+            end: '16:00',
+            selectedBy: ['user2', 'user3', 'user4'],
+          },
+          { start: '16:00', end: '21:00', selectedBy: ['user1', 'user3'] },
+        ],
+      },
+      {
+        date: '2025-02-12',
+        timeSlots: [
+          {
+            start: '11:00',
+            end: '18:00',
+            selectedBy: ['user1', 'user2', 'user3', 'user4'],
+          },
+          { start: '18:00', end: '19:00', selectedBy: ['user2'] },
+        ],
+      },
+      {
+        date: '2025-03-07',
+        timeSlots: [
+          { start: '10:00', end: '15:00', selectedBy: ['user1'] },
+          {
+            start: '15:00',
+            end: '18:00',
+            selectedBy: ['user1', 'user2', 'user3'],
+          },
+          { start: '28:00', end: '22:00', selectedBy: ['user2', 'user4'] },
+        ],
+      },
+      {
+        date: '2025-02-19',
+        timeSlots: [
+          { start: '04:00', end: '06:00', selectedBy: ['user3'] },
+          {
+            start: '06:00',
+            end: '21:00',
+            selectedBy: ['user1', 'user2', 'user3', 'user4'],
+          },
+        ],
+      },
+      {
+        date: '2025-01-20',
+        timeSlots: [
+          // { start: '06:00', end: '07:00', selectedBy: ['user2'] },
+          // {
+          //   start: '07:00',
+          //   end: '19:00',
+          //   selectedBy: ['user1', 'user3', 'user4'],
+          // },
+          // { start: '19:00', end: '22:00', selectedBy: ['user1', 'user2'] },
+        ],
+      },
+      {
+        date: '2025-01-27',
+        timeSlots: [
+          {
+            start: '10:00',
+            end: '19:00',
+            selectedBy: ['user1', 'user3', 'user4'],
+          },
+          { start: '19:00', end: '22:00', selectedBy: ['user1', 'user2'] },
+        ],
+      },
+    ],
+  },
+]
 
 const participants = [
   {
@@ -316,6 +316,22 @@ const participants = [
   },
 ]
 
+const editMockData = [
+  {
+    date: '2025-01-06',
+    timeSlots: [
+      {
+        start: '09:30',
+        end: '17:00',
+      },
+    ],
+  },
+  {
+    date: '2025-01-13',
+    timeSlots: [{ start: '08:00', end: '13:00' }],
+  },
+]
+
 export default function Page() {
   const [title, setTitle] = useState(mockDateTime[0].title)
   const [isPurple, setIsPurple] = useState(false)
@@ -332,9 +348,12 @@ export default function Page() {
       endTime: string
     }[]
   >([])
-  const [dateTime, setDateTime] = useState<
-    { date: string; timeSlots: { start: string; end: string }[] }[]
-  >([])
+  // const [dateTime, setDateTime] = useState<
+  //   { date: string; timeSlots: { start: string; end: string }[] }[]
+  // >([...editMockData])
+
+  const [dateTime, setDateTime] = useState(editMockData)
+
   const [isOpen, setIsOpen] = useState(false)
   const [dateCounts, setDateCounts] = useState<number[]>([])
   const [groupedDate, setGroupedDate] = useState<GroupedDate[]>([])
@@ -343,7 +362,6 @@ export default function Page() {
   const [decideBottomOpen, setDecideBottomOpen] = useState(false)
 
   const router = useRouter()
-
 
   const onClickConfirm = () => {
     if (isPurple && !decideBottomOpen) {
@@ -521,14 +539,16 @@ export default function Page() {
           const mergedSlot = {
             start: `${Math.floor(mergedStart / 60)
               .toString()
-              .padStart(2, '0')}:${(mergedStart % 60)
-              .toString()
-              .padStart(2, '0')}`,
+              .padStart(
+                2,
+                '0',
+              )}:${(mergedStart % 60).toString().padStart(2, '0')}`,
             end: `${Math.floor(mergedEnd / 60)
               .toString()
-              .padStart(2, '0')}:${(mergedEnd % 60)
-              .toString()
-              .padStart(2, '0')}`,
+              .padStart(
+                2,
+                '0',
+              )}:${(mergedEnd % 60).toString().padStart(2, '0')}`,
           }
           timeSlots.push(mergedSlot)
           newEntry = { date: date, timeSlots: [mergedSlot] }
@@ -724,6 +744,7 @@ export default function Page() {
           isBottomSheetOpen={isOpen}
           mockDateTime={mockDateTime[0].dateData}
           dateTime={dateTime}
+          initialSelections={editMockData}
         />
       </div>
       {!decideBottomOpen && (
