@@ -24,8 +24,7 @@ const StoreInfo = ({ selectedPlace }: { selectedPlace: any }) => {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          padding: '0px 32px',
-          paddingTop: '20px',
+          padding: '20px 32px 20px 50px',
         }}
       >
         {/* 영업 시간 */}
@@ -76,7 +75,7 @@ const StoreInfo = ({ selectedPlace }: { selectedPlace: any }) => {
         </div>
 
         {/* 최대 인원 */}
-        <div
+        {/* <div
           style={{
             display: 'flex',
             flexDirection: 'column',
@@ -120,7 +119,7 @@ const StoreInfo = ({ selectedPlace }: { selectedPlace: any }) => {
               onClick={() => toggleDropdown('capacity')}
             />
           </div>
-        </div>
+        </div> */}
 
         {/* 전화 버튼 */}
         <button
@@ -135,8 +134,8 @@ const StoreInfo = ({ selectedPlace }: { selectedPlace: any }) => {
             justifyContent: 'center',
             gap: '8px',
             cursor: 'pointer',
-            width: '152px',
-            height: '56px',
+            width: '200px',
+            height: '60px',
           }}
         >
           <img
