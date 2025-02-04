@@ -39,7 +39,6 @@ export default function Home() {
   const [filters, setFilters] = useState<FilterResponse[]>([]) // 필터 데이터를 저장
   const [selectedTab, setSelectedTab] = useState<string>(tabs[0].id)
   const startY = useRef<number | null>(null)
-  const currentY = useRef<number | null>(null)
   const threshold = 50
   const router = useRouter()
   const mapRef = useRef<() => void | null>(null)
