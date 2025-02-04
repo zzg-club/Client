@@ -90,140 +90,83 @@ export default function Home() {
     return text.length > maxLength ? text.slice(0, maxLength) + '...' : text
   }
 
-  const handleTabClick = async (tabId: string) => {
-    setSelectedTab(tabId)
-    setSelectedFilters([]) // 필터 초기화
-
-    const categoryIndex = tabs.findIndex((tab) => tab.id === tabId)
-
-    if (categoryIndex === -1) {
-      console.warn('Invalid tabId provided:', tabId)
-      return
-    }
-
+  const fetchCategoryDataWithFilters = async (categoryIndex: number, selectedFilters: string[]) => {
     try {
-      let data
-
       if (selectedFilters.length === 0) {
-        // 필터가 선택되지 않았을 때 기본 데이터를 가져옵니다.
-        console.log(
-          'Fetching default category data for categoryIndex:',
-          categoryIndex,
-        )
-        data = await fetchCategoryData(categoryIndex)
-      } else {
-        // 선택된 필터를 기반으로 필터링된 데이터를 가져옵니다.
-        const filters = getCurrentTabFilters().reduce(
-          (acc, filter, index) => {
-            acc[`filter${index + 1}`] = selectedFilters.includes(filter) // 선택된 필터를 boolean으로 변환
-            return acc
-          },
-          {} as {
-            filter1?: boolean
-            filter2?: boolean
-            filter3?: boolean
-            filter4?: boolean
-          },
-        )
-
-        console.log('Fetching filtered category data with filters:', filters)
-        data = await fetchFilteredCategoryData(categoryIndex, filters)
+        console.log('Fetching default category data for categoryIndex:', categoryIndex);
+        return await fetchCategoryData(categoryIndex);
       }
-
-      // 좋아요 상태 확인 및 데이터 업데이트
-      const updatedData = await Promise.all(
-        data.map(async (card: any) => {
-          const liked = await fetchLikedStates(card.id)
-          return {
-            ...card,
-            filters: card.filters || {}, // filters가 없으면 빈 객체로 초기화
-            liked, // 좋아요 상태 추가
-          }
-        }),
-      )
-
-      console.log('Updated card data:', updatedData)
-      setCardData(updatedData) // 카드 데이터 업데이트
+      
+      const filters = getCurrentTabFilters().reduce<Record<string, boolean>>(
+        (acc, filter, index) => {
+          const filterKey = `filter${index + 1}`;
+          acc[filterKey] = selectedFilters.includes(filter);
+          return acc;
+        },
+        {}
+      );
+      
+      console.log('Fetching filtered category data with filters:', filters);
+      const data = await fetchFilteredCategoryData(categoryIndex, filters);
+      
+      return data.length ? data : [];
     } catch (error) {
-      console.error('Error fetching category data:', error)
+      console.error('Error fetching category data:', error);
+      return [];
     }
-  }
-
+  };
+  
+  const updateCardData = async (data: CardData[]) => {
+    return await Promise.all(
+      data.map(async (card: CardData) => {
+        const liked = await fetchLikedStates(card.id.toString());
+        return {
+          ...card,
+          filters: card.filters || {},
+          liked,
+        };
+      })
+    );
+  };
+  
+  const handleTabClick = async (tabId: string) => {
+    setSelectedTab(tabId);
+    setSelectedFilters([]);
+  
+    const categoryIndex = tabs.findIndex((tab) => tab.id === tabId);
+    if (categoryIndex === -1) {
+      console.warn('Invalid tabId provided:', tabId);
+      return;
+    }
+    
+    try {
+      const data = await fetchCategoryDataWithFilters(categoryIndex, selectedFilters);
+      const updatedData = await updateCardData(data);
+      setCardData(updatedData);
+    } catch (error) {
+      console.error('Error updating card data:', error);
+    }
+  };
+  
   useEffect(() => {
     const fetchData = async () => {
-      const categoryIndex = tabs.findIndex((tab) => tab.id === selectedTab)
-
+      const categoryIndex = tabs.findIndex((tab) => tab.id === selectedTab);
       if (categoryIndex === -1) {
-        console.warn('Invalid tabId provided:', selectedTab)
-        return
+        console.warn('Invalid tabId provided:', selectedTab);
+        return;
       }
-
+      
       try {
-        let data
-
-        if (selectedFilters.length === 0) {
-          // 필터가 선택되지 않았을 때 기본 데이터를 가져옵니다.
-          console.log(
-            'Fetching default category data for categoryIndex:',
-            categoryIndex,
-          )
-          data = await fetchCategoryData(categoryIndex)
-        } else {
-          try {
-            const filters = getCurrentTabFilters().reduce(
-              (acc, filter, index) => {
-                acc[`filter${index + 1}`] = selectedFilters.includes(filter) // 선택된 필터를 boolean으로 변환
-                return acc
-              },
-              {} as {
-                filter1?: boolean
-                filter2?: boolean
-                filter3?: boolean
-                filter4?: boolean
-              },
-            )
-
-            console.log(
-              'Fetching filtered category data with filters:',
-              filters,
-            )
-
-            data = await fetchFilteredCategoryData(categoryIndex, filters)
-
-            if (!data || data.length === 0) {
-              console.warn(
-                'No data returned for the selected filters:',
-                filters,
-              )
-              data = [] // 기본값으로 빈 배열 설정
-            }
-          } catch (error) {
-            console.error('Error fetching filtered category data:', error)
-            data = [] // 예외 발생 시 빈 배열 설정
-          }
-        }
-
-        // 좋아요 상태 확인 및 데이터 업데이트
-        const updatedData = await Promise.all(
-          data.map(async (card: any) => {
-            const liked = await fetchLikedStates(card.id)
-            return {
-              ...card,
-              filters: card.filters || {}, // filters가 없으면 빈 객체로 초기화
-              liked, // 좋아요 상태 추가
-            }
-          }),
-        )
-
-        console.log('Updated card data:', updatedData)
-        setCardData(updatedData) // 카드 데이터 업데이트
+        const data = await fetchCategoryDataWithFilters(categoryIndex, selectedFilters);
+        const updatedData = await updateCardData(data);
+        setCardData(updatedData);
       } catch (error) {
-        console.error('Error fetching category data:', error)
+        console.error('Error updating card data:', error);
       }
-    }
-
-    fetchData()
-  }, [selectedTab, selectedFilters]) // 탭 상태 및 필터 상태가 변경될 때 호출
+    };
+  
+    fetchData();
+  }, [selectedTab, selectedFilters]);  
 
   useEffect(() => {
     handleTabClick(selectedTab)
