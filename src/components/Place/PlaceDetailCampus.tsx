@@ -11,6 +11,7 @@ import { fetchFilters } from '@/app/api/places/filter/route'
 import { fetchLikedStates } from '@/app/api/places/liked/route'
 import { fetchLikeCount } from '@/app/api/places/updateLike/route'
 import { toggleLike } from '@/app/api/places/like/route'
+import { useRouter } from 'next/router'
 
 interface PlaceDetailProps {
   placeData: Place
@@ -21,12 +22,12 @@ const PlaceDetailCampus = ({ placeData }: PlaceDetailProps) => {
   const [bottomSheetState, setBottomSheetState] = useState<'collapsed' | 'middle' | 'expanded'>('collapsed')
   const [activeTab, setActiveTab] = useState<'상세' | '메뉴' | '사진'>('상세')
   const startY = useRef<number | null>(null)
-  const currentY = useRef<number | null>(null)
   const threshold = 50
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const [liked, setLiked] = useState<boolean>(false)
   const [likeCount, setLikeCount] = useState<number>(0)
   const isDraggingRef = useRef<boolean>(false)
+  const route = useRouter()
 
   // 좋아요 상태와 개수 가져오기
   useEffect(() => {
@@ -180,6 +181,14 @@ const PlaceDetailCampus = ({ placeData }: PlaceDetailProps) => {
     document.removeEventListener('mouseup', handleEnd)
   }
 
+  const handleBackClick = () => {
+    route.push('/place')
+  }
+
+  const handleCloseClick = () => {
+    setBottomSheetState('collapsed')
+  }
+
 
   return (
     <div className={styles['detail-container']}>
@@ -218,7 +227,7 @@ const PlaceDetailCampus = ({ placeData }: PlaceDetailProps) => {
         <div className={styles['top-buttons']}>
           <button
             className={styles['top-left-button']}
-            // onClick={() => window.history.back()}
+            onClick={handleBackClick}
           >
             <img
               src="/arrow_back_ios.svg"
@@ -228,7 +237,7 @@ const PlaceDetailCampus = ({ placeData }: PlaceDetailProps) => {
           </button>
           <button
             className={styles['top-right-button']}
-            // onClick={() => window.history.back()}
+            onClick={handleCloseClick}
           >
             <img
               src="/close_ios.svg"
