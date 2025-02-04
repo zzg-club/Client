@@ -12,12 +12,8 @@ import { fetchUserInformation } from '@/app/api/user/information/route'
 import { toggleLike } from '@/app/api/places/like/route'
 import { fetchFilteredCategoryData } from '@/app/api/places/category/[categoryIndex]/route' // 필터 데이터 API
 import { fetchLikeCount } from '../api/places/updateLike/route'
-
-interface Place {
-  lat: number
-  lng: number
-  name: string
-}
+import { CardData } from '@/types/card'
+import { Place } from '@/types/place'
 
 interface FilterResponse {
   category: string
@@ -32,7 +28,7 @@ const tabs = [
 ]
 
 export default function Home() {
-  const [selectedPlace, setSelectedPlace] = useState<Place | null>(null)
+  const [selectedPlace] = useState<Place | undefined>(undefined);
   const [bottomSheetState, setBottomSheetState] = useState<
     'collapsed' | 'middle' | 'expanded'
   >('collapsed')
@@ -43,7 +39,7 @@ export default function Home() {
   const router = useRouter()
   const mapRef = useRef<() => void | null>(null)
   const [selectedFilters, setSelectedFilters] = useState<string[]>([])
-  const [cardData, setCardData] = useState<any[]>([]) // 카드 데이터를 저장
+  const [cardData, setCardData] = useState<CardData[]>([]) // 카드 데이터를 저장
   const [userName, setUserName] = useState('')
   const isDraggingRef = useRef<boolean>(false)
 
@@ -51,10 +47,10 @@ export default function Home() {
     router.push(`/place/${placeId}`); // 클릭한 카드의 ID로 이동
   };
 
-  const handleLikeButtonClick = async (placeId: number, liked: boolean) => {
+  const handleLikeButtonClick = async (placeId: number, liked: boolean | undefined) => {
     try {
       // 좋아요 상태 토글
-      const updatedLiked = await toggleLike(placeId, liked)
+      const updatedLiked = await toggleLike(placeId, liked ?? false)
 
       // 최신 좋아요 개수 가져오기
       const updatedLikesCount = await fetchLikeCount(placeId)
@@ -108,6 +104,8 @@ export default function Home() {
       
       console.log('Fetching filtered category data with filters:', filters);
       const data = await fetchFilteredCategoryData(categoryIndex, filters);
+
+      console.log('fetchFilteredCategoryData data :', data)
       
       return data.length ? data : [];
     } catch (error) {
@@ -118,11 +116,20 @@ export default function Home() {
   
   const updateCardData = async (data: CardData[]) => {
     return await Promise.all(
-      data.map(async (card: CardData) => {
+      data.map(async (card) => {
         const liked = await fetchLikedStates(card.id.toString());
+  
+        // 모든 필터 필드 추출
+        const filters = Object.entries(card)
+          .filter(([key]) => key.startsWith("filter"))
+          .reduce<Record<string, boolean>>((acc, [key, value]) => {
+            if (typeof value === "boolean") acc[key] = value; // 타입 확인 후 저장
+            return acc;
+          }, {});
+  
         return {
           ...card,
-          filters: card.filters || {},
+          filters, // 새로운 필터 객체 추가
           liked,
         };
       })
@@ -185,7 +192,7 @@ export default function Home() {
 
   const handleVectorButtonClick = () => {
     if (mapRef.current) {
-      mapRef.current() // KakaoMap의 moveToCurrentLocation 호출
+      mapRef.current() 
     }
   }
 
@@ -266,7 +273,7 @@ export default function Home() {
   }
 
   const getCardFiltersWithNames = (
-    cardData: Record<string, any>, // 카드 데이터 전체
+    cardData: CardData, // 카드 데이터 전체
     currentFilters: string[], // 현재 탭의 필터 이름 배열
   ) => {
     // 1. `filter1`, `filter2` 등 필터 관련 키만 추출
@@ -311,7 +318,7 @@ export default function Home() {
         </button>
       </div>
       <KakaoMap
-        selectedPlace={selectedPlace}
+        selectedPlace={selectedPlace ?? undefined}
         onMoveToCurrentLocation={(moveToCurrentLocation) =>
           (mapRef.current = moveToCurrentLocation)
         }
@@ -418,7 +425,7 @@ export default function Home() {
 
                   {/* 설명 */}
                   <div className={styles.description}>
-                    {truncateText(card.word || '설명이 없습니다.', 40, 2)}{' '}
+                    {truncateText(card.word || '설명이 없습니다.', 40)}{' '}
                     {/* 줄당 20글자, 최대 2줄 */}
                   </div>
 
