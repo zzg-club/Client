@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import SearchBar from '@/components/SearchBar/SearchBar'
 
@@ -8,20 +8,22 @@ export default function SearchPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const from = searchParams.get('from') || '/schedule'
+  const [searchQuery, setSearchQuery] = useState('')
 
   const handleSearchClick = () => {
-    // 검색 버튼 클릭 시 실행
-    const inputValue = (
-      document.getElementById('searchInput') as HTMLInputElement
-    )?.value
-    if (inputValue) {
-      console.log(`검색어: ${inputValue}`)
-      // 검색 로직 추가 가능
+    if (!searchQuery.trim()) {
+      alert('검색어를 입력해주세요.')
+      return
     }
+
+    // 🔹 검색어를 URL에 담아 `LocationPage`로 전달
+    router.push(
+      `/search/location?from=${from}&query=${encodeURIComponent(searchQuery)}`,
+    )
   }
 
   const handleLocationClick = () => {
-    router.push(`/search/location?from=${from}`) // from 값을 포함한 URL로 이동
+    router.push(`/search/location?from=${from}&query=current`) // from 값을 포함한 URL로 이동
   }
 
   const handleBackClick = () => {
@@ -39,7 +41,11 @@ export default function SearchPage() {
           onClick={handleBackClick}
         />
 
-        <SearchBar placeholder="출발지를 입력해주세요!" />
+        {/* 검색바 (입력값 상태 관리) */}
+        <SearchBar
+          placeholder="출발지를 입력해주세요!"
+          onChange={setSearchQuery}
+        />
 
         {/* 검색 버튼 */}
         <button

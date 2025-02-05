@@ -11,126 +11,103 @@ const LocationPage = () => {
   const router = useRouter()
   const searchParams = useSearchParams()
   const from = searchParams.get('from')
+  const queryParam = searchParams.get('query') || ''
 
+  const [searchQuery, setSearchQuery] = useState(queryParam)
   const [locations, setLocations] = useState<
-    { place: string; jibun: string }[]
+    { place: string; jibun: string; road: string }[]
   >([])
 
-  const [searchQuery, setSearchQuery] = useState('')
-
   useEffect(() => {
-    const fetchLocationData = async () => {
-      try {
-        const { lat, lng } = await getCurrentLocation()
-        console.log(`현재 위치: 위도 ${lat}, 경도 ${lng}`)
-        await fetchCombinedLocationData(lat, lng)
-      } catch (error) {
-        console.error('위치 정보 가져오기 실패:', error)
-      }
+    if (searchQuery === 'current') {
+      // 🔹 내 위치를 가져와서 검색
+      fetchCurrentLocationData()
+    } else if (searchQuery.trim()) {
+      fetchAddressByQuery(searchQuery)
     }
-    fetchLocationData()
-  }, [])
+  }, [searchQuery])
 
-  //   // ✅ 주소 검색어로 좌표 가져오기
+  const fetchCurrentLocationData = async () => {
+    try {
+      const { lat, lng } = await getCurrentLocation()
+      console.log(`현재 위치: 위도 ${lat}, 경도 ${lng}`)
+      await fetchCombinedLocationData(lat, lng)
+    } catch (error) {
+      console.error('위치 정보 가져오기 실패:', error)
+    }
+  }
+
   const fetchAddressByQuery = async (query: string) => {
     if (!query.trim()) {
-      alert('검색어를 입력해주세요.')
+      setLocations([])
       return
     }
 
     try {
       const queryEncoded = encodeURIComponent(query)
-      const response = await fetch(
+
+      // 🔹 1. 주소 검색 API 요청
+      const addressResponse = await fetch(
         `https://dapi.kakao.com/v2/local/search/address.json?query=${queryEncoded}`,
-        {
-          headers: { Authorization: `KakaoAK ${KAKAO_API_KEY}` },
-        },
+        { headers: { Authorization: `KakaoAK ${KAKAO_API_KEY}` } },
       )
+      const addressData = await addressResponse.json()
 
-      if (!response.ok) {
-        throw new Error(`주소 검색 실패: HTTP ${response.status}`)
-      }
-
-      const data = await response.json()
-      console.log('검색 주소 응답:', data)
-
-      if (!data.documents || data.documents.length === 0) {
-        alert('주소를 찾을 수 없습니다. 정확한 주소를 입력하세요.')
-        return
-      }
-
-      const { x: longitude, y: latitude } = data.documents[0]
-      console.log(`검색된 주소의 좌표: 위도 ${latitude}, 경도 ${longitude}`)
-      await fetchCombinedLocationData(
-        parseFloat(latitude),
-        parseFloat(longitude),
+      // 🔹 2. 장소 검색 API 요청
+      const placeResponse = await fetch(
+        `https://dapi.kakao.com/v2/local/search/keyword.json?query=${queryEncoded}`,
+        { headers: { Authorization: `KakaoAK ${KAKAO_API_KEY}` } },
       )
+      const placeData = await placeResponse.json()
+
+      const combinedResults = []
+
+      addressData.documents.forEach((doc) => {
+        combinedResults.push({
+          place:
+            doc.road_address?.building_name ||
+            doc.road_address?.address_name ||
+            doc.address?.address_name ||
+            '주소 정보 없음',
+          jibun: doc.address?.address_name || '지번 주소 없음',
+          road: doc.road_address?.address_name || '도로명 주소 없음',
+        })
+      })
+
+      placeData.documents.forEach((doc) => {
+        combinedResults.push({
+          place: doc.place_name,
+          jibun: doc.address_name || '지번 주소 없음',
+          road: doc.road_address_name || '도로명 주소 없음',
+        })
+      })
+
+      setLocations(combinedResults)
     } catch (error) {
-      console.error('주소 검색 중 오류 발생:', error)
+      console.error('🔹 검색 오류 발생:', error)
     }
   }
 
-  // ✅ 내 위치와 주변 장소 정보를 통합하는 함수
   const fetchCombinedLocationData = async (
     latitude: number,
     longitude: number,
   ) => {
     try {
-      const addressResponse = await fetch(
-        `https://dapi.kakao.com/v2/local/geo/coord2address.json?x=${longitude}&y=${latitude}`,
-        {
-          headers: { Authorization: `KakaoAK ${KAKAO_API_KEY}` },
-        },
+      const response = await fetch(
+        `https://dapi.kakao.com/v2/local/search/keyword.json?query=주변&x=${longitude}&y=${latitude}&radius=5000&sort=distance`,
+        { headers: { Authorization: `KakaoAK ${KAKAO_API_KEY}` } },
       )
+      const data = await response.json()
 
-      if (!addressResponse.ok) {
-        throw new Error(`주소 변환 실패: HTTP ${addressResponse.status}`)
-      }
+      const nearbyPlaces = data.documents.map((place) => ({
+        place: place.place_name,
+        jibun: place.address_name || '지번 주소 없음',
+        road: place.road_address_name || '도로명 주소 없음',
+      }))
 
-      const addressData = await addressResponse.json()
-      console.log('내 위치 주소 응답:', addressData)
-
-      let currentPlace = '위치 정보 없음'
-      let currentJibun = '지번 주소 없음'
-      let regionName = '주변'
-
-      if (addressData.documents.length > 0) {
-        const { address, road_address } = addressData.documents[0]
-        currentPlace =
-          road_address?.building_name ||
-          road_address?.address_name ||
-          address?.address_name ||
-          '주소 정보 없음'
-        currentJibun = address?.address_name || '지번 주소 없음'
-        regionName = address?.region_2depth_name || '주변'
-      }
-
-      const placesResponse = await fetch(
-        `https://dapi.kakao.com/v2/local/search/keyword.json?query=${regionName}&x=${longitude}&y=${latitude}&radius=5000&sort=distance`,
-        {
-          headers: { Authorization: `KakaoAK ${KAKAO_API_KEY}` },
-        },
-      )
-
-      if (!placesResponse.ok) {
-        throw new Error(`장소 검색 실패: HTTP ${placesResponse.status}`)
-      }
-
-      const placesData = await placesResponse.json()
-      console.log('주변 장소 API 응답:', placesData)
-
-      const allLocations = [
-        { place: currentPlace, jibun: currentJibun },
-        ...placesData.documents.map((place) => ({
-          place: place.place_name,
-          jibun:
-            place.road_address_name || place.address_name || '주소 정보 없음',
-        })),
-      ]
-
-      setLocations(allLocations)
+      setLocations(nearbyPlaces)
     } catch (error) {
-      console.error('위치 및 장소 데이터 가져오기 실패:', error)
+      console.error('🔹 내 위치 기반 검색 오류 발생:', error)
     }
   }
 
@@ -158,7 +135,7 @@ const LocationPage = () => {
               alert('검색어를 입력해주세요.')
             }
           }}
-          onChange={(value) => setSearchQuery(value)} // 🔹 SearchBar 입력값을 `searchQuery` 상태에 저장
+          onChange={(value) => setSearchQuery(value)} // 🔹 SearchBar 입력값을 searchQuery 상태에 저장
         />
 
         {/* 검색 버튼 */}
@@ -175,8 +152,6 @@ const LocationPage = () => {
           검색
         </button>
       </div>
-
-      {/* 로딩 중 표시 */}
 
       <div className="mt-3 w-full flex flex-col mb-[21px]">
         {locations.map((location, index) => (
