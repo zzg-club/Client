@@ -45,7 +45,6 @@ interface ScheduleData {
 
 export default function Page() {
   const [title, setTitle] = useState('제목 없는 일정')
-  const [isPurple, setIsPurple] = useState(false)
   const [currentPage, setCurrentPage] = useState(0)
   const [highlightedCol, setHighlightedCol] = useState<number | null>(null)
   const [startTime, setStartTime] = useState<string | null>(null)
@@ -58,7 +57,7 @@ export default function Page() {
     },
     {
       date: '2024-01-03',
-      timeSlots: [{ start: '06:00', end: '12:00' }],
+      timeSlots: [{ start: '06:30', end: '12:00' }],
     },
     {
       date: '2024-01-05',
@@ -90,6 +89,7 @@ export default function Page() {
     useState<{ date: string; timeSlots: { start: string; end: string }[] }[]>(
       confirmedData,
     )
+  const [isPurple, setIsPurple] = useState(confirmedData.length > 0)
   const [isOpen, setIsOpen] = useState(false)
   const [dateCounts, setDateCounts] = useState<number[]>([])
   const [groupedDate, setGroupedDate] = useState<GroupedDate[]>([])
