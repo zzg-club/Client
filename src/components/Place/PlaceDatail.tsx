@@ -13,6 +13,8 @@ import { useNavigation } from '@/hooks/useNavigation'
 import StoreInfo from '@/components/Place/StoreInfo'
 import StoreInfoCampus from '@/components/Place/StoreInfoCampus'
 import StoreInfoReservation from '@/components/Place/StoreInfoReservation'
+import useTimeParser from '@/hooks/useTimeParser';
+
 
 interface PlaceDetailProps {
   placeData: Place
@@ -32,6 +34,7 @@ const PlaceDetail = ({ placeData }: PlaceDetailProps) => {
   const { liked, likeCount, handleLikeButtonClick } = useLikeSystem(Number(placeData.id))
   const { handleBackClick, handleCloseClick } = useNavigation(setBottomSheetState)
   const StoreInfoComponent = getStoreInfoComponent(placeData.category, placeData.phoneNumber)
+  const { todayEntry } = useTimeParser(placeData.time);
 
   return (
     <div className={styles['detail-container']}>
@@ -138,7 +141,7 @@ const PlaceDetail = ({ placeData }: PlaceDetailProps) => {
                     letterSpacing: '-0.5px',
                   }}
                 >
-                  {placeData.time}
+                  {todayEntry ? todayEntry.hours : '운영 정보 없음'}
                 </p>
               </div>
               <button

@@ -86,6 +86,30 @@ export default function Home() {
     return text.length > maxLength ? text.slice(0, maxLength) + '...' : text
   }
 
+  const getDayOfWeek = () => {
+    const days = ['일', '월', '화', '수', '목', '금', '토'];
+    return days[new Date().getDay()];
+  };
+  
+  const parseTime = (time: string | undefined) => {
+    if (!time || typeof time !== 'string') return '운영 정보 없음';
+  
+    const today = getDayOfWeek();
+    const validDays = ['월', '화', '수', '목', '금', '토', '일'];
+  
+    const timeEntries = time
+      .split('\n')
+      .map((entry) => {
+        const parts = entry.trim().split(' '); 
+        if (parts.length < 2 || !validDays.includes(parts[0])) return null;
+        return { day: parts[0], hours: parts.slice(1).join(' ') };
+      })
+      .filter(Boolean) as { day: string; hours: string }[];
+  
+    const todayEntry = timeEntries.find((entry) => entry.day === today);
+    return todayEntry ? todayEntry.hours : '운영 정보 없음';
+  };
+
   const fetchCategoryDataWithFilters = async (categoryIndex: number, selectedFilters: string[]) => {
     try {
       if (selectedFilters.length === 0) {
@@ -123,7 +147,7 @@ export default function Home() {
         const filters = Object.entries(card)
           .filter(([key]) => key.startsWith("filter"))
           .reduce<Record<string, boolean>>((acc, [key, value]) => {
-            if (typeof value === "boolean") acc[key] = value; // 타입 확인 후 저장
+            if (typeof value === "boolean") acc[key] = value; 
             return acc;
           }, {});
   
@@ -182,10 +206,10 @@ export default function Home() {
   const handleFilterButtonClick = (filter: string) => {
     setSelectedFilters((prevSelected) => {
       const updatedFilters = prevSelected.includes(filter)
-        ? prevSelected.filter((item) => item !== filter) // 이미 선택된 경우 해제
+        ? prevSelected.filter((item) => item !== filter) 
         : [...prevSelected, filter] // 새로 선택
 
-      console.log('Updated Filters:', updatedFilters) // 선택된 필터 로그
+      console.log('Updated Filters:', updatedFilters) 
       return updatedFilters
     })
   }
@@ -386,7 +410,7 @@ export default function Home() {
                     <img
                       src="/default-cafe.jpg"
                       alt={card.name || '기본 이미지'}
-                      className={styles.cardImage} // 필요한 스타일 추가
+                      className={styles.cardImage} 
                     />
                   )}
                 </div>
@@ -436,7 +460,7 @@ export default function Home() {
                       alt="시계 아이콘"
                       className={styles.clockIcon}
                     />
-                    <span>영업시간 {card.time || '정보 없음'}</span>
+                    <span>영업시간 {parseTime(card.time)}</span>
                   </div>
                 </div>
               </div>
