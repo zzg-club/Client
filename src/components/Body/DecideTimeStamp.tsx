@@ -423,7 +423,6 @@ export default function TimeStamp({
         if (timestampContainer) {
           const containerRect = timestampContainer.getBoundingClientRect()
           const scrollThreshold = 250
-
           if (e.clientY > containerRect.bottom - scrollThreshold) {
             timestampContainer.scrollTop += 5
           } else if (e.clientY < containerRect.top + scrollThreshold) {
@@ -432,7 +431,7 @@ export default function TimeStamp({
         }
       }
 
-      // console.log('ActiveSelection', activeSelection);
+      // console.log('ActiveSelection', activeSelection)
 
       setActiveSelection((prev) => {
         if (!prev) return null
@@ -880,6 +879,60 @@ export default function TimeStamp({
     handleTouchMove,
   ])
 
+  const initialConfirmedTimeSlots: {
+    confirmedCol: number
+    timeSlots: { start: number; end: number; isConfirmed: boolean }[]
+  }[] = []
+
+  if (initialSelections.length > 0) {
+    const getTimeRow = (time: string) => {
+      const [hours, minutes] = time.split(':').map(Number)
+      return hours * 2 + (minutes === 30 ? 1 : 0)
+    }
+
+    if (mode === 'range') {
+      currentDates.forEach((date, col) => {
+        const dateString = `${date.year}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`
+        initialSelections.forEach((confirmed) => {
+          if (confirmed.date === dateString) {
+            confirmed.timeSlots.forEach((slot) => {
+              const startRow = getTimeRow(slot.start)
+              const endRow = getTimeRow(slot.end)
+              initialConfirmedTimeSlots.push({
+                confirmedCol: col,
+                timeSlots: [
+                  { start: startRow, end: endRow, isConfirmed: true },
+                ],
+              })
+            })
+          }
+        })
+      })
+      //console.log('initialConfirmedTimeSlots', initialConfirmedTimeSlots)
+    } else {
+      //console.log('groupedDate', groupedDate)
+      const groupedArray = groupedDate?.[currentPage]?.date ?? []
+      groupedArray.forEach((date, col) => {
+        const dateString = `${date.year}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`
+        initialSelections.forEach((confirmed) => {
+          if (confirmed.date === dateString) {
+            confirmed.timeSlots.forEach((slot) => {
+              const startRow = getTimeRow(slot.start)
+              const endRow = getTimeRow(slot.end)
+              initialConfirmedTimeSlots.push({
+                confirmedCol: col,
+                timeSlots: [
+                  { start: startRow, end: endRow, isConfirmed: true },
+                ],
+              })
+            })
+          }
+        })
+      })
+    }
+    //console.log('initialConfirmedTimeSlots', initialConfirmedTimeSlots)
+  }
+
   const getCellStatus = (row: number, col: number) => {
     const allSelections = [...currentSelections, ...selections].filter(
       Boolean,
@@ -887,6 +940,7 @@ export default function TimeStamp({
 
     if (activeSelection) {
       const minRow = Math.min(activeSelection.startRow, activeSelection.endRow)
+
       const maxRow = Math.max(activeSelection.startRow, activeSelection.endRow)
       const minCol = Math.min(activeSelection.startCol, activeSelection.endCol)
       const maxCol = Math.min(activeSelection.startCol, activeSelection.endCol)
@@ -928,6 +982,23 @@ export default function TimeStamp({
       }
     }
 
+    const confirmedTimeSlot = initialConfirmedTimeSlots.find(
+      (slot) =>
+        slot.confirmedCol === col &&
+        slot.timeSlots.some(
+          (timeSlot) => timeSlot.start <= row && row < timeSlot.end,
+        ),
+    )
+    if (confirmedTimeSlot) {
+      // 새로운 로직: 초기 확인된 시간 슬롯이 존재할 경우
+      return {
+        isSelected: true,
+        isConfirmed: true,
+        isStartCell: false,
+        isEndCell: false,
+      }
+    }
+
     return {
       isSelected: false,
       isConfirmed: false,
@@ -942,6 +1013,16 @@ export default function TimeStamp({
     ) as Selection[]
 
     const cellStatus = getCellStatus(row, col)
+
+    const confirmedTimeSlot = initialConfirmedTimeSlots.find(
+      (slot) =>
+        slot.confirmedCol === col &&
+        slot.timeSlots.some(
+          (timeSlot) => timeSlot.start <= row && row < timeSlot.end,
+        ),
+    )
+    //console.log(confirmedTimeSlot)
+
     if (!cellStatus.isSelected) return {}
 
     const isSelected = (r: number, c: number) =>
@@ -970,6 +1051,38 @@ export default function TimeStamp({
 
     const top = !isSelected(row - 1, col) && !isActiveSelection(row - 1, col)
     const bottom = !isSelected(row + 1, col) && !isActiveSelection(row + 1, col)
+
+    if (confirmedTimeSlot) {
+      const { timeSlots } = confirmedTimeSlot
+      const currentSlot = timeSlots.find(
+        (slot) => slot.start <= row && row < slot.end,
+      )
+      if (currentSlot) {
+        const isTopOfSlot =
+          row === currentSlot.start && !isActiveSelection(row - 1, col)
+        const isBottomOfSlot =
+          row === currentSlot.end - 1 && !isActiveSelection(row + 1, col)
+        const styles: CSSProperties = {
+          // height: `${18 * scale}px`,
+          borderTop: isTopOfSlot ? borderStyle : 'none',
+          borderBottom: isBottomOfSlot ? borderStyle : 'none',
+          borderLeft: borderStyle,
+          borderRight: borderStyle,
+          boxShadow: [
+            isTopOfSlot ? '0 -4px 8px -2px rgba(255, 255, 255, 0.7)' : '',
+            isBottomOfSlot ? '0 4px 8px -2px rgba(255, 255, 255, 0.7)' : '',
+            //left ? '-4px 0 8px -20px rgba(255, 255, 255, 0.7)' : '',
+            //right ? '4px 0 8px -2px rgba(255, 255, 255, 0.7)' : '',
+          ]
+            .filter(Boolean)
+            .join(', '),
+          position: 'relative' as const,
+          zIndex: cellStatus.isSelected ? 1000 : 'auto',
+        }
+
+        return styles
+      }
+    }
 
     const styles: CSSProperties = {
       // height: `${18 * scale}px`,
@@ -1087,14 +1200,19 @@ export default function TimeStamp({
           const selectionEnd = getTimeFromRow(selection.endRow + 1)
 
           // 📌 현재 페이지의 날짜 범위 내에서만 `dateTime` 비교
-          const exists = dateTime.some(
-            (dateItem) =>
-              dateItem.date === colDate &&
-              dateItem.timeSlots.some(
-                (slot) =>
-                  slot.start === selectionStart || slot.end === selectionEnd,
-              ),
-          )
+          const exists = dateTime.some((dateItem) => {
+            if (dateItem.date !== colDate) return false
+
+            return dateItem.timeSlots.some((slot) => {
+              const slotStart = slot.start
+              const slotEnd = slot.end
+              return (
+                (selectionStart <= slotStart && selectionEnd > slotStart) ||
+                (selectionStart >= slotStart && selectionStart < slotEnd) ||
+                (selectionEnd > slotStart && selectionEnd <= slotEnd)
+              )
+            })
+          })
 
           return exists // `dateTime`에 존재하는 경우만 유지
         })
@@ -1115,7 +1233,7 @@ export default function TimeStamp({
 
         return newSelections
       })
-    }, 0)
+    }, 10)
 
     return () => clearTimeout(timeoutId)
   }, [dateTime, currentDates, currentPage, mode, groupedDate])
@@ -1125,71 +1243,6 @@ export default function TimeStamp({
       onColumnClick(-1, -1)
     }
   }, [isBottomSheetOpen, onColumnClick])
-
-  useEffect(() => {
-    // Initialize selections based on initialSelections
-    const newSelections: Selection[] = []
-    initialSelections.forEach((dateSelection) => {
-      const date = new Date(dateSelection.date)
-      let pageIndex: number
-      let colIndexInPage: number
-
-      if (mode === 'range') {
-        const colIndex = selectedDates.findIndex(
-          (d) =>
-            d.year === date.getFullYear() &&
-            d.month === date.getMonth() + 1 &&
-            d.day === date.getDate(),
-        )
-        if (colIndex === -1) return
-        pageIndex = Math.floor(colIndex / COLUMNS_PER_PAGE)
-        colIndexInPage = colIndex % COLUMNS_PER_PAGE
-      } else {
-        // For non-range mode, find the correct page and column
-        let totalDays = 0
-        pageIndex = dateCounts.findIndex((count) => {
-          if (
-            totalDays + count >
-            selectedDates.findIndex(
-              (d) =>
-                d.year === date.getFullYear() &&
-                d.month === date.getMonth() + 1 &&
-                d.day === date.getDate(),
-            )
-          ) {
-            return true
-          }
-          totalDays += count
-          return false
-        })
-        colIndexInPage =
-          selectedDates.findIndex(
-            (d) =>
-              d.year === date.getFullYear() &&
-              d.month === date.getMonth() + 1 &&
-              d.day === date.getDate(),
-          ) - totalDays
-      }
-
-      dateSelection.timeSlots.forEach((slot) => {
-        const startRow = timeToIndex(slot.start)
-        const endRow = timeToIndex(slot.end) - 1
-        newSelections.push({
-          startRow,
-          startCol: colIndexInPage,
-          endRow,
-          endCol: colIndexInPage,
-          isSelected: true,
-          isConfirmed: true,
-        })
-      })
-
-      setSelectionsByPage((prev) => ({
-        ...prev,
-        [pageIndex]: [...(prev[pageIndex] || []), ...newSelections],
-      }))
-    })
-  }, [initialSelections, selectedDates, timeToIndex, mode, dateCounts])
 
   console.log('selectionsbypage', selectionsByPage)
 
