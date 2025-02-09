@@ -2,14 +2,12 @@
 
 import { useCallback, useState, useEffect, useRef } from 'react'
 import { isEqual } from 'lodash'
-import { FaRegEdit } from 'react-icons/fa'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { GoTriangleUp, GoTriangleDown } from 'react-icons/go'
 import { LuDot } from 'react-icons/lu'
 import { ProfileSmall } from '@/components/Profiles/ProfileSmall'
 import CustomModal from '@/components/Modals/CustomModal'
 import MembersDefault from '@/components/Modals/MembersDefault'
-import { useRouter } from 'next/navigation'
 
 interface SelectedDate {
   year: number
@@ -69,15 +67,12 @@ export default function SelectedDays({
   onPageChange,
   highlightedCol,
   onDateCountsChange,
-  isPurple,
   participants,
   title,
 }: SelectedDaysProps) {
   const [dateCounts, setDateCounts] = useState<number[]>([])
   const [groupedData, setGroupedData] = useState<GroupedDate[]>([])
   const [isMembersModalOpen, setIsMemberModalOpen] = useState(false)
-
-  const router = useRouter()
 
   const isSingleDate = selectedDates.length === 1
   const highlightedIndex =
@@ -188,10 +183,6 @@ export default function SelectedDays({
     setIsMemberModalOpen(!isMembersModalOpen)
   }
 
-  const handleEdit = () => {
-    router.push('/schedule/edit')
-  }
-
   return (
     <div className="pt-0 relative">
       <div
@@ -215,10 +206,6 @@ export default function SelectedDays({
                 <ProfileSmall profiles={participants} />
               </div>
             </div>
-            <FaRegEdit
-              onClick={handleEdit}
-              className={`cursor-pointer text-[30px] mt-1 ${isPurple ? 'text-[#9562fa]' : 'text-[#afafaf]'}`} //Edit 페이지와 연결
-            />
           </div>
         </div>
       </div>
