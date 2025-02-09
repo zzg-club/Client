@@ -60,10 +60,6 @@ interface TimeStampProps {
   groupedDate: GroupedDate[]
   mockDateTime: DateData[]
   dateTime: { date: string; timeSlots: { start: string; end: string }[] }[]
-  initialSelections: {
-    date: string
-    timeSlots: { start: string; end: string }[]
-  }[]
 }
 
 const COLUMNS_PER_PAGE = 7
@@ -81,7 +77,6 @@ export default function TimeStamp({
   isBottomSheetOpen,
   mockDateTime,
   dateTime,
-  initialSelections,
 }: TimeStampProps) {
   const [selections] = useState<Selection[]>([])
   const [isResizing, setIsResizing] = useState(false)
@@ -879,60 +874,6 @@ export default function TimeStamp({
     handleTouchMove,
   ])
 
-  const initialConfirmedTimeSlots: {
-    confirmedCol: number
-    timeSlots: { start: number; end: number; isConfirmed: boolean }[]
-  }[] = []
-
-  if (initialSelections.length > 0) {
-    const getTimeRow = (time: string) => {
-      const [hours, minutes] = time.split(':').map(Number)
-      return hours * 2 + (minutes === 30 ? 1 : 0)
-    }
-
-    if (mode === 'range') {
-      currentDates.forEach((date, col) => {
-        const dateString = `${date.year}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`
-        initialSelections.forEach((confirmed) => {
-          if (confirmed.date === dateString) {
-            confirmed.timeSlots.forEach((slot) => {
-              const startRow = getTimeRow(slot.start)
-              const endRow = getTimeRow(slot.end)
-              initialConfirmedTimeSlots.push({
-                confirmedCol: col,
-                timeSlots: [
-                  { start: startRow, end: endRow, isConfirmed: true },
-                ],
-              })
-            })
-          }
-        })
-      })
-      //console.log('initialConfirmedTimeSlots', initialConfirmedTimeSlots)
-    } else {
-      //console.log('groupedDate', groupedDate)
-      const groupedArray = groupedDate?.[currentPage]?.date ?? []
-      groupedArray.forEach((date, col) => {
-        const dateString = `${date.year}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`
-        initialSelections.forEach((confirmed) => {
-          if (confirmed.date === dateString) {
-            confirmed.timeSlots.forEach((slot) => {
-              const startRow = getTimeRow(slot.start)
-              const endRow = getTimeRow(slot.end)
-              initialConfirmedTimeSlots.push({
-                confirmedCol: col,
-                timeSlots: [
-                  { start: startRow, end: endRow, isConfirmed: true },
-                ],
-              })
-            })
-          }
-        })
-      })
-    }
-    //console.log('initialConfirmedTimeSlots', initialConfirmedTimeSlots)
-  }
-
   const getCellStatus = (row: number, col: number) => {
     const allSelections = [...currentSelections, ...selections].filter(
       Boolean,
@@ -982,23 +923,6 @@ export default function TimeStamp({
       }
     }
 
-    const confirmedTimeSlot = initialConfirmedTimeSlots.find(
-      (slot) =>
-        slot.confirmedCol === col &&
-        slot.timeSlots.some(
-          (timeSlot) => timeSlot.start <= row && row < timeSlot.end,
-        ),
-    )
-    if (confirmedTimeSlot) {
-      // 새로운 로직: 초기 확인된 시간 슬롯이 존재할 경우
-      return {
-        isSelected: true,
-        isConfirmed: true,
-        isStartCell: false,
-        isEndCell: false,
-      }
-    }
-
     return {
       isSelected: false,
       isConfirmed: false,
@@ -1013,15 +937,6 @@ export default function TimeStamp({
     ) as Selection[]
 
     const cellStatus = getCellStatus(row, col)
-
-    const confirmedTimeSlot = initialConfirmedTimeSlots.find(
-      (slot) =>
-        slot.confirmedCol === col &&
-        slot.timeSlots.some(
-          (timeSlot) => timeSlot.start <= row && row < timeSlot.end,
-        ),
-    )
-    //console.log(confirmedTimeSlot)
 
     if (!cellStatus.isSelected) return {}
 
@@ -1051,38 +966,6 @@ export default function TimeStamp({
 
     const top = !isSelected(row - 1, col) && !isActiveSelection(row - 1, col)
     const bottom = !isSelected(row + 1, col) && !isActiveSelection(row + 1, col)
-
-    if (confirmedTimeSlot) {
-      const { timeSlots } = confirmedTimeSlot
-      const currentSlot = timeSlots.find(
-        (slot) => slot.start <= row && row < slot.end,
-      )
-      if (currentSlot) {
-        const isTopOfSlot =
-          row === currentSlot.start && !isActiveSelection(row - 1, col)
-        const isBottomOfSlot =
-          row === currentSlot.end - 1 && !isActiveSelection(row + 1, col)
-        const styles: CSSProperties = {
-          // height: `${18 * scale}px`,
-          borderTop: isTopOfSlot ? borderStyle : 'none',
-          borderBottom: isBottomOfSlot ? borderStyle : 'none',
-          borderLeft: borderStyle,
-          borderRight: borderStyle,
-          boxShadow: [
-            isTopOfSlot ? '0 -4px 8px -2px rgba(255, 255, 255, 0.7)' : '',
-            isBottomOfSlot ? '0 4px 8px -2px rgba(255, 255, 255, 0.7)' : '',
-            //left ? '-4px 0 8px -20px rgba(255, 255, 255, 0.7)' : '',
-            //right ? '4px 0 8px -2px rgba(255, 255, 255, 0.7)' : '',
-          ]
-            .filter(Boolean)
-            .join(', '),
-          position: 'relative' as const,
-          zIndex: cellStatus.isSelected ? 1000 : 'auto',
-        }
-
-        return styles
-      }
-    }
 
     const styles: CSSProperties = {
       // height: `${18 * scale}px`,
