@@ -45,14 +45,51 @@ interface ScheduleData {
 
 export default function Page() {
   const [title, setTitle] = useState('제목 없는 일정')
-  const [isPurple, setIsPurple] = useState(false)
   const [currentPage, setCurrentPage] = useState(0)
   const [highlightedCol, setHighlightedCol] = useState<number | null>(null)
   const [startTime, setStartTime] = useState<string | null>(null)
   const [endTime, setEndTime] = useState<string | null>(null)
-  const [dateTime, setDateTime] = useState<
-    { date: string; timeSlots: { start: string; end: string }[] }[]
-  >([])
+
+  const confirmedData = [
+    {
+      date: '2024-12-31',
+      timeSlots: [{ start: '03:00', end: '09:30' }],
+    },
+    {
+      date: '2024-01-03',
+      timeSlots: [{ start: '06:30', end: '12:00' }],
+    },
+    {
+      date: '2024-01-05',
+      timeSlots: [{ start: '06:00', end: '12:00' }],
+    },
+    {
+      date: '2024-01-06',
+      timeSlots: [{ start: '06:00', end: '12:00' }],
+    },
+    // {
+    //   date: '2024-01-06',
+    //   timeSlots: [{ start: '03:00', end: '09:30' }],
+    // },
+    // {
+    //   date: '2024-01-13',
+    //   timeSlots: [{ start: '06:00', end: '12:00' }],
+    // },
+    // {
+    //   date: '2024-02-08',
+    //   timeSlots: [{ start: '06:00', end: '12:00' }],
+    // },
+    // {
+    //   date: '2024-03-17',
+    //   timeSlots: [{ start: '06:00', end: '12:00' }],
+    // },
+  ]
+
+  const [dateTime, setDateTime] =
+    useState<{ date: string; timeSlots: { start: string; end: string }[] }[]>(
+      confirmedData,
+    )
+  const [isPurple, setIsPurple] = useState(confirmedData.length > 0)
   const [isOpen, setIsOpen] = useState(false)
   const [dateCounts, setDateCounts] = useState<number[]>([])
   const [groupedDate, setGroupedDate] = useState<GroupedDate[]>([])
@@ -260,40 +297,40 @@ export default function Page() {
       title: '팀플 대면 모임',
       userId: 2,
       groupId: 1,
-      mode: 'week',
-      selected: ['mon', 'wed', 'fri'],
-      date: [
-        ['2024-01-06', 'mon'],
-        ['2024-02-08', 'wed'],
-        ['2024-01-13', 'mon'],
-        ['2024-02-15', 'wed'],
-        ['2024-01-20', 'mon'],
-        ['2024-02-22', 'wed'],
-        ['2024-01-27', 'mon'],
-        ['2024-03-03', 'fri'],
-        ['2024-03-10', 'fri'],
-        ['2024-03-17', 'fri'],
-        ['2024-03-24', 'fri'],
-        ['2024-03-31', 'fri'],
-      ],
-      // mode: 'range',
-      // selected: null,
+      // mode: 'week',
+      // selected: ['mon', 'wed', 'fri'],
       // date: [
-      //   ['2024-12-30', 'mon'],
-      //   ['2024-12-31', 'tue'],
-      //   ['2024-01-01', 'wed'],
-      //   ['2024-01-02', 'thu'],
-      //   ['2024-01-03', 'fri'],
-      //   ['2024-01-04', 'sat'],
-      //   ['2024-01-05', 'sun'],
       //   ['2024-01-06', 'mon'],
-      //   ['2024-01-07', 'tue'],
-      //   ['2024-01-08', 'wed'],
-      //   ['2024-01-09', 'thu'],
-      //   ['2024-01-10', 'fri'],
-      //   ['2024-01-11', 'sat'],
-      //   ['2024-01-12', 'sun'],
+      //   ['2024-02-08', 'wed'],
+      //   ['2024-01-13', 'mon'],
+      //   ['2024-02-15', 'wed'],
+      //   ['2024-01-20', 'mon'],
+      //   ['2024-02-22', 'wed'],
+      //   ['2024-01-27', 'mon'],
+      //   ['2024-03-03', 'fri'],
+      //   ['2024-03-10', 'fri'],
+      //   ['2024-03-17', 'fri'],
+      //   ['2024-03-24', 'fri'],
+      //   ['2024-03-31', 'fri'],
       // ],
+      mode: 'range',
+      selected: null,
+      date: [
+        ['2024-12-30', 'mon'],
+        ['2024-12-31', 'tue'],
+        ['2024-01-01', 'wed'],
+        ['2024-01-02', 'thu'],
+        ['2024-01-03', 'fri'],
+        ['2024-01-04', 'sat'],
+        ['2024-01-05', 'sun'],
+        ['2024-01-06', 'mon'],
+        ['2024-01-07', 'tue'],
+        ['2024-01-08', 'wed'],
+        ['2024-01-09', 'thu'],
+        ['2024-01-10', 'fri'],
+        ['2024-01-11', 'sat'],
+        ['2024-01-12', 'sun'],
+      ],
     },
   ]
 
@@ -446,6 +483,7 @@ export default function Page() {
       <div className="flex-grow overflow-hidden mt-2">
         <TimeStamp
           selectedDates={selectedDates}
+          confirmedData={confirmedData}
           currentPage={currentPage}
           mode={mode}
           groupedDate={groupedDate}
