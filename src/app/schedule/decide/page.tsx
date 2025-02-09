@@ -239,13 +239,13 @@ const mockDateTime: PrevScheduleData[] = [
 //       {
 //         date: '2025-01-20',
 //         timeSlots: [
-//           { start: '06:00', end: '07:00', selectedBy: ['user2'] },
-//           {
-//             start: '07:00',
-//             end: '19:00',
-//             selectedBy: ['user1', 'user3', 'user4'],
-//           },
-//           { start: '19:00', end: '22:00', selectedBy: ['user1', 'user2'] },
+//           // { start: '06:00', end: '07:00', selectedBy: ['user2'] },
+//           // {
+//           //   start: '07:00',
+//           //   end: '19:00',
+//           //   selectedBy: ['user1', 'user3', 'user4'],
+//           // },
+//           // { start: '19:00', end: '22:00', selectedBy: ['user1', 'user2'] },
 //         ],
 //       },
 //       {
@@ -335,6 +335,7 @@ export default function Page() {
   const [dateTime, setDateTime] = useState<
     { date: string; timeSlots: { start: string; end: string }[] }[]
   >([])
+
   const [isOpen, setIsOpen] = useState(false)
   const [dateCounts, setDateCounts] = useState<number[]>([])
   const [groupedDate, setGroupedDate] = useState<GroupedDate[]>([])
@@ -343,7 +344,6 @@ export default function Page() {
   const [decideBottomOpen, setDecideBottomOpen] = useState(false)
 
   const router = useRouter()
-
 
   const onClickConfirm = () => {
     if (isPurple && !decideBottomOpen) {
@@ -521,14 +521,16 @@ export default function Page() {
           const mergedSlot = {
             start: `${Math.floor(mergedStart / 60)
               .toString()
-              .padStart(2, '0')}:${(mergedStart % 60)
-              .toString()
-              .padStart(2, '0')}`,
+              .padStart(
+                2,
+                '0',
+              )}:${(mergedStart % 60).toString().padStart(2, '0')}`,
             end: `${Math.floor(mergedEnd / 60)
               .toString()
-              .padStart(2, '0')}:${(mergedEnd % 60)
-              .toString()
-              .padStart(2, '0')}`,
+              .padStart(
+                2,
+                '0',
+              )}:${(mergedEnd % 60).toString().padStart(2, '0')}`,
           }
           timeSlots.push(mergedSlot)
           newEntry = { date: date, timeSlots: [mergedSlot] }
