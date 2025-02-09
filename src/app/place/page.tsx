@@ -96,6 +96,11 @@ export default function Home() {
   
     const today = getDayOfWeek();
     const validDays = ['월', '화', '수', '목', '금', '토', '일'];
+
+    if (!time.startsWith('월')) {
+      return '상세보기'; 
+    }
+  
   
     const timeEntries = time
       .split('\n')
@@ -402,13 +407,13 @@ export default function Home() {
                 <div className={styles.cardImage}>
                   {card.pictures?.[0] ? (
                     <img
-                      src={card.pictures[0] || '/default-cafe.jpg'}
+                      src={card.pictures[0] || '/no_image.png'}
                       alt={card.name || '카드 이미지'}
                       loading="lazy"
                     />
                   ) : (
                     <img
-                      src="/default-cafe.jpg"
+                      src="/no_image.png"
                       alt={card.name || '기본 이미지'}
                       className={styles.cardImage} 
                     />

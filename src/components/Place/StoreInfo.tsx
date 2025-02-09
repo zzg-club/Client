@@ -67,7 +67,11 @@ const StoreInfo = ({ selectedPlace }: { selectedPlace: Place | null }) => {
                 margin: 0,
               }}
             >
-              {todayEntry ? todayEntry.hours : '운영 정보 없음'}
+              {selectedPlace.time && !selectedPlace.time.startsWith('월') ? (
+                '상세보기'
+              ) : (
+                todayEntry ? todayEntry.hours : '운영 정보 없음'
+              )}
             </p>
             <img
               src={
@@ -160,7 +164,7 @@ const StoreInfo = ({ selectedPlace }: { selectedPlace: Place | null }) => {
           style={{
             display: 'flex',
             width: '393px',
-            padding: '16px 32px',
+            padding: '0px 32px 16px 32px',
             flexDirection: 'column',
             justifyContent: 'center',
             alignItems: 'flex-start',
@@ -170,21 +174,35 @@ const StoreInfo = ({ selectedPlace }: { selectedPlace: Place | null }) => {
             fontWeight: '500',
             lineHeight: '17px',
             letterSpacing: '-0.5px',
-            marginBottom: '8px',
           }}
         >
-          {todayEntry ? (
-            <p>
-              {todayEntry.day}({new Date().toLocaleDateString('en-US', { month: '2-digit', day: '2-digit' })}) {todayEntry.hours}
-            </p>
+          {/* "월"로 시작하지 않으면 "상세보기" 출력 */}
+          {selectedPlace.time && !selectedPlace.time.startsWith('월') ? (
+            <>
+              <p>
+                {selectedPlace.time.split('\n').map((line, index) => (
+                  <div key={index} style={{ lineHeight: '20 px', fontWeight: 'normal' , fontFamily: 'Pretendard, sans-serif' }}>
+                    {line}
+                  </div>
+                ))}
+              </p>
+            </>
           ) : (
-            <p style={{ fontWeight: 'bold', color: '#FF0000' }}>오늘 운영 정보 없음</p>
+            <>
+              {todayEntry ? (
+                <p>
+                  {todayEntry.day}({new Date().toLocaleDateString('en-US', { month: '2-digit', day: '2-digit' })}) {todayEntry.hours}
+                </p>
+              ) : (
+                <p style={{ fontWeight: 'bold', color: '#FF0000' }}>오늘 운영 정보 없음</p>
+              )}
+              {otherEntries.map((entry) => (
+                <p key={entry.day} style={{ color: '#AFAFAF' }}>
+                  {entry.day} {entry.hours}
+                </p>
+              ))}
+            </>
           )}
-          {otherEntries.map((entry) => (
-            <p key={entry.day} style={{ color: '#AFAFAF' }}>
-              {entry.day} {entry.hours}
-            </p>
-          ))}
         </div>
       )}
 

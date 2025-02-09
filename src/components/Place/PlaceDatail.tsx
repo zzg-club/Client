@@ -141,7 +141,11 @@ const PlaceDetail = ({ placeData }: PlaceDetailProps) => {
                     letterSpacing: '-0.5px',
                   }}
                 >
-                  {todayEntry ? todayEntry.hours : '운영 정보 없음'}
+                  {placeData.time && placeData.time.startsWith('월') ? (
+                    todayEntry ? todayEntry.hours : '운영 정보 없음'
+                  ) : (
+                    '상세보기'
+                  )}
                 </p>
               </div>
               <button

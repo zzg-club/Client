@@ -3,15 +3,16 @@
 import React, { useState } from 'react'
 import KakaoMap from '@/components/Map/KakaoMap' // KakaoMap 컴포넌트 임포트
 import { Place } from '@/types/place'
-
+import useTimeParser from "@/hooks/useTimeParser"
 
 const StoreInfo = ({ selectedPlace }: { selectedPlace: Place }) => {
+  const { todayEntry, otherEntries } = useTimeParser(selectedPlace?.time)
   const [activeDropdown, setActiveDropdown] = useState<
     'time' | 'capacity' | null
-  >(null) // 드롭다운 상태 관리
+  >(null) 
 
   if (!selectedPlace) {
-    return null // selectedPlace가 없으면 아무것도 렌더링하지 않음
+    return null 
   }
 
   const toggleDropdown = (dropdown: 'time' | 'capacity') => {
@@ -61,7 +62,11 @@ const StoreInfo = ({ selectedPlace }: { selectedPlace: Place }) => {
                 margin: 0,
               }}
             >
-              10:00 - 22:00
+              {selectedPlace.time && !selectedPlace.time.startsWith('월') ? (
+                '상세보기'
+              ) : (
+                todayEntry ? todayEntry.hours : '운영 정보 없음'
+              )}
             </p>
             <img
               src={
@@ -182,43 +187,33 @@ const StoreInfo = ({ selectedPlace }: { selectedPlace: Place }) => {
             marginBottom: '8px',
           }}
         >
-          <p>수(12/26) 10:00 - 22:00</p>
-          <p style={{ color: '#AFAFAF' }}>목 10:00 - 22:00</p>
-          <p style={{ color: '#AFAFAF' }}>금 10:00 - 22:00</p>
-          <p style={{ color: '#AFAFAF' }}>토 12:00 - 20:00</p>
-          <p style={{ color: '#AFAFAF' }}>일 12:00 - 20:00</p>
-          <p style={{ color: '#AFAFAF' }}>월 10:00 - 22:00</p>
-          <p style={{ color: '#AFAFAF' }}>화 10:00 - 22:00</p>
-        </div>
-      )}
-
-      {/* 최대 인원 드롭다운 */}
-      {activeDropdown === 'capacity' && (
-        <div
-          style={{
-            display: 'flex',
-            width: '393px',
-            padding: '16px 32px',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'flex-start',
-            gap: '8px',
-            fontSize: '14px',
-            fontStyle: 'normal',
-            fontWeight: '500',
-            lineHeight: '17px',
-            letterSpacing: '-0.5px',
-            marginBottom: '8px',
-          }}
-        >
-          <p>1팀 최대 인원 12명</p>
-          <p style={{ color: '#AFAFAF' }}>
-            ✔ 4인 이상 착석 가능한 테이블이 많아요
-          </p>
-          <p style={{ color: '#AFAFAF' }}>✔ 창가 쪽에 혼밥존 있어요</p>
-          <p style={{ color: '#AFAFAF' }}>
-            ✔ 예약석 테이블에 12명 착석 가능해요
-          </p>
+         {/* "월"로 시작하지 않으면 "상세보기" 출력 */}
+         {selectedPlace.time && !selectedPlace.time.startsWith('월') ? (
+            <>
+              <p>
+                {selectedPlace.time.split('\n').map((line, index) => (
+                  <div key={index} style={{ lineHeight: '20 px', fontWeight: 'normal' , fontFamily: 'Pretendard, sans-serif' }}>
+                    {line}
+                  </div>
+                ))}
+              </p>
+            </>
+          ) : (
+            <>
+              {todayEntry ? (
+                <p>
+                  {todayEntry.day}({new Date().toLocaleDateString('en-US', { month: '2-digit', day: '2-digit' })}) {todayEntry.hours}
+                </p>
+              ) : (
+                <p style={{ fontWeight: 'bold', color: '#FF0000' }}>오늘 운영 정보 없음</p>
+              )}
+              {otherEntries.map((entry) => (
+                <p key={entry.day} style={{ color: '#AFAFAF' }}>
+                  {entry.day} {entry.hours}
+                </p>
+              ))}
+            </>
+          )}
         </div>
       )}
 
@@ -260,20 +255,11 @@ const StoreInfo = ({ selectedPlace }: { selectedPlace: Place }) => {
             <p
               style={{
                 fontSize: '12px',
-                color: '#9562FB',
-                margin: 0,
-              }}
-            >
-              판교 분당에서 차로 15분
-            </p>
-            <p
-              style={{
-                fontSize: '12px',
                 color: '#AFAFAF',
                 margin: 0,
               }}
             >
-              경기 용인시 수지구 성복2로 376
+              {selectedPlace.address}
             </p>
           </div>
         </div>
