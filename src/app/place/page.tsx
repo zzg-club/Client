@@ -273,6 +273,7 @@ export default function Home() {
     const loadFilters = async () => {
       try {
         const response = await fetchFilters() // 분리된 함수 호출
+
         const { success, data, error } = await response.json() // 응답 처리
 
         if (success && Array.isArray(data)) {
@@ -297,6 +298,8 @@ export default function Home() {
     if (!categoryFilters || !categoryFilters.filters) {
       return []
     }
+
+    console.log("categoryFilters :",categoryFilters)
 
     return Object.values(categoryFilters.filters) // ["24시", "학교", "주점", "룸"]
   }

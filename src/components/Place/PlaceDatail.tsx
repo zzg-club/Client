@@ -214,6 +214,22 @@ const PlaceDetail = ({ placeData }: PlaceDetailProps) => {
                     )}
                   </div>
                 ))}
+
+                {/* 채워지지 않은 자리에 no_image.png 추가 */}
+                {placeData.pictures.length < 5 &&
+                  Array.from({ length: 5 - placeData.pictures.length }).map((_, index) => (
+                    <div
+                      key={index + placeData.pictures.length}
+                      className={styles['gallery-small']}
+                      style={{ position: 'relative' }}
+                    >
+                      <img
+                        src="/no_image.png"
+                        alt={`No Image ${index}`}
+                        className={styles['gallery-image']}
+                      />
+                    </div>
+                  ))}
               </div>
             </div>
 
