@@ -144,7 +144,7 @@ const StoreInfo = ({ selectedPlace }: { selectedPlace: Place }) => {
             justifyContent: 'center',
             gap: '8px',
             cursor: 'pointer',
-            width: '200px',
+            width: '60%',
             height: '60px',
           }}
         >

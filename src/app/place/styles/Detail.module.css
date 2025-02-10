@@ -324,11 +324,13 @@
 .cardTitle {
   color: #1e1e1e;
   font-family: Pretendard, sans-serif;
-  font-size: 24px;
+  font-size: clamp(18px, 6.3vw, 25px);
+  max-width: 85%;
   font-style: normal;
   font-weight: 500;
-  line-height: 17px; /* 85% */
+  line-height: 1.3;
   letter-spacing: -0.5px;
+  white-space: normal;
 }
 
 /* 카드 콘텐츠 */
@@ -368,8 +370,8 @@
 
 /* 좋아요 배경 */
 .likeBackground {
-  width: calc(2.5rem + 1vw);
-  height: calc(1.8rem + 0.2vw);
+  width: calc(2.5rem + 2.5vw);
+  height: calc(1.8rem + 1.7vw);
   border-radius: 12px;
   background: #a9f3b2; /* 배경 색상 */
   display: flex;

@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import KakaoMap from '@/components/Map/KakaoMap'
 import styles from '@/app/place/styles/Detail.module.css'
 import { Place } from '@/types/place'
@@ -35,6 +35,7 @@ const PlaceDetail = ({ placeData }: PlaceDetailProps) => {
   const { handleBackClick, handleCloseClick } = useNavigation(setBottomSheetState)
   const StoreInfoComponent = getStoreInfoComponent(placeData.category, placeData.phoneNumber)
   const { todayEntry } = useTimeParser(placeData.time);
+  const [activeTab, setActiveTab] = useState<'상세' | '사진'>('상세')
 
   return (
     <div className={styles['detail-container']}>
@@ -75,6 +76,14 @@ const PlaceDetail = ({ placeData }: PlaceDetailProps) => {
           </button>
         </div>
       )}
+
+      <div className={`${styles.bottomSheetTopRightButton} ${styles[bottomSheetState]}`}>
+        <img
+          src="/path.svg"
+          alt="Path Icon"
+          className={styles.iconInsideButton}
+        />
+      </div>
 
       {/* Bottom Sheet */}
       <div
@@ -252,15 +261,45 @@ const PlaceDetail = ({ placeData }: PlaceDetailProps) => {
                 </div>
 
                 <div className={styles.description}>{placeData.word}</div>
+                <div className={styles.tabContainer}>
+                  {['상세', '사진'].map((tab) => (
+                    <div
+                      key={tab}
+                      className={`${styles.tab} ${activeTab === tab ? styles.selected : ''}`}
+                      onClick={() =>
+                        setActiveTab(tab as '상세' | '사진')
+                      }
+                    >
+                      {tab}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
             <div className={styles.tabContent}>
-              <StoreInfoComponent selectedPlace={placeData} />
-              <div style={{ marginTop: '20px' }}>
-                <SectionTitle title="방문자 사진" />
-              </div>
-              <VisitorPhoto selectedPlace={placeData.pictures} />
+              {activeTab === '상세' && (
+                <>
+                  <div
+                    className={styles.cardContainer}
+                    style={{ marginBottom: '10px' }}
+                  >
+                   <StoreInfoComponent selectedPlace={placeData} />
+                    {/* <div style={{ marginTop: '40px' }}>
+                      <SectionTitle title="인기 메뉴" />
+                    </div> 
+                    <Menu selectedPlace={placeData} /> */}
+                    <div style={{marginTop:'20px'}}>
+                      <SectionTitle title="방문자 사진" />
+                    </div>
+                    <VisitorPhoto selectedPlace={placeData.pictures} />
+                  </div>
+                </>
+              )}
+              {/* {activeTab === '메뉴' && <Menu selectedPlace={placeData} />} */}
+              {activeTab === '사진' && (
+                <VisitorPhoto selectedPlace={placeData.pictures} />
+              )}
             </div>
           </>
         )}
