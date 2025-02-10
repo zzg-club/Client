@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import SearchBar from '@/components/SearchBar/SearchBar'
 import { getCurrentLocation } from '@/components/Map/getCurrentLocation'
 
-const KAKAO_API_KEY = '6a4b0efd1b0d4527a05d4d81fcb5ce95'
+const KAKAO_API_KEY = 'f697e8edee03d3262340794ba1beb411'
 
 const LocationPage = () => {
   const router = useRouter()
@@ -60,7 +60,8 @@ const LocationPage = () => {
       )
       const placeData = await placeResponse.json()
 
-      const combinedResults = []
+      const combinedResults: { place: string; jibun: string; road: string }[] =
+        []
 
       addressData.documents.forEach((doc) => {
         combinedResults.push({
@@ -111,6 +112,12 @@ const LocationPage = () => {
     }
   }
 
+  const handleLocationSelect = (location: string) => {
+    // 🔹 letsmeet/middle 경로로 선택된 장소 전달
+    router.push(
+      `/letsmeet/middle?selectedLocation=${encodeURIComponent(location)}`,
+    )
+  }
   const handleBackClick = () => {
     router.push(`/search?from=${from}`)
   }
@@ -158,6 +165,7 @@ const LocationPage = () => {
           <div
             key={index}
             className="flex h-[80px] py-4 px-7 flex-col justify-center items-start gap-2 self-stretch rounded-full bg-white"
+            onClick={() => handleLocationSelect(location.place)}
           >
             <p className="text-[#1e1e1e] text-center font-pretendard text-[16px] font-normal leading-[17px] tracking-[-0.5px]">
               {location.place}
