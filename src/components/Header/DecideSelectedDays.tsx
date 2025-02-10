@@ -2,11 +2,12 @@
 
 import { useCallback, useState, useEffect, useRef } from 'react'
 import { isEqual } from 'lodash'
-import { FaRegEdit } from 'react-icons/fa'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { GoTriangleUp, GoTriangleDown } from 'react-icons/go'
 import { LuDot } from 'react-icons/lu'
-import { useRouter } from 'next/navigation'
+import { ProfileSmall } from '@/components/Profiles/ProfileSmall'
+import CustomModal from '@/components/Modals/CustomModal'
+import MembersDefault from '@/components/Modals/MembersDefault'
 
 interface SelectedDate {
   year: number
@@ -41,6 +42,8 @@ interface SelectedDaysProps {
   highlightedCol: number | null
   onDateCountsChange: (counts: number[], groupedData: GroupedDate[]) => void
   isPurple: boolean
+  participants: { id: number; name: string; image: string }[]
+  title: string
 }
 
 const DAYS_PER_PAGE = 7
@@ -64,10 +67,12 @@ export default function SelectedDays({
   onPageChange,
   highlightedCol,
   onDateCountsChange,
-  isPurple,
+  participants,
+  title,
 }: SelectedDaysProps) {
   const [dateCounts, setDateCounts] = useState<number[]>([])
   const [groupedData, setGroupedData] = useState<GroupedDate[]>([])
+  const [isMembersModalOpen, setIsMemberModalOpen] = useState(false)
 
   const isSingleDate = selectedDates.length === 1
   const highlightedIndex =
@@ -174,7 +179,9 @@ export default function SelectedDays({
     onPageChange(Math.min(totalPages - 1, currentPage + 1))
   }
 
-  const router = useRouter()
+  const handleMembersModalOpen = () => {
+    setIsMemberModalOpen(!isMembersModalOpen)
+  }
 
   return (
     <div className="pt-0 relative">
@@ -185,22 +192,20 @@ export default function SelectedDays({
       >
         <div className="text-[#1e1e1e] font-['Pretendard'] leading-[17px] tracking-tight pl-5 pr-4 pt-3 pb-5">
           <div className="flex justify-between">
-            <div>
+            <div className="flex items-center">
               <span className="text-3xl">{month}</span>
               <span className="text-[21px] ml-2 pt-3">
                 {dayofWeek && dayofWeek[currentPage] !== null
                   ? dayofWeek[currentPage].toUpperCase()
                   : ''}
               </span>
+              <div
+                onClick={handleMembersModalOpen}
+                className="cursor-pointer ml-2"
+              >
+                <ProfileSmall profiles={participants} />
+              </div>
             </div>
-            <FaRegEdit
-              className={`text-[30px] mt-1 cursor-pointer ${isPurple ? 'text-[#9562fa]' : 'text-[#afafaf]'}`}
-              onClick={() => {
-                if (isPurple) {
-                  router.push('/schedule/edit')
-                }
-              }}
-            />
           </div>
         </div>
       </div>
@@ -311,6 +316,19 @@ export default function SelectedDays({
         )}
         <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 w-[80px] h-2 bg-[#9562FB] border-b-red rounded-full flex items-center justify-center"></div>
       </div>
+
+      <CustomModal
+        open={isMembersModalOpen}
+        onOpenChange={handleMembersModalOpen}
+        isFooter={false}
+      >
+        <MembersDefault
+          blackText={true}
+          title={title}
+          members={participants}
+          memberCount={participants.length}
+        />
+      </CustomModal>
     </div>
   )
 }

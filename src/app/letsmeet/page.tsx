@@ -1,113 +1,108 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import NavBar from '@/components/Navigate/NavBar'
 import Button from '@/components/Buttons/Floating/Button'
 import { ScheduleOptions } from '@/components/Buttons/Floating/Options'
 import CarouselNotification from '@/components/Notification/CarouselNotification'
 import { LetsmeetCard } from '@/components/Cards/LetsmeetCard'
 import { useRouter } from 'next/navigation'
-const mockSchedules = [
-  {
-    id: 1,
-    startDate: '12월 6일 금요일',
-    title: '팀 미팅',
-    startTime: '',
-    endTime: '16:30',
-    location: '신촌역',
-    participants: [
-      {
-        id: 1,
-        name: '나',
-        image: '/sampleProfile.png',
-      },
-      {
-        id: 2,
-        name: '김태엽',
-        image: '/sampleProfile.png',
-      },
-      {
-        id: 3,
-        name: '지유진',
-        image: '/sampleProfile.png',
-      },
-      {
-        id: 4,
-        name: '이소룡',
-        image: '/sampleProfile.png',
-      },
-      {
-        id: 5,
-        name: '박진우',
-        image: '/sampleProfile.png',
-      },
-      {
-        id: 6,
-        name: '이예지',
-        image: '/sampleProfile.png',
-      },
-      {
-        id: 7,
-        name: '조성하',
-        image: '/sampleProfile.png',
-      },
-      {
-        id: 8,
-        name: '성윤정',
-        image: '/sampleProfile.png',
-      },
-      {
-        id: 9,
-        name: '김나영',
-        image: '/sampleProfile.png',
-      },
-      {
-        id: 10,
-        name: '이채연',
-        image: '/sampleProfile.png',
-      },
-    ],
-  },
-  {
-    id: 2,
-    startDate: '12월 28일 토요일',
-    title: '프로젝트 미팅',
-    startTime: '13:00',
-    endTime: '15:00',
-    location: '서울역',
-    participants: [
-      {
-        id: 1,
-        name: '나',
-        image: '/sampleProfile.png',
-      },
-      {
-        id: 2,
-        name: '김태엽',
-        image: '/sampleProfile.png',
-      },
-      {
-        id: 3,
-        name: '지유진',
-        image: '/sampleProfile.png',
-      },
-    ],
-  },
-]
+import LocationModal from '@/components/Modals/DirectSelect/LocationModal'
+import mockSchedules from '@/data/dummyDataArray.json'
+import { getCurrentLocation } from '@/components/Map/getCurrentLocation'
+
+interface Participant {
+  id: number
+  name: string
+  time: string
+  image: string
+  lat: number
+  lng: number
+  transport: string
+  transportIcon: string
+  depart: string
+}
 
 export default function LetsMeetPage() {
   const [isOpen, setIsOpen] = useState(false)
-  const [isOptionsOpen, setIsOptionsOpen] = useState(false) // 옵션 모달 상태 관리
-  const router = useRouter() // Next.js 라우터 훅
+  const [isOptionsOpen, setIsOptionsOpen] = useState(false)
+  const [isDirectModalOpen, setIsDirectModalOpen] = useState(false)
+  const [title, setTitle] = useState('제목 없는 일정')
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [participants, setParticipants] = useState<Participant[]>([])
+  const router = useRouter()
 
   const handleFindMidpoint = () => {
-    // 중간지점 찾기 클릭 시 search 페이지로 이동
     router.push('/search?from=/letsmeet')
   }
 
   const handleDirectInput = () => {
-    alert('직접 입력하기 선택됨!')
+    setTitle('제목 없는 일정')
+    setIsDirectModalOpen(true)
   }
+
+  const handleCloseModal = () => {
+    setIsDirectModalOpen(false)
+  }
+
+  const handleComplete = () => {
+    console.log('완료 버튼 클릭')
+    handleCloseModal()
+  }
+  useEffect(() => {
+    const updateParticipants = async () => {
+      try {
+        const location = await getCurrentLocation()
+        const myInfo = {
+          id: 0,
+          name: '내 위치',
+          time: '50분',
+          image: '/sampleProfile.png',
+          lat: location.lat,
+          lng: location.lng,
+          transport: 'subway',
+          transportIcon: '/subwayPurple.svg',
+          depart: '죽전역',
+        }
+
+        const updatedParticipants = [
+          myInfo,
+          ...mockSchedules[currentIndex].participants.map((participant) => ({
+            ...participant,
+            transportIcon: '/subwayYellow.svg',
+          })),
+        ]
+
+        setParticipants(updatedParticipants)
+      } catch (error) {
+        console.error('현재 위치를 가져오지 못했습니다:', error)
+
+        const fallbackInfo = {
+          id: 0,
+          name: '기본 위치',
+          time: '기본 시간',
+          image: '/sampleProfile.png',
+          lat: 37.5665,
+          lng: 126.978,
+          transport: 'subway',
+          transportIcon: '/subwayPurple.svg',
+          depart: '서울역',
+        }
+
+        const updatedParticipants = [
+          fallbackInfo,
+          ...mockSchedules[currentIndex].participants.map((participant) => ({
+            ...participant,
+            transportIcon: '/subwayYellow.svg',
+          })),
+        ]
+
+        setParticipants(updatedParticipants)
+      }
+    }
+
+    updateParticipants()
+  }, [currentIndex])
 
   // 캐러셀 알림 목데이터
   const notifications = [
@@ -141,7 +136,6 @@ export default function LetsMeetPage() {
 
   return (
     <div className="flex flex-col min-h-screen h-screen">
-      {/* Add Moim Button */}
       <NavBar activeTab="렛츠밋" />
 
       {/* 캐로셀 알림 컴포넌트 */}
@@ -170,11 +164,11 @@ export default function LetsMeetPage() {
             {mockSchedules.map((schedule) => (
               <div key={schedule.id}>
                 <LetsmeetCard
-                  startDate={schedule.startDate}
                   title={schedule.title}
+                  startDate={schedule.startDate}
                   startTime={schedule.startTime}
                   endTime={schedule.endTime}
-                  location={schedule.location}
+                  destination={schedule.destination.name}
                   participants={schedule.participants}
                 />
               </div>
@@ -182,10 +176,10 @@ export default function LetsMeetPage() {
           </div>
         </>
       ) : (
-        // 스케줄 정보 없는 경우 렌더링 화면
+        // 장소 정보 없는 경우 렌더링 화면
         <div className="flex flex-col items-center justify-center flex-1">
           <div className="text-center text-zinc-400 text-base font-medium leading-[17px]">
-            모임 일정을 추가해봐요!
+            모임 장소를 추가해봐요!
           </div>
         </div>
       )}
@@ -208,6 +202,16 @@ export default function LetsMeetPage() {
         optionStringUp="중간지점 찾기"
         optionStringDown="직접 입력하기"
       />
+      {/* LocationModal */}
+      {isDirectModalOpen && (
+        <LocationModal
+          isVisible={isDirectModalOpen}
+          onClose={handleCloseModal}
+          onClickRight={handleComplete}
+          initialTitle={title}
+          onTitleChange={setTitle}
+        ></LocationModal>
+      )}
     </div>
   )
 }

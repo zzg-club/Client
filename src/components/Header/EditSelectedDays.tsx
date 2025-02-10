@@ -2,7 +2,8 @@
 
 import { useCallback, useState, useEffect, useRef } from 'react'
 import { isEqual } from 'lodash'
-import { FaRegEdit } from 'react-icons/fa'
+// import { FaRegEdit } from 'react-icons/fa'
+import { SquareCheckBig } from 'lucide-react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { GoTriangleUp, GoTriangleDown } from 'react-icons/go'
 import { LuDot } from 'react-icons/lu'
@@ -31,7 +32,7 @@ interface GroupedDate {
   }[]
 }
 
-interface SelectedDaysProps {
+interface EditSelectedDaysProps {
   selectedDates: SelectedDate[]
   month: string
   mode: string
@@ -55,7 +56,7 @@ const weekdayMap: { [key: string]: string } = {
   sun: '일',
 }
 
-export default function SelectedDays({
+export default function EditSelectedDays({
   selectedDates,
   month,
   mode,
@@ -64,8 +65,7 @@ export default function SelectedDays({
   onPageChange,
   highlightedCol,
   onDateCountsChange,
-  isPurple,
-}: SelectedDaysProps) {
+}: EditSelectedDaysProps) {
   const [dateCounts, setDateCounts] = useState<number[]>([])
   const [groupedData, setGroupedData] = useState<GroupedDate[]>([])
 
@@ -193,13 +193,11 @@ export default function SelectedDays({
                   : ''}
               </span>
             </div>
-            <FaRegEdit
-              className={`text-[30px] mt-1 cursor-pointer ${isPurple ? 'text-[#9562fa]' : 'text-[#afafaf]'}`}
-              onClick={() => {
-                if (isPurple) {
-                  router.push('/schedule/edit')
-                }
-              }}
+            <SquareCheckBig
+              className="mt-1 text-[#9562fa] cursor-pointer"
+              size={29}
+              strokeWidth={2.25}
+              onClick={() => router.push('/schedule/select')}
             />
           </div>
         </div>
