@@ -1,7 +1,15 @@
 'use client'
 
-import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
-import '../../styles/TimeStamp.css'
+import {
+  useState,
+  useRef,
+  useCallback,
+  useEffect,
+  useMemo,
+  type CSSProperties,
+  type TouchEvent as ReactTouchEvent,
+} from 'react'
+import '@/styles/TimeStamp.css'
 
 interface Selection {
   startRow: number
@@ -28,9 +36,19 @@ interface GroupedDate {
   }[]
 }
 
+interface TimeSlot {
+  start: string
+  end: string
+  selectedBy: string[]
+}
+
+interface DateData {
+  date: string
+  timeSlots: TimeSlot[]
+}
+
 interface TimeStampProps {
   selectedDates: { year: number; month: number; day: number }[]
-  confirmedData: { date: string; timeSlots: { start: string; end: string }[] }[]
   currentPage: number
   mode: string
   onPageChange: (newPage: number) => void
@@ -40,6 +58,8 @@ interface TimeStampProps {
   getDateTime: (date: string, start: string, end: string) => void
   isBottomSheetOpen: boolean
   groupedDate: GroupedDate[]
+  mockDateTime: DateData[]
+  dateTime: { date: string; timeSlots: { start: string; end: string }[] }[]
 }
 
 const COLUMNS_PER_PAGE = 7
@@ -47,7 +67,6 @@ let isTouchInProgress = false // 터치 진행 중 플래그
 
 export default function TimeStamp({
   selectedDates,
-  confirmedData,
   currentPage,
   mode,
   dateCounts,
@@ -56,6 +75,8 @@ export default function TimeStamp({
   handleActiveTime,
   getDateTime,
   isBottomSheetOpen,
+  mockDateTime,
+  dateTime,
 }: TimeStampProps) {
   const [selections] = useState<Selection[]>([])
   const [isResizing, setIsResizing] = useState(false)
@@ -66,12 +87,105 @@ export default function TimeStamp({
   const [scale, setScale] = useState(1)
   const gridRef = useRef<HTMLDivElement>(null)
   const [initialTouchRow, setInitialTouchRow] = useState<number | null>(null)
-  // const [confirmedTimeSlots, setConfirmedTimeSlots] = useState<
-  //   {
-  //     confirmedCol: number
-  //     timeSlots: { start: number; end: number }[]
-  //   }[]
-  // >([])
+
+  const [selectionsByPage, setSelectionsByPage] = useState<{
+    [key: number]: Selection[]
+  }>({})
+
+  const currentSelections = useMemo(() => {
+    return selectionsByPage[currentPage] || []
+  }, [selectionsByPage, currentPage])
+
+  // timeToIndex 함수를 useCallback으로 감싸기
+  const timeToIndex = useCallback((time: string) => {
+    const [hours, minutes] = time.split(':').map(Number)
+    return hours * 2 + (minutes >= 30 ? 1 : 0)
+  }, [])
+
+  // Process mockDateTime data
+  const processedMockData = useMemo(() => {
+    // week 모드일 경우 데이터 순서를 재정렬
+    if (mode === 'week') {
+      // 요일의 정렬 우선순위
+      const weekdayOrder = ['월', '화', '수', '목', '금', '토', '일']
+
+      // 날짜를 요일로 변환하는 함수
+      const getWeekday = (dateStr: string) => {
+        const date = new Date(dateStr)
+        const weekdays = ['일', '월', '화', '수', '목', '금', '토']
+        return weekdays[date.getDay()]
+      }
+
+      // 정렬된 데이터 생성
+      const sortedData = [...mockDateTime].sort((a, b) => {
+        const weekdayA = getWeekday(a.date)
+        const weekdayB = getWeekday(b.date)
+
+        // 요일 우선순위 비교
+        const orderA = weekdayOrder.indexOf(weekdayA)
+        const orderB = weekdayOrder.indexOf(weekdayB)
+
+        if (orderA !== orderB) {
+          return orderA - orderB
+        }
+
+        // 같은 요일이라면 날짜 비교
+        return new Date(a.date).getTime() - new Date(b.date).getTime()
+      })
+
+      return sortedData.map((dateData) => {
+        const slots = new Array(48).fill(0)
+        dateData.timeSlots.forEach((slot) => {
+          const startIndex = timeToIndex(slot.start)
+          const endIndex = timeToIndex(slot.end)
+          for (let i = startIndex; i < endIndex; i++) {
+            slots[i] += slot.selectedBy.length
+          }
+        })
+        return { date: dateData.date, slots }
+      })
+    }
+
+    // range 모드일 때는 기존 로직 유지
+    const startDate = new Date(mockDateTime[0].date)
+    const pageStartDate = new Date(
+      startDate.getTime() + currentPage * 7 * 24 * 60 * 60 * 1000,
+    )
+
+    return mockDateTime
+      .filter((dateData) => {
+        const date = new Date(dateData.date)
+        return (
+          date >= pageStartDate &&
+          date < new Date(pageStartDate.getTime() + 7 * 24 * 60 * 60 * 1000)
+        )
+      })
+      .map((dateData) => {
+        const slots = new Array(48).fill(0)
+        dateData.timeSlots.forEach((slot) => {
+          const startIndex = timeToIndex(slot.start)
+          const endIndex = timeToIndex(slot.end)
+          for (let i = startIndex; i < endIndex; i++) {
+            slots[i] += slot.selectedBy.length
+          }
+        })
+        return { date: dateData.date, slots }
+      })
+  }, [mockDateTime, currentPage, mode, timeToIndex])
+
+  //console.log('정렬데이터', processedMockData)
+
+  const orderedSelectedDates = useMemo(() => {
+    // 📌 `processedMockData`의 순서대로 `selectedDates` 정렬
+    const processedOrder = processedMockData.map((d) => d.date)
+
+    return [...selectedDates].sort((a, b) => {
+      const dateA = `${a.year}-${String(a.month).padStart(2, '0')}-${String(a.day).padStart(2, '0')}`
+      const dateB = `${b.year}-${String(b.month).padStart(2, '0')}-${String(b.day).padStart(2, '0')}`
+
+      return processedOrder.indexOf(dateA) - processedOrder.indexOf(dateB)
+    })
+  }, [selectedDates, processedMockData])
 
   const currentDates =
     mode === 'range'
@@ -82,6 +196,7 @@ export default function TimeStamp({
       : (() => {
           let startIndex = 0
           let endIndex = 0
+
           for (let i = 0; i < dateCounts.length; i++) {
             const pageSize = dateCounts[i]
             if (currentPage === i) {
@@ -91,16 +206,18 @@ export default function TimeStamp({
             startIndex += pageSize
           }
 
-          return selectedDates.slice(startIndex, endIndex)
+          return orderedSelectedDates.slice(startIndex, endIndex)
         })()
 
-  const [selectionsByPage, setSelectionsByPage] = useState<{
-    [key: number]: Selection[]
-  }>({})
+  //console.log('currentDates', currentDates)
 
-  const currentSelections = useMemo(() => {
-    return selectionsByPage[currentPage] || []
-  }, [selectionsByPage, currentPage])
+  const maxOverlap = useMemo(() => {
+    return Math.max(...processedMockData.flatMap((data) => data.slots))
+  }, [processedMockData])
+
+  const getOpacity = (count: number) => {
+    return count > 0 ? 0.2 + (count / maxOverlap) * 0.8 : 0
+  }
 
   const onColumnClick = useCallback(
     (colIndex: number, rowIndex: number) => {
@@ -250,7 +367,7 @@ export default function TimeStamp({
         isConfirmed: false,
       }
 
-      // console.log('handleMouseClick')
+      console.log('handleMouseClick')
 
       return {
         ...updatedSelections,
@@ -268,7 +385,7 @@ export default function TimeStamp({
     isEndpoint: boolean,
     selection?: Selection,
   ) => {
-    // console.log('selection', selection)
+    console.log(selection)
 
     if (selection) {
       setIsResizing(true)
@@ -279,7 +396,7 @@ export default function TimeStamp({
           : 'end',
       )
       // console.log('Resizing started on', resizingPoint, selection)
-      // console.log('handleMouseDown', selection, resizingPoint)
+      console.log('handleMouseDown', selection, resizingPoint)
     }
   }
 
@@ -328,7 +445,7 @@ export default function TimeStamp({
           }
         }
 
-        // console.log('handleMouseMove')
+        console.log('handleMouseMove')
         return !isOverlapping(newSelection) ? newSelection : prev
       })
     },
@@ -399,8 +516,6 @@ export default function TimeStamp({
 
         handleDateTimeSelect(selectedDate, startTime, endTime)
 
-        // console.log('handleMouseUp')
-
         return {
           ...prev,
           [currentPage]: mergedSelections,
@@ -455,7 +570,7 @@ export default function TimeStamp({
         isConfirmed: false,
       }
 
-      // console.log('handleTouchClick')
+      console.log('handleTouchClick')
 
       return {
         ...updatedSelections,
@@ -486,14 +601,14 @@ export default function TimeStamp({
         }
       }
     }
-    // console.log('handleTouchDown', rowIndex, initialTouchRow)
+    console.log('handleTouchDown', rowIndex, initialTouchRow)
   }
 
   const handleTouchMove = useCallback(
-    (e: TouchEvent | React.TouchEvent) => {
+    (e: TouchEvent | ReactTouchEvent) => {
       if (!gridRef.current || !activeSelection) return
 
-      const touch = e.touches[0]
+      const touch = (e.touches || e.changedTouches)[0] // Handle both TouchEvent and ReactTouchEvent
       if (!touch) return
 
       if (isResizing) {
@@ -535,7 +650,7 @@ export default function TimeStamp({
             newSelection.startRow = initialTouchRow
           }
         }
-        // console.log('handleTouchMove')
+        console.log('handleTouchMove')
         return !isOverlapping(newSelection) ? newSelection : prev
       })
     },
@@ -621,7 +736,7 @@ export default function TimeStamp({
         handleDateTimeSelect(selectedDate, startTime, endTime)
         setInitialTouchRow(null)
 
-        // console.log('handleTouchUp')
+        console.log('handleTouchUp')
 
         return {
           ...prev,
@@ -641,6 +756,53 @@ export default function TimeStamp({
     handleDateTimeSelect,
     mode,
   ])
+
+  useEffect(() => {
+    const element = gridRef.current
+    if (!element) return
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!gridRef.current || !activeSelection) return
+
+      const rect = gridRef.current.getBoundingClientRect()
+      const cellHeight = rect.height / 48
+      const clientY = e.touches[0]?.clientY // 첫 번째 터치의 Y 좌표
+      const row = Math.min(
+        Math.max(Math.floor((clientY - rect.top) / cellHeight), 0),
+        47,
+      )
+
+      // console.log('ActiveSelection', activeSelection);
+
+      setActiveSelection((prev) => {
+        if (!prev) return null
+
+        const newSelection = { ...prev }
+
+        if (isResizing) {
+          if (resizingPoint === 'start') {
+            if (row < prev.endRow) {
+              newSelection.startRow = row
+            }
+          } else if (resizingPoint === 'end') {
+            if (row > prev.startRow) {
+              newSelection.endRow = row
+            }
+          }
+        }
+        return !isOverlapping(newSelection) ? newSelection : prev
+      })
+
+      e.preventDefault() // 터치 스크롤 방지
+    }
+    element.addEventListener('touchmove', handleTouchMove, {
+      passive: false, // preventDefault 사용 가능하도록 설정
+    })
+
+    return () => {
+      element.removeEventListener('touchmove', handleTouchMove)
+    }
+  }, [isResizing, activeSelection, resizingPoint, isOverlapping])
 
   useEffect(() => {
     const handleMouseUpWithColumnClick = () => {
@@ -712,63 +874,7 @@ export default function TimeStamp({
     handleTouchMove,
   ])
 
-  const initialConfirmedTimeSlots: {
-    confirmedCol: number
-    timeSlots: { start: number; end: number; isConfirmed: boolean }[]
-  }[] = []
-
-  if (confirmedData.length > 0) {
-    const getTimeRow = (time: string) => {
-      const [hours, minutes] = time.split(':').map(Number)
-      return hours * 2 + (minutes === 30 ? 1 : 0)
-    }
-
-    if (mode === 'range') {
-      currentDates.forEach((date, col) => {
-        const dateString = `${date.year}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`
-        confirmedData.forEach((confirmed) => {
-          if (confirmed.date === dateString) {
-            confirmed.timeSlots.forEach((slot) => {
-              const startRow = getTimeRow(slot.start)
-              const endRow = getTimeRow(slot.end)
-              initialConfirmedTimeSlots.push({
-                confirmedCol: col,
-                timeSlots: [
-                  { start: startRow, end: endRow, isConfirmed: true },
-                ],
-              })
-            })
-          }
-        })
-      })
-      // console.log('initialConfirmedTimeSlots', initialConfirmedTimeSlots)
-    } else {
-      console.log('groupedDate', groupedDate)
-      const groupedArray = groupedDate?.[currentPage]?.date ?? []
-      groupedArray.forEach((date, col) => {
-        const dateString = `${date.year}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`
-        confirmedData.forEach((confirmed) => {
-          if (confirmed.date === dateString) {
-            confirmed.timeSlots.forEach((slot) => {
-              const startRow = getTimeRow(slot.start)
-              const endRow = getTimeRow(slot.end)
-              initialConfirmedTimeSlots.push({
-                confirmedCol: col,
-                timeSlots: [
-                  { start: startRow, end: endRow, isConfirmed: true },
-                ],
-              })
-            })
-          }
-        })
-      })
-    }
-    // console.log('initialConfirmedTimeSlots', initialConfirmedTimeSlots)
-  }
-
   const getCellStatus = (row: number, col: number) => {
-    // console.log('getconfirmedTimeSlots', confirmedTimeSlots)
-
     const allSelections = [...currentSelections, ...selections].filter(
       Boolean,
     ) as Selection[]
@@ -817,23 +923,6 @@ export default function TimeStamp({
       }
     }
 
-    const confirmedTimeSlot = initialConfirmedTimeSlots.find(
-      (slot) =>
-        slot.confirmedCol === col &&
-        slot.timeSlots.some(
-          (timeSlot) => timeSlot.start <= row && row < timeSlot.end,
-        ),
-    )
-    if (confirmedTimeSlot) {
-      // 새로운 로직: 초기 확인된 시간 슬롯이 존재할 경우
-      return {
-        isSelected: true,
-        isConfirmed: true,
-        isStartCell: false,
-        isEndCell: false,
-      }
-    }
-
     return {
       isSelected: false,
       isConfirmed: false,
@@ -848,7 +937,8 @@ export default function TimeStamp({
     ) as Selection[]
 
     const cellStatus = getCellStatus(row, col)
-    if (!cellStatus.isSelected || cellStatus.isConfirmed) return {}
+
+    if (!cellStatus.isSelected) return {}
 
     const isSelected = (r: number, c: number) =>
       allSelections.some(
@@ -866,23 +956,36 @@ export default function TimeStamp({
       Math.min(activeSelection.startCol, activeSelection.endCol) <= c &&
       Math.max(activeSelection.startCol, activeSelection.endCol) >= c
 
-    // console.log(activeSelection)
     if (activeSelection) {
       onActiveTime(activeSelection.startRow, activeSelection.endRow)
     }
 
-    return {
-      borderTop:
-        !isSelected(row - 1, col) && !isActiveSelection(row - 1, col)
-          ? '2px solid #9562fa'
-          : 'none',
-      borderBottom:
-        !isSelected(row + 1, col) && !isActiveSelection(row + 1, col)
-          ? '2px solid #9562fa'
-          : 'none',
-      borderLeft: '2px solid #9562fa',
-      borderRight: '2px solid #9562fa',
+    const borderStyle = cellStatus.isConfirmed
+      ? '2px solid #9562FB'
+      : '2px solid #ffffff'
+
+    const top = !isSelected(row - 1, col) && !isActiveSelection(row - 1, col)
+    const bottom = !isSelected(row + 1, col) && !isActiveSelection(row + 1, col)
+
+    const styles: CSSProperties = {
+      // height: `${18 * scale}px`,
+      borderTop: top ? borderStyle : 'none',
+      borderBottom: bottom ? borderStyle : 'none',
+      borderLeft: borderStyle,
+      borderRight: borderStyle,
+      boxShadow: [
+        top ? '0 -4px 8px -2px rgba(255, 255, 255, 0.7)' : '',
+        bottom ? '0 4px 8px -2px rgba(255, 255, 255, 0.7)' : '',
+        //left ? '-4px 0 8px -20px rgba(255, 255, 255, 0.7)' : '',
+        //right ? '4px 0 8px -2px rgba(255, 255, 255, 0.7)' : '',
+      ]
+        .filter(Boolean)
+        .join(', '),
+      position: 'relative' as const,
+      zIndex: cellStatus.isSelected ? 1000 : 'auto',
     }
+
+    return styles
   }
 
   useEffect(() => {
@@ -934,7 +1037,6 @@ export default function TimeStamp({
         setScale((prev) => Math.min(Math.max(prev * delta, 1), 2))
       }
     }
-
     element.addEventListener('wheel', handleWheel, { passive: false })
     element.addEventListener('touchstart', handleTouchStart, { passive: false })
     element.addEventListener('touchmove', handleTouchMove, { passive: false })
@@ -949,10 +1051,83 @@ export default function TimeStamp({
   }, [])
 
   useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setSelectionsByPage((prev) => {
+        const newSelections = { ...prev }
+
+        // 현재 페이지의 선택 데이터만 필터링
+        const pageSelections = newSelections[currentPage] || []
+
+        const filteredSelections = pageSelections.filter((selection) => {
+          if (!selection.isConfirmed) return true // 아직 확정되지 않은 선택 유지
+
+          // 📌 현재 페이지의 날짜 정보 가져오기
+          const colDate =
+            mode === 'range'
+              ? currentDates[selection.startCol]
+                ? `${currentDates[selection.startCol]?.year}-${String(currentDates[selection.startCol]?.month).padStart(2, '0')}-${String(currentDates[selection.startCol]?.day).padStart(2, '0')}`
+                : undefined
+              : groupedDate[currentPage]?.date?.[selection.startCol]
+                ? `${groupedDate[currentPage]?.date?.[selection.startCol]?.year}-${String(groupedDate[currentPage]?.date?.[selection.startCol]?.month).padStart(2, '0')}-${String(groupedDate[currentPage]?.date?.[selection.startCol]?.day).padStart(2, '0')}`
+                : undefined
+
+          if (!colDate) return false
+
+          const getTimeFromRow = (row: number) => {
+            const hours = Math.floor(row / 2)
+            const minutes = (row % 2) * 30
+            return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`
+          }
+
+          const selectionStart = getTimeFromRow(selection.startRow)
+          const selectionEnd = getTimeFromRow(selection.endRow + 1)
+
+          // 📌 현재 페이지의 날짜 범위 내에서만 `dateTime` 비교
+          const exists = dateTime.some((dateItem) => {
+            if (dateItem.date !== colDate) return false
+
+            return dateItem.timeSlots.some((slot) => {
+              const slotStart = slot.start
+              const slotEnd = slot.end
+              return (
+                (selectionStart <= slotStart && selectionEnd > slotStart) ||
+                (selectionStart >= slotStart && selectionStart < slotEnd) ||
+                (selectionEnd > slotStart && selectionEnd <= slotEnd)
+              )
+            })
+          })
+
+          return exists // `dateTime`에 존재하는 경우만 유지
+        })
+
+        // 📌 변경이 없으면 상태 업데이트 안 함 (무한 루프 방지)
+        if (
+          JSON.stringify(filteredSelections) === JSON.stringify(pageSelections)
+        ) {
+          return prev
+        }
+
+        newSelections[currentPage] = filteredSelections
+
+        // 빈 페이지 제거
+        if (newSelections[currentPage]?.length === 0) {
+          delete newSelections[currentPage]
+        }
+
+        return newSelections
+      })
+    }, 10)
+
+    return () => clearTimeout(timeoutId)
+  }, [dateTime, currentDates, currentPage, mode, groupedDate])
+
+  useEffect(() => {
     if (!isBottomSheetOpen) {
       onColumnClick(-1, -1)
     }
   }, [isBottomSheetOpen, onColumnClick])
+
+  console.log('selectionsbypage', selectionsByPage)
 
   return (
     <div
@@ -976,7 +1151,7 @@ export default function TimeStamp({
           </div>
           <div
             ref={gridRef}
-            className=" w-full relative grid z-100 border-[1px] border-[#d9d9d9] rounded-3xl"
+            className=" w-full relative grid z-500 border-[1px] border-[#d9d9d9] rounded-3xl"
             style={{
               gridTemplateColumns: `repeat(${currentDates.length}, 1fr)`,
               backgroundImage: 'linear-gradient(#d9d9d9 1px, transparent 1px)',
@@ -1006,24 +1181,30 @@ export default function TimeStamp({
                     ${isBottomLeftCorner ? 'rounded-bl-[20px]' : ''}
                     ${isBottomRightCorner ? 'rounded-br-[20px]' : ''}
                   `
+
+                  const mockDataForDate = processedMockData.find(
+                    (data) =>
+                      new Date(data.date).getDate() ===
+                      currentDates[colIndex].day,
+                  )
+                  const overlayOpacity = mockDataForDate
+                    ? getOpacity(mockDataForDate.slots[rowIndex])
+                    : 0
+
                   return (
                     <div
                       key={rowIndex}
-                      className={`relative cursor-pointer ${cornerStyleRound} ${
-                        cellStatus.isSelected
-                          ? cellStatus.isConfirmed
-                            ? 'bg-[#9562fa]/60 z-200'
-                            : 'bg-[#9562fa]/20 z-200'
-                          : ''
-                      }`}
+                      className={`relative cursor-pointer ${cornerStyleRound}`}
                       style={{
                         ...cellBorder,
                         height: `${18 * scale}px`,
+                        // borderCollapse: 'separate',
                       }}
                       onMouseDown={() => {
                         handleMouseClick(rowIndex, colIndex)
-                        if (!cellStatus.isConfirmed)
+                        if (!cellStatus.isConfirmed) {
                           onColumnClick(colIndex, rowIndex)
+                        }
                       }}
                       onTouchStart={() => {
                         if (!cellStatus.isConfirmed) {
@@ -1037,9 +1218,27 @@ export default function TimeStamp({
                         }
                       }}
                     >
+                      <div
+                        className={`absolute inset-0 ${cornerStyleRound}`}
+                        style={{
+                          backgroundColor: `rgba(149, 98, 251, ${overlayOpacity})`,
+                          zIndex: 50,
+                        }}
+                      />
+                      <div
+                        className={`absolute inset-0 ${cornerStyleRound} ${
+                          cellStatus.isSelected
+                            ? cellStatus.isConfirmed
+                              ? 'opacity-50 bg-[#2a027a]'
+                              : 'opacity-50 bg-[#2a027a]'
+                            : ''
+                        }`}
+                        style={{ zIndex: 100 }}
+                      />
                       {!cellStatus.isConfirmed && cellStatus.isStartCell && (
                         <div
                           className="absolute -top-[5px] left-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move"
+                          style={{ zIndex: 3000 }}
                           onMouseDown={() => {
                             handleMouseDown(
                               rowIndex,
@@ -1053,6 +1252,7 @@ export default function TimeStamp({
                       {!cellStatus.isConfirmed && cellStatus.isEndCell && (
                         <div
                           className="absolute -bottom-[5px] right-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move "
+                          style={{ zIndex: 3000 }}
                           onMouseDown={() => {
                             handleMouseDown(
                               rowIndex,

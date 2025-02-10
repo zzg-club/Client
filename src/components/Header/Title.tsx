@@ -12,7 +12,8 @@ interface TitleProps {
   buttonText: string
   onClickTitleButton?: () => void
   initialTitle: string // 초기 제목
-  isPurple: boolean
+  isPurple?: boolean
+  isEdit?: boolean
   onTitleChange: (newTitle: string) => void // 제목 수정 후 부모로 전달
 }
 
@@ -21,14 +22,11 @@ export default function Title({
   onClickTitleButton,
   initialTitle,
   onTitleChange,
-  isPurple,
+  isPurple = false,
+  isEdit,
 }: TitleProps) {
   const router = useRouter()
   const [isShareOpen, setIsShareOpen] = useState(false)
-
-  const handleBackClick = () => {
-    router.back()
-  }
 
   const handleOpenDdialg = () => {
     setIsShareOpen(!isShareOpen)
@@ -36,7 +34,7 @@ export default function Title({
 
   return (
     <div className="w-full h-16 px-4 py-5 bg-white flex items-center gap-1">
-      <button onClick={handleBackClick}>
+      <button onClick={() => router.push('/schedule')}>
         <MdArrowBackIos className="w-7 h-7 text-[#1e1e1e]" />
       </button>
       <div className="w-[60%] max-w-[300px] overflow-hidden">
@@ -49,7 +47,8 @@ export default function Title({
         </button>
         <button
           className={`text-center text-xl font-medium font-['Pretendard'] leading-[25px] 
-          ${isPurple ? 'text-[#9562fa]' : 'text-[#afafaf]'}`}
+          ${isPurple ? 'text-[#9562fa]' : 'text-[#afafaf]'} 
+          ${isEdit ? 'cursor-not-allowed' : ''}`}
           onClick={onClickTitleButton}
         >
           {buttonText}
