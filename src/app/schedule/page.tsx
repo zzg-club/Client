@@ -76,8 +76,8 @@ export default function ScheduleLanding() {
           const formattedSchedules = data.data.map((schedule: Schedule) => ({
             id: schedule.id,
             startDate: schedule.startDate || '날짜 미정',
-            title: schedule.title ?? '제목 없는 일정',
-            // title: schedule.title,
+            // title: schedule.title ?? '제목 없는 일정',
+            title: schedule.title,
             startTime: schedule.startTime || '시간 미정',
             endTime: schedule.endTime || '시간 미정',
             location: schedule.location || '',
