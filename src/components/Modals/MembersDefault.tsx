@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import '../../styles/BottomSheet.css'
 
 export interface ModalProps {
   title: string
@@ -60,11 +61,11 @@ export default function MembersDefault({
       )}
 
       {/* 멤버 그리드 부분 */}
-      <div className="py-1 grid grid-cols-3 gap-[32px] max-h-[170px] overflow-y-auto scrollbar-none">
+      <div className="py-1 grid grid-cols-3 gap-[32px] max-h-[170px] overflow-hidden">
         {members.map((member) => (
           <div key={member.id} className="flex flex-col items-center gap-1">
             <div className="relative w-12 h-12 rounded-3xl border-2 border-[#9562fa] overflow-hidden">
-              {!member.isScheduleSelect && (
+              {!(member.isScheduleSelect ?? true) && (
                 <div className="absolute inset-0 bg-[#afafaf]/80 rounded-3xl z-10"></div>
               )}
               <Image

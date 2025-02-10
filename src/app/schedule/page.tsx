@@ -11,6 +11,8 @@ import EditTitle from '@/components/Header/EditTitle'
 import CarouselNotification from '@/components/Notification/CarouselNotification'
 import DateTimeModal from '@/components/Modals/DirectSelect/DateTimeModal'
 import { useHandleSelect } from '@/hooks/useHandleSelect'
+import { useDateTimeStore } from '@/store/dateTimeStore'
+import { useRouter } from 'next/navigation'
 
 // 스케줄 카드 목데이터
 const mockSchedules = [
@@ -106,9 +108,16 @@ export default function ScheduleLanding() {
   const [isCdialogOpen, setIsCdialogOpen] = useState(false) // 일정 조율하기 모달 상태 C: Coordinate
   const [isDdialogOpen, setIsDdialogOpen] = useState(false) // 직접 입력하기 모달 상태 D: Direct
   const [title, setTitle] = useState('제목 없는 일정') // 제목 상태 관리
-  const { selectedDates, stringDates, handleSelect } = useHandleSelect() // 커스텀 훅으로 날짜 선택 기능 가져오기 (백에 보낼때 stringDates 가져오면 됨)
+  const { selectedDates, stringDates, handleSelect, mode, selected } =
+    useHandleSelect() // 커스텀 훅으로 날짜 선택 기능 가져오기 (백에 보낼때 stringDates 가져오면 됨)
   const [startDate, setStartDate] = useState<string | null>(null) // 직접입력하기-시작날짜,시간
   const [endDate, setEndDate] = useState<string | null>(null) // 직접입력하기-끝날짜,시간
+
+  const resetDateTime = useDateTimeStore((state) => state.resetDateTime)
+  const router = useRouter()
+
+  // 연동 데이터
+  const [groupId, setGroupId] = useState<number | null>(null)
 
   useEffect(() => {
     const fetchUserInfo = async () => {
@@ -131,7 +140,28 @@ export default function ScheduleLanding() {
       }
     }
 
+    const getSchedule = async () => {
+      try {
+        const response = await fetch(
+          'https://api.moim.team/api/schedule/get-all',
+          {
+            method: 'GET',
+            credentials: 'include', // 쿠키 전송을 위해 필요
+          },
+        )
+        if (!response.ok) {
+          // 예외 처리
+          throw new Error(`서버 에러: ${response.status}`)
+        }
+        const data = await response.json()
+        console.log('스케줄 정보:', data)
+      } catch (error) {
+        console.error('스케줄 정보 불러오기 실패:', error)
+      }
+    }
+
     fetchUserInfo()
+    getSchedule()
   }, [])
 
   // 제목 수정 함수
@@ -143,10 +173,34 @@ export default function ScheduleLanding() {
     setIsOpen(!isOpen)
   }
   const handleOpenCdialog = () => {
+    if (isCdialogOpen) {
+      // 모달이 닫힐 때 선택된 날짜 초기화
+      handleSelect(undefined)
+    }
     setIsCdialogOpen(!isCdialogOpen)
   }
-  const handleOpenDdialg = () => {
+  const handleOpenDdialg = async () => {
+    if (isDdialogOpen) {
+      // 직접 입력 모달이 닫힐 때 시작/끝 날짜,시간 초기화
+      resetDateTime()
+    }
     setIsDdialogOpen(!isDdialogOpen)
+
+    try {
+      const response = await fetch('https://api.moim.team/api/members', {
+        method: 'POST',
+        credentials: 'include', // 쿠키 전송을 위해 필요
+      })
+      if (!response.ok) {
+        // 예외 처리
+        throw new Error(`서버 에러: ${response.status}`)
+      }
+      const data = await response.json()
+      console.log('그룹 ID', data)
+      setGroupId(data.data.groupId)
+    } catch (error) {
+      console.error('그룹 아이디 만들기 실패', error)
+    }
   }
 
   // 직접입력하기 모달에서 받아온 시작, 끝 string 저장
@@ -183,6 +237,45 @@ export default function ScheduleLanding() {
 
   const handleRightBtn = () => {
     alert('오른쪽 버튼 클릭')
+  }
+
+  const handlePostSchedule = () => {
+    console.log('선택날짜', stringDates)
+    console.log('mode', mode)
+    console.log('selected', selected)
+
+    router.push('/schedule/select')
+  }
+
+  const handlePostDirectSchedule = async () => {
+    console.log('startDate', startDate)
+    console.log('endDate', endDate)
+
+    try {
+      const response = await fetch('https://api.moim.team/api/schedule', {
+        method: 'POST',
+        credentials: 'include', // 쿠키 전송을 위해 필요
+        headers: {
+          'Content-Type': 'application/json', // JSON 형식 명시
+        },
+        body: JSON.stringify({
+          groupId: groupId,
+          name: title,
+          startDate: startDate,
+          endDate: endDate,
+        }),
+      })
+      if (!response.ok) {
+        // 예외 처리
+        throw new Error(`서버 에러: ${response.status}`)
+      }
+      const data = await response.json()
+      console.log('직접 생성 성공', data)
+    } catch (error) {
+      console.error('직접 생성 실패', error)
+    }
+
+    router.push('/schedule')
   }
 
   return (
@@ -253,7 +346,7 @@ export default function ScheduleLanding() {
       <CustomModal
         open={isCdialogOpen}
         onOpenChange={handleOpenCdialog}
-        onNext={() => alert(`선택한 날짜들: ${stringDates}`)}
+        onNext={handlePostSchedule}
         isFooter={true}
         footerText={'다음으로'}
         isDisabled={stringDates[0] ? false : true}
@@ -269,7 +362,7 @@ export default function ScheduleLanding() {
       <CustomModal
         open={isDdialogOpen}
         onOpenChange={handleOpenDdialg}
-        onNext={() => alert(`startDate: ${startDate} / endDate: ${endDate}`)}
+        onNext={handlePostDirectSchedule}
         isFooter={true}
         footerText={'입력완료'}
       >
