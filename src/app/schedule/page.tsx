@@ -142,13 +142,10 @@ export default function ScheduleLanding() {
 
     const getSchedule = async () => {
       try {
-        const response = await fetch(
-          'https://api.moim.team/api/schedule/get-all',
-          {
-            method: 'GET',
-            credentials: 'include', // 쿠키 전송을 위해 필요
-          },
-        )
+        const response = await fetch('https://api.moim.team/api/members/List', {
+          method: 'GET',
+          credentials: 'include', // 쿠키 전송을 위해 필요
+        })
         if (!response.ok) {
           // 예외 처리
           throw new Error(`서버 에러: ${response.status}`)
