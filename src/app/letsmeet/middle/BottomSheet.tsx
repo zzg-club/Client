@@ -187,7 +187,7 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
                     borderColor:
                       index === 0
                         ? 'var(--MainColor, #9562FB)'
-                        : 'var(--subway_time, #FFCF33)',
+                        : 'var(--subway_time, #AFAFAF)',
                   }}
                 />
                 <p
@@ -196,13 +196,13 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
                     color:
                       index === 0
                         ? 'var(--MainColor, #9562FB)'
-                        : 'var(--subway_time, #FFCF33)',
+                        : 'var(--subway_time, #AFAFAF)',
                   }}
                 >
                   {participant.time}
                 </p>
                 <img
-                  src={participant.transportIcon}
+                  src={index === 0 ? '/subwayPurple.svg' : '/subwayGray.svg'}
                   alt="Transport Icon"
                   className={styles.transportIcon}
                 />

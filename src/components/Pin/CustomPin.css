@@ -29,6 +29,6 @@
   border-color: var(--MainColor, #9562fb); /* 본인 핀: 보라색 테두리 */
 }
 
-.pin-yellow .pin-globe {
-  border-color: #ffcf33; /* 다른 사람 핀: 노란색 테두리 */
+.pin-gray .pin-globe {
+  border-color: #afafaf; /* 다른 사람 핀: 노란색 테두리 */
 }

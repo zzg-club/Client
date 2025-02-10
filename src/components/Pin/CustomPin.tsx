@@ -13,13 +13,13 @@ const CustomPin: React.FC<CustomPinProps> = ({
   depart = '',
 }) => {
   return (
-    <div className={`pin-container ${isMine ? 'pin-purple' : 'pin-yellow'}`}>
+    <div className={`pin-container ${isMine ? 'pin-purple' : 'pin-gray'}`}>
       <div
         className="pin-globe"
         style={{ backgroundImage: `url(${imagePath})` }}
       ></div>
       <img
-        src={isMine ? '/Polygon2Purple.svg' : '/Polygon2Yellow.svg'}
+        src={isMine ? '/Polygon2Purple.svg' : '/Polygon2Gray.svg'}
         className="pin-polygon"
         alt="Polygon shape"
         width="28"
@@ -29,7 +29,7 @@ const CustomPin: React.FC<CustomPinProps> = ({
         className={`flex h-4 px-2 py-2 justify-center items-center gap-3 self-stretch rounded-full bg-white      
             font-medium text-[8px] leading-[17px] tracking-[-0.5px]`}
         style={{
-          border: `1px solid ${isMine ? 'var(--MainColor, #9562fb)' : '#FFCF33'}`,
+          border: `1px solid ${isMine ? 'var(--MainColor, #9562fb)' : '#AFAFAF'}`,
         }}
       >
         {depart}에서 출발

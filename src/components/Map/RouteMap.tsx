@@ -149,7 +149,7 @@ const RouteMap: React.FC<RouteMapProps> = ({
           const polyline = new window.kakao.maps.Polyline({
             path: routePath,
             strokeWeight: 4,
-            strokeColor: '#FFCF33', // 참여자 경로 색상
+            strokeColor: '#AFAFAF', // 참여자 경로 색상
             strokeOpacity: 0.64,
             strokeStyle: 'solid',
           })
