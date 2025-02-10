@@ -156,7 +156,7 @@
 
 /* Bottom Sheet 상태별 높이 */
 .bottomSheet.collapsed {
-  --bottomSheetHeight: 180px;
+  --bottomSheetHeight: 200px;
 }
 
 .bottomSheet.middle {
@@ -324,11 +324,13 @@
 .cardTitle {
   color: #1e1e1e;
   font-family: Pretendard, sans-serif;
-  font-size: 24px;
+  font-size: clamp(18px, 6.3vw, 25px);
+  max-width: 85%;
   font-style: normal;
   font-weight: 500;
-  line-height: 17px; /* 85% */
+  line-height: 1.3;
   letter-spacing: -0.5px;
+  white-space: normal;
 }
 
 /* 카드 콘텐츠 */
@@ -368,8 +370,8 @@
 
 /* 좋아요 배경 */
 .likeBackground {
-  width: 52px;
-  height: 36px;
+  width: calc(2.5rem + 2.5vw);
+  height: calc(1.8rem + 1.7vw);
   border-radius: 12px;
   background: #a9f3b2; /* 배경 색상 */
   display: flex;
@@ -378,10 +380,15 @@
   margin-top: 10px;
 }
 
+/* 좋아요 상태인 경우 */
+.likeBackground.liked {
+  background: #49c657; /* 좋아요 눌린 상태의 배경색 */
+}
+
 /* 좋아요 아이콘 */
 .likeIcon {
-  width: 28px;
-  height: 28px;
+  width: calc(1.5rem + 0vw);
+  height: calc(1.5rem + 0vw);
   background: url('/like-icon.svg') no-repeat center center;
 }
 
@@ -395,8 +402,8 @@
 .tags {
   display: flex; /* Flexbox로 가로 정렬 */
   gap: 8px; /* 태그 간 간격 */
-  margin-top: 10px;
-  margin-bottom: 8px;
+  margin-top: 5px;
+  min-height: 25px;
 }
 
 /* 태그 스타일 */
@@ -536,7 +543,7 @@
 }
 
 .bottomSheetTopRightButton.collapsed {
-  bottom: calc(210px + 16px); /* BottomSheet collapsed 상태 */
+  bottom: calc(220px + 16px); /* BottomSheet collapsed 상태 */
   opacity: 1;
 }
 
