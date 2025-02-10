@@ -39,8 +39,6 @@ export default function ScheduleLanding() {
   const router = useRouter()
 
   // 연동 데이터
-  const [groupId, setGroupId] = useState<number | null>(null)
-
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
@@ -114,28 +112,13 @@ export default function ScheduleLanding() {
     }
     setIsCdialogOpen(!isCdialogOpen)
   }
+
   const handleOpenDdialg = async () => {
     if (isDdialogOpen) {
       // 직접 입력 모달이 닫힐 때 시작/끝 날짜,시간 초기화
       resetDateTime()
     }
     setIsDdialogOpen(!isDdialogOpen)
-
-    try {
-      const response = await fetch('https://api.moim.team/api/members', {
-        method: 'POST',
-        credentials: 'include', // 쿠키 전송을 위해 필요
-      })
-      if (!response.ok) {
-        // 예외 처리
-        throw new Error(`서버 에러: ${response.status}`)
-      }
-      const data = await response.json()
-      console.log('그룹 ID', data)
-      setGroupId(data.data.groupId)
-    } catch (error) {
-      console.error('그룹 아이디 만들기 실패', error)
-    }
   }
 
   // 직접입력하기 모달에서 받아온 시작, 끝 string 저장
@@ -187,29 +170,48 @@ export default function ScheduleLanding() {
     console.log('endDate', endDate)
 
     try {
-      const response = await fetch('https://api.moim.team/api/schedule', {
+      // 그룹 생성
+      const response1 = await fetch('https://api.moim.team/api/members', {
+        method: 'POST',
+        credentials: 'include', // 쿠키 전송을 위해 필요
+      })
+
+      if (!response1.ok) {
+        throw new Error(`서버 에러: ${response1.status}`)
+      }
+
+      const data1 = await response1.json()
+      console.log('그룹 ID:', data1)
+      const groupId = data1.data.groupId // 그룹 ID 저장
+
+      // 스케줄 생성 - 첫 번째 요청이 끝난 후 실행
+      const response2 = await fetch('https://api.moim.team/api/schedule', {
         method: 'POST',
         credentials: 'include', // 쿠키 전송을 위해 필요
         headers: {
           'Content-Type': 'application/json', // JSON 형식 명시
         },
         body: JSON.stringify({
-          groupId: groupId,
+          groupId: groupId, // 첫 번째 요청에서 받은 그룹 ID 사용
           name: title,
           startDate: startDate,
           endDate: endDate,
         }),
       })
-      if (!response.ok) {
-        // 예외 처리
-        throw new Error(`서버 에러: ${response.status}`)
+
+      if (!response2.ok) {
+        throw new Error(`서버 에러: ${response2.status}`)
       }
-      const data = await response.json()
-      console.log('직접 생성 성공', data)
+
+      const data2 = await response2.json()
+      console.log('직접 생성 성공', data2)
     } catch (error) {
-      console.error('직접 생성 실패', error)
+      console.error('API 요청 실패', error)
     }
 
+    setIsDdialogOpen(false)
+    setIsOpen(false)
+    resetDateTime()
     router.push('/schedule')
   }
 
