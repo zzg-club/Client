@@ -27,7 +27,7 @@ const PinMap = ({ kakaoMap, participants, destination }) => {
     if (participants.length > 0) {
       const myPinHtml = ReactDOMServer.renderToString(
         <CustomPin
-          imagePath={participants[0].icon}
+          imagePath={participants[0].image}
           isMine={true}
           depart={participants[0].depart}
         />,
@@ -53,7 +53,7 @@ const PinMap = ({ kakaoMap, participants, destination }) => {
     participants.slice(1).forEach((participant) => {
       const participantPinHtml = ReactDOMServer.renderToString(
         <CustomPin
-          imagePath={participant.icon}
+          imagePath={participant.image}
           isMine={false}
           depart={participant.depart}
         />,
