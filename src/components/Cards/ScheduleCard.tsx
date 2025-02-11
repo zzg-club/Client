@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation' // useRouter 훅 사용
 import CustomModal from '@/components/Modals/CustomModal'
 import MembersVariant from '../Modals/MembersVariant'
 import SelectModal from '../Modals/SelectModal'
-import { useScheduleStore } from '@/store/scheduleStore'
+import { useGroupStore } from '@/store/groupStore'
 
 export interface ScheduleCardProps {
   id: number
@@ -32,11 +32,11 @@ export function ScheduleCard({
 
   const router = useRouter()
 
-  const { setSelectedScheduleId } = useScheduleStore()
+  const { setSelectedGroupId } = useGroupStore()
 
   // membersVariant 모달 핸들
   const handleMembersModalOpen = () => {
-    setSelectedScheduleId(id)
+    setSelectedGroupId(id)
     setIsMembersModalOpen(!isMembersModalOpen)
   }
 
