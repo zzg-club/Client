@@ -10,6 +10,7 @@ import CustomModal from '@/components/Modals/CustomModal'
 import { ProfileLarge } from '@/components/Profiles/ProfileLarge'
 import MembersDefault from '@/components/Modals/MembersDefault'
 import { useRouter } from 'next/navigation'
+import { createTimeSlot } from '@/app/api/timeslot/[surveyId]/route'
 
 interface SelectedDate {
   year: number
@@ -185,7 +186,7 @@ export default function Page() {
     setIsOpen(true)
   }
 
-  const getDateTime = (date: string, start: string, end: string) => {
+  const getDateTime = async (date: string, start: string, end: string) => {
     setDateTime((prev) => {
       const existingDateIndex = prev.findIndex((item) => item.date === date)
       let newEntry = null
@@ -246,15 +247,26 @@ export default function Page() {
           timeSlots.push(newSlot)
           newEntry = { date: date, timeSlots: [newSlot] }
         }
-        // console.log(date)
+
         timeSlots.sort((a, b) => toMinutes(a.start) - toMinutes(b.start))
+        const postTimeSlot = {
+          slotDate: date,
+          startTime: newEntry.timeSlots[0].start,
+          endTime: newEntry.timeSlots[0].end,
+        }
+        // console.log('Post할 항목:', postTimeSlot)
+
+        // createTimeSlot 함수 호출
+        createTimeSlot(
+          postTimeSlot.slotDate,
+          postTimeSlot.startTime,
+          postTimeSlot.endTime,
+        )
 
         updated[existingDateIndex].timeSlots = timeSlots
-        // console.log('새로 추가된 항목:', newEntry)
         return updated
       } else {
         newEntry = { date: date, timeSlots: [{ start, end }] }
-        // console.log('새로 추가된 항목:', newEntry)
         return [...prev, newEntry]
       }
     })
