@@ -202,7 +202,7 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
                   {participant.time}
                 </p>
                 <img
-                  src={index === 0 ? '/subwayPurple.svg' : '/subwayGray.svg'}
+                  src={participant.transportIcon}
                   alt="Transport Icon"
                   className={styles.transportIcon}
                 />

@@ -33,6 +33,7 @@
         "lat": 37.537095,
         "lng": 127.04561,
         "transport": "subway",
+        "transportIcon": "/subwayGray.svg",
         "depart": "삼성역"
       },
       {
@@ -43,6 +44,7 @@
         "lat": 37.463095,
         "lng": 127.02161,
         "transport": "subway",
+        "transportIcon": "/subwayGray.svg",
         "depart": "선릉역"
       },
       {
@@ -53,6 +55,7 @@
         "lat": 37.487895,
         "lng": 127.00811,
         "transport": "subway",
+        "transportIcon": "/subwayGray.svg",
         "depart": "역삼역"
       }
     ]
@@ -78,6 +81,7 @@
         "lat": 37.966209,
         "lng": 126.705879,
         "transport": "subway",
+        "transportIcon": "/subwayGray.svg",
         "depart": "인천역"
       },
       {
@@ -88,6 +92,7 @@
         "lat": 37.295209,
         "lng": 127.146879,
         "transport": "subway",
+        "transportIcon": "/subwayGray.svg",
         "depart": "수원역"
       },
       {
@@ -98,6 +103,7 @@
         "lat": 36.815209,
         "lng": 127.131879,
         "transport": "subway",
+        "transportIcon": "/subwayGray.svg",
         "depart": "청주역"
       },
       {
@@ -108,6 +114,7 @@
         "lat": 37.616209,
         "lng": 126.509879,
         "transport": "subway",
+        "transportIcon": "/subwayGray.svg",
         "depart": "김포공항역"
       },
       {
@@ -118,6 +125,7 @@
         "lat": 36.982209,
         "lng": 127.476879,
         "transport": "subway",
+        "transportIcon": "/subwayGray.svg",
         "depart": "평택역"
       },
       {
@@ -128,6 +136,7 @@
         "lat": 37.241909,
         "lng": 126.767879,
         "transport": "subway",
+        "transportIcon": "/subwayGray.svg",
         "depart": "안양역"
       },
       {
@@ -138,6 +147,7 @@
         "lat": 37.421809,
         "lng": 127.983879,
         "transport": "subway",
+        "transportIcon": "/subwayGray.svg",
         "depart": "춘천역"
       }
     ]
