@@ -92,7 +92,9 @@ export default function MembersVariant({
         <ModalNotification
           messageText={
             members.find((member) => member.id === selectedMemberId)?.type ===
-            'creator&my'
+              'creator&my' ||
+            members.find((member) => member.id === selectedMemberId)?.type ===
+              '&my'
               ? '정말로 이 모임을 나가시겠어요?'
               : '정말로 이 멤버를 삭제하시겠어요?'
           }
@@ -119,15 +121,25 @@ export default function MembersVariant({
                 className="rounded-3xl"
               />
               {/* X 버튼 */}
-              <button
+              {/* <button
                 className="absolute top-0.5 right-0.5 transform translate-x-1/2 -translate-y-1/2 w-5 h-5 p-0.5 opacity-80 bg-[#afafaf] rounded-full border-2 border-[#8e8d8d] flex items-center justify-center z-20"
                 onClick={() => handleRemoveClick(member.id)}
               >
                 <X className="w-4 h-4 text-[#1e1e1e]" />
-              </button>
+              </button> */}
+              {(member.type === 'creator&my' || member.type === '&my') && (
+                <button
+                  className="absolute top-0.5 right-0.5 transform translate-x-1/2 -translate-y-1/2 w-5 h-5 p-0.5 opacity-80 bg-[#afafaf] rounded-full border-2 border-[#8e8d8d] flex items-center justify-center z-20"
+                  onClick={() => handleRemoveClick(member.id)}
+                >
+                  <X className="w-4 h-4 text-[#1e1e1e]" />
+                </button>
+              )}
             </div>
             <span className="self-stretch text-center text-[#8e8d8d] text-base font-normal leading-[17px]">
-              {member.name}
+              {member.type === 'creator&my' || member.type === '&my'
+                ? '나'
+                : `${member.name}`}
             </span>
           </div>
         ))}
