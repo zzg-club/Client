@@ -66,7 +66,7 @@ export default function Middle() {
           lat: location.lat,
           lng: location.lng,
           transport: 'subway',
-          transportIcon: '/subwayPurple.svg',
+          transportIcon: '/train.svg',
           depart: '죽전역',
         }
 
@@ -74,7 +74,7 @@ export default function Middle() {
           myInfo,
           ...dummyDataArray[currentIndex].participants.map((participant) => ({
             ...participant,
-            transportIcon: '/subwayYellow.svg',
+            transportIcon: '/subwayGray.svg',
           })),
         ]
 
@@ -89,7 +89,7 @@ export default function Middle() {
           lat: 37.5665,
           lng: 126.978,
           transport: 'subway',
-          transportIcon: '/subwayPurple.svg',
+          transportIcon: '/train.svg',
           depart: '서울역',
         }
 
@@ -97,7 +97,7 @@ export default function Middle() {
           fallbackInfo,
           ...dummyDataArray[currentIndex].participants.map((participant) => ({
             ...participant,
-            transportIcon: '/subwayYellow.svg',
+            transportIcon: '/subwayGray.svg',
           })),
         ]
 
