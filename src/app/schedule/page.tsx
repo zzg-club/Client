@@ -15,6 +15,8 @@ import { useDateTimeStore } from '@/store/dateTimeStore'
 import { useRouter } from 'next/navigation'
 import { createGroupId } from '../api/members/route'
 import { createDirectSchedule } from '../api/schedule/route'
+import { createSurveySchedule } from '../api/survey/route'
+import { useScheduleStore } from '@/store/scheduleStore'
 
 type Schedule = {
   id: number
@@ -41,6 +43,8 @@ export default function ScheduleLanding() {
   const router = useRouter()
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
+
+  const { setSelectedScheduleId } = useScheduleStore() // Zustand에서 가져옴
 
   const getSchedule = useCallback(async () => {
     try {
@@ -159,12 +163,25 @@ export default function ScheduleLanding() {
     alert('오른쪽 버튼 클릭')
   }
 
-  const handlePostSchedule = () => {
+  const handlePostSchedule = async () => {
     console.log('선택날짜', stringDates)
     console.log('mode', mode)
     console.log('selected', selected)
 
-    router.push('/schedule/select')
+    try {
+      // 그룹 생성
+      const groupId = await createGroupId() // 그룹 ID 저장
+
+      // 조율할 일정 생성
+      await createSurveySchedule(groupId, mode, selected, stringDates)
+
+      // 그룹 아이디 전역으로 저장
+      setSelectedScheduleId(groupId)
+
+      router.push('/schedule/select')
+    } catch (error) {
+      console.log('일정 생성 실패', error)
+    }
   }
 
   const handlePostDirectSchedule = async () => {
@@ -221,6 +238,7 @@ export default function ScheduleLanding() {
             {scheduleList.map((schedule) => (
               <div key={schedule?.id}>
                 <ScheduleCard
+                  id={schedule?.id}
                   startDate={schedule?.startDate}
                   title={schedule?.title}
                   startTime={schedule?.startTime}
