@@ -49,7 +49,12 @@ export default function LetsMeetPage() {
     console.log('완료 버튼 클릭')
     handleCloseModal()
   }
+
   useEffect(() => {
+    if (mockSchedules.length > 0 && currentIndex >= mockSchedules.length) {
+      setCurrentIndex(0)
+    }
+
     const updateParticipants = async () => {
       try {
         const location = await getCurrentLocation()
@@ -61,7 +66,7 @@ export default function LetsMeetPage() {
           lat: location.lat,
           lng: location.lng,
           transport: 'subway',
-          transportIcon: '/subwayPurple.svg',
+          transportIcon: '/train.svg',
           depart: '죽전역',
         }
 
@@ -69,7 +74,7 @@ export default function LetsMeetPage() {
           myInfo,
           ...mockSchedules[currentIndex].participants.map((participant) => ({
             ...participant,
-            transportIcon: '/subwayYellow.svg',
+            transportIcon: '/subwayGray.svg',
           })),
         ]
 
@@ -85,7 +90,7 @@ export default function LetsMeetPage() {
           lat: 37.5665,
           lng: 126.978,
           transport: 'subway',
-          transportIcon: '/subwayPurple.svg',
+          transportIcon: '/train.svg',
           depart: '서울역',
         }
 
@@ -93,7 +98,7 @@ export default function LetsMeetPage() {
           fallbackInfo,
           ...mockSchedules[currentIndex].participants.map((participant) => ({
             ...participant,
-            transportIcon: '/subwayYellow.svg',
+            transportIcon: '/subwayGray.svg',
           })),
         ]
 
@@ -169,7 +174,7 @@ export default function LetsMeetPage() {
                   startTime={schedule.startTime}
                   endTime={schedule.endTime}
                   destination={schedule.destination.name}
-                  participants={schedule.participants}
+                  participants={participants}
                 />
               </div>
             ))}

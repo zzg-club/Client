@@ -9,7 +9,6 @@ import EditTitle from '@/components/Header/EditTitle'
 import CustomCalendar from '@/components/Calendars/CustomCalendar'
 import { useHandleSelect } from '@/hooks/useHandleSelect'
 import { getCurrentLocation } from '@/components/Map/getCurrentLocation'
-import mockSchedules from '@/data/dummyDataArray.json'
 
 interface Participant {
   id: number
@@ -58,7 +57,6 @@ export function LetsmeetCard({
   const [startDateState, setStartDateState] = useState<string | null>(null) // 직접입력하기-시작날짜,시간
   const [endDateState, setEndDateState] = useState<string | null>(null) // 직접입력하기-끝날짜,시간
   const [stitle, setsTitle] = useState('제목 없는 일정') // 제목 상태 관리
-  const [currentIndex, setCurrentIndex] = useState(0)
   const [participantState, setParticipantState] = useState<Participant[]>([])
 
   const handleTitleChange = (newTitle: string) => {
@@ -73,8 +71,8 @@ export function LetsmeetCard({
   }
 
   // 직접입력하기 모달에서 받아온 시작, 끝 string 저장
-  const handleDateChange = (startDate: string, endDate: string) => {
-    setStartDateState(startDate)
+  const handleDateChange = (startDateState: string, endDate: string) => {
+    setStartDateState(startDateState)
     setEndDateState(endDate)
   }
 
@@ -115,7 +113,7 @@ export function LetsmeetCard({
           lat: location.lat,
           lng: location.lng,
           transport: 'subway',
-          transportIcon: '/subwayPurple.svg',
+          transportIcon: '/train.svg',
           depart: '죽전역',
         }
 
@@ -124,7 +122,7 @@ export function LetsmeetCard({
           myInfo,
           ...participants.map((participant) => ({
             ...participant,
-            transportIcon: '/subwayYellow.svg',
+            transportIcon: '/subwayGray.svg',
           })),
         ]
 
@@ -140,7 +138,7 @@ export function LetsmeetCard({
           lat: 37.5665,
           lng: 126.978,
           transport: 'subway',
-          transportIcon: '/subwayPurple.svg',
+          transportIcon: '/train.svg',
           depart: '서울역',
         }
 
@@ -148,7 +146,7 @@ export function LetsmeetCard({
           fallbackInfo,
           ...participants.map((participant) => ({
             ...participant,
-            transportIcon: '/subwayYellow.svg',
+            transportIcon: '/subwayGray.svg',
           })),
         ]
 
@@ -208,7 +206,7 @@ export function LetsmeetCard({
         <MembersVariant
           onClickX={handleRemoveMember}
           startDate={startDate}
-          destination={destination}
+          location={destination}
           startTime={startTime}
           endTime={endTime}
           members={selectedMember}
@@ -251,12 +249,12 @@ export function LetsmeetCard({
         open={isDdialogOpen}
         onOpenChange={handleOpenDdialog}
         onNext={() =>
-          alert(`startDate: ${startDate} / endDate: ${endDateState}`)
+          alert(`startDate: ${startDateState} / endDate: ${endDateState}`)
         }
         isFooter={true}
         footerText={'입력완료'}
       >
-        <EditTitle initialTitle={title} onTitleChange={handleTitleChange} />
+        <EditTitle initialTitle={stitle} onTitleChange={handleTitleChange} />
         <DateTimeModal onDateChange={handleDateChange} />
       </CustomModal>
     </div>
