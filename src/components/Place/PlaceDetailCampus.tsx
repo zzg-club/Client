@@ -1,97 +1,202 @@
 'use client'
 
-import React, { useEffect, useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import KakaoMap from '@/components/Map/KakaoMap'
 import styles from '@/app/place/styles/Detail.module.css'
 import { Place } from '@/types/place'
-import StoreInfoCampus from '@/components/Place/StoreInfoCampus' // 영업 정보 컴포넌트 임포트
-import VisitorPhoto from '@/components/Place/VisitorPhoto' // 방문자 사진 컴포넌트 임포트
-import SectionTitle from '@/components/Place/SectionTitle' // 방문자 사진 컴포넌트 임포트
+import StoreInfoCampus from '@/components/Place/StoreInfoCampus'
+import VisitorPhoto from '@/components/Place/VisitorPhoto'
+import SectionTitle from '@/components/Place/SectionTitle'
+import { fetchFilters } from '@/app/api/places/filter/route'
+import { fetchLikedStates } from '@/app/api/places/liked/route'
+import { fetchLikeCount } from '@/app/api/places/updateLike/route'
+import { toggleLike } from '@/app/api/places/like/route'
+import { useRouter } from 'next/router'
 
 interface PlaceDetailProps {
-  id: string
+  placeData: Place
 }
 
-const PlaceDetail = ({ id }: PlaceDetailProps) => {
-  const [selectedPlace, setSelectedPlace] = useState<Place | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(false)
-  const [bottomSheetState, setBottomSheetState] = useState<
-    'collapsed' | 'middle' | 'expanded'
-  >('collapsed')
-  const [activeTab, setActiveTab] = useState<'상세' | '사진'>('상세')
+const PlaceDetailCampus = ({ placeData }: PlaceDetailProps) => {
+
+  const [bottomSheetState, setBottomSheetState] = useState<'collapsed' | 'middle' | 'expanded'>('collapsed')
+  const [activeTab, setActiveTab] = useState<'상세' | '메뉴' | '사진'>('상세')
   const startY = useRef<number | null>(null)
-  const currentY = useRef<number | null>(null)
   const threshold = 50
+  const [activeFilters, setActiveFilters] = useState<string[]>([]);
+  const [liked, setLiked] = useState<boolean>(false)
+  const [likeCount, setLikeCount] = useState<number>(0)
+  const isDraggingRef = useRef<boolean>(false)
+  const route = useRouter()
+
+  // 좋아요 상태와 개수 가져오기
+  useEffect(() => {
+    const fetchLikes = async () => {
+      try {
+        const likedState = await fetchLikedStates(String(placeData.id)) // 안전하게 변환
+        const likes = await fetchLikeCount(Number(placeData.id)) 
+        setLiked(likedState)
+        setLikeCount(likes)
+      } catch (error) {
+        console.error('Error fetching like data:', error)
+      }
+    }
+
+    fetchLikes()
+  }, [placeData.id])
+
+  // 활성 필터 가져오기
+  useEffect(() => {
+    const getActiveFilters = async (category: number, placeData: Place) => {
+      try {
+        const filterResponse = await fetchFilters()
+        const filterData = await filterResponse.json()
+
+        if (!filterData.success || !Array.isArray(filterData.data)) {
+          console.error('필터 데이터를 가져오는 데 실패했습니다.')
+          return []
+        }
+
+        const categoryFilters = filterData.data[category]
+        if (!categoryFilters) return []
+
+        const { filters } = categoryFilters
+        const activeFilters = Object.keys(filters)
+              .filter((key): key is keyof Place => key in placeData && typeof placeData[key as keyof Place] === 'boolean' && placeData[key as keyof Place] === true)
+              .map((key) => filters[key]);
+
+        console.log('활성 필터:', activeFilters);
+
+        return activeFilters; 
+      } catch (error) {
+        console.error('필터 가져오기 오류:', error)
+        return []
+      }
+    }
+
+    const fetchAndSetFilters = async () => {
+      const filters = await getActiveFilters(placeData.category, placeData)
+      setActiveFilters(filters)
+    }
+
+    fetchAndSetFilters()
+  }, [placeData])
+
+  // 좋아요 버튼 클릭 이벤트
+  const handleLikeButtonClick = async () => {
+    try {
+      const updatedLiked = await toggleLike(Number(placeData.id), liked)
+      const updatedLikeCount = await fetchLikeCount(Number(placeData.id))
+      setLiked(updatedLiked)
+      setLikeCount(updatedLikeCount)
+    } catch (error) {
+      console.error('Error toggling like:', error)
+    }
+  }
+
+
+  const getActiveFilters = async (category: number, placeData: Place) => {
+    try {
+      // /api/places/filter 호출하여 필터 데이터 가져오기
+      const filterResponse = await fetchFilters();
+      const filterData = await filterResponse.json();
+  
+      if (!filterData.success || !Array.isArray(filterData.data)) {
+        console.error('필터 데이터를 가져오는 데 실패했습니다.');
+        return [];
+      }
+  
+      const categoryFilters = filterData.data[category];
+  
+      if (!categoryFilters) {
+        console.warn(`해당 카테고리에 대한 필터가 없습니다: ${category}`);
+        return [];
+      }
+  
+      const { filters } = categoryFilters; 
+
+      const activeFilters = Object.keys(filters)
+      .filter((key): key is keyof Place => key in placeData && typeof placeData[key as keyof Place] === 'boolean' && placeData[key as keyof Place] === true)
+      .map((key) => filters[key]);
+  
+      console.log('활성 필터:', activeFilters);
+      return activeFilters;
+    } catch (error) {
+      console.error('필터 가져오기 오류:', error);
+      return [];
+    }
+  };
 
   useEffect(() => {
-    const fetchPlaceData = async () => {
-      try {
-        const response = await fetch(`/api/place/${id}`, { cache: 'no-store' })
-        if (!response.ok) {
-          throw new Error('Failed to fetch place data')
-        }
-        const data = await response.json()
-        setSelectedPlace(data)
-      } catch (err) {
-        console.error(err)
-        setError(true)
-      } finally {
-        setLoading(false)
-      }
-    }
+    const fetchAndSetFilters = async () => {
+      if (!placeData) return;
+      const filters = await getActiveFilters(placeData.category, placeData);
+      setActiveFilters(filters);
+    };
+  
+    fetchAndSetFilters();
+  }, [placeData]);
 
-    fetchPlaceData()
-  }, [id])
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    startY.current = e.touches[0].clientY
+  // 드래그 시작
+  const handleStart = (y: number) => {
+    startY.current = y
+    isDraggingRef.current = true
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleEnd)
   }
 
-  const handleTouchMove = (e: React.TouchEvent) => {
-    currentY.current = e.touches[0].clientY
+  // 드래그 진행
+  const handleMove = (y: number) => {
+    if (!isDraggingRef.current || startY.current === null) return
+    const deltaY = startY.current - y
+
+    if (deltaY > threshold) {
+      // 위로 드래그 (다음 단계로 확장)
+      setBottomSheetState((prev) => {
+        if (prev === 'collapsed') return 'middle'
+        if (prev === 'middle') return 'expanded'
+        return 'expanded' // 이미 expanded면 유지
+      })
+      startY.current = y
+    } else if (deltaY < -threshold) {
+      // 아래로 드래그 (다음 단계로 축소)
+      setBottomSheetState((prev) => {
+        if (prev === 'expanded') return 'middle'
+        if (prev === 'middle') return 'collapsed'
+        return 'collapsed' // 이미 collapsed면 유지
+      })
+      startY.current = y
+    }
   }
 
-  const handleTouchEnd = () => {
-    if (startY.current !== null && currentY.current !== null) {
-      const delta = startY.current - currentY.current
+  // 드래그 종료
+  const handleMouseMove = (e: MouseEvent) => {
+    handleMove(e.clientY)
+  }
 
-      if (delta > threshold) {
-        // 위로 드래그: collapsed → middle → expanded
-        setBottomSheetState((prevState) => {
-          if (prevState === 'collapsed') return 'middle'
-          if (prevState === 'middle') return 'expanded'
-          return 'expanded' // 이미 expanded면 유지
-        })
-      } else if (delta < -threshold) {
-        // 아래로 드래그: expanded → middle → collapsed
-        setBottomSheetState((prevState) => {
-          if (prevState === 'expanded') return 'middle'
-          if (prevState === 'middle') return 'collapsed'
-          return 'collapsed' // 이미 collapsed면 유지
-        })
-      }
-    }
-
-    // 초기화
+  const handleEnd = () => {
     startY.current = null
-    currentY.current = null
+    isDraggingRef.current = false
+    document.removeEventListener('mousemove', handleMouseMove)
+    document.removeEventListener('mouseup', handleEnd)
   }
 
-  if (loading) {
-    return <div>Loading...</div>
+  const handleBackClick = () => {
+    route.push('/place')
   }
 
-  if (error || !selectedPlace) {
-    return <div>Failed to load place details.</div>
+  const handleCloseClick = () => {
+    setBottomSheetState('collapsed')
   }
+
 
   return (
     <div className={styles['detail-container']}>
       <div className={`${styles['map-container']} ${styles[bottomSheetState]}`}>
         <KakaoMap
           bottomSheetState={bottomSheetState}
-          selectedPlace={selectedPlace}
+          selectedPlace={placeData}
+          onMoveToCurrentLocation={() => {}}
         />
         {/* 뒤로가기 버튼 */}
         <div
@@ -122,7 +227,7 @@ const PlaceDetail = ({ id }: PlaceDetailProps) => {
         <div className={styles['top-buttons']}>
           <button
             className={styles['top-left-button']}
-            // onClick={() => window.history.back()}
+            onClick={handleBackClick}
           >
             <img
               src="/arrow_back_ios.svg"
@@ -132,7 +237,7 @@ const PlaceDetail = ({ id }: PlaceDetailProps) => {
           </button>
           <button
             className={styles['top-right-button']}
-            // onClick={() => window.history.back()}
+            onClick={handleCloseClick}
           >
             <img
               src="/close_ios.svg"
@@ -156,9 +261,10 @@ const PlaceDetail = ({ id }: PlaceDetailProps) => {
       {/* Bottom Sheet */}
       <div
         className={`${styles.bottomSheet} ${styles[bottomSheetState]}`}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
+        onTouchStart={(e) => handleStart(e.touches[0].clientY)}
+        onTouchMove={(e) => handleMove(e.touches[0].clientY)}
+        onTouchEnd={handleEnd}
+        onMouseDown={(e) => handleStart(e.clientY)}
       >
         <div className={styles.dragHandle}></div>
 
@@ -166,24 +272,27 @@ const PlaceDetail = ({ id }: PlaceDetailProps) => {
         {bottomSheetState === 'collapsed' && (
           <div className={styles.cardContent}>
             <div className={styles.cardHeader}>
-              <h3 className={styles.cardTitle}>{selectedPlace.name}</h3>
+              <h3 className={styles.cardTitle}>{placeData.name}</h3>
               <div className={styles.likes}>
-                <div className={styles.likeBackground}>
-                  <div className={styles.likeIcon}></div>
-                </div>
-                <span>{selectedPlace.likes}명</span>
+              <div
+                className={`${styles.likeBackground} ${liked ? styles.liked : ''}`}
+                onClick={handleLikeButtonClick}
+              >
+                <div className={styles.likeIcon}></div>
               </div>
+              <span>{likeCount}명</span>
+            </div>
             </div>
 
             <div className={styles.tags}>
-              {selectedPlace.tags.map((tag, idx) => (
-                <span key={idx} className={styles.tag}>
-                  {tag}
+              {activeFilters.map((filter, index) => (
+                <span key={index} className={styles.tag}>
+                  {filter}
                 </span>
               ))}
             </div>
 
-            <h3>자연에 고기로 하나 같이 맛있게 먹자</h3>
+            <h3>{placeData.word}</h3>
 
             <div
               style={{
@@ -219,7 +328,7 @@ const PlaceDetail = ({ id }: PlaceDetailProps) => {
                     letterSpacing: '-0.5px',
                   }}
                 >
-                  10:00 - 22:00
+                  {placeData.time}
                 </p>
               </div>
               <button
@@ -254,14 +363,14 @@ const PlaceDetail = ({ id }: PlaceDetailProps) => {
             <div className={styles['image-gallery']}>
               <div className={styles['gallery-large']}>
                 <img
-                  src={selectedPlace.images[0]}
+                  src={placeData.pictures[0]}
                   alt="Large Gallery"
                   className={styles['gallery-image']}
                 />
               </div>
 
               <div className={styles['gallery-small-container']}>
-                {selectedPlace.images.slice(1, 5).map((image, index) => (
+                {placeData.pictures.slice(1, 5).map((image, index) => (
                   <div
                     key={index}
                     className={styles['gallery-small']}
@@ -282,7 +391,7 @@ const PlaceDetail = ({ id }: PlaceDetailProps) => {
                           alt="Photo Library Icon"
                           className={styles['photo-icon']}
                         />
-                        +{selectedPlace.images.length - 5}
+                        +{placeData.pictures.length - 5}
                       </div>
                     )}
                   </div>
@@ -293,34 +402,36 @@ const PlaceDetail = ({ id }: PlaceDetailProps) => {
             <div className={styles.content}>
               <div className={styles.cardContent}>
                 <div className={styles.cardHeader}>
-                  <h3 className={styles.cardTitle}>캠퍼스</h3>
+                  <h3 className={styles.cardTitle}>{placeData.name}</h3>
                   <div className={styles.likes}>
-                    <div className={styles.likeBackground}>
+                    <div
+                      className={`${styles.likeBackground} ${liked ? styles.liked : ''}`}
+                      onClick={handleLikeButtonClick}
+                    >
                       <div className={styles.likeIcon}></div>
                     </div>
-                    <span>{selectedPlace.likes}명</span>
+                    <span>{likeCount}명</span>
                   </div>
                 </div>
 
                 <div className={styles.tags}>
-                  {selectedPlace.tags.map((tag, idx) => (
-                    <span key={idx} className={styles.tag}>
-                      {tag}
-                    </span>
-                  ))}
+                {activeFilters.map((filter, index) => (
+                  <span key={index} className={styles.tag}>
+                    {filter}
+                  </span>
+                ))}
                 </div>
 
-                <div className={styles.description}>
-                  풍경한우? 가족 생일마다 가는 단골 맛집! 길이 험하고 반찬
-                  줄어든 건 아쉽지만, 고기가 정말 최고야!
-                </div>
+                <div className={styles.description}>{placeData.word}</div>
 
                 <div className={styles.tabContainer}>
                   {['상세', '사진'].map((tab) => (
                     <div
                       key={tab}
                       className={`${styles.tab} ${activeTab === tab ? styles.selected : ''}`}
-                      onClick={() => setActiveTab(tab as '상세' | '사진')}
+                      onClick={() =>
+                        setActiveTab(tab as '상세' | '사진')
+                      }
                     >
                       {tab}
                     </div>
@@ -336,16 +447,21 @@ const PlaceDetail = ({ id }: PlaceDetailProps) => {
                     className={styles.cardContainer}
                     style={{ marginBottom: '10px' }}
                   >
-                    <StoreInfoCampus selectedPlace={selectedPlace} />
-                    <div style={{ marginTop: '35px' }}>
+                    <StoreInfoCampus selectedPlace={placeData} />
+                    {/* <div style={{ marginTop: '40px' }}>
+                      <SectionTitle title="인기 메뉴" />
+                    </div> 
+                    <Menu selectedPlace={placeData} /> */}
+                    <div style={{marginTop:'20px'}}>
                       <SectionTitle title="방문자 사진" />
                     </div>
-                    <VisitorPhoto selectedPlace={selectedPlace} />
+                    <VisitorPhoto selectedPlace={placeData.pictures} />
                   </div>
                 </>
               )}
+              {/* {activeTab === '메뉴' && <Menu selectedPlace={placeData} />} */}
               {activeTab === '사진' && (
-                <VisitorPhoto selectedPlace={selectedPlace} />
+                <VisitorPhoto selectedPlace={placeData.pictures} />
               )}
             </div>
           </>
@@ -355,4 +471,4 @@ const PlaceDetail = ({ id }: PlaceDetailProps) => {
   )
 }
 
-export default PlaceDetail
+export default PlaceDetailCampus

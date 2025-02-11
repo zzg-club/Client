@@ -1,6 +1,12 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
 
-export const fetchUserInformation = async (): Promise<any | null> => {
+interface UserInfoResponse {
+  data: {
+    userNickname: string;
+  };
+}
+
+export const fetchUserInformation = async (): Promise<UserInfoResponse> => {
   // 환경 변수 유효성 검사
   if (!API_BASE_URL) {
     console.error('API_BASE_URL is not defined in environment variables.')
@@ -37,6 +43,6 @@ export const fetchUserInformation = async (): Promise<any | null> => {
     return data
   } catch (error) {
     console.error('Error fetching user information:', error)
-    return null // 실패 시 기본값 반환
+    return { data: { userNickname: '알 수 없는 사용자' } }  // null 대신 기본값 반환
   }
 }
