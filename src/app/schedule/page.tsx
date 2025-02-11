@@ -14,15 +14,7 @@ import { useHandleSelect } from '@/hooks/useHandleSelect'
 import { useDateTimeStore } from '@/store/dateTimeStore'
 import { useRouter } from 'next/navigation'
 
-type Schedule = {
-  id: number
-  startDate: string
-  title: string
-  startTime: string
-  endTime: string
-  location?: string
-  participants: { id: number; name: string; image: string; type: string }[]
-}
+import { membersListApi, Schedule } from '@/app/api/members/List/route'
 
 export default function ScheduleLanding() {
   const [isOpen, setIsOpen] = useState(false)
@@ -41,37 +33,9 @@ export default function ScheduleLanding() {
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
 
   const getSchedule = useCallback(async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/members/List`, {
-        method: 'GET',
-        credentials: 'include', // 쿠키 전송을 위해 필요
-      })
-      if (!response.ok) {
-        // 예외 처리
-        throw new Error(`서버 에러: ${response.status}`)
-      }
-      const data = await response.json()
-      console.log('스케줄 정보:', data.data)
-      if (Array.isArray(data.data)) {
-        const formattedSchedules = data.data.map((schedule: Schedule) => ({
-          id: schedule.id,
-          startDate: schedule.startDate || '날짜 미정',
-          // title: schedule.title ?? '제목 없는 일정',
-          title: schedule.title,
-          startTime: schedule.startTime || '시간 미정',
-          endTime: schedule.endTime || '시간 미정',
-          location: schedule.location || '',
-          participants: schedule.participants || [],
-        }))
-
-        setScheduleList(formattedSchedules)
-      } else {
-        console.error('데이터 구조 에러:', data.data)
-      }
-    } catch (error) {
-      console.error('스케줄 정보 불러오기 실패:', error)
-    }
-  }, [API_BASE_URL])
+    const schedules = await membersListApi.getMembers()
+    setScheduleList(schedules)
+  }, [])
 
   // 연동 데이터
   useEffect(() => {
