@@ -14,7 +14,7 @@ import { useHandleSelect } from '@/hooks/useHandleSelect'
 import { useDateTimeStore } from '@/store/dateTimeStore'
 import { useRouter } from 'next/navigation'
 
-import { membersListApi, Schedule } from '@/app/api/members/List/route'
+import { getmembersListApi, Schedule } from '@/app/api/members/List/route'
 
 export default function ScheduleLanding() {
   const [isOpen, setIsOpen] = useState(false)
@@ -33,7 +33,7 @@ export default function ScheduleLanding() {
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
 
   const getSchedule = useCallback(async () => {
-    const schedules = await membersListApi.getMembers()
+    const schedules = await getmembersListApi.getMembers()
     setScheduleList(schedules)
   }, [])
 
