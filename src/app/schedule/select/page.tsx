@@ -10,6 +10,7 @@ import CustomModal from '@/components/Modals/CustomModal'
 import { ProfileLarge } from '@/components/Profiles/ProfileLarge'
 import MembersDefault from '@/components/Modals/MembersDefault'
 import { useRouter } from 'next/navigation'
+import { useScheduleStore } from '@/store/scheduleStore'
 import { createTimeSlot } from '@/app/api/timeslot/[surveyId]/route'
 
 interface SelectedDate {
@@ -50,6 +51,9 @@ export default function Page() {
   const [highlightedCol, setHighlightedCol] = useState<number | null>(null)
   const [startTime, setStartTime] = useState<string | null>(null)
   const [endTime, setEndTime] = useState<string | null>(null)
+
+  const { selectedScheduleId } = useScheduleStore() // Zustand에서 가져온 그룹아이디
+  console.log('zustand에서 가져온 groupId', selectedScheduleId)
 
   const confirmedData = [
     {
