@@ -13,6 +13,10 @@ import DateTimeModal from '@/components/Modals/DirectSelect/DateTimeModal'
 import { useHandleSelect } from '@/hooks/useHandleSelect'
 import { useDateTimeStore } from '@/store/dateTimeStore'
 import { useRouter } from 'next/navigation'
+import { createGroupId } from '../api/members/route'
+import { createDirectSchedule } from '../api/schedule/route'
+import { createSurveySchedule } from '../api/survey/route'
+import { useScheduleStore } from '@/store/scheduleStore'
 
 type Schedule = {
   id: number
@@ -39,6 +43,8 @@ export default function ScheduleLanding() {
   const router = useRouter()
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
+
+  const { setSelectedScheduleId } = useScheduleStore() // Zustand에서 가져옴
 
   const getSchedule = useCallback(async () => {
     try {
@@ -157,12 +163,25 @@ export default function ScheduleLanding() {
     alert('오른쪽 버튼 클릭')
   }
 
-  const handlePostSchedule = () => {
+  const handlePostSchedule = async () => {
     console.log('선택날짜', stringDates)
     console.log('mode', mode)
     console.log('selected', selected)
 
-    router.push('/schedule/select')
+    try {
+      // 그룹 생성
+      const groupId = await createGroupId() // 그룹 ID 저장
+
+      // 조율할 일정 생성
+      await createSurveySchedule(groupId, mode, selected, stringDates)
+
+      // 그룹 아이디 전역으로 저장
+      setSelectedScheduleId(groupId)
+
+      router.push('/schedule/select')
+    } catch (error) {
+      console.log('일정 생성 실패', error)
+    }
   }
 
   const handlePostDirectSchedule = async () => {
@@ -171,40 +190,10 @@ export default function ScheduleLanding() {
 
     try {
       // 그룹 생성
-      const response1 = await fetch(`${API_BASE_URL}/api/members`, {
-        method: 'POST',
-        credentials: 'include', // 쿠키 전송을 위해 필요
-      })
-
-      if (!response1.ok) {
-        throw new Error(`서버 에러: ${response1.status}`)
-      }
-
-      const data1 = await response1.json()
-      console.log('그룹 ID:', data1)
-      const groupId = data1.data.groupId // 그룹 ID 저장
+      const groupId = await createGroupId() // 그룹 ID 저장
 
       // 스케줄 생성 - 첫 번째 요청이 끝난 후 실행
-      const response2 = await fetch(`${API_BASE_URL}/api/schedule`, {
-        method: 'POST',
-        credentials: 'include', // 쿠키 전송을 위해 필요
-        headers: {
-          'Content-Type': 'application/json', // JSON 형식 명시
-        },
-        body: JSON.stringify({
-          groupId: groupId, // 첫 번째 요청에서 받은 그룹 ID 사용
-          name: title,
-          startDate: startDate,
-          endDate: endDate,
-        }),
-      })
-
-      if (!response2.ok) {
-        throw new Error(`서버 에러: ${response2.status}`)
-      }
-
-      const data2 = await response2.json()
-      console.log('직접 생성 성공', data2)
+      await createDirectSchedule(groupId, title, startDate, endDate)
 
       // 일정이 추가된 후 다시 스케줄 목록 가져오기
       await getSchedule()
@@ -249,6 +238,7 @@ export default function ScheduleLanding() {
             {scheduleList.map((schedule) => (
               <div key={schedule?.id}>
                 <ScheduleCard
+                  id={schedule?.id}
                   startDate={schedule?.startDate}
                   title={schedule?.title}
                   startTime={schedule?.startTime}
