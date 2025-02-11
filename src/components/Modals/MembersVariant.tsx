@@ -114,7 +114,7 @@ export default function MembersVariant({
                 alt={member.name}
                 width={48}
                 height={48}
-                objectFit="cover"
+                style={{ objectFit: 'cover' }}
                 className="rounded-3xl"
               />
               {/* X 버튼 */}
