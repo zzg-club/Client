@@ -10,7 +10,7 @@ import CustomModal from '@/components/Modals/CustomModal'
 import { ProfileLarge } from '@/components/Profiles/ProfileLarge'
 import MembersDefault from '@/components/Modals/MembersDefault'
 import { useRouter } from 'next/navigation'
-import { useScheduleStore } from '@/store/scheduleStore'
+import { useSurveyStore } from '@/store/surveyStore'
 
 interface SelectedDate {
   year: number
@@ -51,8 +51,8 @@ export default function Page() {
   const [startTime, setStartTime] = useState<string | null>(null)
   const [endTime, setEndTime] = useState<string | null>(null)
 
-  const { selectedScheduleId } = useScheduleStore() // Zustand에서 가져온 그룹아이디
-  console.log('zustand에서 가져온 groupId', selectedScheduleId)
+  const { selectedSurveyId } = useSurveyStore() // Zustand에서 가져온 그룹아이디
+  console.log('zustand에서 가져온 surveyId', selectedSurveyId)
 
   const confirmedData = [
     {

@@ -25,6 +25,8 @@ export const createSurveySchedule = async (
     )
 
     console.log('조율할 일정 생성', response)
+    const surveyId = response.data.data.surveyId
+    return surveyId
   } catch (error) {
     console.error('조율할 일정 생성 실패', error)
   }

@@ -16,7 +16,7 @@ import { useRouter } from 'next/navigation'
 import { createGroupId } from '../api/members/route'
 import { createDirectSchedule } from '../api/schedule/route'
 import { createSurveySchedule } from '../api/survey/route'
-import { useScheduleStore } from '@/store/scheduleStore'
+import { useSurveyStore } from '@/store/surveyStore'
 
 import { getmembersListApi, Schedule } from '@/app/api/members/List/route'
 
@@ -36,7 +36,7 @@ export default function ScheduleLanding() {
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
 
-  const { setSelectedScheduleId } = useScheduleStore() // Zustand에서 가져옴
+  const { setSelectedSurveyId } = useSurveyStore() // Zustand에서 가져옴
 
   const getSchedule = useCallback(async () => {
     const schedules = await getmembersListApi.getMembers()
@@ -137,10 +137,16 @@ export default function ScheduleLanding() {
       const groupId = await createGroupId() // 그룹 ID 저장
 
       // 조율할 일정 생성
-      await createSurveySchedule(groupId, mode, selected, stringDates)
+      const surveyId = await createSurveySchedule(
+        // surveyId 저장
+        groupId,
+        mode,
+        selected,
+        stringDates,
+      )
 
-      // 그룹 아이디 전역으로 저장
-      setSelectedScheduleId(groupId)
+      // surveyId 전역으로 저장
+      setSelectedSurveyId(surveyId)
 
       router.push('/schedule/select')
     } catch (error) {
