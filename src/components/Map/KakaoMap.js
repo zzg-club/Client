@@ -1,6 +1,16 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { getCurrentLocation } from './getCurrentLocation'
 
+/**
+ * @typedef {Object} KakaoMapProps
+ * @property {import('@/types/place').Place} [selectedPlace]
+ * @property {'collapsed' | 'middle' | 'expanded' | ''} [bottomSheetState]
+ * @property {(fn: () => void) => void} [onMoveToCurrentLocation]
+ */
+
+/**
+ * @param {KakaoMapProps} props
+ */
 const KakaoMap = ({
   selectedPlace,
   bottomSheetState,
@@ -11,6 +21,7 @@ const KakaoMap = ({
   const [placeMarker, setPlaceMarker] = useState(null)
   const [currentMarker, setCurrentMarker] = useState(null)
   const [originalPosition, setOriginalPosition] = useState(null)
+  onMoveToCurrentLocation?.();
 
   // 지도 초기화
   useEffect(() => {
@@ -85,7 +96,8 @@ const KakaoMap = ({
               ? '/cafe_location.svg'
               : selectedPlace.category === 2
                 ? '/game_location.svg'
-                : '/default_location.svg'
+                :'/campus_location.svg'
+
 
         const markerImage = new window.kakao.maps.MarkerImage(
           markerImageSrc,

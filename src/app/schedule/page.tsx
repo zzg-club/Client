@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { ScheduleOptions } from '@/components/Buttons/Floating/Options'
 import CustomModal from '@/components/Modals/CustomModal'
 import CustomCalendar from '@/components/Calendars/CustomCalendar'
@@ -14,94 +14,15 @@ import { useHandleSelect } from '@/hooks/useHandleSelect'
 import { useDateTimeStore } from '@/store/dateTimeStore'
 import { useRouter } from 'next/navigation'
 
-// 스케줄 카드 목데이터
-const mockSchedules = [
-  {
-    id: 1,
-    startDate: '12월 6일 금요일',
-    title: '팀 미팅',
-    startTime: '15:00',
-    endTime: '16:30',
-    location: '',
-    participants: [
-      {
-        id: 1,
-        name: '나',
-        image: '/sampleProfile.png',
-      },
-      {
-        id: 2,
-        name: '김태엽',
-        image: '/sampleProfile.png',
-      },
-      {
-        id: 3,
-        name: '지유진',
-        image: '/sampleProfile.png',
-      },
-      {
-        id: 4,
-        name: '이소룡',
-        image: '/sampleProfile.png',
-      },
-      {
-        id: 5,
-        name: '박진우',
-        image: '/sampleProfile.png',
-      },
-      {
-        id: 6,
-        name: '이예지',
-        image: '/sampleProfile.png',
-      },
-      {
-        id: 7,
-        name: '조성하',
-        image: '/sampleProfile.png',
-      },
-      {
-        id: 8,
-        name: '성윤정',
-        image: '/sampleProfile.png',
-      },
-      {
-        id: 9,
-        name: '김나영',
-        image: '/sampleProfile.png',
-      },
-      {
-        id: 10,
-        name: '이채연',
-        image: '/sampleProfile.png',
-      },
-    ],
-  },
-  {
-    id: 2,
-    startDate: '12월 28일 토요일',
-    title: '프로젝트 미팅',
-    startTime: '13:00',
-    endTime: '15:00',
-    location: '서울역',
-    participants: [
-      {
-        id: 1,
-        name: '나',
-        image: '/sampleProfile.png',
-      },
-      {
-        id: 2,
-        name: '김태엽',
-        image: '/sampleProfile.png',
-      },
-      {
-        id: 3,
-        name: '지유진',
-        image: '/sampleProfile.png',
-      },
-    ],
-  },
-]
+type Schedule = {
+  id: number
+  startDate: string
+  title: string
+  startTime: string
+  endTime: string
+  location?: string
+  participants: { id: number; name: string; image: string }[]
+}
 
 export default function ScheduleLanding() {
   const [isOpen, setIsOpen] = useState(false)
@@ -112,23 +33,54 @@ export default function ScheduleLanding() {
     useHandleSelect() // 커스텀 훅으로 날짜 선택 기능 가져오기 (백에 보낼때 stringDates 가져오면 됨)
   const [startDate, setStartDate] = useState<string | null>(null) // 직접입력하기-시작날짜,시간
   const [endDate, setEndDate] = useState<string | null>(null) // 직접입력하기-끝날짜,시간
+  const [scheduleList, setScheduleList] = useState<Schedule[]>([])
 
   const resetDateTime = useDateTimeStore((state) => state.resetDateTime)
   const router = useRouter()
 
-  // 연동 데이터
-  const [groupId, setGroupId] = useState<number | null>(null)
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
 
+  const getSchedule = useCallback(async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/members/List`, {
+        method: 'GET',
+        credentials: 'include', // 쿠키 전송을 위해 필요
+      })
+      if (!response.ok) {
+        // 예외 처리
+        throw new Error(`서버 에러: ${response.status}`)
+      }
+      const data = await response.json()
+      console.log('스케줄 정보:', data.data)
+      if (Array.isArray(data.data)) {
+        const formattedSchedules = data.data.map((schedule: Schedule) => ({
+          id: schedule.id,
+          startDate: schedule.startDate || '날짜 미정',
+          // title: schedule.title ?? '제목 없는 일정',
+          title: schedule.title,
+          startTime: schedule.startTime || '시간 미정',
+          endTime: schedule.endTime || '시간 미정',
+          location: schedule.location || '',
+          participants: schedule.participants || [],
+        }))
+
+        setScheduleList(formattedSchedules)
+      } else {
+        console.error('데이터 구조 에러:', data.data)
+      }
+    } catch (error) {
+      console.error('스케줄 정보 불러오기 실패:', error)
+    }
+  }, [API_BASE_URL])
+
+  // 연동 데이터
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
-        const response = await fetch(
-          'https://api.moim.team/api/user/information',
-          {
-            method: 'GET',
-            credentials: 'include', // 쿠키 전송을 위해 필요
-          },
-        )
+        const response = await fetch(`${API_BASE_URL}/api/user/information`, {
+          method: 'GET',
+          credentials: 'include', // 쿠키 전송을 위해 필요
+        })
         if (!response.ok) {
           // 예외 처리
           throw new Error(`서버 에러: ${response.status}`)
@@ -140,29 +92,9 @@ export default function ScheduleLanding() {
       }
     }
 
-    const getSchedule = async () => {
-      try {
-        const response = await fetch(
-          'https://api.moim.team/api/schedule/get-all',
-          {
-            method: 'GET',
-            credentials: 'include', // 쿠키 전송을 위해 필요
-          },
-        )
-        if (!response.ok) {
-          // 예외 처리
-          throw new Error(`서버 에러: ${response.status}`)
-        }
-        const data = await response.json()
-        console.log('스케줄 정보:', data)
-      } catch (error) {
-        console.error('스케줄 정보 불러오기 실패:', error)
-      }
-    }
-
     fetchUserInfo()
     getSchedule()
-  }, [])
+  }, [API_BASE_URL, getSchedule])
 
   // 제목 수정 함수
   const handleTitleChange = (newTitle: string) => {
@@ -179,28 +111,14 @@ export default function ScheduleLanding() {
     }
     setIsCdialogOpen(!isCdialogOpen)
   }
+
   const handleOpenDdialg = async () => {
     if (isDdialogOpen) {
       // 직접 입력 모달이 닫힐 때 시작/끝 날짜,시간 초기화
       resetDateTime()
+      setTitle('제목 없는 일정')
     }
     setIsDdialogOpen(!isDdialogOpen)
-
-    try {
-      const response = await fetch('https://api.moim.team/api/members', {
-        method: 'POST',
-        credentials: 'include', // 쿠키 전송을 위해 필요
-      })
-      if (!response.ok) {
-        // 예외 처리
-        throw new Error(`서버 에러: ${response.status}`)
-      }
-      const data = await response.json()
-      console.log('그룹 ID', data)
-      setGroupId(data.data.groupId)
-    } catch (error) {
-      console.error('그룹 아이디 만들기 실패', error)
-    }
   }
 
   // 직접입력하기 모달에서 받아온 시작, 끝 string 저장
@@ -252,29 +170,51 @@ export default function ScheduleLanding() {
     console.log('endDate', endDate)
 
     try {
-      const response = await fetch('https://api.moim.team/api/schedule', {
+      // 그룹 생성
+      const response1 = await fetch(`${API_BASE_URL}/api/members`, {
+        method: 'POST',
+        credentials: 'include', // 쿠키 전송을 위해 필요
+      })
+
+      if (!response1.ok) {
+        throw new Error(`서버 에러: ${response1.status}`)
+      }
+
+      const data1 = await response1.json()
+      console.log('그룹 ID:', data1)
+      const groupId = data1.data.groupId // 그룹 ID 저장
+
+      // 스케줄 생성 - 첫 번째 요청이 끝난 후 실행
+      const response2 = await fetch(`${API_BASE_URL}/api/schedule`, {
         method: 'POST',
         credentials: 'include', // 쿠키 전송을 위해 필요
         headers: {
           'Content-Type': 'application/json', // JSON 형식 명시
         },
         body: JSON.stringify({
-          groupId: groupId,
+          groupId: groupId, // 첫 번째 요청에서 받은 그룹 ID 사용
           name: title,
           startDate: startDate,
           endDate: endDate,
         }),
       })
-      if (!response.ok) {
-        // 예외 처리
-        throw new Error(`서버 에러: ${response.status}`)
+
+      if (!response2.ok) {
+        throw new Error(`서버 에러: ${response2.status}`)
       }
-      const data = await response.json()
-      console.log('직접 생성 성공', data)
+
+      const data2 = await response2.json()
+      console.log('직접 생성 성공', data2)
+
+      // 일정이 추가된 후 다시 스케줄 목록 가져오기
+      await getSchedule()
     } catch (error) {
-      console.error('직접 생성 실패', error)
+      console.error('API 요청 실패', error)
     }
 
+    setIsDdialogOpen(false)
+    setIsOpen(false)
+    resetDateTime()
     router.push('/schedule')
   }
 
@@ -295,26 +235,26 @@ export default function ScheduleLanding() {
       )}
 
       {/* 스케줄 카드 컴포넌트 */}
-      {mockSchedules.length > 0 ? (
+      {scheduleList.length > 0 ? (
         <>
           <div className="w-full h-[34px] px-4 my-[8px] flex justify-start items-center gap-[2px]">
             <div className="ml-[8px] text-[#1e1e1e] text-xs font-medium leading-[17px]">
               내 일정
             </div>
             <div className="text-[#9562fa] text-base font-medium leading-[17px]">
-              +{mockSchedules.length}
+              +{scheduleList.length}
             </div>
           </div>
           <div className="flex-1 overflow-y-auto pb-[120px]">
-            {mockSchedules.map((schedule) => (
-              <div key={schedule.id}>
+            {scheduleList.map((schedule) => (
+              <div key={schedule?.id}>
                 <ScheduleCard
-                  startDate={schedule.startDate}
-                  title={schedule.title}
-                  startTime={schedule.startTime}
-                  endTime={schedule.endTime}
-                  location={schedule.location}
-                  participants={schedule.participants}
+                  startDate={schedule?.startDate}
+                  title={schedule?.title}
+                  startTime={schedule?.startTime}
+                  endTime={schedule?.endTime}
+                  location={schedule?.location}
+                  participants={schedule?.participants}
                 />
               </div>
             ))}

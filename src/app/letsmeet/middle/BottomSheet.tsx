@@ -8,7 +8,7 @@ import styles from './BottomSheet.module.css'
 interface Participant {
   name: string
   time: string
-  icon: string
+  image: string
   transportIcon: string
 }
 
@@ -180,14 +180,14 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
             {participants.map((participant, index) => (
               <div key={index} className={styles.participantItem}>
                 <img
-                  src={participant.icon}
+                  src={participant.image}
                   alt={`${participant.name} 아이콘`}
                   className={styles.participantIcon}
                   style={{
                     borderColor:
                       index === 0
                         ? 'var(--MainColor, #9562FB)'
-                        : 'var(--subway_time, #FFCF33)',
+                        : 'var(--subway_time, #AFAFAF)',
                   }}
                 />
                 <p
@@ -196,13 +196,13 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
                     color:
                       index === 0
                         ? 'var(--MainColor, #9562FB)'
-                        : 'var(--subway_time, #FFCF33)',
+                        : 'var(--subway_time, #AFAFAF)',
                   }}
                 >
                   {participant.time}
                 </p>
                 <img
-                  src={participant.transportIcon}
+                  src={index === 0 ? '/subwayPurple.svg' : '/subwayGray.svg'}
                   alt="Transport Icon"
                   className={styles.transportIcon}
                 />
