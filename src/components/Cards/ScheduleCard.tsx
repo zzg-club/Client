@@ -13,7 +13,7 @@ export interface ScheduleCardProps {
   startTime: string
   endTime: string
   location?: string
-  participants: { id: number; name: string; image: string }[]
+  participants: { id: number; name: string; image: string; type: string }[]
 }
 
 export function ScheduleCard({

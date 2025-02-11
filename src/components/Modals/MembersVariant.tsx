@@ -17,6 +17,7 @@ export interface ModalProps {
     id: number
     name: string
     image: string
+    type: string
   }>
   onClickX: (id: number) => void
 }
@@ -90,8 +91,8 @@ export default function MembersVariant({
       <div className="mb-6">
         <ModalNotification
           messageText={
-            members.find((member) => member.id === selectedMemberId)?.name ===
-            '나'
+            members.find((member) => member.id === selectedMemberId)?.type ===
+            'creator&my'
               ? '정말로 이 모임을 나가시겠어요?'
               : '정말로 이 멤버를 삭제하시겠어요?'
           }
