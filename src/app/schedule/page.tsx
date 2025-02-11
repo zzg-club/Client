@@ -38,17 +38,16 @@ export default function ScheduleLanding() {
   const resetDateTime = useDateTimeStore((state) => state.resetDateTime)
   const router = useRouter()
 
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
+
   // 연동 데이터
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
-        const response = await fetch(
-          'https://api.moim.team/api/user/information',
-          {
-            method: 'GET',
-            credentials: 'include', // 쿠키 전송을 위해 필요
-          },
-        )
+        const response = await fetch(`${API_BASE_URL}/api/user/information`, {
+          method: 'GET',
+          credentials: 'include', // 쿠키 전송을 위해 필요
+        })
         if (!response.ok) {
           // 예외 처리
           throw new Error(`서버 에러: ${response.status}`)
@@ -62,7 +61,7 @@ export default function ScheduleLanding() {
 
     const getSchedule = async () => {
       try {
-        const response = await fetch('https://api.moim.team/api/members/List', {
+        const response = await fetch(`${API_BASE_URL}/api/members/List`, {
           method: 'GET',
           credentials: 'include', // 쿠키 전송을 위해 필요
         })
@@ -95,7 +94,7 @@ export default function ScheduleLanding() {
 
     fetchUserInfo()
     getSchedule()
-  }, [])
+  }, [API_BASE_URL])
 
   // 제목 수정 함수
   const handleTitleChange = (newTitle: string) => {
@@ -171,7 +170,7 @@ export default function ScheduleLanding() {
 
     try {
       // 그룹 생성
-      const response1 = await fetch('https://api.moim.team/api/members', {
+      const response1 = await fetch(`${API_BASE_URL}/api/members`, {
         method: 'POST',
         credentials: 'include', // 쿠키 전송을 위해 필요
       })
@@ -185,7 +184,7 @@ export default function ScheduleLanding() {
       const groupId = data1.data.groupId // 그룹 ID 저장
 
       // 스케줄 생성 - 첫 번째 요청이 끝난 후 실행
-      const response2 = await fetch('https://api.moim.team/api/schedule', {
+      const response2 = await fetch(`${API_BASE_URL}/api/schedule`, {
         method: 'POST',
         credentials: 'include', // 쿠키 전송을 위해 필요
         headers: {
