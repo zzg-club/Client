@@ -11,7 +11,7 @@ import { ProfileLarge } from '@/components/Profiles/ProfileLarge'
 import MembersDefault from '@/components/Modals/MembersDefault'
 import { useRouter } from 'next/navigation'
 import { useScheduleStore } from '@/store/scheduleStore'
-import { createTimeSlot } from '@/app/api/timeslot/[surveyId]/route'
+import { selectApi } from '@/app/api/timeslot/[surveyId]/route'
 
 interface SelectedDate {
   year: number
@@ -261,7 +261,7 @@ export default function Page() {
         // console.log('Post할 항목:', postTimeSlot)
 
         // createTimeSlot 함수 호출
-        createTimeSlot(
+        selectApi.createTimeSlot(
           postTimeSlot.slotDate,
           postTimeSlot.startTime,
           postTimeSlot.endTime,
