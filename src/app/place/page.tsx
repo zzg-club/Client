@@ -5,20 +5,17 @@ import { useRouter } from 'next/navigation'
 import KakaoMap from '@/components/Map/KakaoMap'
 import Navbar from '@/components/Navigate/NavBar'
 import styles from '@/app/place/styles/Home.module.css'
-import { fetchFilters } from '@/app/api/places/filter/route'
-import { fetchCategoryData } from '@/app/api/places/category/[categoryIndex]/route'
-import { fetchLikedStates } from '@/app/api/places/liked/route'
-import { fetchUserInformation } from '@/app/api/user/information/route'
-import { toggleLike } from '@/app/api/places/like/route'
-import { fetchFilteredCategoryData } from '@/app/api/places/category/[categoryIndex]/route' // 필터 데이터 API
-import { fetchLikeCount } from '../api/places/updateLike/route'
+import { fetchLikedStates } from '@/services/place'
+import { fetchUserInformation } from '@/services/place'
+import { toggleLike } from '@/services/place'
+import { fetchLikeCount } from '@/services/place'
 import { CardData } from '@/types/card'
 import { Place } from '@/types/place'
+import { CategoryPerData } from '@/types/categoryPerData'
+import { fetchCategoryData } from '@/services/place'
+import { fetchFilteredCategoryData } from '@/services/place'
+import { fetchFilters } from '@/services/place'
 
-interface FilterResponse {
-  category: string
-  filters: Record<string, string>
-}
 
 const tabs = [
   { id: 'food', label: '음식점' },
@@ -32,7 +29,7 @@ export default function Home() {
   const [bottomSheetState, setBottomSheetState] = useState<
     'collapsed' | 'middle' | 'expanded'
   >('collapsed')
-  const [filters, setFilters] = useState<FilterResponse[]>([]) // 필터 데이터를 저장
+  const [filters, setFilters] = useState<CategoryPerData[]>([]) // 필터 데이터를 저장
   const [selectedTab, setSelectedTab] = useState<string>(tabs[0].id)
   const startY = useRef<number | null>(null)
   const threshold = 50
@@ -272,22 +269,18 @@ export default function Home() {
   useEffect(() => {
     const loadFilters = async () => {
       try {
-        const response = await fetchFilters() // 분리된 함수 호출
-
-        const { success, data, error } = await response.json() // 응답 처리
-
+        const { success, data } = await fetchFilters();  // JSON 처리된 데이터 반환
+  
         if (success && Array.isArray(data)) {
-          setFilters(data) // 상태 업데이트
-        } else {
-          console.error('Failed to fetch filters:', error || 'Unknown error')
+          setFilters(data); 
         }
       } catch (error) {
-        console.error('Error fetching filters:', error)
+        console.error('Error fetching filters:', error);
       }
-    }
-
-    loadFilters() // 필터 데이터 로드
-  }, [])
+    };
+  
+    loadFilters(); // 필터 데이터 로드
+  }, []);
 
   const getCurrentTabFilters = () => {
     const currentCategory = tabs.find((tab) => tab.id === selectedTab)?.label
