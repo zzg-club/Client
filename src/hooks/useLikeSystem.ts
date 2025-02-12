@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
-import { fetchLikedStates } from '@/app/api/places/liked/route'
-import { fetchLikeCount } from '@/app/api/places/updateLike/route'
-import { toggleLike } from '@/app/api/places/like/route'
+import { fetchLikedStates } from '@/services/place'
+import { fetchLikeCount } from '@/services/place'
+import { toggleLike } from '@/services/place'
 
 export const useLikeSystem = (placeId: number) => {
   const [liked, setLiked] = useState<boolean>(false)
