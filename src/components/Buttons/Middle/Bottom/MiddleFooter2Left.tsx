@@ -14,9 +14,9 @@ const MiddleFooter2Right: React.FC<MiddleFooter2RightProps> = ({ onClick }) => {
       <Image
         src="/arrow_white.svg"
         alt="Slide Button"
+        width={24}
+        height={24}
         style={{
-          width: '24px',
-          height: '24px',
           objectFit: 'contain',
         }}
       />

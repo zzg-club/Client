@@ -56,7 +56,8 @@ export default function LocationModal({
               <Image
                 src="/vector.svg"
                 alt="위치 아이콘"
-                style={{ width: '20px', height: '20px' }}
+                width={20}
+                height={20}
               />
             </button>
           </div>

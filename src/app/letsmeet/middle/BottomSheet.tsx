@@ -159,10 +159,10 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
               <Image
                 src="/arrow_back_mirrored.svg"
                 alt="Arrow Icon"
-                style={{
-                  width: '12px',
-                  height: '12px',
-                }}
+                layout="intrinsic"
+                width={6}
+                height={10}
+                style={{ width: 'auto', height: 'auto' }}
               />
             </div>
           </div>
@@ -183,7 +183,9 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
                 <Image
                   src={participant.image}
                   alt={`${participant.name} 아이콘`}
-                  className={styles.participantIcon}
+                  width={36}
+                  height={36}
+                  className={`${styles.participantIcon} `}
                   style={{
                     borderColor:
                       index === 0
@@ -191,6 +193,7 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
                         : 'var(--subway_time, #AFAFAF)',
                   }}
                 />
+
                 <p
                   className={styles.participantText}
                   style={{
@@ -205,7 +208,9 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
                 <Image
                   src={participant.transportIcon}
                   alt="Transport Icon"
-                  className={styles.transportIcon}
+                  width={28}
+                  height={28}
+                  className={`${styles.transportIcon} ${index === 0 ? styles.mainTransportIcon : ''}`}
                 />
               </div>
             ))}

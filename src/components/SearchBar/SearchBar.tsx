@@ -56,6 +56,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
       <Image
         src="/search.svg"
         alt="돋보기 아이콘"
+        width={24}
+        height={24}
         className={styles.searchIcon}
         onClick={handleSearch}
       />
@@ -72,6 +74,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
         <Image
           src="/cancel.svg"
           alt="취소 버튼"
+          width={24}
+          height={24}
           className={styles.cancelIcon}
           onClick={handleCancel}
         />

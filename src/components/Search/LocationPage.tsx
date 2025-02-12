@@ -8,7 +8,42 @@ import Image from 'next/image'
 
 const KAKAO_API_KEY = 'f697e8edee03d3262340794ba1beb411'
 
-const LocationPage = () => {
+interface LocationPageProps {
+  onLocationClick: () => void // 리스트 항목 클릭 이벤트
+}
+
+interface Address {
+  address_name: string
+}
+
+interface RoadAddress {
+  building_name?: string
+  address_name: string
+}
+
+// "주소 검색 API" 응답 타입 (address_name은 address 내부에 존재)
+interface AddressDocument {
+  address?: Address
+  road_address?: RoadAddress
+}
+
+// "장소 검색 API" 응답 타입 (place_name 포함)
+interface PlaceDocument {
+  place_name: string
+  address_name: string
+  road_address_name?: string
+}
+
+// API 응답 타입
+interface AddressAPIResponse {
+  documents: AddressDocument[]
+}
+
+interface PlaceAPIResponse {
+  documents: PlaceDocument[]
+}
+
+const LocationPage: React.FC<LocationPageProps> = ({ onLocationClick }) => {
   const router = useRouter()
   const searchParams = useSearchParams()
   const from = searchParams.get('from')
@@ -50,16 +85,26 @@ const LocationPage = () => {
       // 🔹 1. 주소 검색 API 요청
       const addressResponse = await fetch(
         `https://dapi.kakao.com/v2/local/search/address.json?query=${queryEncoded}`,
-        { headers: { Authorization: `KakaoAK ${KAKAO_API_KEY}` } },
+        {
+          headers: {
+            Authorization: `KakaoAK ${KAKAO_API_KEY}`,
+            Referer: 'https://localhost:3000',
+          },
+        },
       )
-      const addressData = await addressResponse.json()
+      const addressData: AddressAPIResponse = await addressResponse.json()
 
       // 🔹 2. 장소 검색 API 요청
       const placeResponse = await fetch(
         `https://dapi.kakao.com/v2/local/search/keyword.json?query=${queryEncoded}`,
-        { headers: { Authorization: `KakaoAK ${KAKAO_API_KEY}` } },
+        {
+          headers: {
+            Authorization: `KakaoAK ${KAKAO_API_KEY}`,
+            Referer: 'https://localhost:3000',
+          },
+        },
       )
-      const placeData = await placeResponse.json()
+      const placeData: PlaceAPIResponse = await placeResponse.json()
 
       const combinedResults: { place: string; jibun: string; road: string }[] =
         []
@@ -78,7 +123,7 @@ const LocationPage = () => {
 
       placeData.documents.forEach((doc) => {
         combinedResults.push({
-          place: doc.place_name,
+          place: doc.place_name, // ✅ "장소 검색 API"에서만 존재
           jibun: doc.address_name || '지번 주소 없음',
           road: doc.road_address_name || '도로명 주소 없음',
         })
@@ -97,11 +142,16 @@ const LocationPage = () => {
     try {
       const response = await fetch(
         `https://dapi.kakao.com/v2/local/search/keyword.json?query=주변&x=${longitude}&y=${latitude}&radius=5000&sort=distance`,
-        { headers: { Authorization: `KakaoAK ${KAKAO_API_KEY}` } },
+        {
+          headers: {
+            Authorization: `KakaoAK ${KAKAO_API_KEY}`,
+            Referer: 'https://localhost:3000',
+          },
+        },
       )
       const data = await response.json()
-
-      const nearbyPlaces = data.documents.map((place) => ({
+      console.log('🔹 Kakao API 응답:', data)
+      const nearbyPlaces = data.documents.map((place: PlaceDocument) => ({
         place: place.place_name,
         jibun: place.address_name || '지번 주소 없음',
         road: place.road_address_name || '도로명 주소 없음',
@@ -113,12 +163,13 @@ const LocationPage = () => {
     }
   }
 
-  const handleLocationSelect = (location: string) => {
+  /*const handleLocationSelect = (location: string) => {
     // 🔹 letsmeet/middle 경로로 선택된 장소 전달
     router.push(
       `/letsmeet/middle?selectedLocation=${encodeURIComponent(location)}`,
     )
-  }
+  }*/
+
   const handleBackClick = () => {
     router.push(`/search?from=${from}`)
   }
@@ -131,6 +182,8 @@ const LocationPage = () => {
         <Image
           src="/arrow_back.svg"
           alt="뒤로 가기"
+          width={24}
+          height={24}
           className="w-6 h-6 cursor-pointer"
           onClick={handleBackClick}
         />
@@ -166,7 +219,7 @@ const LocationPage = () => {
           <div
             key={index}
             className="flex h-[80px] py-4 px-7 flex-col justify-center items-start gap-2 self-stretch rounded-full bg-white"
-            onClick={() => handleLocationSelect(location.place)}
+            onClick={onLocationClick}
           >
             <p className="text-[#1e1e1e] text-center font-pretendard text-[16px] font-normal leading-[17px] tracking-[-0.5px]">
               {location.place}

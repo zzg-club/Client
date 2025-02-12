@@ -38,6 +38,8 @@ export default function SearchPage() {
         <Image
           src="/arrow_back.svg"
           alt="뒤로 가기"
+          width={24}
+          height={24}
           className="w-6 h-6 cursor-pointer"
           onClick={handleBackClick}
         />
@@ -62,8 +64,14 @@ export default function SearchPage() {
         className="flex items-center justify-center mx-auto w-[356px] h-[42px] border border-[#9562fb] rounded-[24px] text-[#9562fb] text-[14px] font-medium leading-[17px] tracking-[-0.5px] cursor-pointer gap-2 p-0 mt-4"
         onClick={handleLocationClick}
       >
-        <Image src="/vector.svg" alt="위치 아이콘" className="w-7 h-7" />내 위치
-        불러오기
+        <Image
+          src="/vector.svg"
+          alt="위치 아이콘"
+          width={28}
+          height={28}
+          className="w-7 h-7"
+        />
+        내 위치 불러오기
       </button>
     </div>
   )

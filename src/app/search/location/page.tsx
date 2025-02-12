@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { LocationPage } from '@/components/Search'
+import LocationPage from '@/components/Search/LocationPage'
 import { useSearchParams } from 'next/navigation'
 
 const Location = () => {
