@@ -1,38 +1,57 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
+import { NextResponse } from 'next/server';
 
-/**
- * 특정 장소의 좋아요 수를 불러오는 API
- * @param placeId 장소 ID
- * @returns {Promise<number>} 장소의 좋아요 개수
- */
-export const fetchLikeCount = async (placeId: number): Promise<number> => {
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
+export async function POST(req: Request) {
+  const { placeId, liked } = await req.json(); 
+
   if (!API_BASE_URL) {
-    console.error('API_BASE_URL is not defined.')
-    throw new Error('API_BASE_URL is not configured.')
+    console.error('API_BASE_URL is not defined in environment variables.');
+    return NextResponse.json(
+      { success: false, error: 'API_BASE_URL is not configured' },
+      { status: 500 }
+    );
+  }
+
+  if (!placeId || typeof liked !== 'boolean') {
+    console.error('Invalid placeId or liked status:', { placeId, liked });
+    return NextResponse.json(
+      { success: false, error: 'placeId and liked status are required' },
+      { status: 400 }
+    );
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}/api/places/like/${placeId}`, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-    })
+    const url = liked
+      ? `${API_BASE_URL}/api/place/like/like`
+      : `${API_BASE_URL}/api/place/like/unlike`;
+
+    const body = new URLSearchParams();
+    body.append('placeId', placeId.toString());
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      credentials: 'include', // 쿠키 포함
+      body: body.toString(),
+    });
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch like count. Status: ${response.status}`)
+      console.error(
+        `Failed to update like status for placeId ${placeId}. HTTP Status: ${response.status}`
+      );
+      return NextResponse.json(
+        { success: false, error: `Failed to update like status. Status: ${response.status}` },
+        { status: response.status }
+      );
     }
 
-    const result = await response.json()
-
-    // **data가 단순 숫자일 경우 직접 반환**
-    if (typeof result.data === 'number') {
-      return result.data
-    }
-
-    // **예상 데이터 형식이 다를 경우 오류 로그 출력**
-    console.error('Invalid response format:', result)
-    throw new Error('Invalid like count response format.')
+    return NextResponse.json({ success: true, data: !liked });
   } catch (error) {
-    console.error(`Error fetching like count for placeId ${placeId}:`, error)
-    return 0 // 기본값으로 0 반환 (에러 발생 시)
+    console.error('Error updating like status:', error);
+    return NextResponse.json(
+      { success: false, error: 'Server error' },
+      { status: 500 }
+    );
   }
 }

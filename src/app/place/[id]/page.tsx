@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import PlaceDetail from '@/components/Place/PlaceDatail';
-import { fetchPlaceData } from '@/app/api/places/fetchPlaceData';
+import { fetchPlaceData } from '@/services/place';
 import { Place } from '@/types/place';
 
 const PlacePage = () => {
