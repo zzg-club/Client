@@ -107,7 +107,7 @@ export default function Middle() {
 
     initializeMap()
     updateParticipants()
-  }, [currentIndex])
+  }, [currentIndex, destination.lat, destination.lng])
 
   const handleSlideChange = (direction: 'left' | 'right') => {
     setCurrentIndex((prevIndex) => {
