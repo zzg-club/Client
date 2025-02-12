@@ -3,6 +3,7 @@
 import EditTitle from '@/components/Header/DirectPlace/EditTitle'
 import { X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 
 export interface LocationModalProps {
   isVisible: boolean
@@ -52,7 +53,7 @@ export default function LocationModal({
               onClick={handleSearchNavigation}
               className="flex w-[228px] px-3 py-1.5 justify-end items-center gap-[10px] rounded-[24px] border border-[var(--NavBarColor,#AFAFAF)] bg-[var(--Grays-White,#FFF)] cursor-pointer"
             >
-              <img
+              <Image
                 src="/vector.svg"
                 alt="위치 아이콘"
                 style={{ width: '20px', height: '20px' }}
