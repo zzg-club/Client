@@ -261,11 +261,14 @@ export default function Page() {
         // console.log('Post할 항목:', postTimeSlot)
 
         // createTimeSlot 함수 호출
-        selectApi.createTimeSlot(
-          postTimeSlot.slotDate,
-          postTimeSlot.startTime,
-          postTimeSlot.endTime,
-        )
+        if (selectedSurveyId !== null) {
+          selectApi.createTimeSlot(
+            selectedSurveyId,
+            postTimeSlot.slotDate,
+            postTimeSlot.startTime,
+            postTimeSlot.endTime,
+          )
+        }
 
         updated[existingDateIndex].timeSlots = timeSlots
         return updated
