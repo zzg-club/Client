@@ -1,10 +1,38 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import ReactDOMServer from 'react-dom/server'
 import CustomPin from '@/components/Pin/CustomPin'
 import DestinationPin from '@/components/Pin/DestinationPin'
 
-const PinMap = ({ kakaoMap, participants, destination }) => {
-  const overlays = [] // 기존 핀들을 저장할 배열
+interface Participant {
+  id: number
+  name: string
+  time: string
+  image: string
+  lat: number
+  lng: number
+  transport: string
+  transportIcon: string
+  depart: string
+}
+
+interface Destination {
+  name: string
+  lat: number
+  lng: number
+}
+
+interface PinMapProps {
+  kakaoMap: kakao.maps.Map | null
+  participants: Participant[]
+  destination: Destination
+}
+
+const PinMap: React.FC<PinMapProps> = ({
+  kakaoMap,
+  participants,
+  destination,
+}) => {
+  const overlays = useRef<kakao.maps.CustomOverlay[]>([]) // 기존 핀들을 저장할 배열
 
   useEffect(() => {
     if (!kakaoMap) {
@@ -16,8 +44,8 @@ const PinMap = ({ kakaoMap, participants, destination }) => {
 
     // 기존 핀 제거 함수
     const clearOverlays = () => {
-      overlays.forEach((overlay) => overlay.setMap(null))
-      overlays.length = 0 // 배열 초기화
+      overlays.current.forEach((overlay) => overlay.setMap(null))
+      overlays.current = [] // 배열을 초기화하지만 참조 유지
     }
 
     // 기존 핀 제거
@@ -43,7 +71,7 @@ const PinMap = ({ kakaoMap, participants, destination }) => {
       })
 
       myOverlay.setMap(kakaoMap)
-      overlays.push(myOverlay) // 배열에 추가
+      overlays.current.push(myOverlay) // 배열에 추가
       bounds.extend(
         new window.kakao.maps.LatLng(participants[0].lat, participants[0].lng),
       )
@@ -69,7 +97,7 @@ const PinMap = ({ kakaoMap, participants, destination }) => {
       })
 
       participantOverlay.setMap(kakaoMap)
-      overlays.push(participantOverlay) // 배열에 추가
+      overlays.current.push(participantOverlay) // 배열에 추가
       bounds.extend(
         new window.kakao.maps.LatLng(participant.lat, participant.lng),
       )
@@ -91,7 +119,7 @@ const PinMap = ({ kakaoMap, participants, destination }) => {
       })
 
       destinationOverlay.setMap(kakaoMap)
-      overlays.push(destinationOverlay) // 배열에 추가
+      overlays.current.push(destinationOverlay) // 배열에 추가
       bounds.extend(
         new window.kakao.maps.LatLng(destination.lat, destination.lng),
       )
