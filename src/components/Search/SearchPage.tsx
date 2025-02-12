@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import SearchBar from '@/components/SearchBar/SearchBar'
+import Image from 'next/image'
 
 export default function SearchPage() {
   const router = useRouter()
@@ -34,7 +35,7 @@ export default function SearchPage() {
     <div className="flex flex-col h-screen">
       <div className="flex w-full px-3 py-[11px] justify-center items-center gap-2 rounded-b-[24px] bg-white shadow-[0_0_10px_0_rgba(30,30,30,0.1)]">
         {/* 뒤로가기 버튼 */}
-        <img
+        <Image
           src="/arrow_back.svg"
           alt="뒤로 가기"
           className="w-6 h-6 cursor-pointer"
@@ -61,7 +62,7 @@ export default function SearchPage() {
         className="flex items-center justify-center mx-auto w-[356px] h-[42px] border border-[#9562fb] rounded-[24px] text-[#9562fb] text-[14px] font-medium leading-[17px] tracking-[-0.5px] cursor-pointer gap-2 p-0 mt-4"
         onClick={handleLocationClick}
       >
-        <img src="/vector.svg" alt="위치 아이콘" className="w-7 h-7" />내 위치
+        <Image src="/vector.svg" alt="위치 아이콘" className="w-7 h-7" />내 위치
         불러오기
       </button>
     </div>

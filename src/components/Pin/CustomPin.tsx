@@ -1,5 +1,6 @@
 import React from 'react'
 import './CustomPin.css'
+import Image from 'next/image'
 
 interface CustomPinProps {
   imagePath: string
@@ -18,7 +19,7 @@ const CustomPin: React.FC<CustomPinProps> = ({
         className="pin-globe"
         style={{ backgroundImage: `url(${imagePath})` }}
       ></div>
-      <img
+      <Image
         src={isMine ? '/Polygon2Purple.svg' : '/Polygon2Gray.svg'}
         className="pin-polygon"
         alt="Polygon shape"
