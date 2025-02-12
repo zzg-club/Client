@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { fetchKakaoLoginUrl } from './api/start-login/route'
+import { fetchKakaoLoginUrl } from '@/services/place'
 
 export default function Home() {
   const [isSheetExpanded, setIsSheetExpanded] = useState(false) // Bottom Sheet 상태
