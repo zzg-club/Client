@@ -1,9 +1,10 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import SearchBar from '@/components/SearchBar/SearchBar'
 import { getCurrentLocation } from '@/components/Map/getCurrentLocation'
+import Image from 'next/image'
 
 const KAKAO_API_KEY = 'f697e8edee03d3262340794ba1beb411'
 
@@ -18,16 +19,7 @@ const LocationPage = () => {
     { place: string; jibun: string; road: string }[]
   >([])
 
-  useEffect(() => {
-    if (searchQuery === 'current') {
-      // 🔹 내 위치를 가져와서 검색
-      fetchCurrentLocationData()
-    } else if (searchQuery.trim()) {
-      fetchAddressByQuery(searchQuery)
-    }
-  }, [searchQuery])
-
-  const fetchCurrentLocationData = async () => {
+  const fetchCurrentLocationData = useCallback(async () => {
     try {
       const { lat, lng } = await getCurrentLocation()
       console.log(`현재 위치: 위도 ${lat}, 경도 ${lng}`)
@@ -35,7 +27,16 @@ const LocationPage = () => {
     } catch (error) {
       console.error('위치 정보 가져오기 실패:', error)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    if (searchQuery === 'current') {
+      // 🔹 내 위치를 가져와서 검색
+      fetchCurrentLocationData()
+    } else if (searchQuery.trim()) {
+      fetchAddressByQuery(searchQuery)
+    }
+  }, [searchQuery, fetchCurrentLocationData])
 
   const fetchAddressByQuery = async (query: string) => {
     if (!query.trim()) {
@@ -127,7 +128,7 @@ const LocationPage = () => {
       {/* 검색창 */}
       <div className="flex w-full px-3 py-[11px] justify-center items-center gap-2 rounded-b-[24px] bg-white shadow-[0_0_10px_0_rgba(30,30,30,0.1)]">
         {/* 뒤로가기 버튼 */}
-        <img
+        <Image
           src="/arrow_back.svg"
           alt="뒤로 가기"
           className="w-6 h-6 cursor-pointer"
