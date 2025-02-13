@@ -99,6 +99,15 @@ export default function MembersVariant({
               ? '정말로 이 모임을 나가시겠어요?'
               : '정말로 이 멤버를 삭제하시겠어요?'
           }
+          alertText={(() => {
+            const selectedMember = members.find(
+              (member) => member.id === selectedMemberId,
+            )
+
+            return selectedMember?.type === 'creator&my'
+              ? '모임장이 나가면 모임이 삭제됩니다.'
+              : undefined
+          })()}
           isVisible={showNotification}
           onConfirm={handleConfirm}
           onCancel={handleCancel}
