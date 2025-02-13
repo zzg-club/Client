@@ -18,7 +18,23 @@ import { createDirectSchedule } from '../api/schedule/route'
 import { createSurveySchedule } from '../api/survey/route'
 import { useSurveyStore } from '@/store/surveyStore'
 
-import { getmembersListApi, Schedule } from '@/app/api/members/List/route'
+// /api/members/List 연동
+export type Participant = {
+  id: number
+  name: string
+  image: string
+  type: string
+}
+
+export type Schedule = {
+  id: number
+  startDate: string
+  title: string
+  startTime: string
+  endTime: string
+  location?: string
+  participants: Participant[]
+}
 
 export default function ScheduleLanding() {
   const [isOpen, setIsOpen] = useState(false)
@@ -39,9 +55,37 @@ export default function ScheduleLanding() {
   const { setSelectedSurveyId } = useSurveyStore() // Zustand에서 가져옴
 
   const getSchedule = useCallback(async () => {
-    const schedules = await getmembersListApi.getMembers()
-    setScheduleList(schedules)
-  }, [])
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/members/List`, {
+        method: 'GET',
+        credentials: 'include', // 쿠키 전송을 위해 필요
+      })
+      if (!response.ok) {
+        // 예외 처리
+        throw new Error(`서버 에러: ${response.status}`)
+      }
+      const data = await response.json()
+      console.log('스케줄 정보:', data.data)
+      if (Array.isArray(data.data)) {
+        const formattedSchedules = data.data.map((schedule: Schedule) => ({
+          id: schedule.id,
+          startDate: schedule.startDate || '날짜 미정',
+          // title: schedule.title ?? '제목 없는 일정',
+          title: schedule.title,
+          startTime: schedule.startTime || '시간 미정',
+          endTime: schedule.endTime || '시간 미정',
+          location: schedule.location || '',
+          participants: schedule.participants || [],
+        }))
+
+        setScheduleList(formattedSchedules)
+      } else {
+        console.error('데이터 구조 에러:', data.data)
+      }
+    } catch (error) {
+      console.error('스케줄 정보 불러오기 실패:', error)
+    }
+  }, [API_BASE_URL])
 
   // 연동 데이터
   useEffect(() => {
