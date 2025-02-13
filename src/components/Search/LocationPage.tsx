@@ -7,7 +7,7 @@ import { getCurrentLocation } from '@/components/Map/getCurrentLocation'
 import Image from 'next/image'
 import LocationModal from '@/components/Modals/DirectSelect/LocationModal'
 
-const KAKAO_API_KEY = '6a4b0efd1b0d4527a05d4d81fcb5ce95'
+const KAKAO_API_KEY = '5e437624aad33d7f67c00082667e8425'
 
 interface LocationPageProps {
   onLocationClick: (location: {
@@ -73,25 +73,6 @@ const LocationPage: React.FC<LocationPageProps> = ({
       lng: number
     } | null>(null)
     const [isModalVisible, setIsModalVisible] = useState(isDirectModal)
-
-    const fetchCurrentLocationData = useCallback(async () => {
-      try {
-        const { lat, lng } = await getCurrentLocation()
-        console.log(`현재 위치: 위도 ${lat}, 경도 ${lng}`)
-        await fetchCombinedLocationData(lat, lng)
-      } catch (error) {
-        console.error('위치 정보 가져오기 실패:', error)
-      }
-    }, [])
-
-    useEffect(() => {
-      if (searchQuery === 'current') {
-        // 🔹 내 위치를 가져와서 검색
-        fetchCurrentLocationData()
-      } else if (searchQuery.trim()) {
-        fetchAddressByQuery(searchQuery)
-      }
-    }, [searchQuery, fetchCurrentLocationData])
 
     const fetchAddressByQuery = async (query: string) => {
       if (!query.trim()) {
@@ -180,6 +161,11 @@ const LocationPage: React.FC<LocationPageProps> = ({
         )
         const data = await response.json()
         console.log('🔹 Kakao API 응답:', data)
+
+        if (!data.documents || !Array.isArray(data.documents)) {
+          throw new Error('Kakao API 응답 데이터 형식이 올바르지 않습니다.')
+        }
+
         const nearbyPlaces = data.documents.map((place: PlaceDocument) => ({
           place: place.place_name,
           jibun: place.address_name || '지번 주소 없음',
@@ -193,6 +179,25 @@ const LocationPage: React.FC<LocationPageProps> = ({
         console.error('🔹 내 위치 기반 검색 오류 발생:', error)
       }
     }
+
+    const fetchCurrentLocationData = useCallback(async () => {
+      try {
+        const { lat, lng } = await getCurrentLocation()
+        console.log(`현재 위치: 위도 ${lat}, 경도 ${lng}`)
+        await fetchCombinedLocationData(lat, lng)
+      } catch (error) {
+        console.error('위치 정보 가져오기 실패:', error)
+      }
+    }, [fetchCombinedLocationData])
+
+    useEffect(() => {
+      if (searchQuery === 'current') {
+        // 🔹 내 위치를 가져와서 검색
+        fetchCurrentLocationData()
+      } else if (searchQuery.trim()) {
+        fetchAddressByQuery(searchQuery)
+      }
+    }, [searchQuery, fetchCurrentLocationData, fetchAddressByQuery])
 
     const handleLocationSelect = (location: {
       place: string
@@ -262,8 +267,8 @@ const LocationPage: React.FC<LocationPageProps> = ({
               key={index}
               className="flex h-[80px] py-4 px-7 flex-col justify-center items-start gap-2 self-stretch rounded-full bg-white"
               onClick={() => {
-                handleLocationSelect(location)
-                onLocationClick?.() // 🔹 사용자가 prop을 넘기면 실행
+                handleLocationSelect(location) //  `location` 전달
+                onLocationClick(location) // `onLocationClick`에 location 객체 전달
               }}
             >
               <p className="text-[#1e1e1e] text-center font-pretendard text-[16px] font-normal leading-[17px] tracking-[-0.5px]">

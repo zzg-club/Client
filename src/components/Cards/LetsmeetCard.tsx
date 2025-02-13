@@ -31,7 +31,6 @@ export function LetsmeetCard({
   const [isOpen, setIsOpen] = useState(false)
 
   const [title, setTitle] = useState('제목 없는 일정') // 제목 상태 관리
-  const [selectedLocation, setSelectedLocation] = useState(location || '')
 
   const [isMembersModalOpen, setIsMembersModalOpen] = useState(false)
   const [isCdialogOpen, setIsCdialogOpen] = useState(false) // 일정 조율하기 모달 상태 C: Coordinate
@@ -44,6 +43,23 @@ export function LetsmeetCard({
 
   const resetDateTime = useDateTimeStore((state) => state.resetDateTime)
   const router = useRouter()
+
+  const [selectedLocation, setSelectedLocation] = useState(location || '')
+  const [isEditingLocation, setIsEditingLocation] = useState(false)
+
+  const handleLocationClick = () => {
+    setIsEditingLocation(true)
+  }
+
+  const handleLocationBlur = () => {
+    setIsEditingLocation(false)
+  }
+
+  const handleLocationKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      setIsEditingLocation(false)
+    }
+  }
 
   //참가자
   // membersVariant 모달 핸들
@@ -87,8 +103,11 @@ export function LetsmeetCard({
     }
   }
 
- /* // 장소 수정 API 요청
-  const handleLocationChange = async (newLocation: string) => {
+  /// 장소 수정 API 요청
+  const handleLocationChange = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const newLocation = e.target.value
     setSelectedLocation(newLocation)
 
     try {
@@ -99,7 +118,7 @@ export function LetsmeetCard({
         },
         body: JSON.stringify({
           groupName: title,
-          location: newLocation, // 장소 정보만 업데이트
+          location: newLocation, // 입력된 장소 업데이트
         }),
         credentials: 'include',
       })
@@ -113,7 +132,7 @@ export function LetsmeetCard({
     } catch (error) {
       console.error('장소 정보 수정 실패:', error)
     }
-  }*/
+  }
 
   //일정 정하기 모달
   const handleOpenScheduleModal = (e: React.MouseEvent) => {
@@ -221,9 +240,24 @@ export function LetsmeetCard({
 
             {/* 약속 장소 */}
             <div className="flex flex-col justify-center items-end gap-3">
-              <span className="text-xl font-medium text-[#9562fa] group-hover:text-[#fff]">
-                {location}
-              </span>
+              {isEditingLocation ? (
+                <input
+                  type="text"
+                  value={selectedLocation}
+                  onChange={handleLocationChange}
+                  onBlur={handleLocationBlur} // 입력창이 비활성화되면 변경 완료
+                  onKeyDown={handleLocationKeyDown} // Enter 키를 누르면 변경 완료
+                  autoFocus
+                  className="text-xl font-medium text-[#9562fa] group-hover:text-[#fff] bg-transparent border-b border-[#9562fa] focus:outline-none"
+                />
+              ) : (
+                <span
+                  className="text-xl font-medium text-[#9562fa] group-hover:text-[#fff] cursor-pointer"
+                  onClick={handleLocationClick}
+                >
+                  {selectedLocation}
+                </span>
+              )}
               {(!startTime || !endTime) && (
                 <WhiteButton
                   text="일정 정하기"

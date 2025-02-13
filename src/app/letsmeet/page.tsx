@@ -243,7 +243,8 @@ export default function LetsMeetPage() {
           onClickRight={handleComplete}
           initialTitle={title}
           onTitleChange={setTitle}
-          selectedLocation={selectedLocation ?? undefined} // ✅ `null` 대신 `undefined` 전달
+          selectedLocation={selectedLocation ?? undefined} // `null` 대신 `undefined` 전달
+          scheduleId={selectedLocation ? scheduleList.length + 1 : 0} // scheduleId 추가
         />
       )}
     </div>

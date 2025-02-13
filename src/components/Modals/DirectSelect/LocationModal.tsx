@@ -13,6 +13,7 @@ export interface LocationModalProps {
   initialTitle: string
   onTitleChange: (newTitle: string) => void
   selectedLocation?: { place: string; lat: number; lng: number } // 선택된 위치
+  scheduleId?: number // 수정할 스케줄 ID 추가
 }
 
 export default function LocationModal({
@@ -20,8 +21,8 @@ export default function LocationModal({
   onClose,
   onClickRight,
   initialTitle,
-  onTitleChange,
   selectedLocation,
+  scheduleId,
 }: LocationModalProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
@@ -30,17 +31,39 @@ export default function LocationModal({
 
   const [isDirectModal, setIsDirectModal] = useState(directParam === 'true')
   const [title, setTitle] = useState(initialTitle)
-  const [locationName, setLocationName] = useState(selectedLocation?.place || '')
-
-  useEffect(() => {
-    if (selectedLocation) {
-      setLocationName(selectedLocation.place)
-    }
-  }, [selectedLocation])
 
   const handleSearchNavigation = () => {
-    setIsDirectModal(true) // 🔹 `direct` 모달 활성화
+    setIsDirectModal(true) // `direct` 모달 활성화
     router.push(`/search?from=/letsmeet&direct=true`)
+  }
+
+  // 제목 변경 API 요청
+  const handleUpdateTitle = async (newTitle: string) => {
+    setTitle(newTitle) // UI 업데이트
+
+    try {
+      const response = await fetch(`/api/schedule/${scheduleId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: newTitle, // 새로운 제목 업데이트
+          startDate: new Date().toISOString(),
+          endDate: new Date().toISOString(),
+        }),
+        credentials: 'include',
+      })
+
+      if (!response.ok) {
+        throw new Error(`제목 변경 실패: ${response.status}`)
+      }
+
+      const data = await response.json()
+      console.log('스케줄 제목 변경 성공:', data)
+    } catch (error) {
+      console.error('제목 변경 오류:', error)
+    }
   }
 
   // 중앙 위치 직접 선택 API 호출
@@ -81,7 +104,7 @@ export default function LocationModal({
           },
           body: JSON.stringify({
             groupId: groupId, // 생성된 그룹 ID 사용
-            groupName: title, 
+            groupName: title,
             midAddress: selectedLocation.place,
             latitude: selectedLocation.lat,
             longitude: selectedLocation.lng,
@@ -106,10 +129,10 @@ export default function LocationModal({
   }
 
   useEffect(() => {
-    if (loading) {
+    if (loading && !isDirectModal) {
       console.log('로딩 중...')
     }
-  }, [loading])
+  }, [loading, isDirectModal])
 
   if (!isVisible) return null
 
@@ -121,7 +144,7 @@ export default function LocationModal({
           <div className="flex items-center justify-between ml-1">
             <EditTitle
               initialTitle={initialTitle}
-              onTitleChange={onTitleChange}
+              onTitleChange={handleUpdateTitle}
             />
             <button
               onClick={onClose}
