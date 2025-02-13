@@ -6,31 +6,56 @@ import Button from '@/components/Buttons/Floating/Button'
 import { ScheduleOptions } from '@/components/Buttons/Floating/Options'
 import CarouselNotification from '@/components/Notification/CarouselNotification'
 import { LetsmeetCard } from '@/components/Cards/LetsmeetCard'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import LocationModal from '@/components/Modals/DirectSelect/LocationModal'
-import mockSchedules from '@/data/dummyDataArray.json'
-import { getCurrentLocation } from '@/components/Map/getCurrentLocation'
 
-interface Participant {
+type Schedule = {
   id: number
-  name: string
-  time: string
-  image: string
-  lat: number
-  lng: number
-  transport: string
-  transportIcon: string
-  depart: string
+  startDate: string
+  title: string
+  startTime: string
+  endTime: string
+  location?: string
+  participants: { id: number; name: string; image: string }[]
 }
 
 export default function LetsMeetPage() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const isDirectModal = searchParams.get('direct') === 'true'
+  const place = searchParams.get('place') || ''
+  const lat = searchParams.get('lat')
+    ? parseFloat(searchParams.get('lat')!)
+    : null
+  const lng = searchParams.get('lng')
+    ? parseFloat(searchParams.get('lng')!)
+    : null
+
   const [isOpen, setIsOpen] = useState(false)
   const [isOptionsOpen, setIsOptionsOpen] = useState(false)
   const [isDirectModalOpen, setIsDirectModalOpen] = useState(false)
   const [title, setTitle] = useState('제목 없는 일정')
-  const [currentIndex, setCurrentIndex] = useState(0)
-  const [participants, setParticipants] = useState<Participant[]>([])
-  const router = useRouter()
+  const [scheduleList, setScheduleList] = useState<Schedule[]>([])
+
+  const [selectedLocation, setSelectedLocation] = useState<{
+    place: string
+    lat: number
+    lng: number
+  } | null>(null)
+
+  //`direct=true`이면 모달 자동으로 열기
+  useEffect(() => {
+    if (isDirectModal) {
+      setIsDirectModalOpen(true)
+    }
+  }, [isDirectModal])
+
+  // ✅ URL에서 받아온 값으로 상태 업데이트
+  useEffect(() => {
+    if (isDirectModal && place && lat && lng) {
+      setSelectedLocation({ place, lat, lng })
+    }
+  }, [isDirectModal, place, lat, lng])
 
   const handleFindMidpoint = () => {
     router.push('/search?from=/letsmeet')
@@ -38,76 +63,88 @@ export default function LetsMeetPage() {
 
   const handleDirectInput = () => {
     setTitle('제목 없는 일정')
+    setSelectedLocation(null)
     setIsDirectModalOpen(true)
   }
 
   const handleCloseModal = () => {
     setIsDirectModalOpen(false)
+    router.replace('/letsmeet')
   }
 
   const handleComplete = () => {
-    console.log('완료 버튼 클릭')
-    handleCloseModal()
-  }
+    if (!selectedLocation) return
 
-  useEffect(() => {
-    if (mockSchedules.length > 0 && currentIndex >= mockSchedules.length) {
-      setCurrentIndex(0)
+    const newSchedule = {
+      id: scheduleList.length + 1,
+      startDate: '',
+      title: title,
+      startTime: '',
+      endTime: '',
+      location: selectedLocation.place,
+      participants: [],
     }
 
-    const updateParticipants = async () => {
+    setScheduleList([...scheduleList, newSchedule])
+    setIsDirectModalOpen(false)
+    router.replace('/letsmeet')
+  }
+
+  //유저 정보
+  useEffect(() => {
+    const fetchUserInfo = async () => {
       try {
-        const location = await getCurrentLocation()
-        const myInfo = {
-          id: 0,
-          name: '내 위치',
-          time: '50분',
-          image: '/sampleProfile.png',
-          lat: location.lat,
-          lng: location.lng,
-          transport: 'subway',
-          transportIcon: '/train.svg',
-          depart: '죽전역',
+        const response = await fetch(
+          'https://api.moim.team/api/user/information',
+          {
+            method: 'GET',
+            credentials: 'include',
+          },
+        )
+        if (!response.ok) {
+          throw new Error(`서버 에러: ${response.status}`)
         }
-
-        const updatedParticipants = [
-          myInfo,
-          ...mockSchedules[currentIndex].participants.map((participant) => ({
-            ...participant,
-            transportIcon: '/subwayGray.svg',
-          })),
-        ]
-
-        setParticipants(updatedParticipants)
+        const data = await response.json()
+        console.log('유저 정보:', data)
       } catch (error) {
-        console.error('현재 위치를 가져오지 못했습니다:', error)
-
-        const fallbackInfo = {
-          id: 0,
-          name: '기본 위치',
-          time: '기본 시간',
-          image: '/sampleProfile.png',
-          lat: 37.5665,
-          lng: 126.978,
-          transport: 'subway',
-          transportIcon: '/train.svg',
-          depart: '서울역',
-        }
-
-        const updatedParticipants = [
-          fallbackInfo,
-          ...mockSchedules[currentIndex].participants.map((participant) => ({
-            ...participant,
-            transportIcon: '/subwayGray.svg',
-          })),
-        ]
-
-        setParticipants(updatedParticipants)
+        console.error('유저 정보 불러오기 실패:', error)
       }
     }
 
-    updateParticipants()
-  }, [currentIndex])
+    // 스케줄 정보 리스트
+    const getSchedule = async () => {
+      try {
+        const response = await fetch('https://api.moim.team/api/members/List', {
+          method: 'GET',
+          credentials: 'include',
+        })
+        if (!response.ok) {
+          throw new Error(`서버 에러: ${response.status}`)
+        }
+        const data = await response.json()
+        console.log('스케줄 정보:', data.data)
+        if (Array.isArray(data.data)) {
+          const formattedSchedules = data.data.map((schedule: Schedule) => ({
+            id: schedule.id,
+            startDate: schedule.startDate || '',
+            title: schedule.title,
+            startTime: schedule.startTime || '',
+            endTime: schedule.endTime || '',
+            location: schedule.location || '',
+            participants: schedule.participants || [],
+          }))
+          setScheduleList(formattedSchedules)
+        } else {
+          console.error('데이터 구조 에러:', data.data)
+        }
+      } catch (error) {
+        console.error('스케줄 정보 불러오기 실패:', error)
+      }
+    }
+
+    fetchUserInfo()
+    getSchedule()
+  }, [])
 
   // 캐러셀 알림 목데이터
   const notifications = [
@@ -155,28 +192,19 @@ export default function LetsMeetPage() {
       )}
 
       {/* 렛츠밋 카드 컴포넌트 */}
-      {mockSchedules.length > 0 ? (
+      {scheduleList.length > 0 ? (
         <>
           <div className="w-full h-[34px] px-4 my-[8px] flex justify-start items-center gap-[2px]">
             <div className="ml-[8px] text-[#1e1e1e] text-xs font-medium leading-[17px]">
               내 장소
             </div>
             <div className="text-[#9562fa] text-base font-medium leading-[17px]">
-              +{mockSchedules.length}
+              +{scheduleList.length}
             </div>
           </div>
           <div className="flex-1 overflow-y-auto pb-[120px]">
-            {mockSchedules.map((schedule) => (
-              <div key={schedule.id}>
-                <LetsmeetCard
-                  title={schedule.title}
-                  startDate={schedule.startDate}
-                  startTime={schedule.startTime}
-                  endTime={schedule.endTime}
-                  destination={schedule.destination.name}
-                  participants={participants}
-                />
-              </div>
+            {scheduleList.map((schedule) => (
+              <LetsmeetCard key={schedule.id} {...schedule} />
             ))}
           </div>
         </>
@@ -215,7 +243,9 @@ export default function LetsMeetPage() {
           onClickRight={handleComplete}
           initialTitle={title}
           onTitleChange={setTitle}
-        ></LocationModal>
+          selectedLocation={selectedLocation ?? undefined} // `null` 대신 `undefined` 전달
+          scheduleId={selectedLocation ? scheduleList.length + 1 : 0} // scheduleId 추가
+        />
       )}
     </div>
   )
