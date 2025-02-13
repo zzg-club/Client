@@ -17,6 +17,7 @@ import { createGroupId } from '../api/members/route'
 import { createDirectSchedule } from '../api/schedule/route'
 import { createSurveySchedule } from '../api/survey/route'
 import { useSurveyStore } from '@/store/surveyStore'
+// import axios from 'axios'
 
 // /api/members/List 연동
 export type Participant = {
@@ -105,7 +106,28 @@ export default function ScheduleLanding() {
       }
     }
 
+    // const fetchNotification = async () => {
+    //   try {
+    //     const response = await fetch(
+    //       `${API_BASE_URL}/api/members/notification`,
+    //       {
+    //         method: 'GET',
+    //         credentials: 'include', // 쿠키 전송을 위해 필요
+    //       },
+    //     )
+    //     if (!response.ok) {
+    //       // 예외 처리
+    //       throw new Error(`서버 에러: ${response.status}`)
+    //     }
+    //     const data = await response.json()
+    //     console.log('알림 정보:', data)
+    //   } catch (error) {
+    //     console.error('알림 정보 불러오기 실패:', error)
+    //   }
+    // }
+
     fetchUserInfo()
+    // fetchNotification()
     getSchedule()
   }, [API_BASE_URL, getSchedule])
 
