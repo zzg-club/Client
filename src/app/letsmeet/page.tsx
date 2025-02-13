@@ -6,7 +6,7 @@ import Button from '@/components/Buttons/Floating/Button'
 import { ScheduleOptions } from '@/components/Buttons/Floating/Options'
 import CarouselNotification from '@/components/Notification/CarouselNotification'
 import { LetsmeetCard } from '@/components/Cards/LetsmeetCard'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import LocationModal from '@/components/Modals/DirectSelect/LocationModal'
 
 type Schedule = {
@@ -20,12 +20,42 @@ type Schedule = {
 }
 
 export default function LetsMeetPage() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const isDirectModal = searchParams.get('direct') === 'true'
+  const place = searchParams.get('place') || ''
+  const lat = searchParams.get('lat')
+    ? parseFloat(searchParams.get('lat')!)
+    : null
+  const lng = searchParams.get('lng')
+    ? parseFloat(searchParams.get('lng')!)
+    : null
+
   const [isOpen, setIsOpen] = useState(false)
   const [isOptionsOpen, setIsOptionsOpen] = useState(false)
   const [isDirectModalOpen, setIsDirectModalOpen] = useState(false)
   const [title, setTitle] = useState('제목 없는 일정')
   const [scheduleList, setScheduleList] = useState<Schedule[]>([])
-  const router = useRouter()
+
+  const [selectedLocation, setSelectedLocation] = useState<{
+    place: string
+    lat: number
+    lng: number
+  } | null>(null)
+
+  //`direct=true`이면 모달 자동으로 열기
+  useEffect(() => {
+    if (isDirectModal) {
+      setIsDirectModalOpen(true)
+    }
+  }, [isDirectModal])
+
+  // ✅ URL에서 받아온 값으로 상태 업데이트
+  useEffect(() => {
+    if (isDirectModal && place && lat && lng) {
+      setSelectedLocation({ place, lat, lng })
+    }
+  }, [isDirectModal, place, lat, lng])
 
   const handleFindMidpoint = () => {
     router.push('/search?from=/letsmeet')
@@ -33,18 +63,34 @@ export default function LetsMeetPage() {
 
   const handleDirectInput = () => {
     setTitle('제목 없는 일정')
+    setSelectedLocation(null)
     setIsDirectModalOpen(true)
   }
 
   const handleCloseModal = () => {
     setIsDirectModalOpen(false)
+    router.replace('/letsmeet')
   }
 
   const handleComplete = () => {
-    console.log('완료 버튼 클릭')
-    handleCloseModal()
+    if (!selectedLocation) return
+
+    const newSchedule = {
+      id: scheduleList.length + 1,
+      startDate: '',
+      title: title,
+      startTime: '',
+      endTime: '',
+      location: selectedLocation.place,
+      participants: [],
+    }
+
+    setScheduleList([...scheduleList, newSchedule])
+    setIsDirectModalOpen(false)
+    router.replace('/letsmeet')
   }
 
+  //유저 정보
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
@@ -52,11 +98,10 @@ export default function LetsMeetPage() {
           'https://api.moim.team/api/user/information',
           {
             method: 'GET',
-            credentials: 'include', // 쿠키 전송을 위해 필요
+            credentials: 'include',
           },
         )
         if (!response.ok) {
-          // 예외 처리
           throw new Error(`서버 에러: ${response.status}`)
         }
         const data = await response.json()
@@ -65,14 +110,15 @@ export default function LetsMeetPage() {
         console.error('유저 정보 불러오기 실패:', error)
       }
     }
+
+    // 스케줄 정보 리스트
     const getSchedule = async () => {
       try {
         const response = await fetch('https://api.moim.team/api/members/List', {
           method: 'GET',
-          credentials: 'include', // 쿠키 전송을 위해 필요
+          credentials: 'include',
         })
         if (!response.ok) {
-          // 예외 처리
           throw new Error(`서버 에러: ${response.status}`)
         }
         const data = await response.json()
@@ -158,17 +204,7 @@ export default function LetsMeetPage() {
           </div>
           <div className="flex-1 overflow-y-auto pb-[120px]">
             {scheduleList.map((schedule) => (
-              <div key={schedule?.id}>
-                <LetsmeetCard
-                  id={schedule.id}
-                  title={schedule.title}
-                  startDate={schedule.startDate}
-                  startTime={schedule.startTime}
-                  endTime={schedule.endTime}
-                  location={schedule.location}
-                  participants={schedule.participants}
-                />
-              </div>
+              <LetsmeetCard key={schedule.id} {...schedule} />
             ))}
           </div>
         </>
@@ -207,7 +243,8 @@ export default function LetsMeetPage() {
           onClickRight={handleComplete}
           initialTitle={title}
           onTitleChange={setTitle}
-        ></LocationModal>
+          selectedLocation={selectedLocation ?? undefined} // ✅ `null` 대신 `undefined` 전달
+        />
       )}
     </div>
   )

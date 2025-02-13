@@ -1,23 +1,34 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import LocationPage from '@/components/Search/LocationPage'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 
 const Location = () => {
+  const router = useRouter()
   const searchParams = useSearchParams()
   const from = searchParams.get('from')
+  const isDirectModal = searchParams.get('direct') === 'true' // URL에서 direct 여부 확인
 
-  const handleLocationClick = () => {
+  const handleLocationClick = (location: { place: string; lat: number; lng: number }) => {
     if (from === '/place') {
-      //플레이스 탭에서 왔다면
-      window.location.href = `/place`
+      // 🔹 플레이스 탭에서 왔다면 /place로 이동
+      router.push('/place')
+    } else if (isDirectModal) {
+     // ✅ `direct=true`일 경우, `LetsMeet` 페이지로 이동 후 모달 자동 활성화
+     router.push(`/letsmeet?direct=true&place=${encodeURIComponent(location.place)}&lat=${location.lat}&lng=${location.lng}`)
     } else {
-      //그 외의 탭에서 오면 /letsmeet/middle로 이동
-      window.location.href = `/letsmeet/middle?from=${from}`
+      // ✅ `direct=false`일 경우 middle 페이지로 이동
+      router.push(`/letsmeet/middle?from=${from}`)
     }
   }
-  return <LocationPage onLocationClick={handleLocationClick} />
+
+  return (
+    <LocationPage
+      onLocationClick={handleLocationClick}
+      isDirectModal={isDirectModal}
+    />
+  )
 }
 
 export default Location

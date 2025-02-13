@@ -22,6 +22,7 @@ export interface LetsmeetCardProps {
 }
 
 export function LetsmeetCard({
+  id,
   startTime,
   endTime,
   location,
@@ -30,6 +31,7 @@ export function LetsmeetCard({
   const [isOpen, setIsOpen] = useState(false)
 
   const [title, setTitle] = useState('제목 없는 일정') // 제목 상태 관리
+  const [selectedLocation, setSelectedLocation] = useState(location || '')
 
   const [isMembersModalOpen, setIsMembersModalOpen] = useState(false)
   const [isCdialogOpen, setIsCdialogOpen] = useState(false) // 일정 조율하기 모달 상태 C: Coordinate
@@ -57,10 +59,61 @@ export function LetsmeetCard({
     setSelectedMember((prev) => prev.filter((member) => member.id !== id))
   }
 
-  //제목
-  const handleTitleChange = (newTitle: string) => {
-    setTitle(newTitle)
+  //제목 수정
+  const handleTitleChange = async (newTitle: string) => {
+    setTitle(newTitle) // UI 업데이트
+
+    try {
+      const response = await fetch(`/api/members?groupId=${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          groupName: newTitle,
+          location: selectedLocation,
+        }),
+        credentials: 'include', // 인증 정보 포함
+      })
+
+      if (!response.ok) {
+        throw new Error(`서버 오류: ${response.status}`)
+      }
+
+      const data = await response.json()
+      console.log('약속 이름 수정 성공:', data)
+    } catch (error) {
+      console.error('약속 이름 수정 실패:', error)
+    }
   }
+
+ /* // 장소 수정 API 요청
+  const handleLocationChange = async (newLocation: string) => {
+    setSelectedLocation(newLocation)
+
+    try {
+      const response = await fetch(`/api/members?groupId=${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          groupName: title,
+          location: newLocation, // 장소 정보만 업데이트
+        }),
+        credentials: 'include',
+      })
+
+      if (!response.ok) {
+        throw new Error(`서버 오류: ${response.status}`)
+      }
+
+      const data = await response.json()
+      console.log('장소 정보 수정 성공:', data)
+    } catch (error) {
+      console.error('장소 정보 수정 실패:', error)
+    }
+  }*/
 
   //일정 정하기 모달
   const handleOpenScheduleModal = (e: React.MouseEvent) => {
@@ -100,41 +153,41 @@ export function LetsmeetCard({
     console.log('endDate', endDate)
 
     try {
-      // 그룹 생성
-      const response1 = await fetch('https://api.moim.team/api/members', {
+      // 1. 그룹 생성 API
+      const test = await fetch('https://api.moim.team/api/members', {
         method: 'POST',
-        credentials: 'include', // 쿠키 전송을 위해 필요
+        credentials: 'include',
       })
 
-      if (!response1.ok) {
-        throw new Error(`서버 에러: ${response1.status}`)
+      if (!test.ok) {
+        throw new Error(`서버 에러: ${test.status}`)
       }
 
-      const data1 = await response1.json()
-      console.log('그룹 ID:', data1)
-      const groupId = data1.data.groupId // 그룹 ID 저장
+      const check = await test.json()
+      const groupId = check.data.groupId
 
-      // 스케줄 생성 - 첫 번째 요청이 끝난 후 실행
-      const response2 = await fetch('https://api.moim.team/api/schedule', {
+      // 2. 약속 생성 API
+      const response = await fetch('https://api.moim.team/api/schedule', {
         method: 'POST',
-        credentials: 'include', // 쿠키 전송을 위해 필요
+        credentials: 'include', // 인증 정보 포함
         headers: {
-          'Content-Type': 'application/json', // JSON 형식 명시
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          groupId: groupId, // 첫 번째 요청에서 받은 그룹 ID 사용
+          groupId: groupId,
           name: title,
+          location: selectedLocation,
           startDate: startDate,
           endDate: endDate,
         }),
       })
 
-      if (!response2.ok) {
-        throw new Error(`서버 에러: ${response2.status}`)
+      if (!response.ok) {
+        throw new Error(`서버 에러: ${response.status}`)
       }
 
-      const data2 = await response2.json()
-      console.log('직접 생성 성공', data2)
+      const create = await response.json()
+      console.log('직접 생성 성공', create)
     } catch (error) {
       console.error('API 요청 실패', error)
     }

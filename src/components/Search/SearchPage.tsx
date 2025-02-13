@@ -9,6 +9,8 @@ export default function SearchPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const from = searchParams.get('from') || '/schedule'
+  const isDirectModal = searchParams.get('direct') === 'true'
+
   const [searchQuery, setSearchQuery] = useState('')
 
   const handleSearchClick = () => {
@@ -19,12 +21,14 @@ export default function SearchPage() {
 
     // 🔹 검색어를 URL에 담아 `LocationPage`로 전달
     router.push(
-      `/search/location?from=${from}&query=${encodeURIComponent(searchQuery)}`,
-    )
+      `/search/location?from=${from}&query=${encodeURIComponent(searchQuery)}&direct=${isDirectModal}`,
+    ) // ✅ `direct` 값을 유지하면서 전달
   }
 
   const handleLocationClick = () => {
-    router.push(`/search/location?from=${from}&query=current`) // from 값을 포함한 URL로 이동
+    router.push(
+      `/search/location?from=${from}&query=current&direct=${isDirectModal}`,
+    ) // ✅ `direct` 값을 유지하면서 전달
   }
 
   const handleBackClick = () => {
