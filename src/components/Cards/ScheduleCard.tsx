@@ -60,6 +60,16 @@ export function ScheduleCard({
     setSelectedMember((prev) => prev.filter((member) => member.id !== id))
   }
 
+  const titleText = title === '' ? `${title}` : '날짜 미정'
+
+  const timeText =
+    startTime === '' && endTime === ''
+      ? '조율 진행중'
+      : `${startTime} - ${endTime}`
+
+  const buttonText =
+    startTime === '' && endTime === '' ? '이어서 하기' : '장소 정하기'
+
   return (
     <div className="px-4 mb-5">
       <div className="text-[#1e1e1e] text-xs font-medium leading-[17px] ml-[12px]">
@@ -75,7 +85,7 @@ export function ScheduleCard({
             {/* 일정 제목 */}
             <div className="flex flex-col justify-between gap-2">
               <span className="text-xl font-medium leading-[17px] text-[#8e8d8d] group-hover:text-[#fff]">
-                {title}
+                {titleText}
               </span>
               {/* 모임원 프로필 */}
               <ProfileSmall profiles={participants} />
@@ -84,7 +94,7 @@ export function ScheduleCard({
             {/* 약속 시간, 장소 */}
             <div className="flex flex-col justify-center items-end gap-2">
               <span className="text-xl font-medium text-[#9562fa] group-hover:text-[#fff]">
-                {startTime} - {endTime}
+                {timeText}
               </span>
               {location ? (
                 <span className="text-xl font-medium text-[#9562fa] group-hover:text-[#fff] my-1">
@@ -92,7 +102,7 @@ export function ScheduleCard({
                 </span>
               ) : (
                 <WhiteButton
-                  text="장소 정하기"
+                  text={buttonText}
                   className={
                     'border-[#9562fa] text-[#9562fa] group-hover:border-white group-hover:text-white'
                   }
