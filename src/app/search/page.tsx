@@ -1,10 +1,13 @@
 'use client'
 
-import React from 'react'
+import React, { Suspense } from 'react'
 import { SearchPage } from '@/components/Search'
 
 const Search = () => {
-  return <SearchPage />
+  return (
+    <Suspense>
+      <SearchPage />
+    </Suspense>
+  )
 }
-
 export default Search
