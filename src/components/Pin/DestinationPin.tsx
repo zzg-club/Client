@@ -9,9 +9,9 @@ const DestinationPin: React.FC<{ stationName: string }> = ({ stationName }) => {
         <Image
           src="/subwayWhite.svg" // 지하철 아이콘
           alt="Subway Icon"
+          width={24}
+          height={24}
           style={{
-            width: '24px',
-            height: '24px',
             zIndex: 4,
           }}
         />
@@ -21,10 +21,8 @@ const DestinationPin: React.FC<{ stationName: string }> = ({ stationName }) => {
         <Image
           src="/Polygon2Yellow.svg" // 삼각형 이미지
           alt="Yellow Polygon"
-          style={{
-            width: '100%',
-            height: '100%',
-          }}
+          width={28}
+          height={21}
         />
       </div>
       {/* 목적지 이름 */}
