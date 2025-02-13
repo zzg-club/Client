@@ -60,7 +60,7 @@ export function ScheduleCard({
     setSelectedMember((prev) => prev.filter((member) => member.id !== id))
   }
 
-  const dateText = startDate === '' ? `${startDate}` : '날짜 미정'
+  const dateText = startDate === '' ? '날짜 미정' : `${startDate}`
 
   const timeText =
     startTime === '' && endTime === ''
