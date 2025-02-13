@@ -1,29 +1,28 @@
 import React from 'react'
+import Image from 'next/image'
 
 const DestinationPin: React.FC<{ stationName: string }> = ({ stationName }) => {
   return (
     <div className="relative flex flex-col items-center justify-center">
       {/* 지하철 아이콘 */}
       <div className="flex w-7 h-7 p-0.5 justify-center items-center gap-[10px] flex-shrink-0 rounded-full border-2 border-[#FFCF33] bg-[#FFCF33]">
-        <img
+        <Image
           src="/subwayWhite.svg" // 지하철 아이콘
           alt="Subway Icon"
+          width={24}
+          height={24}
           style={{
-            width: '24px',
-            height: '24px',
             zIndex: 4,
           }}
         />
       </div>
       {/* 노란 삼각형 */}
       <div className="absolute top-[18px] w-7 h-[21px] z-2">
-        <img
+        <Image
           src="/Polygon2Yellow.svg" // 삼각형 이미지
           alt="Yellow Polygon"
-          style={{
-            width: '100%',
-            height: '100%',
-          }}
+          width={28}
+          height={21}
         />
       </div>
       {/* 목적지 이름 */}
