@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import MiddleFooter2Right from '@/components/Buttons/Middle/Bottom/MiddleFooter2Right'
 import MiddleFooter2Left from '@/components/Buttons/Middle/Bottom/MiddleFooter2Left'
 import styles from './BottomSheet.module.css'
+import Image from 'next/image'
 
 interface Participant {
   name: string
@@ -38,7 +39,7 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
   const startXRef = useRef<number | null>(null)
   const startYRef = useRef<number | null>(null)
 
-  const updateHeight = () => {
+  const updateHeight = useCallback(() => {
     if (sheetRef.current) {
       const contentHeight = sheetRef.current.scrollHeight
       const calculatedMaxHeight = contentHeight
@@ -58,7 +59,7 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
         setArrowHeight(110) // 기본 높이
       }
     }
-  }
+  }, [isExpanded, highestMaxHeight])
 
   useEffect(() => {
     window.addEventListener('resize', updateHeight)
@@ -67,7 +68,7 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
     return () => {
       window.removeEventListener('resize', updateHeight)
     }
-  }, [isExpanded, participants.length])
+  }, [isExpanded, participants.length, updateHeight])
 
   const handleTouchStart = (event: React.TouchEvent) => {
     startXRef.current = event.touches[0].clientX
@@ -155,13 +156,13 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
                   {totalParticipants}명
                 </span>
               </p>
-              <img
+              <Image
                 src="/arrow_back_mirrored.svg"
                 alt="Arrow Icon"
-                style={{
-                  width: '12px',
-                  height: '12px',
-                }}
+                layout="intrinsic"
+                width={6}
+                height={10}
+                style={{ width: 'auto', height: 'auto' }}
               />
             </div>
           </div>
@@ -179,10 +180,12 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
           <div className={styles.participantGrid}>
             {participants.map((participant, index) => (
               <div key={index} className={styles.participantItem}>
-                <img
+                <Image
                   src={participant.image}
                   alt={`${participant.name} 아이콘`}
-                  className={styles.participantIcon}
+                  width={36}
+                  height={36}
+                  className={`${styles.participantIcon} `}
                   style={{
                     borderColor:
                       index === 0
@@ -190,6 +193,7 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
                         : 'var(--subway_time, #AFAFAF)',
                   }}
                 />
+
                 <p
                   className={styles.participantText}
                   style={{
@@ -201,10 +205,12 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
                 >
                   {participant.time}
                 </p>
-                <img
+                <Image
                   src={participant.transportIcon}
                   alt="Transport Icon"
-                  className={styles.transportIcon}
+                  width={28}
+                  height={28}
+                  className={`${styles.transportIcon} ${index === 0 ? styles.mainTransportIcon : ''}`}
                 />
               </div>
             ))}
