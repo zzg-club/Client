@@ -63,11 +63,18 @@ export default function MembersVariant({
     setIsUserPlusOpen(!isUserPlusOpen)
   }
 
+  const dateText = startDate === '' ? '날짜 미정' : `${startDate}`
+
+  const timeText =
+    startTime === '' && endTime === ''
+      ? '조율 진행중'
+      : `${startTime} - ${endTime}`
+
   return (
     <div>
       <div className="flex justify-between items-center mb-[6px]">
         <div className="text-black text-base font-medium leading-snug">
-          {startDate}
+          {dateText}
         </div>
         <button
           className="text-[#9562fa] mr-[32px]"
@@ -85,7 +92,7 @@ export default function MembersVariant({
             </span>
           )}
           <span className="text-[#9562fa] text-base font-semibold leading-snug">
-            {startTime}-{endTime}
+            {timeText}
           </span>
         </div>
       </div>
