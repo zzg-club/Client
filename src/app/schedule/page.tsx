@@ -186,7 +186,7 @@ export default function ScheduleLanding() {
           groupId: groupId,
           mode: mode,
           selected: selected,
-          date: selectedDates,
+          date: stringDates,
         },
         {
           withCredentials: true, // 쿠키 전송을 위해 필요
