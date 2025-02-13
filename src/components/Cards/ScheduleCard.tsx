@@ -60,7 +60,7 @@ export function ScheduleCard({
     setSelectedMember((prev) => prev.filter((member) => member.id !== id))
   }
 
-  const titleText = title === '' ? `${title}` : '날짜 미정'
+  const dateText = startDate === '' ? `${startDate}` : '날짜 미정'
 
   const timeText =
     startTime === '' && endTime === ''
@@ -73,7 +73,7 @@ export function ScheduleCard({
   return (
     <div className="px-4 mb-5">
       <div className="text-[#1e1e1e] text-xs font-medium leading-[17px] ml-[12px]">
-        {startDate}
+        {dateText}
       </div>
       <div
         className="group w-full h-full rounded-3xl border-2 border-[#9562fa] px-6 py-[18px] cursor-pointer bg-white border-[#9562fa] hover:bg-[#9562fa] hover:text-[#fff]"
@@ -85,7 +85,7 @@ export function ScheduleCard({
             {/* 일정 제목 */}
             <div className="flex flex-col justify-between gap-2">
               <span className="text-xl font-medium leading-[17px] text-[#8e8d8d] group-hover:text-[#fff]">
-                {titleText}
+                {title}
               </span>
               {/* 모임원 프로필 */}
               <ProfileSmall profiles={participants} />
