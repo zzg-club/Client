@@ -743,7 +743,7 @@ export default function TimeStamp({
       })
       // console.log('initialConfirmedTimeSlots', initialConfirmedTimeSlots)
     } else {
-      console.log('groupedDate', groupedDate)
+      // console.log('groupedDate', groupedDate)
       const groupedArray = groupedDate?.[currentPage]?.date ?? []
       groupedArray.forEach((date, col) => {
         const dateString = `${date.year}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`

@@ -45,7 +45,7 @@ interface ScheduleData {
 
 export default function Page() {
   const { selectedSurveyId } = useSurveyStore()
-  console.log('zustand에서 가져온 surveyId', selectedSurveyId)
+  // console.log('zustand에서 가져온 surveyId', selectedSurveyId)
 
   const selectApi = {
     createTimeSlot: async (
@@ -54,7 +54,7 @@ export default function Page() {
       startTime: string,
       endTime: string,
     ) => {
-      console.log('포스트', surveyId)
+      // console.log('surveyId', surveyId)
       try {
         const response = await axios.post(
           `${API_BASE_URL}/api/timeslot/${surveyId}`,
@@ -70,6 +70,7 @@ export default function Page() {
             },
           },
         )
+        console.log('타임슬롯', slotDate, startTime, endTime)
         console.log('타임슬롯 생성 성공', response)
       } catch (error) {
         console.log('타임슬롯 생성 실패', error)
@@ -77,82 +78,59 @@ export default function Page() {
     },
   }
 
-  // const headerApi = {
-  //   getSelectedDays: async (
-  //     surveyId: number,
-  //     success: boolean,
-  //     data: {
-  //       mode: string
-  //       selected: [string]
-  //       date: [string]
-  //     },
-  //   ) => {
-  //     console.log(success, data)
-  //     try {
-  //       const response = await axios.get(
-  //         `${API_BASE_URL}/api/timeslot/${surveyId}/edit/header`,
-  //         {
-  //           withCredentials: true, // 쿠키 전송 허용
-  //         },
-  //       )
-
-  //       console.log('헤더 날짜 정보 받아오기 성공', response)
-  //     } catch (error) {
-  //       console.error('헤더 날짜 정보 받아오기 실패', error)
-  //     }
-  //   },
-  // }
-
   const [title, setTitle] = useState('제목 없는 일정')
   const [currentPage, setCurrentPage] = useState(0)
   const [highlightedCol, setHighlightedCol] = useState<number | null>(null)
   const [startTime, setStartTime] = useState<string | null>(null)
   const [endTime, setEndTime] = useState<string | null>(null)
 
-  const confirmedData = [
-    {
-      date: '2024-12-31',
-      timeSlots: [{ start: '03:00', end: '09:30' }],
-    },
-    {
-      date: '2024-01-03',
-      timeSlots: [{ start: '06:30', end: '12:00' }],
-    },
-    {
-      date: '2024-01-05',
-      timeSlots: [{ start: '06:00', end: '12:00' }],
-    },
-    {
-      date: '2024-01-06',
-      timeSlots: [{ start: '06:00', end: '12:00' }],
-    },
-    // {
-    //   date: '2024-01-06',
-    //   timeSlots: [{ start: '03:00', end: '09:30' }],
-    // },
-    // {
-    //   date: '2024-01-13',
-    //   timeSlots: [{ start: '06:00', end: '12:00' }],
-    // },
-    // {
-    //   date: '2024-02-08',
-    //   timeSlots: [{ start: '06:00', end: '12:00' }],
-    // },
-    // {
-    //   date: '2024-03-17',
-    //   timeSlots: [{ start: '06:00', end: '12:00' }],
-    // },
-  ]
+  // const confirmedData = [
+  //   {
+  //     date: '2024-12-31',
+  //     timeSlots: [{ start: '03:00', end: '09:30' }],
+  //   },
+  //   {
+  //     date: '2024-01-03',
+  //     timeSlots: [{ start: '06:30', end: '12:00' }],
+  //   },
+  //   {
+  //     date: '2024-01-05',
+  //     timeSlots: [{ start: '06:00', end: '12:00' }],
+  //   },
+  //   {
+  //     date: '2024-01-06',
+  //     timeSlots: [{ start: '06:00', end: '12:00' }],
+  //   },
+  // {
+  //   date: '2024-01-06',
+  //   timeSlots: [{ start: '03:00', end: '09:30' }],
+  // },
+  // {
+  //   date: '2024-01-13',
+  //   timeSlots: [{ start: '06:00', end: '12:00' }],
+  // },
+  // {
+  //   date: '2024-02-08',
+  //   timeSlots: [{ start: '06:00', end: '12:00' }],
+  // },
+  // {
+  //   date: '2024-03-17',
+  //   timeSlots: [{ start: '06:00', end: '12:00' }],
+  // },
+  // ]
 
+  const [isOpen, setIsOpen] = useState(false)
+  const [dateCounts, setDateCounts] = useState<number[]>([])
+  const [groupedDate, setGroupedDate] = useState<GroupedDate[]>([])
+  const [surveyData, setSurveyData] = useState<ScheduleData[]>([])
+  const [confirmedData, setConfirmedData] = useState<
+    { date: string; timeSlots: { start: string; end: string }[] }[]
+  >([])
   const [dateTime, setDateTime] =
     useState<{ date: string; timeSlots: { start: string; end: string }[] }[]>(
       confirmedData,
     )
   const [isPurple, setIsPurple] = useState(confirmedData.length > 0)
-  const [isOpen, setIsOpen] = useState(false)
-  const [dateCounts, setDateCounts] = useState<number[]>([])
-  const [groupedDate, setGroupedDate] = useState<GroupedDate[]>([])
-  const [surveyData, setSurveyData] = useState<ScheduleData[]>([])
 
   const DAYS_PER_PAGE = 7
   const highlightedIndex =
@@ -183,6 +161,29 @@ export default function Page() {
 
     getSurveyData()
   }, [API_BASE_URL, selectedSurveyId])
+
+  useEffect(() => {
+    if (!selectedSurveyId) return
+    console.log('surveyId', selectedSurveyId)
+    const getSavedSlot = async () => {
+      try {
+        const res = await axios.get(
+          `${API_BASE_URL}/api/timeslot/${selectedSurveyId}/select`,
+          {
+            withCredentials: true, // 쿠키 전송을 위해 필요
+          },
+        )
+        console.log('Saved slot data get 성공', res.data)
+        setConfirmedData(res.data.data)
+      } catch (error) {
+        console.log('Saved slot data get 실패', error)
+      }
+    }
+
+    getSavedSlot()
+  }, [API_BASE_URL, selectedSurveyId])
+
+  console.log('confirmedData', confirmedData)
 
   const handleTitleChange = (newTitle: string) => {
     setTitle(newTitle)
@@ -430,7 +431,7 @@ export default function Page() {
   //   },
   // ]
 
-  console.log('surveyData', surveyData)
+  // console.log('surveyData', surveyData)
 
   const selectedDates: SelectedDate[] = convertToSelectedDates(surveyData)
   const mode = surveyData[0]?.mode
