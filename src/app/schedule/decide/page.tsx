@@ -12,6 +12,7 @@ import { ScheduleItem } from '@/components/Footer/ListItem/ScheduleItem'
 import { useRouter } from 'next/navigation'
 // import axios from 'axios'
 import { useSurveyStore } from '@/store/surveyStore'
+import axios from 'axios'
 
 interface SelectedDate {
   year: number
@@ -65,105 +66,105 @@ interface ScheduleData {
   date: [string, string][] // 날짜 배열: [날짜, 요일]의 배열
 }
 
-const mockDateTime: PrevScheduleData[] = [
-  {
-    title: '팀플 대면 모임',
-    userId: 2,
-    groupId: 1,
-    mode: 'range',
-    selected: null,
-    dateData: [
-      {
-        date: '2025-02-01',
-        timeSlots: [
-          {
-            start: '09:30',
-            end: '17:00',
-            selectedBy: ['user1', 'user2', 'user3'],
-          },
-          { start: '17:00', end: '22:00', selectedBy: ['user1'] },
-        ],
-      },
-      {
-        date: '2025-02-02',
-        timeSlots: [
-          { start: '08:00', end: '13:00', selectedBy: ['user2', 'user3'] },
-          { start: '13:00', end: '20:00', selectedBy: ['user1', 'user4'] },
-          { start: '20:00', end: '23:00', selectedBy: ['user3'] },
-        ],
-      },
-      {
-        date: '2025-02-03',
-        timeSlots: [
-          { start: '05:00', end: '10:00', selectedBy: ['user1', 'user2'] },
-          {
-            start: '10:00',
-            end: '16:00',
-            selectedBy: ['user2', 'user3', 'user4'],
-          },
-          { start: '16:00', end: '21:00', selectedBy: ['user1', 'user3'] },
-        ],
-      },
-      {
-        date: '2025-02-04',
-        timeSlots: [
-          {
-            start: '11:00',
-            end: '18:00',
-            selectedBy: ['user1', 'user2', 'user3', 'user4'],
-          },
-          { start: '18:00', end: '19:00', selectedBy: ['user2'] },
-        ],
-      },
-      {
-        date: '2025-02-05',
-        timeSlots: [
-          { start: '10:00', end: '15:00', selectedBy: ['user1'] },
-          {
-            start: '15:00',
-            end: '18:00',
-            selectedBy: ['user1', 'user2', 'user3'],
-          },
-          { start: '28:00', end: '22:00', selectedBy: ['user2', 'user4'] },
-        ],
-      },
-      {
-        date: '2025-02-06',
-        timeSlots: [
-          { start: '04:00', end: '06:00', selectedBy: ['user3'] },
-          {
-            start: '06:00',
-            end: '21:00',
-            selectedBy: ['user1', 'user2', 'user3', 'user4'],
-          },
-        ],
-      },
-      {
-        date: '2025-02-07',
-        timeSlots: [
-          { start: '06:00', end: '07:00', selectedBy: ['user2'] },
-          {
-            start: '07:00',
-            end: '19:00',
-            selectedBy: ['user1', 'user3', 'user4'],
-          },
-          { start: '19:00', end: '22:00', selectedBy: ['user1', 'user2'] },
-        ],
-      },
-      {
-        date: '2025-02-08',
-        timeSlots: [
-          {
-            start: '10:00',
-            end: '19:00',
-            selectedBy: ['user1', 'user3', 'user4'],
-          },
-          { start: '19:00', end: '22:00', selectedBy: ['user1', 'user2'] },
-        ],
-      },
-    ],
-  },
-]
+// const mockDateTime: PrevScheduleData[] = [
+//   {
+//     title: '팀플 대면 모임',
+//     userId: 2,
+//     groupId: 1,
+//     mode: 'range',
+//     selected: null,
+//     dateData: [
+//       {
+//         date: '2025-02-01',
+//         timeSlots: [
+//           {
+//             start: '09:30',
+//             end: '17:00',
+//             selectedBy: ['user1', 'user2', 'user3'],
+//           },
+//           { start: '17:00', end: '22:00', selectedBy: ['user1'] },
+//         ],
+//       },
+//       {
+//         date: '2025-02-02',
+//         timeSlots: [
+//           { start: '08:00', end: '13:00', selectedBy: ['user2', 'user3'] },
+//           { start: '13:00', end: '20:00', selectedBy: ['user1', 'user4'] },
+//           { start: '20:00', end: '23:00', selectedBy: ['user3'] },
+//         ],
+//       },
+//       {
+//         date: '2025-02-03',
+//         timeSlots: [
+//           { start: '05:00', end: '10:00', selectedBy: ['user1', 'user2'] },
+//           {
+//             start: '10:00',
+//             end: '16:00',
+//             selectedBy: ['user2', 'user3', 'user4'],
+//           },
+//           { start: '16:00', end: '21:00', selectedBy: ['user1', 'user3'] },
+//         ],
+//       },
+//       {
+//         date: '2025-02-04',
+//         timeSlots: [
+//           {
+//             start: '11:00',
+//             end: '18:00',
+//             selectedBy: ['user1', 'user2', 'user3', 'user4'],
+//           },
+//           { start: '18:00', end: '19:00', selectedBy: ['user2'] },
+//         ],
+//       },
+//       {
+//         date: '2025-02-05',
+//         timeSlots: [
+//           { start: '10:00', end: '15:00', selectedBy: ['user1'] },
+//           {
+//             start: '15:00',
+//             end: '18:00',
+//             selectedBy: ['user1', 'user2', 'user3'],
+//           },
+//           { start: '28:00', end: '22:00', selectedBy: ['user2', 'user4'] },
+//         ],
+//       },
+//       {
+//         date: '2025-02-06',
+//         timeSlots: [
+//           { start: '04:00', end: '06:00', selectedBy: ['user3'] },
+//           {
+//             start: '06:00',
+//             end: '21:00',
+//             selectedBy: ['user1', 'user2', 'user3', 'user4'],
+//           },
+//         ],
+//       },
+//       {
+//         date: '2025-02-07',
+//         timeSlots: [
+//           { start: '06:00', end: '07:00', selectedBy: ['user2'] },
+//           {
+//             start: '07:00',
+//             end: '19:00',
+//             selectedBy: ['user1', 'user3', 'user4'],
+//           },
+//           { start: '19:00', end: '22:00', selectedBy: ['user1', 'user2'] },
+//         ],
+//       },
+//       {
+//         date: '2025-02-08',
+//         timeSlots: [
+//           {
+//             start: '10:00',
+//             end: '19:00',
+//             selectedBy: ['user1', 'user3', 'user4'],
+//           },
+//           { start: '19:00', end: '22:00', selectedBy: ['user1', 'user2'] },
+//         ],
+//       },
+//     ],
+//   },
+// ]
 
 // const mockDateTime: PrevScheduleData[] = [
 //   {
@@ -319,7 +320,6 @@ const participants = [
 ]
 
 export default function Page() {
-  const [title, setTitle] = useState(mockDateTime[0].title)
   const [isPurple, setIsPurple] = useState(false)
   const [currentPage, setCurrentPage] = useState(0)
   const [highlightedCol, setHighlightedCol] = useState<number | null>(null)
@@ -347,33 +347,38 @@ export default function Page() {
 
   const router = useRouter()
 
-  // const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
 
   const { selectedSurveyId } = useSurveyStore() // Zustand에서 가져옴
   console.log('surveyId', selectedSurveyId)
-  // const [surveyData, setSurveyData] = useState<ScheduleData[]>([])
+  const [decideData, setDecideData] = useState<PrevScheduleData[]>([])
 
-  // useEffect(() => {
-  //   if (!selectedSurveyId) return
-  //   console.log('surveyId', selectedSurveyId)
-  //   const getSurveyData = async () => {
-  //     try {
-  //       const res = await axios.get(
-  //         `${API_BASE_URL}/api/survey/${selectedSurveyId}`,
-  //         {
-  //           withCredentials: true, // 쿠키 전송을 위해 필요
-  //         },
-  //       )
+  // 모든 인원의 survey 정보 받아오기
+  useEffect(() => {
+    if (!selectedSurveyId) return
+    console.log('surveyId', selectedSurveyId)
+    const getSurveyData = async () => {
+      try {
+        const res = await axios.get(
+          `${API_BASE_URL}/api/timeslot/${selectedSurveyId}`,
+          {
+            withCredentials: true, // 쿠키 전송을 위해 필요
+          },
+        )
 
-  //       console.log('survey data', res.data.data)
-  //       setSurveyData([res.data.data])
-  //     } catch (error) {
-  //       console.log('survey data get 실패', error)
-  //     }
-  //   }
+        console.log('decide data', res.data.data)
+        setDecideData([res.data.data])
+      } catch (error) {
+        console.log('survey data get 실패', error)
+      }
+    }
 
-  //   getSurveyData()
-  // }, [API_BASE_URL, selectedSurveyId])
+    getSurveyData()
+  }, [API_BASE_URL, selectedSurveyId])
+
+  const [title, setTitle] = useState(decideData[0]?.title)
+
+  console.log(decideData[0]?.dateData)
 
   const onClickConfirm = () => {
     if (isPurple && !decideBottomOpen) {
@@ -391,7 +396,7 @@ export default function Page() {
       ? highlightedCol - currentPage * DAYS_PER_PAGE
       : null
 
-  function transformDateTime(mockData: PrevScheduleData[]) {
+  function transformDateTime(decideData: PrevScheduleData[]) {
     const dayNames = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
 
     // Helper function to get the day name for a given date
@@ -400,7 +405,7 @@ export default function Page() {
       return dayNames[date.getUTCDay()]
     }
 
-    return mockData.map(
+    return decideData.map(
       ({ title, userId, groupId, mode, selected, dateData }) => {
         const date = dateData.flatMap(({ date }) => [[date, getDayName(date)]])
 
@@ -416,7 +421,7 @@ export default function Page() {
     )
   }
 
-  const transformData = transformDateTime(mockDateTime).map((data) => ({
+  const transformData = transformDateTime(decideData).map((data) => ({
     ...data,
     date: data.date as [string, string][],
   }))
@@ -657,8 +662,8 @@ export default function Page() {
   }
 
   const selectedDates: SelectedDate[] = convertToSelectedDates(transformData)
-  const mode = mockDateTime[0].mode
-  const dayofWeek = mockDateTime[0].selected
+  const mode = decideData[0]?.mode
+  const dayofWeek = decideData[0]?.selected
   const month =
     mode === 'range'
       ? currentPage === Math.floor((highlightedCol ?? 0) / DAYS_PER_PAGE)
@@ -724,7 +729,7 @@ export default function Page() {
     <div className="flex flex-col h-full bg-white">
       <Title
         buttonText={'확정'}
-        initialTitle={mockDateTime[0]?.title || title}
+        initialTitle={decideData[0]?.title}
         onTitleChange={handleTitleChange}
         isPurple={isPurple}
         onClickTitleButton={onClickConfirm}
@@ -754,7 +759,7 @@ export default function Page() {
           handleActiveTime={handleActiveTime}
           getDateTime={getDateTime}
           isBottomSheetOpen={isOpen}
-          mockDateTime={mockDateTime[0].dateData}
+          mockDateTime={decideData[0]?.dateData}
           dateTime={dateTime}
         />
       </div>
