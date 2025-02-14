@@ -77,6 +77,7 @@ const indexToTime = (index: number) => {
 }
 
 export default function EditTimeStamp({
+  selectedDates,
   currentPage,
   handleSelectedCol,
   getDateTime,
