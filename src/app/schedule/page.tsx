@@ -179,7 +179,9 @@ export default function ScheduleLanding() {
     }
   }
 
-  const handleRightBtn = () => {
+  const handleRightBtn = (id: number) => {
+    const filter = notifications.filter((n) => n.id !== id)
+    console.log('filter', filter)
     alert('오른쪽 버튼 클릭')
   }
 
