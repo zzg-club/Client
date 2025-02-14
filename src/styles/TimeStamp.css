@@ -1,0 +1,29 @@
+.timestamp-container {
+  height: calc(100vh - 200px);
+  overflow-y: auto;
+  overflow-x: auto;
+  touch-action: pan-y;
+}
+
+.timestamp-content {
+  min-height: 100%;
+  width: max-content;
+  min-width: 100%;
+}
+
+.timestamp-container::-webkit-scrollbar {
+  display: none;
+}
+
+.timestamp-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.timestamp-container::-webkit-scrollbar-thumb {
+  background: #cfcfcf;
+  border-radius: 4px;
+}
+
+.timestamp-container::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a1;
+}

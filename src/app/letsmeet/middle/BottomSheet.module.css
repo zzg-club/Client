@@ -1,0 +1,150 @@
+/* 전체 바텀싯 컨테이너 */
+.bottomSheet {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  border-radius: 24px 24px 0px 0px;
+  background: var(--Grays-White, #fff);
+  box-shadow: 0px 0px 10px 0px rgba(30, 30, 30, 0.1);
+  transition: transform 0.3s;
+  box-sizing: border-box;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* 상단 드래그 핸들바 */
+.handleBar {
+  width: 64px;
+  height: 4.5px;
+  background-color: #cecece;
+  border-radius: 9999px;
+  margin: auto;
+}
+
+/* 컨텐츠 전체 컨테이너 */
+.contentWrapper {
+  position: relative;
+  width: 100%;
+  overflow: visible;
+  margin-top: 33px;
+}
+
+/* 장소 및 참여 인원 섹션 */
+.placeInfo {
+  margin-left: 38px;
+  margin-right: 38px;
+  margin-bottom: 33px;
+}
+
+.placeTitle {
+  color: black;
+  font-family: Pretendard, sans-serif;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 17px;
+  letter-spacing: -0.5px;
+}
+
+.participantCount {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.participantCountText {
+  color: #000;
+  font-family: Pretendard, sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 17px;
+  letter-spacing: -0.5px;
+}
+
+.participantCountHighlight {
+  color: var(--MainColor, #9562fb);
+}
+
+/* 화살표 */
+.arrow {
+  position: absolute;
+  transform: translateY(-50%);
+  z-index: 10;
+}
+
+.arrowLeft {
+  left: 4px;
+}
+
+.arrowRight {
+  right: 4px;
+}
+
+/* 참여자 리스트 */
+.participantList {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.participantGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 28.5px 36px;
+  justify-content: center;
+}
+
+.participantItem {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 121px;
+  height: 36.5px;
+}
+
+.participantIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 24px;
+  border-width: 2px;
+  background-size: cover;
+  background-position: center;
+  background-color: lightgray;
+  opacity: 0.64;
+}
+
+.participantText {
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 17px;
+  text-align: center;
+  font-family: Pretendard, sans-serif;
+  letter-spacing: -0.5px;
+}
+
+/* 대중교통 아이콘 */
+.transportIcon {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+.container {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.sliderWrapper {
+  display: flex;
+  transition: transform 0.3s ease;
+}
+
+.slide {
+  flex: 0 0 100%;
+  width: 100%;
+  box-sizing: border-box;
+}

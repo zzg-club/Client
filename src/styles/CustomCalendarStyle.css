@@ -1,0 +1,137 @@
+.calendar-months {
+  width: 100%;
+}
+
+.calendar-month {
+  width: 100%;
+}
+
+.calendar-month:first-child {
+  padding: 0;
+}
+
+.calendar-table {
+  width: 100%;
+  border-spacing: 0;
+  border-collapse: collapse;
+}
+
+.calendar-head-row {
+  color: #9ca3af;
+}
+
+.calendar-head-cell {
+  padding: 0;
+  text-align: center;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.calendar-cell {
+  padding: 0;
+  text-align: center;
+  width: calc(100% / 7);
+  position: relative;
+}
+
+.calendar-day {
+  width: 100%;
+  aspect-ratio: 1/1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  cursor: pointer;
+  position: relative;
+  z-index: 1;
+}
+
+/* .calendar-day:hover {
+  background-color: #d3beff;
+  border-radius: 50%;
+} */
+
+/* 오늘 이전 날짜들 */
+.calendar-day-disabled {
+  color: #9ca3af;
+}
+
+.calendar-day-selected {
+  color: #000;
+  background-color: #d3beff;
+}
+
+[data-mode='multiple'] .calendar-row:first-child .calendar-day-selected {
+  border-radius: 50% 50% 0 0;
+}
+
+.weekday-first {
+  border-radius: 50% 50% 0 0;
+}
+
+.weekday-last {
+  border-radius: 0 0 50% 50%;
+}
+
+[data-mode='multiple']
+  .calendar-row:has(.calendar-day-selected):last-child
+  .calendar-day-selected {
+  border-radius: 0 0 50% 50%;
+}
+
+[data-mode='range'] .calendar-cell:last-child .calendar-day-range-middle {
+  border-radius: 0 50% 50% 0;
+}
+
+[data-mode='range'] .calendar-cell:first-child .calendar-day-range-middle {
+  border-radius: 50% 0 0 50%;
+}
+
+.calendar-day-today {
+  color: #3b82f6;
+  font-weight: 500;
+}
+
+.calendar-close {
+  padding: 4px;
+  border-radius: 4px;
+  color: #6b7280;
+}
+
+.calendar-close:hover {
+  background-color: #f3f4f6;
+}
+
+/* Range styles */
+.calendar-day-range-start,
+.calendar-day-range-end,
+.calendar-day-range-middle {
+  background-color: #d3beff;
+}
+
+.calendar-cell:has(.calendar-day-range-start) .calendar-day::before,
+.calendar-cell:has(.calendar-day-range-end) .calendar-day::before,
+.calendar-cell:has(.calendar-day-range-middle) .calendar-day::before {
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  right: -50%;
+  bottom: -50%;
+  background-color: #d3beff;
+  z-index: -1;
+}
+
+.calendar-day-range-start {
+  border-radius: 50% 0 0 50%;
+}
+.calendar-day-range-end {
+  border-radius: 0 50% 50% 0;
+}
+
+.calendar-day-range-end.calendar-day-range-start {
+  border-radius: 50%;
+}
+
+[data-mode='single'] .calendar-day-selected {
+  border-radius: 50%;
+}
