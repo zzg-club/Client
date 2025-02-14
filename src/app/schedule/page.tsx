@@ -32,6 +32,14 @@ export type Schedule = {
   endTime: string
   location?: string
   participants: Participant[]
+  surveyId: number
+}
+
+type Notification = {
+  id: number
+  leftBtnText: string
+  surveyId: number
+  notiMessage?: string // 옵셔널 속성
 }
 
 export default function ScheduleLanding() {
@@ -44,7 +52,7 @@ export default function ScheduleLanding() {
   const [startDate, setStartDate] = useState<string | null>(null) // 직접입력하기-시작날짜,시간
   const [endDate, setEndDate] = useState<string | null>(null) // 직접입력하기-끝날짜,시간
   const [scheduleList, setScheduleList] = useState<Schedule[]>([])
-  const [notifications, setNotifications] = useState([])
+  const [notifications, setNotifications] = useState<Notification[]>([])
 
   const resetDateTime = useDateTimeStore((state) => state.resetDateTime)
   const router = useRouter()
@@ -74,6 +82,7 @@ export default function ScheduleLanding() {
           endTime: schedule.endTime,
           location: schedule.location || '',
           participants: schedule.participants || [],
+          surveyId: schedule.surveyId,
         }))
 
         setScheduleList(formattedSchedules)
@@ -161,34 +170,19 @@ export default function ScheduleLanding() {
     setEndDate(endDate)
   }
 
-  // 캐러셀 알림 목데이터
-  // const notifications = [
-  //   {
-  //     id: 1,
-  //     notiMessage: '생성하던 일정이 있습니다!',
-  //     leftBtnText: '이어서 하기',
-  //     RightBtnText: '새로 만들기',
-  //   },
-  //   {
-  //     id: 2,
-  //     notiMessage: '생성하던 일정이 있습니다!!',
-  //     leftBtnText: '이어서 하기',
-  //     RightBtnText: '새로 만들기',
-  //   },
-  //   {
-  //     id: 3,
-  //     notiMessage: '생성하던 일정이 있습니다~!',
-  //     leftBtnText: '이어서 하기',
-  //     RightBtnText: '새로 만들기',
-  //   },
-  // ]
-  // 캐러셀 알림 버튼 클릭 이벤트
-  const handleLeftBtn = () => {
-    alert('왼쪽 버튼 클릭')
+  // // 캐러셀 알림 버튼 클릭 이벤트
+  const handleLeftBtn = (id: number) => {
+    const currentNotification = notifications.find((n) => n.id === id)
+    if (currentNotification?.leftBtnText === '확정하기') {
+      setSelectedSurveyId(currentNotification.surveyId)
+      router.push('schedule/select')
+    }
   }
 
-  const handleRightBtn = () => {
-    alert('오른쪽 버튼 클릭')
+  const handleRightBtn = (id: number) => {
+    const filter = notifications.filter((n) => n.id !== id)
+    setNotifications(filter)
+    console.log('filter', filter)
   }
 
   const handlePostSchedule = async () => {
@@ -292,8 +286,8 @@ export default function ScheduleLanding() {
         <div className="flex justify-center items-center overflew-hidden">
           <CarouselNotification
             notifications={notifications}
-            onLeftBtn={handleLeftBtn}
-            onRightBtn={handleRightBtn}
+            onClickLeftBtn={handleLeftBtn}
+            onClickRightBtn={handleRightBtn}
           />
         </div>
       )}
@@ -320,6 +314,8 @@ export default function ScheduleLanding() {
                   endTime={schedule?.endTime}
                   location={schedule?.location}
                   participants={schedule?.participants}
+                  surveyId={schedule?.surveyId}
+                  getSchedule={getSchedule}
                 />
               </div>
             ))}
