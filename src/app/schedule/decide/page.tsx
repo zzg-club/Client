@@ -759,7 +759,7 @@ export default function Page() {
           handleActiveTime={handleActiveTime}
           getDateTime={getDateTime}
           isBottomSheetOpen={isOpen}
-          mockDateTime={decideData[0]?.dateData}
+          mockDateTime={decideData[0]?.dateData ?? []}
           dateTime={dateTime}
         />
       </div>
