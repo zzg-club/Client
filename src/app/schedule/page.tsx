@@ -16,14 +16,22 @@ import { useRouter } from 'next/navigation'
 import { useSurveyStore } from '@/store/surveyStore'
 import axios from 'axios'
 
-type Schedule = {
+// /api/members/List 연동
+export type Participant = {
+  id: number
+  name: string
+  image: string
+  type: string
+}
+
+export type Schedule = {
   id: number
   startDate: string
   title: string
   startTime: string
   endTime: string
   location?: string
-  participants: { id: number; name: string; image: string }[]
+  participants: Participant[]
 }
 
 export default function ScheduleLanding() {
@@ -36,6 +44,7 @@ export default function ScheduleLanding() {
   const [startDate, setStartDate] = useState<string | null>(null) // 직접입력하기-시작날짜,시간
   const [endDate, setEndDate] = useState<string | null>(null) // 직접입력하기-끝날짜,시간
   const [scheduleList, setScheduleList] = useState<Schedule[]>([])
+  const [notifications, setNotifications] = useState([])
 
   const resetDateTime = useDateTimeStore((state) => state.resetDateTime)
   const router = useRouter()
@@ -59,11 +68,10 @@ export default function ScheduleLanding() {
       if (Array.isArray(data.data)) {
         const formattedSchedules = data.data.map((schedule: Schedule) => ({
           id: schedule.id,
-          startDate: schedule.startDate || '날짜 미정',
-          // title: schedule.title ?? '제목 없는 일정',
+          startDate: schedule.startDate,
           title: schedule.title,
-          startTime: schedule.startTime || '시간 미정',
-          endTime: schedule.endTime || '시간 미정',
+          startTime: schedule.startTime,
+          endTime: schedule.endTime,
           location: schedule.location || '',
           participants: schedule.participants || [],
         }))
@@ -96,7 +104,29 @@ export default function ScheduleLanding() {
       }
     }
 
+    const fetchNotification = async () => {
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/api/members/notification`,
+          {
+            method: 'GET',
+            credentials: 'include', // 쿠키 전송을 위해 필요
+          },
+        )
+
+        if (!response.ok) {
+          throw new Error(`서버 에러: ${response.status}`)
+        }
+        const notiData = await response.json()
+        setNotifications(notiData.data)
+        console.log('알림 정보:', notiData)
+      } catch (error) {
+        console.error('알림 정보 불러오기 실패:', error)
+      }
+    }
+
     fetchUserInfo()
+    fetchNotification()
     getSchedule()
   }, [API_BASE_URL, getSchedule])
 
@@ -132,26 +162,26 @@ export default function ScheduleLanding() {
   }
 
   // 캐러셀 알림 목데이터
-  const notifications = [
-    {
-      id: 1,
-      notiMessage: '생성하던 일정이 있습니다!',
-      leftBtnText: '이어서 하기',
-      RightBtnText: '새로 만들기',
-    },
-    {
-      id: 2,
-      notiMessage: '생성하던 일정이 있습니다!!',
-      leftBtnText: '이어서 하기',
-      RightBtnText: '새로 만들기',
-    },
-    {
-      id: 3,
-      notiMessage: '생성하던 일정이 있습니다~!',
-      leftBtnText: '이어서 하기',
-      RightBtnText: '새로 만들기',
-    },
-  ]
+  // const notifications = [
+  //   {
+  //     id: 1,
+  //     notiMessage: '생성하던 일정이 있습니다!',
+  //     leftBtnText: '이어서 하기',
+  //     RightBtnText: '새로 만들기',
+  //   },
+  //   {
+  //     id: 2,
+  //     notiMessage: '생성하던 일정이 있습니다!!',
+  //     leftBtnText: '이어서 하기',
+  //     RightBtnText: '새로 만들기',
+  //   },
+  //   {
+  //     id: 3,
+  //     notiMessage: '생성하던 일정이 있습니다~!',
+  //     leftBtnText: '이어서 하기',
+  //     RightBtnText: '새로 만들기',
+  //   },
+  // ]
   // 캐러셀 알림 버튼 클릭 이벤트
   const handleLeftBtn = () => {
     alert('왼쪽 버튼 클릭')
