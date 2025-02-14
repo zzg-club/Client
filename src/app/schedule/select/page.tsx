@@ -11,7 +11,7 @@ import { ProfileLarge } from '@/components/Profiles/ProfileLarge'
 import MembersDefault from '@/components/Modals/MembersDefault'
 import { useRouter } from 'next/navigation'
 import { useSurveyStore } from '@/store/surveyStore'
-import { selectApi } from '@/app/api/timeslot/[surveyId]/route'
+import axios from 'axios'
 
 interface SelectedDate {
   year: number
@@ -38,22 +38,77 @@ interface GroupedDate {
 
 interface ScheduleData {
   title: string // 일정 이름
-  userId: number // 사용자 ID
-  groupId: number // 그룹 ID
   mode: string
   selected: string[] | null
   date: [string, string][] // 날짜 배열: [날짜, 요일]의 배열
 }
 
 export default function Page() {
+  const { selectedSurveyId } = useSurveyStore()
+  console.log('zustand에서 가져온 surveyId', selectedSurveyId)
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
+
+  const selectApi = {
+    createTimeSlot: async (
+      surveyId: number,
+      slotDate: string,
+      startTime: string,
+      endTime: string,
+    ) => {
+      console.log('포스트', surveyId)
+      try {
+        const response = await axios.post(
+          `${API_BASE_URL}/api/timeslot/${surveyId}`,
+          {
+            slotDate: slotDate,
+            startTime: startTime,
+            endTime: endTime,
+          },
+          {
+            withCredentials: true, // 쿠키 전송을 위해 필요
+            headers: {
+              'Content-Type': 'application/json', // JSON 형식 명시
+            },
+          },
+        )
+        console.log('타임슬롯 생성 성공', response)
+      } catch (error) {
+        console.log('타임슬롯 생성 실패', error)
+      }
+    },
+  }
+
+  // const headerApi = {
+  //   getSelectedDays: async (
+  //     surveyId: number,
+  //     success: boolean,
+  //     data: {
+  //       mode: string
+  //       selected: [string]
+  //       date: [string]
+  //     },
+  //   ) => {
+  //     console.log(success, data)
+  //     try {
+  //       const response = await axios.get(
+  //         `${API_BASE_URL}/api/timeslot/${surveyId}/edit/header`,
+  //         {
+  //           withCredentials: true, // 쿠키 전송 허용
+  //         },
+  //       )
+
+  //       console.log('헤더 날짜 정보 받아오기 성공', response)
+  //     } catch (error) {
+  //       console.error('헤더 날짜 정보 받아오기 실패', error)
+  //     }
+  //   },
+  // }
+
   const [title, setTitle] = useState('제목 없는 일정')
   const [currentPage, setCurrentPage] = useState(0)
   const [highlightedCol, setHighlightedCol] = useState<number | null>(null)
   const [startTime, setStartTime] = useState<string | null>(null)
   const [endTime, setEndTime] = useState<string | null>(null)
-
-  const { selectedSurveyId } = useSurveyStore() // Zustand에서 가져온 그룹아이디
-  console.log('zustand에서 가져온 surveyId', selectedSurveyId)
 
   const confirmedData = [
     {
@@ -258,7 +313,7 @@ export default function Page() {
           startTime: newEntry.timeSlots[0].start,
           endTime: newEntry.timeSlots[0].end,
         }
-        // console.log('Post할 항목:', postTimeSlot)
+        console.log('Post할 항목:', postTimeSlot)
 
         // createTimeSlot 함수 호출
         if (selectedSurveyId !== null) {
@@ -298,7 +353,10 @@ export default function Page() {
   function convertToSelectedDates(
     scheduleData: ScheduleData[],
   ): SelectedDate[] {
-    return scheduleData.flatMap((schedule) =>
+    const validScheduleData = Array.isArray(scheduleData) ? scheduleData : []
+    console.log('validScheduleData', validScheduleData)
+
+    return validScheduleData.flatMap((schedule) =>
       schedule.date.map(([fullDate, weekday]) => {
         const [year, month, day] = fullDate.split('-').map(Number)
         return {
@@ -311,51 +369,80 @@ export default function Page() {
     )
   }
 
-  const scheduleData: ScheduleData[] = [
-    {
-      title: '팀플 대면 모임',
-      userId: 2,
-      groupId: 1,
-      // mode: 'week',
-      // selected: ['mon', 'wed', 'fri'],
-      // date: [
-      //   ['2024-01-06', 'mon'],
-      //   ['2024-02-08', 'wed'],
-      //   ['2024-01-13', 'mon'],
-      //   ['2024-02-15', 'wed'],
-      //   ['2024-01-20', 'mon'],
-      //   ['2024-02-22', 'wed'],
-      //   ['2024-01-27', 'mon'],
-      //   ['2024-03-03', 'fri'],
-      //   ['2024-03-10', 'fri'],
-      //   ['2024-03-17', 'fri'],
-      //   ['2024-03-24', 'fri'],
-      //   ['2024-03-31', 'fri'],
-      // ],
-      mode: 'range',
-      selected: null,
-      date: [
-        ['2024-12-30', 'mon'],
-        ['2024-12-31', 'tue'],
-        ['2024-01-01', 'wed'],
-        ['2024-01-02', 'thu'],
-        ['2024-01-03', 'fri'],
-        ['2024-01-04', 'sat'],
-        ['2024-01-05', 'sun'],
-        ['2024-01-06', 'mon'],
-        ['2024-01-07', 'tue'],
-        ['2024-01-08', 'wed'],
-        ['2024-01-09', 'thu'],
-        ['2024-01-10', 'fri'],
-        ['2024-01-11', 'sat'],
-        ['2024-01-12', 'sun'],
-      ],
-    },
-  ]
+  // const scheduleData: ScheduleData[] = [
+  //   {
+  //     title: '팀플 대면 모임',
+  //     userId: 2,
+  //     groupId: 1,
+  //     // mode: 'week',
+  //     // selected: ['mon', 'wed', 'fri'],
+  //     // date: [
+  //     //   ['2024-01-06', 'mon'],
+  //     //   ['2024-02-08', 'wed'],
+  //     //   ['2024-01-13', 'mon'],
+  //     //   ['2024-02-15', 'wed'],
+  //     //   ['2024-01-20', 'mon'],
+  //     //   ['2024-02-22', 'wed'],
+  //     //   ['2024-01-27', 'mon'],
+  //     //   ['2024-03-03', 'fri'],
+  //     //   ['2024-03-10', 'fri'],
+  //     //   ['2024-03-17', 'fri'],
+  //     //   ['2024-03-24', 'fri'],
+  //     //   ['2024-03-31', 'fri'],
+  //     // ],
+  //     mode: 'range',
+  //     selected: null,
+  //     date: [
+  //       ['2024-12-30', 'mon'],
+  //       ['2024-12-31', 'tue'],
+  //       ['2024-01-01', 'wed'],
+  //       ['2024-01-02', 'thu'],
+  //       ['2024-01-03', 'fri'],
+  //       ['2024-01-04', 'sat'],
+  //       ['2024-01-05', 'sun'],
+  //       ['2024-01-06', 'mon'],
+  //       ['2024-01-07', 'tue'],
+  //       ['2024-01-08', 'wed'],
+  //       ['2024-01-09', 'thu'],
+  //       ['2024-01-10', 'fri'],
+  //       ['2024-01-11', 'sat'],
+  //       ['2024-01-12', 'sun'],
+  //     ],
+  //   },
+  // ]
+
+  const [scheduleData, setScheduleData] = useState<ScheduleData[]>([])
+
+  useEffect(() => {
+    console.log('헤더 스케줄 데이터', scheduleData)
+  }, [scheduleData]) // scheduleData가 변경될 때마다 로그 출력
+
+  const getSelectedDays = async () => {
+    if (selectedSurveyId !== null) {
+      try {
+        const response = await axios.get(
+          `${API_BASE_URL}/api/survey/${selectedSurveyId}`,
+          {
+            withCredentials: true, // 쿠키 전송 허용
+          },
+        )
+        console.log('헤더 날짜 정보 받아오기 성공', response.data.data)
+        console.log('헤더 날짜 배열', Object.values(response.data.data))
+        setScheduleData(Object.values(response.data.data)) // 객체를 배열로 변환
+        console.log('scheduleData', scheduleData)
+      } catch (error) {
+        console.error('헤더 날짜 정보 받아오기 실패', error)
+      }
+    }
+  }
+
+  useEffect(() => {
+    getSelectedDays()
+  }, [])
 
   const selectedDates: SelectedDate[] = convertToSelectedDates(scheduleData)
-  const mode = scheduleData[0].mode
-  const dayofWeek = scheduleData[0].selected
+  const mode = scheduleData[0]?.mode
+  const dayofWeek = scheduleData[0]?.selected
   const month =
     mode === 'range'
       ? currentPage === Math.floor((highlightedCol ?? 0) / DAYS_PER_PAGE)

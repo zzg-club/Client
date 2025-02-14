@@ -17,6 +17,7 @@ import { createGroupId } from '../api/members/route'
 import { createDirectSchedule } from '../api/schedule/route'
 import { createSurveySchedule } from '../api/survey/route'
 import { useSurveyStore } from '@/store/surveyStore'
+// import axios from 'axios'
 
 type Schedule = {
   id: number
@@ -99,6 +100,24 @@ export default function ScheduleLanding() {
     }
 
     fetchUserInfo()
+    // const postCode = async () => {
+    //   try {
+    //     const response = await axios.post(
+    //       `${API_BASE_URL}/api/group-members/code`,
+    //       {
+    //         code: '7259416e-a6c8-8ad9-1ace-03fad40757f4',
+    //       },
+    //       {
+    //         withCredentials: true, // 쿠키 전송을 위해 필요
+    //       },
+    //     )
+
+    //     console.log('초대 코드 성공', response)
+    //   } catch (error) {
+    //     console.log('초대 코드 실패', error)
+    //   }
+    // }
+    // postCode()
     getSchedule()
   }, [API_BASE_URL, getSchedule])
 
