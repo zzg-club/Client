@@ -31,7 +31,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            echo "✅ SSH 연결 성공이다!"
+            echo "✅ SSH 연결 성공이에요!"
             docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
             docker pull nayoungg/inkv:latest
             docker stop inkv-container || true
