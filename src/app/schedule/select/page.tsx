@@ -10,6 +10,8 @@ import CustomModal from '@/components/Modals/CustomModal'
 import { ProfileLarge } from '@/components/Profiles/ProfileLarge'
 import MembersDefault from '@/components/Modals/MembersDefault'
 import { useRouter } from 'next/navigation'
+import { useSurveyStore } from '@/store/surveyStore'
+import axios from 'axios'
 
 interface SelectedDate {
   year: number
@@ -49,6 +51,9 @@ export default function Page() {
   const [highlightedCol, setHighlightedCol] = useState<number | null>(null)
   const [startTime, setStartTime] = useState<string | null>(null)
   const [endTime, setEndTime] = useState<string | null>(null)
+
+  const { selectedSurveyId } = useSurveyStore() // Zustand에서 가져온 그룹아이디
+  console.log('zustand에서 가져온 surveyId', selectedSurveyId)
 
   const confirmedData = [
     {
@@ -93,12 +98,37 @@ export default function Page() {
   const [isOpen, setIsOpen] = useState(false)
   const [dateCounts, setDateCounts] = useState<number[]>([])
   const [groupedDate, setGroupedDate] = useState<GroupedDate[]>([])
+  const [surveyData, setSurveyData] = useState<ScheduleData[]>([])
 
   const DAYS_PER_PAGE = 7
   const highlightedIndex =
     highlightedCol !== null
       ? highlightedCol - currentPage * DAYS_PER_PAGE
       : null
+
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
+
+  useEffect(() => {
+    if (!selectedSurveyId) return
+    console.log('surveyId', selectedSurveyId)
+    const getSurveyData = async () => {
+      try {
+        const res = await axios.get(
+          `${API_BASE_URL}/api/survey/${selectedSurveyId}`,
+          {
+            withCredentials: true, // 쿠키 전송을 위해 필요
+          },
+        )
+
+        console.log('survey data', res.data.data)
+        setSurveyData([res.data.data])
+      } catch (error) {
+        console.log('survey data get 실패', error)
+      }
+    }
+
+    getSurveyData()
+  }, [API_BASE_URL, selectedSurveyId])
 
   const handleTitleChange = (newTitle: string) => {
     setTitle(newTitle)
@@ -276,67 +306,67 @@ export default function Page() {
     sun: '일',
   }
 
-  function convertToSelectedDates(
-    scheduleData: ScheduleData[],
-  ): SelectedDate[] {
-    return scheduleData.flatMap((schedule) =>
-      schedule.date.map(([fullDate, weekday]) => {
+  function convertToSelectedDates(surveyData: ScheduleData[]): SelectedDate[] {
+    return (
+      surveyData[0]?.date?.map(([fullDate, weekday]) => {
         const [year, month, day] = fullDate.split('-').map(Number)
         return {
           year,
           month,
-          day: day,
+          day,
           weekday: weekdayMap[weekday],
         }
-      }),
+      }) || []
     )
   }
 
-  const scheduleData: ScheduleData[] = [
-    {
-      title: '팀플 대면 모임',
-      userId: 2,
-      groupId: 1,
-      // mode: 'week',
-      // selected: ['mon', 'wed', 'fri'],
-      // date: [
-      //   ['2024-01-06', 'mon'],
-      //   ['2024-02-08', 'wed'],
-      //   ['2024-01-13', 'mon'],
-      //   ['2024-02-15', 'wed'],
-      //   ['2024-01-20', 'mon'],
-      //   ['2024-02-22', 'wed'],
-      //   ['2024-01-27', 'mon'],
-      //   ['2024-03-03', 'fri'],
-      //   ['2024-03-10', 'fri'],
-      //   ['2024-03-17', 'fri'],
-      //   ['2024-03-24', 'fri'],
-      //   ['2024-03-31', 'fri'],
-      // ],
-      mode: 'range',
-      selected: null,
-      date: [
-        ['2024-12-30', 'mon'],
-        ['2024-12-31', 'tue'],
-        ['2024-01-01', 'wed'],
-        ['2024-01-02', 'thu'],
-        ['2024-01-03', 'fri'],
-        ['2024-01-04', 'sat'],
-        ['2024-01-05', 'sun'],
-        ['2024-01-06', 'mon'],
-        ['2024-01-07', 'tue'],
-        ['2024-01-08', 'wed'],
-        ['2024-01-09', 'thu'],
-        ['2024-01-10', 'fri'],
-        ['2024-01-11', 'sat'],
-        ['2024-01-12', 'sun'],
-      ],
-    },
-  ]
+  // const scheduleData: ScheduleData[] = [
+  //   {
+  //     title: '팀플 대면 모임',
+  //     userId: 2,
+  //     groupId: 1,
+  //     // mode: 'week',
+  //     // selected: ['mon', 'wed', 'fri'],
+  //     // date: [
+  //     //   ['2024-01-06', 'mon'],
+  //     //   ['2024-02-08', 'wed'],
+  //     //   ['2024-01-13', 'mon'],
+  //     //   ['2024-02-15', 'wed'],
+  //     //   ['2024-01-20', 'mon'],
+  //     //   ['2024-02-22', 'wed'],
+  //     //   ['2024-01-27', 'mon'],
+  //     //   ['2024-03-03', 'fri'],
+  //     //   ['2024-03-10', 'fri'],
+  //     //   ['2024-03-17', 'fri'],
+  //     //   ['2024-03-24', 'fri'],
+  //     //   ['2024-03-31', 'fri'],
+  //     // ],
+  //     mode: 'range',
+  //     selected: null,
+  //     date: [
+  //       ['2024-12-30', 'mon'],
+  //       ['2024-12-31', 'tue'],
+  //       ['2024-01-01', 'wed'],
+  //       ['2024-01-02', 'thu'],
+  //       ['2024-01-03', 'fri'],
+  //       ['2024-01-04', 'sat'],
+  //       ['2024-01-05', 'sun'],
+  //       ['2024-01-06', 'mon'],
+  //       ['2024-01-07', 'tue'],
+  //       ['2024-01-08', 'wed'],
+  //       ['2024-01-09', 'thu'],
+  //       ['2024-01-10', 'fri'],
+  //       ['2024-01-11', 'sat'],
+  //       ['2024-01-12', 'sun'],
+  //     ],
+  //   },
+  // ]
 
-  const selectedDates: SelectedDate[] = convertToSelectedDates(scheduleData)
-  const mode = scheduleData[0].mode
-  const dayofWeek = scheduleData[0].selected
+  console.log('surveyData', surveyData)
+
+  const selectedDates: SelectedDate[] = convertToSelectedDates(surveyData)
+  const mode = surveyData[0]?.mode
+  const dayofWeek = surveyData[0]?.selected
   const month =
     mode === 'range'
       ? currentPage === Math.floor((highlightedCol ?? 0) / DAYS_PER_PAGE)
@@ -464,7 +494,7 @@ export default function Page() {
     <div>
       <Title
         buttonText={'완료'}
-        initialTitle={scheduleData[0]?.title || title}
+        initialTitle={surveyData[0]?.title || title}
         onTitleChange={handleTitleChange}
         isPurple={isPurple}
         onClickTitleButton={handleToDecideModal}

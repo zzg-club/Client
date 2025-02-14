@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { ScheduleOptions } from '@/components/Buttons/Floating/Options'
 import CustomModal from '@/components/Modals/CustomModal'
 import CustomCalendar from '@/components/Calendars/CustomCalendar'
@@ -13,15 +13,34 @@ import DateTimeModal from '@/components/Modals/DirectSelect/DateTimeModal'
 import { useHandleSelect } from '@/hooks/useHandleSelect'
 import { useDateTimeStore } from '@/store/dateTimeStore'
 import { useRouter } from 'next/navigation'
+import { useSurveyStore } from '@/store/surveyStore'
+import { useGroupStore } from '@/store/groupStore'
+import axios from 'axios'
 
-type Schedule = {
+// /api/members/List 연동
+export type Participant = {
+  id: number
+  name: string
+  image: string
+  type: string
+}
+
+export type Schedule = {
   id: number
   startDate: string
   title: string
   startTime: string
   endTime: string
   location?: string
-  participants: { id: number; name: string; image: string }[]
+  participants: Participant[]
+  surveyId: number
+}
+
+type Notification = {
+  id: number
+  leftBtnText: string
+  surveyId: number
+  notiMessage?: string // 옵셔널 속성
 }
 
 export default function ScheduleLanding() {
@@ -34,21 +53,57 @@ export default function ScheduleLanding() {
   const [startDate, setStartDate] = useState<string | null>(null) // 직접입력하기-시작날짜,시간
   const [endDate, setEndDate] = useState<string | null>(null) // 직접입력하기-끝날짜,시간
   const [scheduleList, setScheduleList] = useState<Schedule[]>([])
+  const [notifications, setNotifications] = useState<Notification[]>([])
 
   const resetDateTime = useDateTimeStore((state) => state.resetDateTime)
   const router = useRouter()
+
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
+
+  const { setSelectedSurveyId } = useSurveyStore() // Zustand에서 가져옴
+  const { setSelectedGroupId } = useGroupStore()
+
+  const getSchedule = useCallback(async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/members/List`, {
+        method: 'GET',
+        credentials: 'include', // 쿠키 전송을 위해 필요
+      })
+      if (!response.ok) {
+        // 예외 처리
+        throw new Error(`서버 에러: ${response.status}`)
+      }
+      const data = await response.json()
+      console.log('스케줄 정보:', data.data)
+      if (Array.isArray(data.data)) {
+        const formattedSchedules = data.data.map((schedule: Schedule) => ({
+          id: schedule.id,
+          startDate: schedule.startDate,
+          title: schedule.title,
+          startTime: schedule.startTime,
+          endTime: schedule.endTime,
+          location: schedule.location || '',
+          participants: schedule.participants || [],
+          surveyId: schedule.surveyId,
+        }))
+
+        setScheduleList(formattedSchedules)
+      } else {
+        console.error('데이터 구조 에러:', data.data)
+      }
+    } catch (error) {
+      console.error('스케줄 정보 불러오기 실패:', error)
+    }
+  }, [API_BASE_URL])
 
   // 연동 데이터
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
-        const response = await fetch(
-          'https://api.moim.team/api/user/information',
-          {
-            method: 'GET',
-            credentials: 'include', // 쿠키 전송을 위해 필요
-          },
-        )
+        const response = await fetch(`${API_BASE_URL}/api/user/information`, {
+          method: 'GET',
+          credentials: 'include', // 쿠키 전송을 위해 필요
+        })
         if (!response.ok) {
           // 예외 처리
           throw new Error(`서버 에러: ${response.status}`)
@@ -60,42 +115,31 @@ export default function ScheduleLanding() {
       }
     }
 
-    const getSchedule = async () => {
+    const fetchNotification = async () => {
       try {
-        const response = await fetch('https://api.moim.team/api/members/List', {
-          method: 'GET',
-          credentials: 'include', // 쿠키 전송을 위해 필요
-        })
+        const response = await fetch(
+          `${API_BASE_URL}/api/members/notification`,
+          {
+            method: 'GET',
+            credentials: 'include', // 쿠키 전송을 위해 필요
+          },
+        )
+
         if (!response.ok) {
-          // 예외 처리
           throw new Error(`서버 에러: ${response.status}`)
         }
-        const data = await response.json()
-        console.log('스케줄 정보:', data.data)
-        if (Array.isArray(data.data)) {
-          const formattedSchedules = data.data.map((schedule: Schedule) => ({
-            id: schedule.id,
-            startDate: schedule.startDate || '날짜 미정',
-            // title: schedule.title ?? '제목 없는 일정',
-            title: schedule.title,
-            startTime: schedule.startTime || '시간 미정',
-            endTime: schedule.endTime || '시간 미정',
-            location: schedule.location || '',
-            participants: schedule.participants || [],
-          }))
-
-          setScheduleList(formattedSchedules)
-        } else {
-          console.error('데이터 구조 에러:', data.data)
-        }
+        const notiData = await response.json()
+        setNotifications(notiData.data)
+        console.log('알림 정보:', notiData)
       } catch (error) {
-        console.error('스케줄 정보 불러오기 실패:', error)
+        console.error('알림 정보 불러오기 실패:', error)
       }
     }
 
     fetchUserInfo()
+    fetchNotification()
     getSchedule()
-  }, [])
+  }, [API_BASE_URL, getSchedule])
 
   // 제목 수정 함수
   const handleTitleChange = (newTitle: string) => {
@@ -117,6 +161,7 @@ export default function ScheduleLanding() {
     if (isDdialogOpen) {
       // 직접 입력 모달이 닫힐 때 시작/끝 날짜,시간 초기화
       resetDateTime()
+      setTitle('제목 없는 일정')
     }
     setIsDdialogOpen(!isDdialogOpen)
   }
@@ -127,42 +172,64 @@ export default function ScheduleLanding() {
     setEndDate(endDate)
   }
 
-  // 캐러셀 알림 목데이터
-  const notifications = [
-    {
-      id: 1,
-      notiMessage: '생성하던 일정이 있습니다!',
-      leftBtnText: '이어서 하기',
-      RightBtnText: '새로 만들기',
-    },
-    {
-      id: 2,
-      notiMessage: '생성하던 일정이 있습니다!!',
-      leftBtnText: '이어서 하기',
-      RightBtnText: '새로 만들기',
-    },
-    {
-      id: 3,
-      notiMessage: '생성하던 일정이 있습니다~!',
-      leftBtnText: '이어서 하기',
-      RightBtnText: '새로 만들기',
-    },
-  ]
-  // 캐러셀 알림 버튼 클릭 이벤트
-  const handleLeftBtn = () => {
-    alert('왼쪽 버튼 클릭')
+  // // 캐러셀 알림 버튼 클릭 이벤트
+  const handleLeftBtn = (id: number) => {
+    const currentNotification = notifications.find((n) => n.id === id)
+    if (currentNotification?.leftBtnText === '확정하기') {
+      setSelectedSurveyId(currentNotification.surveyId)
+      router.push('schedule/select')
+    }
   }
 
-  const handleRightBtn = () => {
-    alert('오른쪽 버튼 클릭')
+  const handleRightBtn = (id: number) => {
+    const filter = notifications.filter((n) => n.id !== id)
+    setNotifications(filter)
+    console.log('filter', filter)
   }
 
-  const handlePostSchedule = () => {
+  const handlePostSchedule = async () => {
     console.log('선택날짜', stringDates)
     console.log('mode', mode)
     console.log('selected', selected)
 
-    router.push('/schedule/select')
+    try {
+      // 1. 그룹 생성
+      const groupRes = await axios.post(
+        `${API_BASE_URL}/api/members`,
+        {},
+        {
+          withCredentials: true, // 쿠키 전송을 위해 필요
+        },
+      )
+
+      const groupId = await groupRes.data.data.groupId
+      console.log('그룹 ID:', groupRes.data.data.groupId)
+
+      // 2. 조율할 스케줄 생성
+      const cresteSurveyRes = await axios.post(
+        `${API_BASE_URL}/api/survey`,
+        {
+          groupId: groupId,
+          mode: mode,
+          selected: selected,
+          date: stringDates,
+        },
+        {
+          withCredentials: true, // 쿠키 전송을 위해 필요
+        },
+      )
+
+      console.log('조율할 일정 생성', cresteSurveyRes)
+      const surveyId = await cresteSurveyRes.data.data.surveyId
+
+      // surveyId 전역으로 저장
+      setSelectedSurveyId(surveyId)
+      setSelectedGroupId(groupId)
+
+      router.push('/schedule/select')
+    } catch (error) {
+      console.log('일정 생성 실패', error)
+    }
   }
 
   const handlePostDirectSchedule = async () => {
@@ -171,40 +238,37 @@ export default function ScheduleLanding() {
 
     try {
       // 그룹 생성
-      const response1 = await fetch('https://api.moim.team/api/members', {
-        method: 'POST',
-        credentials: 'include', // 쿠키 전송을 위해 필요
-      })
-
-      if (!response1.ok) {
-        throw new Error(`서버 에러: ${response1.status}`)
-      }
-
-      const data1 = await response1.json()
-      console.log('그룹 ID:', data1)
-      const groupId = data1.data.groupId // 그룹 ID 저장
-
-      // 스케줄 생성 - 첫 번째 요청이 끝난 후 실행
-      const response2 = await fetch('https://api.moim.team/api/schedule', {
-        method: 'POST',
-        credentials: 'include', // 쿠키 전송을 위해 필요
-        headers: {
-          'Content-Type': 'application/json', // JSON 형식 명시
+      const groupRes = await axios.post(
+        `${API_BASE_URL}/api/members`,
+        {},
+        {
+          withCredentials: true, // 쿠키 전송을 위해 필요
         },
-        body: JSON.stringify({
+      )
+
+      const groupId = await groupRes.data.data.groupId
+      console.log('그룹 ID:', groupRes.data.data.groupId)
+
+      // 직접 입력 스케줄 생성
+      const createScheduleRes = await axios.post(
+        `${API_BASE_URL}/api/schedule`,
+        {
           groupId: groupId, // 첫 번째 요청에서 받은 그룹 ID 사용
-          name: title,
+          title: title,
           startDate: startDate,
           endDate: endDate,
-        }),
-      })
+        },
+        {
+          withCredentials: true, // 쿠키 전송을 위해 필요
+          headers: {
+            'Content-Type': 'application/json', // JSON 형식 명시
+          },
+        },
+      )
+      console.log('직접 일정 생성 성공', createScheduleRes)
 
-      if (!response2.ok) {
-        throw new Error(`서버 에러: ${response2.status}`)
-      }
-
-      const data2 = await response2.json()
-      console.log('직접 생성 성공', data2)
+      // 일정이 추가된 후 다시 스케줄 목록 가져오기
+      await getSchedule()
     } catch (error) {
       console.error('API 요청 실패', error)
     }
@@ -225,8 +289,8 @@ export default function ScheduleLanding() {
         <div className="flex justify-center items-center overflew-hidden">
           <CarouselNotification
             notifications={notifications}
-            onLeftBtn={handleLeftBtn}
-            onRightBtn={handleRightBtn}
+            onClickLeftBtn={handleLeftBtn}
+            onClickRightBtn={handleRightBtn}
           />
         </div>
       )}
@@ -246,12 +310,15 @@ export default function ScheduleLanding() {
             {scheduleList.map((schedule) => (
               <div key={schedule?.id}>
                 <ScheduleCard
+                  id={schedule?.id}
                   startDate={schedule?.startDate}
                   title={schedule?.title}
                   startTime={schedule?.startTime}
                   endTime={schedule?.endTime}
                   location={schedule?.location}
                   participants={schedule?.participants}
+                  surveyId={schedule?.surveyId}
+                  getSchedule={getSchedule}
                 />
               </div>
             ))}

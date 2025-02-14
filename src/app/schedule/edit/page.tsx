@@ -24,7 +24,7 @@ interface GroupedDate {
 }
 
 interface ScheduleData {
-  name: string // 일정 이름
+  title: string // 일정 이름
   userId: number // 사용자 ID
   groupId: number // 그룹 ID
   mode: string
@@ -82,21 +82,21 @@ const mockSelectedSchedule: DateData[] = [
       },
     ],
   },
-  {
-    date: '2024-01-13',
-    timeSlots: [
-      {
-        slotId: 5,
-        start: '09:00',
-        end: '12:00',
-      },
-      {
-        slotId: 6,
-        start: '13:30',
-        end: '15:30',
-      },
-    ],
-  },
+  // {
+  //   date: '2024-01-13',
+  //   timeSlots: [
+  //     // {
+  //     //   slotId: 5,
+  //     //   start: '09:00',
+  //     //   end: '12:00',
+  //     // },
+  //     // {
+  //     //   slotId: 6,
+  //     //   start: '13:30',
+  //     //   end: '15:30',
+  //     // },
+  //   ],
+  // },
   {
     date: '2024-02-15',
     timeSlots: [
@@ -112,21 +112,21 @@ const mockSelectedSchedule: DateData[] = [
       },
     ],
   },
-  {
-    date: '2024-01-20',
-    timeSlots: [
-      {
-        slotId: 9,
-        start: '06:00',
-        end: '10:30',
-      },
-      {
-        slotId: 10,
-        start: '17:30',
-        end: '22:00',
-      },
-    ],
-  },
+  // {
+  //   date: '2024-01-20',
+  //   timeSlots: [
+  //     {
+  //       slotId: 9,
+  //       start: '06:00',
+  //       end: '10:30',
+  //     },
+  //     {
+  //       slotId: 10,
+  //       start: '17:30',
+  //       end: '22:00',
+  //     },
+  //   ],
+  // },
   {
     date: '2024-02-22',
     timeSlots: [
@@ -195,11 +195,11 @@ const mockSelectedSchedule: DateData[] = [
         start: '06:00',
         end: '10:30',
       },
-      {
-        slotId: 20,
-        start: '19:30',
-        end: '22:00',
-      },
+      // {
+      //   slotId: 20,
+      //   start: '19:30',
+      //   end: '22:00',
+      // },
     ],
   },
   {
@@ -432,7 +432,6 @@ export default function SchedulePage() {
     sat: '토',
     sun: '일',
   }
-
   function convertToSelectedDates(
     scheduleData: ScheduleData[],
   ): SelectedDate[] {
@@ -448,10 +447,9 @@ export default function SchedulePage() {
       }),
     )
   }
-
   const scheduleData: ScheduleData[] = [
     {
-      name: '팀플 대면 모임',
+      title: '팀플 대면 모임',
       userId: 2,
       groupId: 1,
       mode: 'week',

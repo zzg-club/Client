@@ -77,6 +77,7 @@ const indexToTime = (index: number) => {
 }
 
 export default function EditTimeStamp({
+  selectedDates,
   currentPage,
   handleSelectedCol,
   getDateTime,
@@ -99,34 +100,53 @@ export default function EditTimeStamp({
   const [initialTouchRow] = useState<number | null>(null)
   const [sortedMockData, setSortedMockData] = useState<DateData[]>([]) // 정렬된 데이터를 상태로 관리
 
-  const currentDates =
-    mode === 'range'
-      ? sortedMockData.slice(
-          currentPage * COLUMNS_PER_PAGE,
-          (currentPage + 1) * COLUMNS_PER_PAGE,
-        )
-      : (() => {
-          let startIndex = 0
-          let endIndex = 0
+  const currentDates = useMemo(() => {
+    if (mode === 'range') {
+      return sortedMockData.slice(
+        currentPage * COLUMNS_PER_PAGE,
+        (currentPage + 1) * COLUMNS_PER_PAGE,
+      )
+    } else {
+      let startIndex = 0
+      let endIndex = 0
 
-          // for (let i = 0; i <= currentPage; i++) {
-          //   startIndex = endIndex
-          //   endIndex = startIndex + (dateCounts[i] || 0)
-          //   // console.log('dataIndex:', dateCounts[i])
-          // }
-          for (let i = 0; i <= dateCounts.length; i++) {
-            const pageSize = dateCounts[i]
-            if (currentPage === i) {
-              endIndex = startIndex + pageSize
-              break
-            }
-            startIndex += pageSize
-            // console.log('dataIndex:', dateCounts[i])
+      for (let i = 0; i < dateCounts.length; i++) {
+        if (currentPage === i) {
+          endIndex = startIndex + dateCounts[i]
+          break
+        }
+        startIndex += dateCounts[i]
+      }
+
+      const sortedSelectedDates = [...selectedDates].sort((a, b) => {
+        const dateA = new Date(a.year, a.month - 1, a.day)
+        const dateB = new Date(b.year, b.month - 1, b.day)
+        return dateA.getTime() - dateB.getTime()
+      })
+
+      const slicedSelectedDates = sortedSelectedDates.slice(
+        startIndex,
+        endIndex,
+      )
+      // console.log('slicedSelectedDates', slicedSelectedDates)
+      // console.log('sortedSelectedDates', sortedSelectedDates)
+
+      const matchedData = slicedSelectedDates.map((selectedDate) => {
+        return (
+          sortedMockData.find(
+            (data) =>
+              data.date ===
+              `${selectedDate.year}-${String(selectedDate.month).padStart(2, '0')}-${String(selectedDate.day).padStart(2, '0')}`,
+          ) || {
+            date: `${selectedDate.year}-${String(selectedDate.month).padStart(2, '0')}-${String(selectedDate.day).padStart(2, '0')}`,
+            timeSlots: [],
           }
+        )
+      })
 
-          // console.log('slicing', sortedMockData.slice(startIndex, endIndex))
-          return sortedMockData.slice(startIndex, endIndex)
-        })()
+      return matchedData
+    }
+  }, [selectedDates, sortedMockData, currentPage, mode, dateCounts])
 
   const onColumnClick = useCallback(
     (colIndex: number, rowIndex: number) => {
@@ -177,6 +197,8 @@ export default function EditTimeStamp({
   }, [mockSelectedSchedule])
 
   const currentSelections = useMemo(() => {
+    // console.log('셀렉트', selectionsByPage[currentPage])
+    // console.log('현재페이지', currentPage)
     return selectionsByPage[currentPage] || []
   }, [selectionsByPage, currentPage])
 
@@ -871,8 +893,6 @@ export default function EditTimeStamp({
   // 셀 상태 계산
   const getCellStatus = (row: number, col: number) => {
     // 현재 페이지의 목데이터 인덱스 계산
-    // const scheduleIndex = currentPage * COLUMNS_PER_PAGE + col
-    // const schedule = currentDates[scheduleIndex]
     const schedule = currentDates[col]
 
     // 활성화된 선택 영역 확인
