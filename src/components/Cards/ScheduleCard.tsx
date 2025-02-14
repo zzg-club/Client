@@ -6,6 +6,7 @@ import CustomModal from '@/components/Modals/CustomModal'
 import MembersVariant from '../Modals/MembersVariant'
 import SelectModal from '../Modals/SelectModal'
 import { useGroupStore } from '@/store/groupStore'
+import { useSurveyStore } from '@/store/surveyStore'
 import axios from 'axios'
 
 export interface ScheduleCardProps {
@@ -17,6 +18,8 @@ export interface ScheduleCardProps {
   endTime: string
   location?: string
   participants: { id: number; name: string; image: string; type: string }[]
+  surveyId: number
+  getSchedule: () => void
 }
 
 export function ScheduleCard({
@@ -27,6 +30,8 @@ export function ScheduleCard({
   endTime,
   location,
   participants,
+  surveyId,
+  getSchedule,
 }: ScheduleCardProps) {
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
   const [isMembersModalOpen, setIsMembersModalOpen] = useState(false)
@@ -35,6 +40,7 @@ export function ScheduleCard({
   const router = useRouter()
 
   const { setSelectedGroupId, selectedGroupId } = useGroupStore()
+  const { setSelectedSurveyId } = useSurveyStore()
 
   // membersVariant 모달 핸들
   const handleMembersModalOpen = () => {
@@ -45,8 +51,14 @@ export function ScheduleCard({
   // 장소 선정하기 버튼 모달 open 핸들
   const handleOpenSelectedPlace = (e: React.MouseEvent) => {
     e.stopPropagation() // 이벤트 버블링 방지
-    setIsSelectedPlace(true)
-    console.log('dkdkdk')
+    if (startTime === '' && endTime === '') {
+      setSelectedSurveyId(surveyId)
+      router.push('/schedule/select')
+      console.log('이어서 하기')
+    } else {
+      setIsSelectedPlace(true)
+      console.log('장소 정하기 모달 오픈')
+    }
   }
 
   // 장소 선정하기 버튼 모달 close 핸들
@@ -58,10 +70,10 @@ export function ScheduleCard({
   // const [selectedMember, setSelectedMember] = useState(participants)
 
   // 모임장, 모임원 삭제하기 api 조건
-  const handleRemoveMember = async (id: number, type: string) => {
+  const handleRemoveMember = async (userId: number, type: string) => {
     try {
       let url = ''
-      let requestData: unknown = { id }
+      let requestData: unknown = { userId }
 
       if (type === 'creator&my') {
         url = `${API_BASE_URL}/api/members/creator/${selectedGroupId}`
@@ -83,7 +95,8 @@ export function ScheduleCard({
       })
 
       console.log(`${type} 삭제 성공:`, response.data.data)
-      router.refresh()
+      setIsMembersModalOpen(false)
+      getSchedule()
       return response
     } catch (error) {
       console.error(`${type} 삭제 실패:`, error)
