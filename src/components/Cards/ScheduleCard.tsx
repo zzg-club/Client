@@ -6,6 +6,7 @@ import CustomModal from '@/components/Modals/CustomModal'
 import MembersVariant from '../Modals/MembersVariant'
 import SelectModal from '../Modals/SelectModal'
 import { useGroupStore } from '@/store/groupStore'
+import axios from 'axios'
 
 export interface ScheduleCardProps {
   id: number
@@ -27,12 +28,13 @@ export function ScheduleCard({
   location,
   participants,
 }: ScheduleCardProps) {
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
   const [isMembersModalOpen, setIsMembersModalOpen] = useState(false)
   const [isSelectedPlace, setIsSelectedPlace] = useState(false)
 
   const router = useRouter()
 
-  const { setSelectedGroupId } = useGroupStore()
+  const { setSelectedGroupId, selectedGroupId } = useGroupStore()
 
   // membersVariant 모달 핸들
   const handleMembersModalOpen = () => {
@@ -53,11 +55,40 @@ export function ScheduleCard({
   }
 
   // 선택된 멤버의 id값 전달을 위한 상태추적
-  const [selectedMember, setSelectedMember] = useState(participants)
+  // const [selectedMember, setSelectedMember] = useState(participants)
 
-  // 실제 삭제 api 여기에 연동
-  const handleRemoveMember = (id: number) => {
-    setSelectedMember((prev) => prev.filter((member) => member.id !== id))
+  // 모임장, 모임원 삭제하기 api 조건
+  const handleRemoveMember = async (id: number, type: string) => {
+    try {
+      let url = ''
+      let requestData: unknown = { id }
+
+      if (type === 'creator&my') {
+        url = `${API_BASE_URL}/api/members/creator/${selectedGroupId}`
+        requestData = undefined
+      } else if (type === '&other') {
+        url = `${API_BASE_URL}/api/group-members/delete/${selectedGroupId}`
+      } else if (type === '&my') {
+        url = `${API_BASE_URL}/api/group-members/delete/self/${selectedGroupId}`
+      } else {
+        console.error('잘못된 타입:', type)
+        return
+      }
+
+      console.log(`API URL: ${url}, 데이터:`, requestData)
+
+      const response = await axios.delete(url, {
+        withCredentials: true,
+        data: requestData,
+      })
+
+      console.log(`${type} 삭제 성공:`, response.data.data)
+      router.refresh()
+      return response
+    } catch (error) {
+      console.error(`${type} 삭제 실패:`, error)
+      throw error
+    }
   }
 
   const dateText = startDate === '' ? '날짜 미정' : `${startDate}`
@@ -125,7 +156,7 @@ export function ScheduleCard({
           location={location}
           startTime={startTime}
           endTime={endTime}
-          members={selectedMember}
+          members={participants}
         />
       </CustomModal>
 
