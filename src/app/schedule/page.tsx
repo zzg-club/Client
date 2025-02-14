@@ -13,11 +13,8 @@ import DateTimeModal from '@/components/Modals/DirectSelect/DateTimeModal'
 import { useHandleSelect } from '@/hooks/useHandleSelect'
 import { useDateTimeStore } from '@/store/dateTimeStore'
 import { useRouter } from 'next/navigation'
-import { createGroupId } from '../api/members/route'
-import { createDirectSchedule } from '../api/schedule/route'
-import { createSurveySchedule } from '../api/survey/route'
 import { useSurveyStore } from '@/store/surveyStore'
-// import axios from 'axios'
+import axios from 'axios'
 
 // /api/members/List 연동
 export type Participant = {
@@ -200,17 +197,34 @@ export default function ScheduleLanding() {
     console.log('selected', selected)
 
     try {
-      // 그룹 생성
-      const groupId = await createGroupId() // 그룹 ID 저장
-
-      // 조율할 일정 생성
-      const surveyId = await createSurveySchedule(
-        // surveyId 저장
-        groupId,
-        mode,
-        selected,
-        stringDates,
+      // 1. 그룹 생성
+      const groupRes = await axios.post(
+        `${API_BASE_URL}/api/members`,
+        {},
+        {
+          withCredentials: true, // 쿠키 전송을 위해 필요
+        },
       )
+
+      const groupId = await groupRes.data.data.groupId
+      console.log('그룹 ID:', groupRes.data.data.groupId)
+
+      // 2. 조율할 스케줄 생성
+      const cresteSurveyRes = await axios.post(
+        `${API_BASE_URL}/api/survey`,
+        {
+          groupId: groupId,
+          mode: mode,
+          selected: selected,
+          date: stringDates,
+        },
+        {
+          withCredentials: true, // 쿠키 전송을 위해 필요
+        },
+      )
+
+      console.log('조율할 일정 생성', cresteSurveyRes)
+      const surveyId = await cresteSurveyRes.data.data.surveyId
 
       // surveyId 전역으로 저장
       setSelectedSurveyId(surveyId)
@@ -227,10 +241,34 @@ export default function ScheduleLanding() {
 
     try {
       // 그룹 생성
-      const groupId = await createGroupId() // 그룹 ID 저장
+      const groupRes = await axios.post(
+        `${API_BASE_URL}/api/members`,
+        {},
+        {
+          withCredentials: true, // 쿠키 전송을 위해 필요
+        },
+      )
 
-      // 스케줄 생성 - 첫 번째 요청이 끝난 후 실행
-      await createDirectSchedule(groupId, title, startDate, endDate)
+      const groupId = await groupRes.data.data.groupId
+      console.log('그룹 ID:', groupRes.data.data.groupId)
+
+      // 직접 입력 스케줄 생성
+      const createScheduleRes = await axios.post(
+        `${API_BASE_URL}/api/schedule`,
+        {
+          groupId: groupId, // 첫 번째 요청에서 받은 그룹 ID 사용
+          title: title,
+          startDate: startDate,
+          endDate: endDate,
+        },
+        {
+          withCredentials: true, // 쿠키 전송을 위해 필요
+          headers: {
+            'Content-Type': 'application/json', // JSON 형식 명시
+          },
+        },
+      )
+      console.log('직접 일정 생성 성공', createScheduleRes)
 
       // 일정이 추가된 후 다시 스케줄 목록 가져오기
       await getSchedule()
