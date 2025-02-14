@@ -72,6 +72,9 @@ export default function MembersVariant({
       ? '조율 진행중'
       : `${startTime} - ${endTime}`
 
+  // creator&my가 있는지 확인
+  const isCreator = members.some((m) => m.type === 'creator&my')
+
   return (
     <div>
       <div className="flex justify-between items-center mb-[6px]">
@@ -140,13 +143,7 @@ export default function MembersVariant({
                 className="rounded-3xl"
               />
               {/* X 버튼 */}
-              {/* <button
-                className="absolute top-0.5 right-0.5 transform translate-x-1/2 -translate-y-1/2 w-5 h-5 p-0.5 opacity-80 bg-[#afafaf] rounded-full border-2 border-[#8e8d8d] flex items-center justify-center z-20"
-                onClick={() => handleRemoveClick(member.id)}
-              >
-                <X className="w-4 h-4 text-[#1e1e1e]" />
-              </button> */}
-              {(member.type === 'creator&my' || member.type === '&my') && (
+              {(isCreator || member.type === '&my') && (
                 <button
                   className="absolute top-0.5 right-0.5 transform translate-x-1/2 -translate-y-1/2 w-5 h-5 p-0.5 opacity-80 bg-[#afafaf] rounded-full border-2 border-[#8e8d8d] flex items-center justify-center z-20"
                   onClick={() => handleRemoveClick(member.id, member.type)}
