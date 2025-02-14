@@ -1,0 +1,38 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: Build and Push Docker Image
+        run: |
+          docker build --platform linux/amd64 -t nayoungg/inkv:latest .
+          docker push nayoungg/inkv:latest
+
+      - name: Deploy on EC2
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+            docker pull nayoungg/inkv:latest
+            docker stop inkv-container || true
+            docker rm inkv-container || true
+            docker run -d --name inkv-container -p 3000:3000 nayoungg/inkv:latest
