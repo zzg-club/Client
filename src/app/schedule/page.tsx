@@ -14,6 +14,7 @@ import { useHandleSelect } from '@/hooks/useHandleSelect'
 import { useDateTimeStore } from '@/store/dateTimeStore'
 import { useRouter } from 'next/navigation'
 import { useSurveyStore } from '@/store/surveyStore'
+import { useGroupStore } from '@/store/groupStore'
 import axios from 'axios'
 
 // /api/members/List 연동
@@ -52,6 +53,7 @@ export default function ScheduleLanding() {
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
 
   const { setSelectedSurveyId } = useSurveyStore() // Zustand에서 가져옴
+  const {setSelectedGroupId} = useGroupStore()
 
   const getSchedule = useCallback(async () => {
     try {
@@ -228,6 +230,7 @@ export default function ScheduleLanding() {
 
       // surveyId 전역으로 저장
       setSelectedSurveyId(surveyId)
+      setSelectedGroupId(groupId)
 
       router.push('/schedule/select')
     } catch (error) {
