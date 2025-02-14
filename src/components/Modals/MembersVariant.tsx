@@ -7,7 +7,6 @@ import ModalNotification from '../Notification/ModalNotification'
 import CustomModal from './CustomModal'
 import ScheduleSelectShareModal from './ScheduleSelectShareModal'
 import '../../styles/BottomSheet.css'
-//import { useScheduleStore } from '@/store/scheduleStore'
 
 export interface ModalProps {
   startDate: string
@@ -138,7 +137,7 @@ export default function MembersVariant({
         onOpenChange={handleOpenUserPlus}
         isFooter={false}
       >
-        <ScheduleSelectShareModal inviteUrl={`https://moim.team/`} />
+        <ScheduleSelectShareModal />
       </CustomModal>
     </div>
   )
