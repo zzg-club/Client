@@ -24,7 +24,7 @@ interface GroupedDate {
 }
 
 interface ScheduleData {
-  name: string // 일정 이름
+  title: string // 일정 이름
   userId: number // 사용자 ID
   groupId: number // 그룹 ID
   mode: string
@@ -451,7 +451,7 @@ export default function SchedulePage() {
 
   const scheduleData: ScheduleData[] = [
     {
-      name: '팀플 대면 모임',
+      title: '팀플 대면 모임',
       userId: 2,
       groupId: 1,
       mode: 'week',

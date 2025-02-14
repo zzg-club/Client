@@ -6,6 +6,7 @@ import CustomModal from '@/components/Modals/CustomModal'
 import MembersVariant from '../Modals/MembersVariant'
 import SelectModal from '../Modals/SelectModal'
 import { useGroupStore } from '@/store/groupStore'
+import axios from 'axios'
 
 export interface ScheduleCardProps {
   id: number
@@ -15,7 +16,7 @@ export interface ScheduleCardProps {
   startTime: string
   endTime: string
   location?: string
-  participants: { id: number; name: string; image: string }[]
+  participants: { id: number; name: string; image: string; type: string }[]
 }
 
 export function ScheduleCard({
@@ -27,12 +28,13 @@ export function ScheduleCard({
   location,
   participants,
 }: ScheduleCardProps) {
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
   const [isMembersModalOpen, setIsMembersModalOpen] = useState(false)
   const [isSelectedPlace, setIsSelectedPlace] = useState(false)
 
   const router = useRouter()
 
-  const { setSelectedGroupId } = useGroupStore()
+  const { setSelectedGroupId, selectedGroupId } = useGroupStore()
 
   // membersVariant 모달 핸들
   const handleMembersModalOpen = () => {
@@ -53,17 +55,56 @@ export function ScheduleCard({
   }
 
   // 선택된 멤버의 id값 전달을 위한 상태추적
-  const [selectedMember, setSelectedMember] = useState(participants)
+  // const [selectedMember, setSelectedMember] = useState(participants)
 
-  // 실제 삭제 api 여기에 연동
-  const handleRemoveMember = (id: number) => {
-    setSelectedMember((prev) => prev.filter((member) => member.id !== id))
+  // 모임장, 모임원 삭제하기 api 조건
+  const handleRemoveMember = async (id: number, type: string) => {
+    try {
+      let url = ''
+      let requestData: unknown = { id }
+
+      if (type === 'creator&my') {
+        url = `${API_BASE_URL}/api/members/creator/${selectedGroupId}`
+        requestData = undefined
+      } else if (type === '&other') {
+        url = `${API_BASE_URL}/api/group-members/delete/${selectedGroupId}`
+      } else if (type === '&my') {
+        url = `${API_BASE_URL}/api/group-members/delete/self/${selectedGroupId}`
+      } else {
+        console.error('잘못된 타입:', type)
+        return
+      }
+
+      console.log(`API URL: ${url}, 데이터:`, requestData)
+
+      const response = await axios.delete(url, {
+        withCredentials: true,
+        data: requestData,
+      })
+
+      console.log(`${type} 삭제 성공:`, response.data.data)
+      router.refresh()
+      return response
+    } catch (error) {
+      console.error(`${type} 삭제 실패:`, error)
+      throw error
+    }
   }
+
+  const dateText = startDate === '' ? '날짜 미정' : `${startDate}`
+
+  const timeText =
+    startTime === '' && endTime === ''
+      ? '조율 진행중'
+      : `${startTime} - ${endTime}`
+
+  const buttonText =
+    startTime === '' && endTime === '' ? '이어서 하기' : '장소 정하기'
 
   return (
     <div className="px-4 mb-5">
       <div className="text-[#1e1e1e] text-xs font-medium leading-[17px] ml-[12px]">
-        {startDate}
+        {dateText}
       </div>
       <div
         className="group w-full h-full rounded-3xl border-2 border-[#9562fa] px-6 py-[18px] cursor-pointer bg-white border-[#9562fa] hover:bg-[#9562fa] hover:text-[#fff]"
@@ -84,7 +125,7 @@ export function ScheduleCard({
             {/* 약속 시간, 장소 */}
             <div className="flex flex-col justify-center items-end gap-2">
               <span className="text-xl font-medium text-[#9562fa] group-hover:text-[#fff]">
-                {startTime} - {endTime}
+                {timeText}
               </span>
               {location ? (
                 <span className="text-xl font-medium text-[#9562fa] group-hover:text-[#fff] my-1">
@@ -92,7 +133,7 @@ export function ScheduleCard({
                 </span>
               ) : (
                 <WhiteButton
-                  text="장소 정하기"
+                  text={buttonText}
                   className={
                     'border-[#9562fa] text-[#9562fa] group-hover:border-white group-hover:text-white'
                   }
@@ -115,7 +156,7 @@ export function ScheduleCard({
           location={location}
           startTime={startTime}
           endTime={endTime}
-          members={selectedMember}
+          members={participants}
         />
       </CustomModal>
 

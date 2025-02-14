@@ -7,7 +7,6 @@ import ModalNotification from '../Notification/ModalNotification'
 import CustomModal from './CustomModal'
 import ScheduleSelectShareModal from './ScheduleSelectShareModal'
 import '../../styles/BottomSheet.css'
-//import { useScheduleStore } from '@/store/scheduleStore'
 
 export interface ModalProps {
   startDate: string
@@ -18,8 +17,9 @@ export interface ModalProps {
     id: number
     name: string
     image: string
+    type: string
   }>
-  onClickX: (id: number) => void
+  onClickX: (id: number, type: string) => void
 }
 
 export default function MembersVariant({
@@ -32,21 +32,24 @@ export default function MembersVariant({
 }: ModalProps) {
   const [showNotification, setShowNotification] = useState(false)
   const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null)
+  const [selectedMemberType, setSelectedMemberType] = useState<string>()
 
   // 멤버 프로필 이미지위의 X버튼 클릭 핸들러
-  const handleRemoveClick = (id: number) => {
+  const handleRemoveClick = (id: number, type: string) => {
     setSelectedMemberId(id)
+    setSelectedMemberType(type)
     setShowNotification(true)
   }
 
   // Notification 컴포넌트로 넘기는 클릭 핸들러
   const handleConfirm = () => {
-    if (selectedMemberId !== null) {
-      onClickX(selectedMemberId)
+    if (selectedMemberId !== null && selectedMemberType) {
+      onClickX(selectedMemberId, selectedMemberType)
       console.log(selectedMemberId)
     }
     setShowNotification(false)
     setSelectedMemberId(null)
+    setSelectedMemberType('')
     console.log('컨펌')
   }
 
@@ -62,11 +65,18 @@ export default function MembersVariant({
     setIsUserPlusOpen(!isUserPlusOpen)
   }
 
+  const dateText = startDate === '' ? '날짜 미정' : `${startDate}`
+
+  const timeText =
+    startTime === '' && endTime === ''
+      ? '조율 진행중'
+      : `${startTime} - ${endTime}`
+
   return (
     <div>
       <div className="flex justify-between items-center mb-[6px]">
         <div className="text-black text-base font-medium leading-snug">
-          {startDate}
+          {dateText}
         </div>
         <button
           className="text-[#9562fa] mr-[32px]"
@@ -84,18 +94,29 @@ export default function MembersVariant({
             </span>
           )}
           <span className="text-[#9562fa] text-base font-semibold leading-snug">
-            {startTime}-{endTime}
+            {timeText}
           </span>
         </div>
       </div>
       <div className="mb-6">
         <ModalNotification
           messageText={
-            members.find((member) => member.id === selectedMemberId)?.name ===
-            '나'
+            members.find((member) => member.id === selectedMemberId)?.type ===
+              'creator&my' ||
+            members.find((member) => member.id === selectedMemberId)?.type ===
+              '&my'
               ? '정말로 이 모임을 나가시겠어요?'
               : '정말로 이 멤버를 삭제하시겠어요?'
           }
+          alertText={(() => {
+            const selectedMember = members.find(
+              (member) => member.id === selectedMemberId,
+            )
+
+            return selectedMember?.type === 'creator&my'
+              ? '모임장이 나가면 모임이 삭제됩니다.'
+              : undefined
+          })()}
           isVisible={showNotification}
           onConfirm={handleConfirm}
           onCancel={handleCancel}
@@ -119,15 +140,25 @@ export default function MembersVariant({
                 className="rounded-3xl"
               />
               {/* X 버튼 */}
-              <button
+              {/* <button
                 className="absolute top-0.5 right-0.5 transform translate-x-1/2 -translate-y-1/2 w-5 h-5 p-0.5 opacity-80 bg-[#afafaf] rounded-full border-2 border-[#8e8d8d] flex items-center justify-center z-20"
                 onClick={() => handleRemoveClick(member.id)}
               >
                 <X className="w-4 h-4 text-[#1e1e1e]" />
-              </button>
+              </button> */}
+              {(member.type === 'creator&my' || member.type === '&my') && (
+                <button
+                  className="absolute top-0.5 right-0.5 transform translate-x-1/2 -translate-y-1/2 w-5 h-5 p-0.5 opacity-80 bg-[#afafaf] rounded-full border-2 border-[#8e8d8d] flex items-center justify-center z-20"
+                  onClick={() => handleRemoveClick(member.id, member.type)}
+                >
+                  <X className="w-4 h-4 text-[#1e1e1e]" />
+                </button>
+              )}
             </div>
             <span className="self-stretch text-center text-[#8e8d8d] text-base font-normal leading-[17px]">
-              {member.name}
+              {member.type === 'creator&my' || member.type === '&my'
+                ? '나'
+                : `${member.name}`}
             </span>
           </div>
         ))}
@@ -138,7 +169,7 @@ export default function MembersVariant({
         onOpenChange={handleOpenUserPlus}
         isFooter={false}
       >
-        <ScheduleSelectShareModal inviteUrl={`https://moim.team/`} />
+        <ScheduleSelectShareModal />
       </CustomModal>
     </div>
   )

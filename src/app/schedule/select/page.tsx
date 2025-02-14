@@ -46,7 +46,6 @@ interface ScheduleData {
 export default function Page() {
   const { selectedSurveyId } = useSurveyStore()
   console.log('zustand에서 가져온 surveyId', selectedSurveyId)
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
 
   const selectApi = {
     createTimeSlot: async (
@@ -153,12 +152,37 @@ export default function Page() {
   const [isOpen, setIsOpen] = useState(false)
   const [dateCounts, setDateCounts] = useState<number[]>([])
   const [groupedDate, setGroupedDate] = useState<GroupedDate[]>([])
+  const [surveyData, setSurveyData] = useState<ScheduleData[]>([])
 
   const DAYS_PER_PAGE = 7
   const highlightedIndex =
     highlightedCol !== null
       ? highlightedCol - currentPage * DAYS_PER_PAGE
       : null
+
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
+
+  useEffect(() => {
+    if (!selectedSurveyId) return
+    console.log('surveyId', selectedSurveyId)
+    const getSurveyData = async () => {
+      try {
+        const res = await axios.get(
+          `${API_BASE_URL}/api/survey/${selectedSurveyId}`,
+          {
+            withCredentials: true, // 쿠키 전송을 위해 필요
+          },
+        )
+
+        console.log('survey data', res.data.data)
+        setSurveyData([res.data.data])
+      } catch (error) {
+        console.log('survey data get 실패', error)
+      }
+    }
+
+    getSurveyData()
+  }, [API_BASE_URL, selectedSurveyId])
 
   const handleTitleChange = (newTitle: string) => {
     setTitle(newTitle)
@@ -350,22 +374,17 @@ export default function Page() {
     sun: '일',
   }
 
-  function convertToSelectedDates(
-    scheduleData: ScheduleData[],
-  ): SelectedDate[] {
-    const validScheduleData = Array.isArray(scheduleData) ? scheduleData : []
-    console.log('validScheduleData', validScheduleData)
-
-    return validScheduleData.flatMap((schedule) =>
-      schedule.date.map(([fullDate, weekday]) => {
+  function convertToSelectedDates(surveyData: ScheduleData[]): SelectedDate[] {
+    return (
+      surveyData[0]?.date?.map(([fullDate, weekday]) => {
         const [year, month, day] = fullDate.split('-').map(Number)
         return {
           year,
           month,
-          day: day,
+          day,
           weekday: weekdayMap[weekday],
         }
-      }),
+      }) || []
     )
   }
 
@@ -411,38 +430,11 @@ export default function Page() {
   //   },
   // ]
 
-  const [scheduleData, setScheduleData] = useState<ScheduleData[]>([])
+  console.log('surveyData', surveyData)
 
-  useEffect(() => {
-    console.log('헤더 스케줄 데이터', scheduleData)
-  }, [scheduleData]) // scheduleData가 변경될 때마다 로그 출력
-
-  const getSelectedDays = async () => {
-    if (selectedSurveyId !== null) {
-      try {
-        const response = await axios.get(
-          `${API_BASE_URL}/api/survey/${selectedSurveyId}`,
-          {
-            withCredentials: true, // 쿠키 전송 허용
-          },
-        )
-        console.log('헤더 날짜 정보 받아오기 성공', response.data.data)
-        console.log('헤더 날짜 배열', Object.values(response.data.data))
-        setScheduleData(Object.values(response.data.data)) // 객체를 배열로 변환
-        console.log('scheduleData', scheduleData)
-      } catch (error) {
-        console.error('헤더 날짜 정보 받아오기 실패', error)
-      }
-    }
-  }
-
-  useEffect(() => {
-    getSelectedDays()
-  }, [])
-
-  const selectedDates: SelectedDate[] = convertToSelectedDates(scheduleData)
-  const mode = scheduleData[0]?.mode
-  const dayofWeek = scheduleData[0]?.selected
+  const selectedDates: SelectedDate[] = convertToSelectedDates(surveyData)
+  const mode = surveyData[0]?.mode
+  const dayofWeek = surveyData[0]?.selected
   const month =
     mode === 'range'
       ? currentPage === Math.floor((highlightedCol ?? 0) / DAYS_PER_PAGE)
@@ -570,7 +562,7 @@ export default function Page() {
     <div>
       <Title
         buttonText={'완료'}
-        initialTitle={scheduleData[0]?.title || title}
+        initialTitle={surveyData[0]?.title || title}
         onTitleChange={handleTitleChange}
         isPurple={isPurple}
         onClickTitleButton={handleToDecideModal}

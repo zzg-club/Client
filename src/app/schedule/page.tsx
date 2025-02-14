@@ -13,20 +13,25 @@ import DateTimeModal from '@/components/Modals/DirectSelect/DateTimeModal'
 import { useHandleSelect } from '@/hooks/useHandleSelect'
 import { useDateTimeStore } from '@/store/dateTimeStore'
 import { useRouter } from 'next/navigation'
-import { createGroupId } from '../api/members/route'
-import { createDirectSchedule } from '../api/schedule/route'
-import { createSurveySchedule } from '../api/survey/route'
 import { useSurveyStore } from '@/store/surveyStore'
-// import axios from 'axios'
+import axios from 'axios'
 
-type Schedule = {
+// /api/members/List 연동
+export type Participant = {
+  id: number
+  name: string
+  image: string
+  type: string
+}
+
+export type Schedule = {
   id: number
   startDate: string
   title: string
   startTime: string
   endTime: string
   location?: string
-  participants: { id: number; name: string; image: string }[]
+  participants: Participant[]
 }
 
 export default function ScheduleLanding() {
@@ -39,6 +44,7 @@ export default function ScheduleLanding() {
   const [startDate, setStartDate] = useState<string | null>(null) // 직접입력하기-시작날짜,시간
   const [endDate, setEndDate] = useState<string | null>(null) // 직접입력하기-끝날짜,시간
   const [scheduleList, setScheduleList] = useState<Schedule[]>([])
+  const [notifications, setNotifications] = useState([])
 
   const resetDateTime = useDateTimeStore((state) => state.resetDateTime)
   const router = useRouter()
@@ -62,11 +68,10 @@ export default function ScheduleLanding() {
       if (Array.isArray(data.data)) {
         const formattedSchedules = data.data.map((schedule: Schedule) => ({
           id: schedule.id,
-          startDate: schedule.startDate || '날짜 미정',
-          // title: schedule.title ?? '제목 없는 일정',
+          startDate: schedule.startDate,
           title: schedule.title,
-          startTime: schedule.startTime || '시간 미정',
-          endTime: schedule.endTime || '시간 미정',
+          startTime: schedule.startTime,
+          endTime: schedule.endTime,
           location: schedule.location || '',
           participants: schedule.participants || [],
         }))
@@ -99,25 +104,29 @@ export default function ScheduleLanding() {
       }
     }
 
-    fetchUserInfo()
-    // const postCode = async () => {
-    //   try {
-    //     const response = await axios.post(
-    //       `${API_BASE_URL}/api/group-members/code`,
-    //       {
-    //         code: '7259416e-a6c8-8ad9-1ace-03fad40757f4',
-    //       },
-    //       {
-    //         withCredentials: true, // 쿠키 전송을 위해 필요
-    //       },
-    //     )
+    const fetchNotification = async () => {
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/api/members/notification`,
+          {
+            method: 'GET',
+            credentials: 'include', // 쿠키 전송을 위해 필요
+          },
+        )
 
-    //     console.log('초대 코드 성공', response)
-    //   } catch (error) {
-    //     console.log('초대 코드 실패', error)
-    //   }
-    // }
-    // postCode()
+        if (!response.ok) {
+          throw new Error(`서버 에러: ${response.status}`)
+        }
+        const notiData = await response.json()
+        setNotifications(notiData.data)
+        console.log('알림 정보:', notiData)
+      } catch (error) {
+        console.error('알림 정보 불러오기 실패:', error)
+      }
+    }
+
+    fetchUserInfo()
+    fetchNotification()
     getSchedule()
   }, [API_BASE_URL, getSchedule])
 
@@ -153,26 +162,26 @@ export default function ScheduleLanding() {
   }
 
   // 캐러셀 알림 목데이터
-  const notifications = [
-    {
-      id: 1,
-      notiMessage: '생성하던 일정이 있습니다!',
-      leftBtnText: '이어서 하기',
-      RightBtnText: '새로 만들기',
-    },
-    {
-      id: 2,
-      notiMessage: '생성하던 일정이 있습니다!!',
-      leftBtnText: '이어서 하기',
-      RightBtnText: '새로 만들기',
-    },
-    {
-      id: 3,
-      notiMessage: '생성하던 일정이 있습니다~!',
-      leftBtnText: '이어서 하기',
-      RightBtnText: '새로 만들기',
-    },
-  ]
+  // const notifications = [
+  //   {
+  //     id: 1,
+  //     notiMessage: '생성하던 일정이 있습니다!',
+  //     leftBtnText: '이어서 하기',
+  //     RightBtnText: '새로 만들기',
+  //   },
+  //   {
+  //     id: 2,
+  //     notiMessage: '생성하던 일정이 있습니다!!',
+  //     leftBtnText: '이어서 하기',
+  //     RightBtnText: '새로 만들기',
+  //   },
+  //   {
+  //     id: 3,
+  //     notiMessage: '생성하던 일정이 있습니다~!',
+  //     leftBtnText: '이어서 하기',
+  //     RightBtnText: '새로 만들기',
+  //   },
+  // ]
   // 캐러셀 알림 버튼 클릭 이벤트
   const handleLeftBtn = () => {
     alert('왼쪽 버튼 클릭')
@@ -188,17 +197,34 @@ export default function ScheduleLanding() {
     console.log('selected', selected)
 
     try {
-      // 그룹 생성
-      const groupId = await createGroupId() // 그룹 ID 저장
-
-      // 조율할 일정 생성
-      const surveyId = await createSurveySchedule(
-        // surveyId 저장
-        groupId,
-        mode,
-        selected,
-        stringDates,
+      // 1. 그룹 생성
+      const groupRes = await axios.post(
+        `${API_BASE_URL}/api/members`,
+        {},
+        {
+          withCredentials: true, // 쿠키 전송을 위해 필요
+        },
       )
+
+      const groupId = await groupRes.data.data.groupId
+      console.log('그룹 ID:', groupRes.data.data.groupId)
+
+      // 2. 조율할 스케줄 생성
+      const cresteSurveyRes = await axios.post(
+        `${API_BASE_URL}/api/survey`,
+        {
+          groupId: groupId,
+          mode: mode,
+          selected: selected,
+          date: stringDates,
+        },
+        {
+          withCredentials: true, // 쿠키 전송을 위해 필요
+        },
+      )
+
+      console.log('조율할 일정 생성', cresteSurveyRes)
+      const surveyId = await cresteSurveyRes.data.data.surveyId
 
       // surveyId 전역으로 저장
       setSelectedSurveyId(surveyId)
@@ -215,10 +241,34 @@ export default function ScheduleLanding() {
 
     try {
       // 그룹 생성
-      const groupId = await createGroupId() // 그룹 ID 저장
+      const groupRes = await axios.post(
+        `${API_BASE_URL}/api/members`,
+        {},
+        {
+          withCredentials: true, // 쿠키 전송을 위해 필요
+        },
+      )
 
-      // 스케줄 생성 - 첫 번째 요청이 끝난 후 실행
-      await createDirectSchedule(groupId, title, startDate, endDate)
+      const groupId = await groupRes.data.data.groupId
+      console.log('그룹 ID:', groupRes.data.data.groupId)
+
+      // 직접 입력 스케줄 생성
+      const createScheduleRes = await axios.post(
+        `${API_BASE_URL}/api/schedule`,
+        {
+          groupId: groupId, // 첫 번째 요청에서 받은 그룹 ID 사용
+          title: title,
+          startDate: startDate,
+          endDate: endDate,
+        },
+        {
+          withCredentials: true, // 쿠키 전송을 위해 필요
+          headers: {
+            'Content-Type': 'application/json', // JSON 형식 명시
+          },
+        },
+      )
+      console.log('직접 일정 생성 성공', createScheduleRes)
 
       // 일정이 추가된 후 다시 스케줄 목록 가져오기
       await getSchedule()
