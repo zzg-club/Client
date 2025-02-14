@@ -84,41 +84,6 @@ export default function Page() {
   const [startTime, setStartTime] = useState<string | null>(null)
   const [endTime, setEndTime] = useState<string | null>(null)
 
-  // const confirmedData = [
-  //   {
-  //     date: '2024-12-31',
-  //     timeSlots: [{ start: '03:00', end: '09:30' }],
-  //   },
-  //   {
-  //     date: '2024-01-03',
-  //     timeSlots: [{ start: '06:30', end: '12:00' }],
-  //   },
-  //   {
-  //     date: '2024-01-05',
-  //     timeSlots: [{ start: '06:00', end: '12:00' }],
-  //   },
-  //   {
-  //     date: '2024-01-06',
-  //     timeSlots: [{ start: '06:00', end: '12:00' }],
-  //   },
-  // {
-  //   date: '2024-01-06',
-  //   timeSlots: [{ start: '03:00', end: '09:30' }],
-  // },
-  // {
-  //   date: '2024-01-13',
-  //   timeSlots: [{ start: '06:00', end: '12:00' }],
-  // },
-  // {
-  //   date: '2024-02-08',
-  //   timeSlots: [{ start: '06:00', end: '12:00' }],
-  // },
-  // {
-  //   date: '2024-03-17',
-  //   timeSlots: [{ start: '06:00', end: '12:00' }],
-  // },
-  // ]
-
   const [isOpen, setIsOpen] = useState(false)
   const [dateCounts, setDateCounts] = useState<number[]>([])
   const [groupedDate, setGroupedDate] = useState<GroupedDate[]>([])
@@ -130,7 +95,7 @@ export default function Page() {
     useState<{ date: string; timeSlots: { start: string; end: string }[] }[]>(
       confirmedData,
     )
-  const [isPurple, setIsPurple] = useState(confirmedData.length > 0)
+  const [isPurple, setIsPurple] = useState(false)
 
   const DAYS_PER_PAGE = 7
   const highlightedIndex =
@@ -175,6 +140,9 @@ export default function Page() {
         )
         console.log('Saved slot data get 성공', res.data)
         setConfirmedData(res.data.data)
+        if (res.data.data.length > 0) {
+          setIsPurple(true)
+        }
       } catch (error) {
         console.log('Saved slot data get 실패', error)
       }
