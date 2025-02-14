@@ -12,7 +12,7 @@ export interface CarouselNotificationPros {
     id: number
     surveyId: number
     leftBtnText?: string // 확인 버튼 텍스트
-    RightBtnText?: string // 취소 버튼 텍스트
+    rightBtnText?: string // 취소 버튼 텍스트
     notiMessage?: string // 알림 메시지 텍스트
   }[]
   onClickLeftBtn: (id: number) => void
@@ -60,19 +60,19 @@ export default function CarouselNotification({
               </div>
               {/* 버튼 그룹 */}
               <div className="flex  justify-center items-center gap-6">
-                {/* 이어서 하기 버튼 */}
+                {/* 왼쪽 버튼 */}
                 <button
                   onClick={() => onClickLeftBtn(notification.id)}
                   className="w-[120px] h-[42px] rounded-3xl border border-white text-white font-medium text-base "
                 >
-                  {notification.leftBtnText || '이어서 하기'}
+                  {notification.leftBtnText}
                 </button>
-                {/* 새로 만들기 버튼 */}
+                {/* 오른쪽 버튼 */}
                 <button
                   onClick={onClickRightBtn}
                   className="w-[120px] h-[42px] rounded-3xl border border-white text-white font-medium text-base"
                 >
-                  {notification.RightBtnText || '새로 만들기'}
+                  {notification.rightBtnText}
                 </button>
               </div>
             </div>
