@@ -35,6 +35,13 @@ export type Schedule = {
   surveyId: number
 }
 
+type Notification = {
+  id: number
+  leftBtnText: string
+  surveyId: number
+  notiMessage?: string // 옵셔널 속성
+}
+
 export default function ScheduleLanding() {
   const [isOpen, setIsOpen] = useState(false)
   const [isCdialogOpen, setIsCdialogOpen] = useState(false) // 일정 조율하기 모달 상태 C: Coordinate
@@ -45,7 +52,7 @@ export default function ScheduleLanding() {
   const [startDate, setStartDate] = useState<string | null>(null) // 직접입력하기-시작날짜,시간
   const [endDate, setEndDate] = useState<string | null>(null) // 직접입력하기-끝날짜,시간
   const [scheduleList, setScheduleList] = useState<Schedule[]>([])
-  const [notifications, setNotifications] = useState([])
+  const [notifications, setNotifications] = useState<Notification[]>([])
 
   const resetDateTime = useDateTimeStore((state) => state.resetDateTime)
   const router = useRouter()
@@ -163,9 +170,13 @@ export default function ScheduleLanding() {
     setEndDate(endDate)
   }
 
-  // 캐러셀 알림 버튼 클릭 이벤트
-  const handleLeftBtn = () => {
-    alert('왼쪽 버튼 클릭')
+  // // 캐러셀 알림 버튼 클릭 이벤트
+  const handleLeftBtn = (id: number) => {
+    const currentNotification = notifications.find((n) => n.id === id)
+    if (currentNotification?.leftBtnText === '확정하기') {
+      setSelectedSurveyId(currentNotification.surveyId)
+      router.push('schedule/select')
+    }
   }
 
   const handleRightBtn = () => {
@@ -273,8 +284,8 @@ export default function ScheduleLanding() {
         <div className="flex justify-center items-center overflew-hidden">
           <CarouselNotification
             notifications={notifications}
-            onLeftBtn={handleLeftBtn}
-            onRightBtn={handleRightBtn}
+            onClickLeftBtn={handleLeftBtn}
+            onClickRightBtn={handleRightBtn}
           />
         </div>
       )}
