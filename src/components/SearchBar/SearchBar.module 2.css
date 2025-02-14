@@ -1,0 +1,52 @@
+/* 검색 입력 컨테이너 */
+.searchInputContainer {
+  display: flex;
+  position: relative;
+  width: 280px;
+  height: 42px;
+  align-items: center;
+  gap: 8px;
+  border-radius: 24px;
+  border: 1px solid var(--NavBarColor, #afafaf);
+  padding: 9px 16px;
+}
+
+/* 플레이스홀더 스타일 */
+.searchInput::placeholder {
+  color: var(--NavBarColor, #afafaf);
+
+  font-family: Pretendard;
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 17px;
+  letter-spacing: -0.5px;
+}
+
+/* 돋보기 아이콘 */
+.searchIcon {
+  width: 24px;
+  height: 24px;
+  fill: #afafaf;
+}
+
+/* 입력창 */
+.searchInput {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 18px;
+  color: #afafaf;
+  background-color: transparent;
+}
+
+/* 취소 버튼 */
+.cancelIcon {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+}
