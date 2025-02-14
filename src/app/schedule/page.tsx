@@ -32,6 +32,7 @@ export type Schedule = {
   endTime: string
   location?: string
   participants: Participant[]
+  surveyId: number
 }
 
 export default function ScheduleLanding() {
@@ -74,6 +75,7 @@ export default function ScheduleLanding() {
           endTime: schedule.endTime,
           location: schedule.location || '',
           participants: schedule.participants || [],
+          surveyId: schedule.surveyId,
         }))
 
         setScheduleList(formattedSchedules)
@@ -299,6 +301,7 @@ export default function ScheduleLanding() {
                   endTime={schedule?.endTime}
                   location={schedule?.location}
                   participants={schedule?.participants}
+                  surveyId={schedule?.surveyId}
                   getSchedule={getSchedule}
                 />
               </div>
