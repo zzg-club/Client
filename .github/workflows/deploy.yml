@@ -25,15 +25,18 @@ jobs:
           docker push nayoungg/inkv:latest
 
       - name: Deploy on EC2
-        uses: appleboy/ssh-action@v0.1.7
+        uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            echo "✅ SSH 연결 성공이에요!"
+            echo "✅ SSH 연결 성공인데여!"
             docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
             docker pull nayoungg/inkv:latest
             docker stop inkv-container || true
             docker rm inkv-container || true
+
+            docker image prune -f
+
             docker run -d --name inkv-container -p 3000:3000 nayoungg/inkv:latest
