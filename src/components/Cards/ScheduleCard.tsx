@@ -6,6 +6,7 @@ import CustomModal from '@/components/Modals/CustomModal'
 import MembersVariant from '../Modals/MembersVariant'
 import SelectModal from '../Modals/SelectModal'
 import { useGroupStore } from '@/store/groupStore'
+import { useSurveyStore } from '@/store/surveyStore'
 import axios from 'axios'
 
 export interface ScheduleCardProps {
@@ -17,6 +18,7 @@ export interface ScheduleCardProps {
   endTime: string
   location?: string
   participants: { id: number; name: string; image: string; type: string }[]
+  surveyId: number
   getSchedule: () => void
 }
 
@@ -28,6 +30,7 @@ export function ScheduleCard({
   endTime,
   location,
   participants,
+  surveyId,
   getSchedule,
 }: ScheduleCardProps) {
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
@@ -37,6 +40,7 @@ export function ScheduleCard({
   const router = useRouter()
 
   const { setSelectedGroupId, selectedGroupId } = useGroupStore()
+  const { setSelectedSurveyId } = useSurveyStore()
 
   // membersVariant 모달 핸들
   const handleMembersModalOpen = () => {
@@ -48,7 +52,9 @@ export function ScheduleCard({
   const handleOpenSelectedPlace = (e: React.MouseEvent) => {
     e.stopPropagation() // 이벤트 버블링 방지
     if (startTime === '' && endTime === '') {
-      return '이어서 하기 '
+      setSelectedSurveyId(surveyId)
+      router.push('/schedule/select')
+      console.log('이어서 하기')
     } else {
       setIsSelectedPlace(true)
       console.log('장소 정하기 모달 오픈')
