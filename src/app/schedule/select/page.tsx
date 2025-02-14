@@ -11,6 +11,7 @@ import { ProfileLarge } from '@/components/Profiles/ProfileLarge'
 import MembersDefault from '@/components/Modals/MembersDefault'
 import { useRouter } from 'next/navigation'
 import { useSurveyStore } from '@/store/surveyStore'
+import { useGroupStore } from '@/store/groupStore'
 import axios from 'axios'
 
 interface SelectedDate {
@@ -45,6 +46,7 @@ interface ScheduleData {
 
 export default function Page() {
   const { selectedSurveyId } = useSurveyStore()
+  const { selectedGroupId } = useGroupStore()
   // console.log('zustand에서 가져온 surveyId', selectedSurveyId)
 
   const selectApi = {
@@ -95,6 +97,14 @@ export default function Page() {
     useState<{ date: string; timeSlots: { start: string; end: string }[] }[]>(
       confirmedData,
     )
+  const [participants, setParticipants] = useState<
+    {
+      id: number
+      name: string
+      image: string
+      isScheduleSelect: boolean
+    }[]
+  >([])
   const [isPurple, setIsPurple] = useState(false)
 
   const DAYS_PER_PAGE = 7
@@ -150,8 +160,6 @@ export default function Page() {
 
     getSavedSlot()
   }, [API_BASE_URL, selectedSurveyId])
-
-  console.log('confirmedData', confirmedData)
 
   const handleTitleChange = (newTitle: string) => {
     setTitle(newTitle)
@@ -411,77 +419,100 @@ export default function Page() {
         : `${selectedDates[currentPage * DAYS_PER_PAGE]?.month}월`
       : `${groupedDate[currentPage]?.date?.[highlightedIndex ?? 0]?.month ?? groupedDate[currentPage]?.date?.[0]?.month}월`
 
-  const scheduleModalData = [
-    {
-      id: 2,
-      number: 2,
-      startDate: '12월 30일',
-      startTime: '18:00',
-      endTime: '20:00',
-      participants: [
-        {
-          id: 1,
-          name: '나',
-          image: '/sampleProfile.png',
-          isScheduleSelect: true,
-        },
-        {
-          id: 2,
-          name: '김태엽',
-          image: '/sampleProfile.png',
-          isScheduleSelect: true,
-        },
-        {
-          id: 3,
-          name: '지유진',
-          image: '/sampleProfile.png',
-          isScheduleSelect: true,
-        },
-        {
-          id: 4,
-          name: '이소룡',
-          image: '/sampleProfile.png',
-          isScheduleSelect: false,
-        },
-        {
-          id: 5,
-          name: '박진우',
-          image: '/sampleProfile.png',
-          isScheduleSelect: false,
-        },
-        {
-          id: 6,
-          name: '이예지',
-          image: '/sampleProfile.png',
-          isScheduleSelect: false,
-        },
-        {
-          id: 7,
-          name: '조성하',
-          image: '/sampleProfile.png',
-          isScheduleSelect: true,
-        },
-        {
-          id: 8,
-          name: '성윤정',
-          image: '/sampleProfile.png',
-          isScheduleSelect: false,
-        },
-        {
-          id: 9,
-          name: '김나영',
-          image: '/sampleProfile.png',
-          isScheduleSelect: false,
-        },
-        {
-          id: 10,
-          name: '이채연',
-          image: '/sampleProfile.png',
-          isScheduleSelect: false,
-        },
-      ],
-    },
-  ]
+  // const scheduleModalData = [
+  //   {
+  //     id: 2,
+  //     number: 2,
+  //     startDate: '12월 30일',
+  //     startTime: '18:00',
+  //     endTime: '20:00',
+  //     participants: [
+  //       {
+  //         id: 1,
+  //         name: '나',
+  //         image: '/sampleProfile.png',
+  //         isScheduleSelect: true,
+  //       },
+  //       {
+  //         id: 2,
+  //         name: '김태엽',
+  //         image: '/sampleProfile.png',
+  //         isScheduleSelect: true,
+  //       },
+  //       {
+  //         id: 3,
+  //         name: '지유진',
+  //         image: '/sampleProfile.png',
+  //         isScheduleSelect: true,
+  //       },
+  //       {
+  //         id: 4,
+  //         name: '이소룡',
+  //         image: '/sampleProfile.png',
+  //         isScheduleSelect: false,
+  //       },
+  //       {
+  //         id: 5,
+  //         name: '박진우',
+  //         image: '/sampleProfile.png',
+  //         isScheduleSelect: false,
+  //       },
+  //       {
+  //         id: 6,
+  //         name: '이예지',
+  //         image: '/sampleProfile.png',
+  //         isScheduleSelect: false,
+  //       },
+  //       {
+  //         id: 7,
+  //         name: '조성하',
+  //         image: '/sampleProfile.png',
+  //         isScheduleSelect: true,
+  //       },
+  //       {
+  //         id: 8,
+  //         name: '성윤정',
+  //         image: '/sampleProfile.png',
+  //         isScheduleSelect: false,
+  //       },
+  //       {
+  //         id: 9,
+  //         name: '김나영',
+  //         image: '/sampleProfile.png',
+  //         isScheduleSelect: false,
+  //       },
+  //       {
+  //         id: 10,
+  //         name: '이채연',
+  //         image: '/sampleProfile.png',
+  //         isScheduleSelect: false,
+  //       },
+  //     ],
+  //   },
+  // ]
+
+  useEffect(() => {
+    if (!selectedGroupId) return
+    console.log('groupId', selectedGroupId)
+    const getMemberList = async () => {
+      try {
+        const res = await axios.get(
+          `${API_BASE_URL}/api/group-members/List/${selectedGroupId}`,
+          {
+            withCredentials: true, // 쿠키 전송을 위해 필요
+          },
+        )
+        console.log('참여자 리스트 get 성공', res.data)
+        setParticipants(res.data.data)
+      } catch (error) {
+        console.log('참여자 리스트 get 실패', error)
+      }
+    }
+
+    getMemberList()
+  }, [API_BASE_URL, selectedGroupId])
+
+  console.log('selectedGroupID', selectedGroupId)
 
   const router = useRouter()
   // 완료 버튼 누르면 나오는 일정 입력 중 모달
@@ -505,7 +536,7 @@ export default function Page() {
   // onNext 버튼 누르면 경고 문구 출력 상태 관리
   const [isDanger, setIsDanger] = useState(false)
   const handleDanger = () => {
-    const hasIncompleteMember = scheduleModalData[0].participants.some(
+    const hasIncompleteMember = participants.some(
       (participant) => !participant.isScheduleSelect,
     )
     setIsDanger(hasIncompleteMember ? !isDanger : isDanger)
@@ -598,8 +629,8 @@ export default function Page() {
           </div>
           <div className="flex item-center justify-center mb-[12px]">
             <ProfileLarge
-              key={scheduleModalData[0].id}
-              profiles={scheduleModalData[0].participants}
+              // key={scheduleModalData[0].id}
+              profiles={participants}
               onExpandChange={handleExpandChange}
             />
           </div>
@@ -619,8 +650,8 @@ export default function Page() {
               <MembersDefault
                 blackText={false}
                 title={title}
-                members={scheduleModalData[0].participants}
-                memberCount={scheduleModalData[0].participants.length}
+                members={participants}
+                memberCount={participants.length}
               />
             )}
           </div>
