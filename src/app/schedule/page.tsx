@@ -181,8 +181,8 @@ export default function ScheduleLanding() {
 
   const handleRightBtn = (id: number) => {
     const filter = notifications.filter((n) => n.id !== id)
+    setNotifications(filter)
     console.log('filter', filter)
-    alert('오른쪽 버튼 클릭')
   }
 
   const handlePostSchedule = async () => {
