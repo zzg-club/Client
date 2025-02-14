@@ -1,18 +1,41 @@
 'use client'
 
 import { Copy } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { QRCodeSVG } from 'qrcode.react'
+import { useGroupStore } from '@/store/groupStore'
+import axios from 'axios'
 
-interface ScheduleSelectShareModalProps {
-  inviteUrl: string
-}
-
-export default function ScheduleSelectShareModal({
-  inviteUrl,
-}: ScheduleSelectShareModalProps) {
+export default function ScheduleSelectShareModal() {
   const [copied, setCopied] = useState(false)
+  const { selectedGroupId } = useGroupStore()
+  const [inviteUrl, setInviteUrl] = useState('')
+
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
+  const FRONT_URL = 'https://localhost:3000'
+
+  useEffect(() => {
+    console.log('그룹아이디', selectedGroupId)
+    const getCode = async () => {
+      try {
+        const codeRes = await axios.get(`${API_BASE_URL}/api/members/code`, {
+          params: {
+            groupId: selectedGroupId,
+          },
+          withCredentials: true, // 쿠키 전송을 위해 필요
+        })
+
+        const code = codeRes.data.data.code
+        console.log('초대 코드 생성 성공', code)
+        setInviteUrl(`${FRONT_URL}/schedule/${code}`)
+      } catch (error) {
+        console.log('초대 코드 생성 실패', error)
+      }
+    }
+
+    getCode()
+  }, [selectedGroupId, API_BASE_URL])
 
   const handleCopy = async () => {
     try {
@@ -31,7 +54,7 @@ export default function ScheduleSelectShareModal({
       <div className="flex flex-col items-center space-y-[12px] mt-[28px]">
         <div className="flex w-full flex-col items-center">
           <div className="w-[120px] h-[120px] bg-[#afafaf]">
-            <QRCodeSVG value="https://moim.team/" />
+            <QRCodeSVG value={inviteUrl} />
           </div>
         </div>
 

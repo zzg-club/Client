@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import PinMap from '@/components/Map/PinMap'
 import RouteMap from '@/components/Map/RouteMap'
@@ -23,13 +23,26 @@ interface Participant {
   depart: string
 }
 
+// 검색 파라미터를 별도 컴포넌트로 분리 (Suspense 내부에서 실행)
+const SearchParamsComponent = ({
+  setFrom,
+}: {
+  setFrom: (value: string) => void
+}) => {
+  const searchParams = useSearchParams()
+  const from = searchParams.get('from') || '/schedule'
+  useEffect(() => {
+    setFrom(from)
+  }, [from, setFrom])
+  return null
+}
+
 export default function Middle() {
   const [kakaoMap, setKakaoMap] = useState<kakao.maps.Map | null>(null)
   const [currentIndex, setCurrentIndex] = useState(0) // 현재 인덱스
   const [participants, setParticipants] = useState<Participant[]>([])
   const [destination, setDestination] = useState(dummyDataArray[0].destination)
-  const searchParams = useSearchParams()
-  const from = searchParams.get('from')
+  const [from, setFrom] = useState('/schedule')
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
   const router = useRouter()
 
@@ -66,7 +79,7 @@ export default function Middle() {
           lat: location.lat,
           lng: location.lng,
           transport: 'subway',
-          transportIcon: '/subwayPurple.svg',
+          transportIcon: '/train.svg',
           depart: '죽전역',
         }
 
@@ -74,7 +87,7 @@ export default function Middle() {
           myInfo,
           ...dummyDataArray[currentIndex].participants.map((participant) => ({
             ...participant,
-            transportIcon: '/subwayYellow.svg',
+            transportIcon: '/subwayGray.svg',
           })),
         ]
 
@@ -89,7 +102,7 @@ export default function Middle() {
           lat: 37.5665,
           lng: 126.978,
           transport: 'subway',
-          transportIcon: '/subwayPurple.svg',
+          transportIcon: '/train.svg',
           depart: '서울역',
         }
 
@@ -97,7 +110,7 @@ export default function Middle() {
           fallbackInfo,
           ...dummyDataArray[currentIndex].participants.map((participant) => ({
             ...participant,
-            transportIcon: '/subwayYellow.svg',
+            transportIcon: '/subwayGray.svg',
           })),
         ]
 
@@ -107,7 +120,7 @@ export default function Middle() {
 
     initializeMap()
     updateParticipants()
-  }, [currentIndex])
+  }, [currentIndex, destination.lat, destination.lng])
 
   const handleSlideChange = (direction: 'left' | 'right') => {
     setCurrentIndex((prevIndex) => {
@@ -120,54 +133,58 @@ export default function Middle() {
   }
 
   return (
-    <div className="flex flex-col h-screen relative">
-      <div
-        className="absolute inset-0 z-0 w-full h-full"
-        ref={mapContainerRef}
-      ></div>
+    <Suspense fallback={<div>로딩 중...</div>}>
+      {/* Suspense 내부에서 검색 파라미터 처리 */}
+      <SearchParamsComponent setFrom={setFrom} />
+      <div className="flex flex-col h-screen relative">
+        <div
+          className="absolute inset-0 z-0 w-full h-full"
+          ref={mapContainerRef}
+        ></div>
 
-      {kakaoMap && destination && participants.length > 0 && (
-        <>
-          <PinMap
-            kakaoMap={kakaoMap}
-            participants={participants}
-            destination={destination}
-          />
-          <RouteMap
-            kakaoMap={kakaoMap}
-            participants={participants}
-            destination={destination}
-          />
-        </>
-      )}
+        {kakaoMap && destination && participants.length > 0 && (
+          <>
+            <PinMap
+              kakaoMap={kakaoMap}
+              participants={participants}
+              destination={destination}
+            />
+            <RouteMap
+              kakaoMap={kakaoMap}
+              participants={participants}
+              destination={destination}
+            />
+          </>
+        )}
 
-      <header className="absolute top-0 left-0 right-0 shadow-md rounded-b-[24px]">
-        <Title
-          buttonText="확정"
-          buttonLink="#"
-          initialTitle="제목 없는 일정"
-          onTitleChange={(newTitle) => console.log('새 제목:', newTitle)}
-          isPurple
-          isDisabled={participants.length <= 1}
+        <header className="absolute top-0 left-0 right-0 shadow-md rounded-b-[24px]">
+          <Title
+            buttonText="확정"
+            buttonLink="#"
+            initialTitle="제목 없는 일정"
+            onTitleChange={(newTitle) => console.log('새 제목:', newTitle)}
+            isPurple
+            isDisabled={participants.length <= 1}
+          />
+        </header>
+
+        <BackButton
+          onClick={() => router.push(`/search?from=${from}`)}
+          style={{
+            position: 'relative',
+            top: '72px',
+            left: '10px',
+            zIndex: 2,
+          }}
         />
-      </header>
 
-      <BackButton
-        onClick={() => router.push(`/search?from=${from}`)}
-        style={{
-          position: 'relative',
-          top: '72px',
-          left: '10px',
-          zIndex: 2,
-        }}
-      />
-
-      <BottomSheet
-        placeName={destination.name}
-        participants={participants}
-        totalParticipants={participants.length}
-        onSlideChange={handleSlideChange}
-      />
-    </div>
+        <BottomSheet
+          placeName={destination.name}
+          participants={participants}
+          totalParticipants={participants.length}
+          onSlideChange={handleSlideChange}
+        />
+      </div>
+    </Suspense>
   )
 }

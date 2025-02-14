@@ -2,6 +2,7 @@
 
 import React, { useState, useRef } from 'react'
 import styles from './SearchBar.module.css'
+import Image from 'next/image'
 
 interface SearchBarProps {
   placeholder?: string
@@ -52,9 +53,11 @@ const SearchBar: React.FC<SearchBarProps> = ({
   return (
     <div className={styles.searchInputContainer}>
       {/* 돋보기 아이콘 */}
-      <img
+      <Image
         src="/search.svg"
         alt="돋보기 아이콘"
+        width={24}
+        height={24}
         className={styles.searchIcon}
         onClick={handleSearch}
       />
@@ -68,9 +71,11 @@ const SearchBar: React.FC<SearchBarProps> = ({
       />
       {/* 취소 버튼 */}
       {showCancel && (
-        <img
+        <Image
           src="/cancel.svg"
           alt="취소 버튼"
+          width={24}
+          height={24}
           className={styles.cancelIcon}
           onClick={handleCancel}
         />

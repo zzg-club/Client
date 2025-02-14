@@ -10,6 +10,8 @@ import CustomModal from '@/components/Modals/CustomModal'
 import DecideBottom from '@/components/Footer/BottomSheet/DecideBottom'
 import { ScheduleItem } from '@/components/Footer/ListItem/ScheduleItem'
 import { useRouter } from 'next/navigation'
+// import axios from 'axios'
+import { useSurveyStore } from '@/store/surveyStore'
 
 interface SelectedDate {
   year: number
@@ -344,6 +346,34 @@ export default function Page() {
   const [decideBottomOpen, setDecideBottomOpen] = useState(false)
 
   const router = useRouter()
+
+  // const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
+
+  const { selectedSurveyId } = useSurveyStore() // Zustand에서 가져옴
+  console.log('surveyId', selectedSurveyId)
+  // const [surveyData, setSurveyData] = useState<ScheduleData[]>([])
+
+  // useEffect(() => {
+  //   if (!selectedSurveyId) return
+  //   console.log('surveyId', selectedSurveyId)
+  //   const getSurveyData = async () => {
+  //     try {
+  //       const res = await axios.get(
+  //         `${API_BASE_URL}/api/survey/${selectedSurveyId}`,
+  //         {
+  //           withCredentials: true, // 쿠키 전송을 위해 필요
+  //         },
+  //       )
+
+  //       console.log('survey data', res.data.data)
+  //       setSurveyData([res.data.data])
+  //     } catch (error) {
+  //       console.log('survey data get 실패', error)
+  //     }
+  //   }
+
+  //   getSurveyData()
+  // }, [API_BASE_URL, selectedSurveyId])
 
   const onClickConfirm = () => {
     if (isPurple && !decideBottomOpen) {
