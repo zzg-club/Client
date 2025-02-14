@@ -70,10 +70,10 @@ export function ScheduleCard({
   // const [selectedMember, setSelectedMember] = useState(participants)
 
   // 모임장, 모임원 삭제하기 api 조건
-  const handleRemoveMember = async (id: number, type: string) => {
+  const handleRemoveMember = async (userId: number, type: string) => {
     try {
       let url = ''
-      let requestData: unknown = { id }
+      let requestData: unknown = { userId }
 
       if (type === 'creator&my') {
         url = `${API_BASE_URL}/api/members/creator/${selectedGroupId}`
