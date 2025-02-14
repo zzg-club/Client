@@ -16,7 +16,7 @@ export interface CarouselNotificationPros {
     notiMessage?: string // 알림 메시지 텍스트
   }[]
   onClickLeftBtn: (id: number) => void
-  onClickRightBtn: () => void
+  onClickRightBtn: (id: number) => void
 }
 
 export default function CarouselNotification({
@@ -69,7 +69,7 @@ export default function CarouselNotification({
                 </button>
                 {/* 오른쪽 버튼 */}
                 <button
-                  onClick={onClickRightBtn}
+                  onClick={() => onClickRightBtn(notification.id)}
                   className="w-[120px] h-[42px] rounded-3xl border border-white text-white font-medium text-base"
                 >
                   {notification.rightBtnText}
