@@ -73,7 +73,7 @@ export default function MembersDefault({
                 alt={member.name}
                 width={48}
                 height={48}
-                objectFit="cover" // 비율 유지하며 채우기
+                style={{ objectFit: 'cover' }} // 비율 유지하며 채우기
               />
             </div>
             <span className="self-stretch text-center text-[#8e8d8d] text-base font-normal leading-[17px]">

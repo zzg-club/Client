@@ -1,5 +1,6 @@
 import React from 'react'
 import './CustomPin.css'
+import Image from 'next/image'
 
 interface CustomPinProps {
   imagePath: string
@@ -13,35 +14,23 @@ const CustomPin: React.FC<CustomPinProps> = ({
   depart = '',
 }) => {
   return (
-    <div
-      className={`pin-container ${isMine ? 'pin-purple' : 'pin-yellow'}`}
-      style={{
-        borderColor: isMine ? 'var(--MainColor, #9562fb)' : '#FFD700',
-      }}
-    >
+    <div className={`pin-container ${isMine ? 'pin-purple' : 'pin-gray'}`}>
       <div
         className="pin-globe"
         style={{ backgroundImage: `url(${imagePath})` }}
       ></div>
-      <img
-        src={isMine ? '/Polygon2Purple.svg' : '/Polygon2Yellow.svg'}
+      <Image
+        src={isMine ? '/Polygon2Purple.svg' : '/Polygon2Gray.svg'}
         className="pin-polygon"
         alt="Polygon shape"
-        width="28"
-        height="21"
+        width={28}
+        height={21}
       />
       <div
-        className="pin-depart"
+        className={`flex h-4 px-2 py-2 justify-center items-center gap-3 self-stretch rounded-full bg-white      
+            font-medium text-[8px] leading-[17px] tracking-[-0.5px]`}
         style={{
-          color: 'var(--glassmorph-black, #1E1E1E)',
-          textAlign: 'center',
-          fontFamily: 'Pretendard',
-          fontSize: '8px',
-          fontStyle: 'normal',
-          fontWeight: 500,
-          lineHeight: '17px',
-          letterSpacing: '-0.5px',
-          border: `1px solid ${isMine ? 'var(--MainColor, #9562fb)' : '#FFCF33'}`,
+          border: `1px solid ${isMine ? 'var(--MainColor, #9562fb)' : '#AFAFAF'}`,
         }}
       >
         {depart}에서 출발

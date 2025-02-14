@@ -24,7 +24,7 @@ interface GroupedDate {
 }
 
 interface ScheduleData {
-  name: string // 일정 이름
+  title: string // 일정 이름
   userId: number // 사용자 ID
   groupId: number // 그룹 ID
   mode: string
@@ -394,14 +394,14 @@ export default function SchedulePage() {
   const [currentPage, setCurrentPage] = useState(0)
   const [title, setTitle] = useState('제목 없는 일정')
   const [isPurple, setIsPurple] = useState(false)
-  const [isEdit, setIsEdit] = useState(true)
-  const [dateTime, setDateTime] = useState<
+  const [isEdit] = useState(true)
+  const [, setDateTime] = useState<
     { date: string; timeSlots: { start: string; end: string }[] }[]
   >([])
   const [highlightedCol, setHighlightedCol] = useState<number | null>(null)
   const [isOpen, setIsOpen] = useState(false)
-  const [startTime, setStartTime] = useState<string | null>(null)
-  const [endTime, setEndTime] = useState<string | null>(null)
+  const [, setStartTime] = useState<string | null>(null)
+  const [, setEndTime] = useState<string | null>(null)
   const [updateData, setUpdateData] = useState<
     {
       slotId: number
@@ -415,7 +415,7 @@ export default function SchedulePage() {
   const [dateCounts, setDateCounts] = useState<number[]>([])
   const [groupedDate, setGroupedDate] = useState<GroupedDate[]>([])
   // const [selectedDates, setSelectedDates] = useState<SelectedDate[]>([])
-  const [selectedEditDates, setSelectedEditDates] = useState<SelectedDate[]>([])
+  const [, setSelectedEditDates] = useState<SelectedDate[]>([])
   const [selectedTimeInfo, setSelectedTimeInfo] = useState<{
     date: string
     startTime: string
@@ -449,7 +449,7 @@ export default function SchedulePage() {
   }
   const scheduleData: ScheduleData[] = [
     {
-      name: '팀플 대면 모임',
+      title: '팀플 대면 모임',
       userId: 2,
       groupId: 1,
       mode: 'week',

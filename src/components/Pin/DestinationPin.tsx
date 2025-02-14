@@ -1,84 +1,32 @@
 import React from 'react'
+import Image from 'next/image'
 
 const DestinationPin: React.FC<{ stationName: string }> = ({ stationName }) => {
   return (
-    <div
-      style={{
-        position: 'relative',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    >
+    <div className="relative flex flex-col items-center justify-center">
       {/* 지하철 아이콘 */}
-      <div
-        style={{
-          display: 'flex',
-          width: '28px',
-          height: '28px',
-          padding: '2px',
-          justifyContent: 'center',
-          alignItems: 'center',
-          gap: '10px',
-          flexShrink: 0,
-          borderRadius: '24px',
-          border: '2px solid var(--subway_time, #FFCF33)',
-          background: 'var(--subway_time, #FFCF33)',
-        }}
-      >
-        <img
+      <div className="flex w-7 h-7 p-0.5 justify-center items-center gap-[10px] flex-shrink-0 rounded-full border-2 border-[#FFCF33] bg-[#FFCF33]">
+        <Image
           src="/subwayWhite.svg" // 지하철 아이콘
           alt="Subway Icon"
+          width={24}
+          height={24}
           style={{
-            width: '24px',
-            height: '24px',
             zIndex: 4,
           }}
         />
       </div>
       {/* 노란 삼각형 */}
-      <div
-        style={{
-          position: 'absolute',
-          top: '18px', // 원 아래에 삼각형 위치
-          width: '28px',
-          height: '21px',
-          zIndex: 2,
-        }}
-      >
-        <img
+      <div className="absolute top-[18px] w-7 h-[21px] z-2">
+        <Image
           src="/Polygon2Yellow.svg" // 삼각형 이미지
           alt="Yellow Polygon"
-          style={{
-            width: '100%',
-            height: '100%',
-          }}
+          width={28}
+          height={21}
         />
       </div>
       {/* 목적지 이름 */}
-      <div
-        style={{
-          color: 'var(--Grays-White, #FFF)',
-          textAlign: 'center',
-          fontFamily: 'Pretendard',
-          fontSize: '12px',
-          fontStyle: 'normal',
-          fontWeight: 500,
-          lineHeight: '17px',
-          letterSpacing: '-0.5px',
-          marginTop: '9px',
-          padding: '4px 8px',
-          borderRadius: '24px',
-          border: '1px solid var(--MainColor, #9562FB)',
-          background: 'var(--MainColor, #9562FB)',
-          display: 'flex',
-          height: '16px',
-          justifyContent: 'center',
-          alignItems: 'center',
-          gap: '12px',
-        }}
-      >
+      <div className="text-white text-center font-['Pretendard'] text-xs font-medium leading-[17px] tracking-[-0.5px] mt-[9px] px-2 py-1 rounded-full border border-[#9562FB] bg-[#9562FB] flex h-4 justify-center items-center gap-3">
         {stationName}
       </div>
     </div>

@@ -1,18 +1,45 @@
-'use client'
+'use client';
 
-import { use } from 'react'
-import PlaceDetailCampus from '@/components/Place/PlaceDetailCampus'
-import PlaceDetailReservation from '@/components/Place/PlaceDetailReservation'
-import PlaceDetailFood from '@/components/Place/PlaceDetailFood'
-import PlaceDetailPlay from '@/components/Place/PlaceDetailPlay'
+import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
+import PlaceDetail from '@/components/Place/PlaceDatail';
+import { fetchPlaceData } from '@/services/place';
+import { Place } from '@/types/place';
 
-const PlacePage = ({ params }: { params: Promise<{ id: string }> }) => {
-  const { id } = use(params) // React.use()를 사용해 Promise 언래핑
+const PlacePage = () => {
+  const params = useParams();
+  const [placeData, setPlaceData] = useState<Place | undefined>(undefined);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // return <PlaceDetailReservation id={id} />
-  // return <PlaceDetailCampus id={id} />
-  // return <PlaceDetailFood id={id} />
-  return <PlaceDetailPlay id={id} />
-}
+  useEffect(() => {
+    const loadPlaceData = async () => {
+      if (!params?.id) return;
 
-export default PlacePage
+      try {
+        const data = await fetchPlaceData(params.id.toString());
+        setPlaceData(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : '데이터를 불러오는 중 오류 발생');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadPlaceData();
+  }, [params?.id]);
+
+  // 로딩 중 상태 처리
+  if (loading) return <div></div>;
+
+  // 에러 발생 시 처리
+  if (error) return <div>오류 발생: {error}</div>;
+
+  // placeData가 없을 경우 처리
+  if (!placeData) return <div>데이터를 찾을 수 없습니다.</div>;
+
+  // placeData가 있을 때만 PlaceDetail 렌더링
+  return <PlaceDetail placeData={placeData} />;
+};
+
+export default PlacePage;

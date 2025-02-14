@@ -1,6 +1,5 @@
 'use client'
 
-import { MdArrowBackIos } from 'react-icons/md'
 import { IoShareSocialOutline } from 'react-icons/io5'
 import { useRouter } from 'next/navigation'
 import EditTitle from '@/components/Header/Middle/EditTitle'

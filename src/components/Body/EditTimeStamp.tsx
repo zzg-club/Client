@@ -77,7 +77,6 @@ const indexToTime = (index: number) => {
 }
 
 export default function EditTimeStamp({
-  selectedDates,
   currentPage,
   handleSelectedCol,
   getDateTime,
@@ -86,8 +85,8 @@ export default function EditTimeStamp({
   handleTimeSelect,
   mode,
   dateCounts,
-  handleActiveTime,
-  groupedDate,
+  // handleActiveTime,
+  // groupedDate,
 }: EditTimeStampProps) {
   const [selections] = useState<Selection[]>([])
   const [isResizing, setIsResizing] = useState(false)
@@ -97,7 +96,7 @@ export default function EditTimeStamp({
   )
   const [scale, setScale] = useState(1)
   const gridRef = useRef<HTMLDivElement>(null)
-  const [initialTouchRow, setInitialTouchRow] = useState<number | null>(null)
+  const [initialTouchRow] = useState<number | null>(null)
   const [sortedMockData, setSortedMockData] = useState<DateData[]>([]) // 정렬된 데이터를 상태로 관리
 
   const currentDates = useMemo(() => {
@@ -163,14 +162,14 @@ export default function EditTimeStamp({
     [handleSelectedCol, currentPage],
   )
 
-  const onActiveTime = useCallback(
-    (start: number, end: number) => {
-      setTimeout(() => {
-        handleActiveTime(start, end)
-      }, 0)
-    },
-    [handleActiveTime],
-  )
+  // const onActiveTime = useCallback(
+  //   (start: number, end: number) => {
+  //     setTimeout(() => {
+  //       handleActiveTime(start, end)
+  //     }, 0)
+  //   },
+  //   [handleActiveTime],
+  // )
 
   const handleDateTimeSelect = useCallback(
     (date: string, start: string, end: string) => {
@@ -380,10 +379,12 @@ export default function EditTimeStamp({
     [
       activeSelection,
       isResizing,
-      resizingPoint,
+      currentPage,
+      currentDates,
       isOverlapping,
-      handleTimeSelect,
+      resizingPoint,
       isBottomSheetOpen,
+      handleTimeSelect,
     ],
   )
 
@@ -682,10 +683,12 @@ export default function EditTimeStamp({
     [
       activeSelection,
       isResizing,
-      resizingPoint,
+      currentPage,
+      currentDates,
       isOverlapping,
-      handleTimeSelect,
+      resizingPoint,
       isBottomSheetOpen,
+      handleTimeSelect,
     ],
   )
 
@@ -814,14 +817,7 @@ export default function EditTimeStamp({
       setActiveSelection(null)
       setResizingPoint(null)
     }
-  }, [
-    activeSelection,
-    currentDates,
-    currentPage,
-    groupedDate,
-    handleDateTimeSelect,
-    mode,
-  ])
+  }, [activeSelection, currentDates, currentPage, handleDateTimeSelect])
 
   useEffect(() => {
     const handleMouseUpWithColumnClick = () => {

@@ -6,7 +6,8 @@ import {
   useCallback,
   useEffect,
   useMemo,
-  CSSProperties,
+  type CSSProperties,
+  type TouchEvent as ReactTouchEvent,
 } from 'react'
 import '@/styles/TimeStamp.css'
 
@@ -87,29 +88,6 @@ export default function TimeStamp({
   const gridRef = useRef<HTMLDivElement>(null)
   const [initialTouchRow, setInitialTouchRow] = useState<number | null>(null)
 
-  const currentDates =
-    mode === 'range'
-      ? selectedDates.slice(
-          currentPage * COLUMNS_PER_PAGE,
-          (currentPage + 1) * COLUMNS_PER_PAGE,
-        )
-      : (() => {
-          let startIndex = 0
-          let endIndex = 0
-
-          // dateCounts에 따라 날짜 범위 계산
-          for (let i = 0; i < dateCounts.length; i++) {
-            const pageSize = dateCounts[i]
-            if (currentPage === i) {
-              endIndex = startIndex + pageSize
-              break
-            }
-            startIndex += pageSize
-          }
-
-          return selectedDates.slice(startIndex, endIndex)
-        })()
-
   const [selectionsByPage, setSelectionsByPage] = useState<{
     [key: number]: Selection[]
   }>({})
@@ -118,11 +96,11 @@ export default function TimeStamp({
     return selectionsByPage[currentPage] || []
   }, [selectionsByPage, currentPage])
 
-  // Helper function to convert time string to index
-  const timeToIndex = (time: string) => {
+  // timeToIndex 함수를 useCallback으로 감싸기
+  const timeToIndex = useCallback((time: string) => {
     const [hours, minutes] = time.split(':').map(Number)
     return hours * 2 + (minutes >= 30 ? 1 : 0)
-  }
+  }, [])
 
   // Process mockDateTime data
   const processedMockData = useMemo(() => {
@@ -193,7 +171,45 @@ export default function TimeStamp({
         })
         return { date: dateData.date, slots }
       })
-  }, [mockDateTime, currentPage, mode])
+  }, [mockDateTime, currentPage, mode, timeToIndex])
+
+  //console.log('정렬데이터', processedMockData)
+
+  const orderedSelectedDates = useMemo(() => {
+    // 📌 `processedMockData`의 순서대로 `selectedDates` 정렬
+    const processedOrder = processedMockData.map((d) => d.date)
+
+    return [...selectedDates].sort((a, b) => {
+      const dateA = `${a.year}-${String(a.month).padStart(2, '0')}-${String(a.day).padStart(2, '0')}`
+      const dateB = `${b.year}-${String(b.month).padStart(2, '0')}-${String(b.day).padStart(2, '0')}`
+
+      return processedOrder.indexOf(dateA) - processedOrder.indexOf(dateB)
+    })
+  }, [selectedDates, processedMockData])
+
+  const currentDates =
+    mode === 'range'
+      ? selectedDates.slice(
+          currentPage * COLUMNS_PER_PAGE,
+          (currentPage + 1) * COLUMNS_PER_PAGE,
+        )
+      : (() => {
+          let startIndex = 0
+          let endIndex = 0
+
+          for (let i = 0; i < dateCounts.length; i++) {
+            const pageSize = dateCounts[i]
+            if (currentPage === i) {
+              endIndex = startIndex + pageSize
+              break
+            }
+            startIndex += pageSize
+          }
+
+          return orderedSelectedDates.slice(startIndex, endIndex)
+        })()
+
+  //console.log('currentDates', currentDates)
 
   const maxOverlap = useMemo(() => {
     return Math.max(...processedMockData.flatMap((data) => data.slots))
@@ -258,7 +274,75 @@ export default function TimeStamp({
     }
 
     const cellStatus = getCellStatus(rowIndex, colIndex)
-    if (cellStatus.isSelected || cellStatus.isConfirmed) return
+
+    if (cellStatus.isConfirmed) return
+    else if (cellStatus.isSelected && cellStatus.selection) {
+      const finalizedSelection = {
+        ...cellStatus.selection,
+        isSelected: false,
+        isConfirmed: true,
+      }
+
+      setSelectionsByPage((prev) => {
+        const currentSelections = prev[currentPage] || []
+        const updatedSelections = currentSelections.flatMap((sel) => {
+          const isOverlap =
+            sel.startRow <= finalizedSelection.endRow &&
+            sel.endRow >= finalizedSelection.startRow &&
+            sel.startCol === finalizedSelection.startCol
+
+          if (!isOverlap) {
+            return [sel]
+          }
+
+          const splitSelections = []
+          if (sel.startRow < finalizedSelection.startRow) {
+            splitSelections.push({
+              ...sel,
+              endRow: finalizedSelection.startRow - 1,
+            })
+          }
+          if (sel.endRow > finalizedSelection.endRow) {
+            splitSelections.push({
+              ...sel,
+              startRow: finalizedSelection.endRow + 1,
+            })
+          }
+          return splitSelections
+        })
+
+        const mergedSelections = [...updatedSelections, finalizedSelection]
+
+        const startCol = finalizedSelection.startCol
+        const getTimeLabel = (rowIndex: number) => {
+          const hours = Math.floor(rowIndex / 2)
+          const minutes = (rowIndex % 2) * 30
+          const formattedHour = String(hours).padStart(2, '0')
+          const formattedMinute = String(minutes).padStart(2, '0')
+          return `${formattedHour}:${formattedMinute}`
+        }
+
+        let selectedDate: string
+        if (mode === 'range') {
+          selectedDate = `${currentDates[startCol]?.year}-${String(currentDates[startCol]?.month).padStart(2, '0')}-${String(currentDates[startCol]?.day).padStart(2, '0')}`
+        } else {
+          const groupedArray = groupedDate?.[currentPage]?.date ?? []
+          selectedDate = `${groupedArray[startCol]?.year}-${String(groupedArray[startCol]?.month).padStart(2, '0')}-${String(groupedArray[startCol]?.day).padStart(2, '0')}`
+        }
+
+        const startTime = getTimeLabel(finalizedSelection.startRow)
+        const endTime = getTimeLabel(finalizedSelection.endRow + 1)
+
+        handleDateTimeSelect(selectedDate, startTime, endTime)
+
+        return {
+          ...prev,
+          [currentPage]: mergedSelections,
+        }
+      })
+
+      return
+    }
 
     const pairStartRow = Math.floor(rowIndex / 2) * 2
     const pairEndRow = pairStartRow + 1
@@ -334,7 +418,6 @@ export default function TimeStamp({
         if (timestampContainer) {
           const containerRect = timestampContainer.getBoundingClientRect()
           const scrollThreshold = 250
-
           if (e.clientY > containerRect.bottom - scrollThreshold) {
             timestampContainer.scrollTop += 5
           } else if (e.clientY < containerRect.top + scrollThreshold) {
@@ -433,8 +516,6 @@ export default function TimeStamp({
 
         handleDateTimeSelect(selectedDate, startTime, endTime)
 
-        console.log('handleMouseUp')
-
         return {
           ...prev,
           [currentPage]: mergedSelections,
@@ -524,10 +605,10 @@ export default function TimeStamp({
   }
 
   const handleTouchMove = useCallback(
-    (e: TouchEvent | React.TouchEvent) => {
+    (e: TouchEvent | ReactTouchEvent) => {
       if (!gridRef.current || !activeSelection) return
 
-      const touch = e.touches[0]
+      const touch = (e.touches || e.changedTouches)[0] // Handle both TouchEvent and ReactTouchEvent
       if (!touch) return
 
       if (isResizing) {
@@ -800,6 +881,7 @@ export default function TimeStamp({
 
     if (activeSelection) {
       const minRow = Math.min(activeSelection.startRow, activeSelection.endRow)
+
       const maxRow = Math.max(activeSelection.startRow, activeSelection.endRow)
       const minCol = Math.min(activeSelection.startCol, activeSelection.endCol)
       const maxCol = Math.min(activeSelection.startCol, activeSelection.endCol)
@@ -855,6 +937,7 @@ export default function TimeStamp({
     ) as Selection[]
 
     const cellStatus = getCellStatus(row, col)
+
     if (!cellStatus.isSelected) return {}
 
     const isSelected = (r: number, c: number) =>
@@ -954,7 +1037,6 @@ export default function TimeStamp({
         setScale((prev) => Math.min(Math.max(prev * delta, 1), 2))
       }
     }
-
     element.addEventListener('wheel', handleWheel, { passive: false })
     element.addEventListener('touchstart', handleTouchStart, { passive: false })
     element.addEventListener('touchmove', handleTouchMove, { passive: false })
@@ -973,96 +1055,79 @@ export default function TimeStamp({
       setSelectionsByPage((prev) => {
         const newSelections = { ...prev }
 
-        Object.keys(newSelections).forEach((pageKey) => {
-          const page = Number.parseInt(pageKey, 10)
-          const pageSelections = newSelections[page]
-          if (!pageSelections) return
+        // 현재 페이지의 선택 데이터만 필터링
+        const pageSelections = newSelections[currentPage] || []
 
-          // 현재 페이지의 선택 영역을 필터링
-          newSelections[page] = pageSelections.filter((selection) => {
-            // 아직 확정되지 않은 선택 영역은 항상 유지
-            if (!selection.isConfirmed) return true
+        const filteredSelections = pageSelections.filter((selection) => {
+          if (!selection.isConfirmed) return true // 아직 확정되지 않은 선택 유지
 
-            // 선택 영역의 날짜와 시간 정보 계산
-            const colDate =
-              mode === 'range'
-                ? selectedDates[selection.startCol + page * COLUMNS_PER_PAGE]
-                  ? `${selectedDates[selection.startCol + page * COLUMNS_PER_PAGE]?.year}-${String(
-                      selectedDates[
-                        selection.startCol + page * COLUMNS_PER_PAGE
-                      ]?.month,
-                    ).padStart(2, '0')}-${String(
-                      selectedDates[
-                        selection.startCol + page * COLUMNS_PER_PAGE
-                      ]?.day,
-                    ).padStart(2, '0')}`
-                  : undefined
-                : groupedDate[page]?.date?.[selection.startCol]
-                  ? `${groupedDate[page]?.date?.[selection.startCol]?.year}-${String(
-                      groupedDate[page]?.date?.[selection.startCol]?.month,
-                    ).padStart(
-                      2,
-                      '0',
-                    )}-${String(groupedDate[page]?.date?.[selection.startCol]?.day).padStart(2, '0')}`
-                  : undefined
+          // 📌 현재 페이지의 날짜 정보 가져오기
+          const colDate =
+            mode === 'range'
+              ? currentDates[selection.startCol]
+                ? `${currentDates[selection.startCol]?.year}-${String(currentDates[selection.startCol]?.month).padStart(2, '0')}-${String(currentDates[selection.startCol]?.day).padStart(2, '0')}`
+                : undefined
+              : groupedDate[currentPage]?.date?.[selection.startCol]
+                ? `${groupedDate[currentPage]?.date?.[selection.startCol]?.year}-${String(groupedDate[currentPage]?.date?.[selection.startCol]?.month).padStart(2, '0')}-${String(groupedDate[currentPage]?.date?.[selection.startCol]?.day).padStart(2, '0')}`
+                : undefined
 
-            console.log('colDate', colDate)
+          if (!colDate) return false
 
-            if (!colDate) {
-              console.log(
-                `Removing selection due to missing colDate:`,
-                selection,
+          const getTimeFromRow = (row: number) => {
+            const hours = Math.floor(row / 2)
+            const minutes = (row % 2) * 30
+            return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`
+          }
+
+          const selectionStart = getTimeFromRow(selection.startRow)
+          const selectionEnd = getTimeFromRow(selection.endRow + 1)
+
+          // 📌 현재 페이지의 날짜 범위 내에서만 `dateTime` 비교
+          const exists = dateTime.some((dateItem) => {
+            if (dateItem.date !== colDate) return false
+
+            return dateItem.timeSlots.some((slot) => {
+              const slotStart = slot.start
+              const slotEnd = slot.end
+              return (
+                (selectionStart <= slotStart && selectionEnd > slotStart) ||
+                (selectionStart >= slotStart && selectionStart < slotEnd) ||
+                (selectionEnd > slotStart && selectionEnd <= slotEnd)
               )
-              return false
-            }
-
-            const getTimeFromRow = (row: number) => {
-              const hours = Math.floor(row / 2)
-              const minutes = (row % 2) * 30
-              return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`
-            }
-
-            const selectionStart = getTimeFromRow(selection.startRow)
-            const selectionEnd = getTimeFromRow(selection.endRow + 1)
-
-            // dateTime에서 해당 날짜와 시간대가 존재하는지 확인
-            const exists = dateTime.some(
-              (dateItem) =>
-                dateItem.date === colDate &&
-                dateItem.timeSlots.some(
-                  (slot) =>
-                    slot.start === selectionStart || slot.end === selectionEnd,
-                ),
-            )
-
-            console.log('exists', exists)
-
-            if (!exists) {
-              console.log(`Removing selection due to missing timeSlot:`, {
-                selection,
-                colDate,
-                selectionStart,
-                selectionEnd,
-              })
-            }
-
-            return exists // dateTime에 존재하는 경우만 유지
+            })
           })
 
-          // 빈 페이지 제거
-          if (newSelections[page].length === 0) {
-            console.log(`Removing empty page          `, page)
-            delete newSelections[page]
-          }
+          return exists // `dateTime`에 존재하는 경우만 유지
         })
 
-        console.log('Updated selectionsByPage:', newSelections)
+        // 📌 변경이 없으면 상태 업데이트 안 함 (무한 루프 방지)
+        if (
+          JSON.stringify(filteredSelections) === JSON.stringify(pageSelections)
+        ) {
+          return prev
+        }
+
+        newSelections[currentPage] = filteredSelections
+
+        // 빈 페이지 제거
+        if (newSelections[currentPage]?.length === 0) {
+          delete newSelections[currentPage]
+        }
+
         return newSelections
       })
-    }, 500) // 1000ms (1초) 지연
+    }, 10)
 
-    return () => clearTimeout(timeoutId) // 컴포넌트 언마운트 시 타이머 클리어
-  }, [dateTime, selectedDates, mode, groupedDate])
+    return () => clearTimeout(timeoutId)
+  }, [dateTime, currentDates, currentPage, mode, groupedDate])
+
+  useEffect(() => {
+    if (!isBottomSheetOpen) {
+      onColumnClick(-1, -1)
+    }
+  }, [isBottomSheetOpen, onColumnClick])
+
+  console.log('selectionsbypage', selectionsByPage)
 
   return (
     <div

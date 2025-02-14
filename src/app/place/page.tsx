@@ -5,24 +5,17 @@ import { useRouter } from 'next/navigation'
 import KakaoMap from '@/components/Map/KakaoMap'
 import Navbar from '@/components/Navigate/NavBar'
 import styles from '@/app/place/styles/Home.module.css'
-import { fetchFilters } from '@/app/api/places/filter/route'
-import { fetchCategoryData } from '@/app/api/places/category/[categoryIndex]/route'
-import { fetchLikedStates } from '@/app/api/places/liked/route'
-import { fetchUserInformation } from '@/app/api/user/information/route'
-import { toggleLike } from '@/app/api/places/like/route'
-import { fetchFilteredCategoryData } from '@/app/api/places/category/[categoryIndex]/route' // 필터 데이터 API
-import { fetchLikeCount } from '../api/places/updateLike/route'
+import { fetchLikedStates } from '@/services/place'
+import { fetchUserInformation } from '@/services/place'
+import { toggleLike } from '@/services/place'
+import { fetchLikeCount } from '@/services/place'
+import { CardData } from '@/types/card'
+import { Place } from '@/types/place'
+import { CategoryPerData } from '@/types/categoryPerData'
+import { fetchCategoryData } from '@/services/place'
+import { fetchFilteredCategoryData } from '@/services/place'
+import { fetchFilters } from '@/services/place'
 
-interface Place {
-  lat: number
-  lng: number
-  name: string
-}
-
-interface FilterResponse {
-  category: string
-  filters: Record<string, string>
-}
 
 const tabs = [
   { id: 'food', label: '음식점' },
@@ -32,29 +25,29 @@ const tabs = [
 ]
 
 export default function Home() {
-  const [selectedPlace, setSelectedPlace] = useState<Place | null>(null)
+  const [selectedPlace] = useState<Place | undefined>(undefined);
   const [bottomSheetState, setBottomSheetState] = useState<
     'collapsed' | 'middle' | 'expanded'
   >('collapsed')
-  const [filters, setFilters] = useState<FilterResponse[]>([]) // 필터 데이터를 저장
+  const [filters, setFilters] = useState<CategoryPerData[]>([]) // 필터 데이터를 저장
   const [selectedTab, setSelectedTab] = useState<string>(tabs[0].id)
   const startY = useRef<number | null>(null)
-  const currentY = useRef<number | null>(null)
   const threshold = 50
   const router = useRouter()
   const mapRef = useRef<() => void | null>(null)
   const [selectedFilters, setSelectedFilters] = useState<string[]>([])
-  const [cardData, setCardData] = useState<any[]>([]) // 카드 데이터를 저장
+  const [cardData, setCardData] = useState<CardData[]>([]) // 카드 데이터를 저장
   const [userName, setUserName] = useState('')
+  const isDraggingRef = useRef<boolean>(false)
 
   const handleCardClick = (placeId: number) => {
     router.push(`/place/${placeId}`); // 클릭한 카드의 ID로 이동
   };
 
-  const handleLikeButtonClick = async (placeId: number, liked: boolean) => {
+  const handleLikeButtonClick = async (placeId: number, liked: boolean | undefined) => {
     try {
       // 좋아요 상태 토글
-      const updatedLiked = await toggleLike(placeId, liked)
+      const updatedLiked = await toggleLike(placeId, liked ?? false)
 
       // 최신 좋아요 개수 가져오기
       const updatedLikesCount = await fetchLikeCount(placeId)
@@ -90,140 +83,123 @@ export default function Home() {
     return text.length > maxLength ? text.slice(0, maxLength) + '...' : text
   }
 
-  const handleTabClick = async (tabId: string) => {
-    setSelectedTab(tabId)
-    setSelectedFilters([]) // 필터 초기화
+  const getDayOfWeek = () => {
+    const days = ['일', '월', '화', '수', '목', '금', '토'];
+    return days[new Date().getDay()];
+  };
+  
+  const parseTime = (time: string | undefined) => {
+    if (!time || typeof time !== 'string') return '운영 정보 없음';
+  
+    const today = getDayOfWeek();
+    const validDays = ['월', '화', '수', '목', '금', '토', '일'];
 
-    const categoryIndex = tabs.findIndex((tab) => tab.id === tabId)
-
-    if (categoryIndex === -1) {
-      console.warn('Invalid tabId provided:', tabId)
-      return
+    if (!time.startsWith('월')) {
+      return '상세보기'; 
     }
+  
+  
+    const timeEntries = time
+      .split('\n')
+      .map((entry) => {
+        const parts = entry.trim().split(' '); 
+        if (parts.length < 2 || !validDays.includes(parts[0])) return null;
+        return { day: parts[0], hours: parts.slice(1).join(' ') };
+      })
+      .filter(Boolean) as { day: string; hours: string }[];
+  
+    const todayEntry = timeEntries.find((entry) => entry.day === today);
+    return todayEntry ? todayEntry.hours : '운영 정보 없음';
+  };
 
+  const fetchCategoryDataWithFilters = async (categoryIndex: number, selectedFilters: string[]) => {
     try {
-      let data
-
       if (selectedFilters.length === 0) {
-        // 필터가 선택되지 않았을 때 기본 데이터를 가져옵니다.
-        console.log(
-          'Fetching default category data for categoryIndex:',
-          categoryIndex,
-        )
-        data = await fetchCategoryData(categoryIndex)
-      } else {
-        // 선택된 필터를 기반으로 필터링된 데이터를 가져옵니다.
-        const filters = getCurrentTabFilters().reduce(
-          (acc, filter, index) => {
-            acc[`filter${index + 1}`] = selectedFilters.includes(filter) // 선택된 필터를 boolean으로 변환
-            return acc
-          },
-          {} as {
-            filter1?: boolean
-            filter2?: boolean
-            filter3?: boolean
-            filter4?: boolean
-          },
-        )
-
-        console.log('Fetching filtered category data with filters:', filters)
-        data = await fetchFilteredCategoryData(categoryIndex, filters)
+        console.log('Fetching default category data for categoryIndex:', categoryIndex);
+        return await fetchCategoryData(categoryIndex);
       }
+      
+      const filters = getCurrentTabFilters().reduce<Record<string, boolean>>(
+        (acc, filter, index) => {
+          const filterKey = `filter${index + 1}`;
+          acc[filterKey] = selectedFilters.includes(filter);
+          return acc;
+        },
+        {}
+      );
+      
+      console.log('Fetching filtered category data with filters:', filters);
+      const data = await fetchFilteredCategoryData(categoryIndex, filters);
 
-      // 좋아요 상태 확인 및 데이터 업데이트
-      const updatedData = await Promise.all(
-        data.map(async (card: any) => {
-          const liked = await fetchLikedStates(card.id)
-          return {
-            ...card,
-            filters: card.filters || {}, // filters가 없으면 빈 객체로 초기화
-            liked, // 좋아요 상태 추가
-          }
-        }),
-      )
-
-      console.log('Updated card data:', updatedData)
-      setCardData(updatedData) // 카드 데이터 업데이트
+      console.log('fetchFilteredCategoryData data :', data)
+      
+      return data.length ? data : [];
     } catch (error) {
-      console.error('Error fetching category data:', error)
+      console.error('Error fetching category data:', error);
+      return [];
     }
-  }
-
+  };
+  
+  const updateCardData = async (data: CardData[]) => {
+    return await Promise.all(
+      data.map(async (card) => {
+        const liked = await fetchLikedStates(card.id.toString());
+  
+        // 모든 필터 필드 추출
+        const filters = Object.entries(card)
+          .filter(([key]) => key.startsWith("filter"))
+          .reduce<Record<string, boolean>>((acc, [key, value]) => {
+            if (typeof value === "boolean") acc[key] = value; 
+            return acc;
+          }, {});
+  
+        return {
+          ...card,
+          filters, // 새로운 필터 객체 추가
+          liked,
+        };
+      })
+    );
+  };
+  
+  const handleTabClick = async (tabId: string) => {
+    setSelectedTab(tabId);
+    setSelectedFilters([]);
+  
+    const categoryIndex = tabs.findIndex((tab) => tab.id === tabId);
+    if (categoryIndex === -1) {
+      console.warn('Invalid tabId provided:', tabId);
+      return;
+    }
+    
+    try {
+      const data = await fetchCategoryDataWithFilters(categoryIndex, selectedFilters);
+      const updatedData = await updateCardData(data);
+      setCardData(updatedData);
+    } catch (error) {
+      console.error('Error updating card data:', error);
+    }
+  };
+  
   useEffect(() => {
     const fetchData = async () => {
-      const categoryIndex = tabs.findIndex((tab) => tab.id === selectedTab)
-
+      const categoryIndex = tabs.findIndex((tab) => tab.id === selectedTab);
       if (categoryIndex === -1) {
-        console.warn('Invalid tabId provided:', selectedTab)
-        return
+        console.warn('Invalid tabId provided:', selectedTab);
+        return;
       }
-
+      
       try {
-        let data
-
-        if (selectedFilters.length === 0) {
-          // 필터가 선택되지 않았을 때 기본 데이터를 가져옵니다.
-          console.log(
-            'Fetching default category data for categoryIndex:',
-            categoryIndex,
-          )
-          data = await fetchCategoryData(categoryIndex)
-        } else {
-          try {
-            const filters = getCurrentTabFilters().reduce(
-              (acc, filter, index) => {
-                acc[`filter${index + 1}`] = selectedFilters.includes(filter) // 선택된 필터를 boolean으로 변환
-                return acc
-              },
-              {} as {
-                filter1?: boolean
-                filter2?: boolean
-                filter3?: boolean
-                filter4?: boolean
-              },
-            )
-
-            console.log(
-              'Fetching filtered category data with filters:',
-              filters,
-            )
-
-            data = await fetchFilteredCategoryData(categoryIndex, filters)
-
-            if (!data || data.length === 0) {
-              console.warn(
-                'No data returned for the selected filters:',
-                filters,
-              )
-              data = [] // 기본값으로 빈 배열 설정
-            }
-          } catch (error) {
-            console.error('Error fetching filtered category data:', error)
-            data = [] // 예외 발생 시 빈 배열 설정
-          }
-        }
-
-        // 좋아요 상태 확인 및 데이터 업데이트
-        const updatedData = await Promise.all(
-          data.map(async (card: any) => {
-            const liked = await fetchLikedStates(card.id)
-            return {
-              ...card,
-              filters: card.filters || {}, // filters가 없으면 빈 객체로 초기화
-              liked, // 좋아요 상태 추가
-            }
-          }),
-        )
-
-        console.log('Updated card data:', updatedData)
-        setCardData(updatedData) // 카드 데이터 업데이트
+        const data = await fetchCategoryDataWithFilters(categoryIndex, selectedFilters);
+        const updatedData = await updateCardData(data);
+        setCardData(updatedData);
       } catch (error) {
-        console.error('Error fetching category data:', error)
+        console.error('Error updating card data:', error);
       }
-    }
-
-    fetchData()
-  }, [selectedTab, selectedFilters]) // 탭 상태 및 필터 상태가 변경될 때 호출
+    };
+  
+    fetchData();
+  }, [selectedTab, selectedFilters]);  
 
   useEffect(() => {
     handleTabClick(selectedTab)
@@ -232,17 +208,17 @@ export default function Home() {
   const handleFilterButtonClick = (filter: string) => {
     setSelectedFilters((prevSelected) => {
       const updatedFilters = prevSelected.includes(filter)
-        ? prevSelected.filter((item) => item !== filter) // 이미 선택된 경우 해제
+        ? prevSelected.filter((item) => item !== filter) 
         : [...prevSelected, filter] // 새로 선택
 
-      console.log('Updated Filters:', updatedFilters) // 선택된 필터 로그
+      console.log('Updated Filters:', updatedFilters) 
       return updatedFilters
     })
   }
 
   const handleVectorButtonClick = () => {
     if (mapRef.current) {
-      mapRef.current() // KakaoMap의 moveToCurrentLocation 호출
+      mapRef.current() 
     }
   }
 
@@ -250,52 +226,61 @@ export default function Home() {
     router.push('/search?from=/place')
   }
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    startY.current = e.touches[0].clientY
+  // 드래그 시작
+  const handleStart = (y: number) => {
+    startY.current = y
+    isDraggingRef.current = true
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleEnd)
   }
 
-  const handleTouchMove = (e: React.TouchEvent) => {
-    currentY.current = e.touches[0].clientY
-  }
+  const handleMove = (y: number) => {
+    if (!isDraggingRef.current || startY.current === null) return
+    const deltaY = startY.current - y
 
-  const handleTouchEnd = () => {
-    if (startY.current !== null && currentY.current !== null) {
-      const delta = startY.current - currentY.current
-
-      if (delta > threshold) {
-        // 확장 상태로 변경
-        setBottomSheetState((prevState) =>
-          prevState === 'collapsed' ? 'middle' : 'expanded',
-        )
-      } else if (delta < -threshold) {
-        // 축소 상태로 변경
-        setBottomSheetState((prevState) =>
-          prevState === 'expanded' ? 'middle' : 'collapsed',
-        )
-      }
+    // **단계별 상태 변경 (중간 상태 유지)**
+    if (deltaY > threshold && bottomSheetState === 'collapsed') {
+      setBottomSheetState('middle')
+      startY.current = y // 중간 상태에서 다시 기준점 설정
+    } else if (deltaY > threshold && bottomSheetState === 'middle') {
+      setBottomSheetState('expanded')
+      startY.current = y // 확장 상태에서 다시 기준점 설정
+    } else if (deltaY < -threshold && bottomSheetState === 'expanded') {
+      setBottomSheetState('middle')
+      startY.current = y // 중간 상태에서 다시 기준점 설정
+    } else if (deltaY < -threshold && bottomSheetState === 'middle') {
+      setBottomSheetState('collapsed')
+      startY.current = y // 축소 상태에서 다시 기준점 설정
     }
+  }
+
+  const handleMouseMove = (e: MouseEvent) => {
+    handleMove(e.clientY)
+  }
+
+  const handleEnd = () => {
     startY.current = null
-    currentY.current = null
+    isDraggingRef.current = false
+
+    document.removeEventListener('mousemove', handleMouseMove)
+    document.removeEventListener('mouseup', handleEnd)
   }
 
   useEffect(() => {
     const loadFilters = async () => {
       try {
-        const response = await fetchFilters() // 분리된 함수 호출
-        const { success, data, error } = await response.json() // 응답 처리
-
+        const { success, data } = await fetchFilters();  // JSON 처리된 데이터 반환
+  
         if (success && Array.isArray(data)) {
-          setFilters(data) // 상태 업데이트
-        } else {
-          console.error('Failed to fetch filters:', error || 'Unknown error')
+          setFilters(data); 
         }
       } catch (error) {
-        console.error('Error fetching filters:', error)
+        console.error('Error fetching filters:', error);
       }
-    }
-
-    loadFilters() // 필터 데이터 로드
-  }, [])
+    };
+  
+    loadFilters(); // 필터 데이터 로드
+  }, []);
 
   const getCurrentTabFilters = () => {
     const currentCategory = tabs.find((tab) => tab.id === selectedTab)?.label
@@ -307,11 +292,13 @@ export default function Home() {
       return []
     }
 
+    console.log("categoryFilters :",categoryFilters)
+
     return Object.values(categoryFilters.filters) // ["24시", "학교", "주점", "룸"]
   }
 
   const getCardFiltersWithNames = (
-    cardData: Record<string, any>, // 카드 데이터 전체
+    cardData: CardData, // 카드 데이터 전체
     currentFilters: string[], // 현재 탭의 필터 이름 배열
   ) => {
     // 1. `filter1`, `filter2` 등 필터 관련 키만 추출
@@ -356,7 +343,7 @@ export default function Home() {
         </button>
       </div>
       <KakaoMap
-        selectedPlace={selectedPlace}
+        selectedPlace={selectedPlace ?? undefined}
         onMoveToCurrentLocation={(moveToCurrentLocation) =>
           (mapRef.current = moveToCurrentLocation)
         }
@@ -380,9 +367,10 @@ export default function Home() {
       {/* Bottom Sheet */}
       <div
         className={`${styles.bottomSheet} ${styles[bottomSheetState]}`}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
+        onTouchStart={(e) => handleStart(e.touches[0].clientY)}
+        onTouchMove={(e) => handleMove(e.touches[0].clientY)}
+        onTouchEnd={handleEnd}
+        onMouseDown={(e) => handleStart(e.clientY)}
       >
         <div className={styles.dragHandle}></div>
         <div className={styles.content}>
@@ -415,15 +403,15 @@ export default function Home() {
                 <div className={styles.cardImage}>
                   {card.pictures?.[0] ? (
                     <img
-                      src={card.pictures[0] || '/default-cafe.jpg'}
+                      src={card.pictures[0] || '/no_image.png'}
                       alt={card.name || '카드 이미지'}
                       loading="lazy"
                     />
                   ) : (
                     <img
-                      src="/default-cafe.jpg"
+                      src="/no_image.png"
                       alt={card.name || '기본 이미지'}
-                      className={styles.cardImage} // 필요한 스타일 추가
+                      className={styles.cardImage} 
                     />
                   )}
                 </div>
@@ -462,7 +450,7 @@ export default function Home() {
 
                   {/* 설명 */}
                   <div className={styles.description}>
-                    {truncateText(card.word || '설명이 없습니다.', 40, 2)}{' '}
+                    {truncateText(card.word || '설명이 없습니다.', 40)}{' '}
                     {/* 줄당 20글자, 최대 2줄 */}
                   </div>
 
@@ -473,7 +461,7 @@ export default function Home() {
                       alt="시계 아이콘"
                       className={styles.clockIcon}
                     />
-                    <span>영업시간 {card.time || '정보 없음'}</span>
+                    <span>영업시간 {parseTime(card.time)}</span>
                   </div>
                 </div>
               </div>

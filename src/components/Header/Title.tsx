@@ -28,17 +28,13 @@ export default function Title({
   const router = useRouter()
   const [isShareOpen, setIsShareOpen] = useState(false)
 
-  const handleBackClick = () => {
-    router.back()
-  }
-
   const handleOpenDdialg = () => {
     setIsShareOpen(!isShareOpen)
   }
 
   return (
     <div className="w-full h-16 px-4 py-5 bg-white flex items-center gap-1">
-      <button onClick={handleBackClick}>
+      <button onClick={() => router.push('/schedule')}>
         <MdArrowBackIos className="w-7 h-7 text-[#1e1e1e]" />
       </button>
       <div className="w-[60%] max-w-[300px] overflow-hidden">
@@ -64,7 +60,7 @@ export default function Title({
         onOpenChange={handleOpenDdialg}
         isFooter={false}
       >
-        <ScheduleSelectShareModal inviteUrl="https://moim.team/" />
+        <ScheduleSelectShareModal />
       </CustomModal>
     </div>
   )

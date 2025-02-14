@@ -1,7 +1,7 @@
 'use client'
 
+import React, { useEffect, useState, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import React, { useEffect, useState, useRef } from 'react'
 import PinMap from '@/components/Map/PinMap'
 import RouteMap from '@/components/Map/RouteMap'
 import Title from '@/components/Header/Middle/TitleMiddle'
@@ -11,13 +11,38 @@ import { loadKakaoMaps } from '@/utils/kakaoLoader'
 import { getCurrentLocation } from '@/components/Map/getCurrentLocation'
 import BackButton from '@/components/Buttons/Middle/BackButton'
 
+interface Participant {
+  id: number
+  name: string
+  time: string
+  image: string
+  lat: number
+  lng: number
+  transport: string
+  transportIcon: string
+  depart: string
+}
+
+// 검색 파라미터를 별도 컴포넌트로 분리 (Suspense 내부에서 실행)
+const SearchParamsComponent = ({
+  setFrom,
+}: {
+  setFrom: (value: string) => void
+}) => {
+  const searchParams = useSearchParams()
+  const from = searchParams.get('from') || '/schedule'
+  useEffect(() => {
+    setFrom(from)
+  }, [from, setFrom])
+  return null
+}
+
 export default function Middle() {
   const [kakaoMap, setKakaoMap] = useState<kakao.maps.Map | null>(null)
   const [currentIndex, setCurrentIndex] = useState(0) // 현재 인덱스
-  const [participants, setParticipants] = useState([])
+  const [participants, setParticipants] = useState<Participant[]>([])
   const [destination, setDestination] = useState(dummyDataArray[0].destination)
-  const searchParams = useSearchParams()
-  const from = searchParams.get('from')
+  const [from, setFrom] = useState('/schedule')
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
   const router = useRouter()
 
@@ -30,10 +55,10 @@ export default function Middle() {
 
         const kakaoMapInstance = new window.kakao.maps.Map(mapContainer, {
           center: new window.kakao.maps.LatLng(
-            dummyDataArray[currentIndex].destination.lat,
-            dummyDataArray[currentIndex].destination.lng,
+            destination.lat,
+            destination.lng,
           ),
-          level: 4,
+          level: 3,
         })
 
         setKakaoMap(kakaoMapInstance)
@@ -47,13 +72,14 @@ export default function Middle() {
       try {
         const location = await getCurrentLocation()
         const myInfo = {
+          id: 0,
           name: '내 위치',
           time: '50분',
-          icon: '/sampleProfile.png',
+          image: '/sampleProfile.png',
           lat: location.lat,
           lng: location.lng,
           transport: 'subway',
-          transportIcon: '/subwayPurple.svg',
+          transportIcon: '/train.svg',
           depart: '죽전역',
         }
 
@@ -61,22 +87,22 @@ export default function Middle() {
           myInfo,
           ...dummyDataArray[currentIndex].participants.map((participant) => ({
             ...participant,
-            transportIcon: '/subwayYellow.svg',
+            transportIcon: '/subwayGray.svg',
           })),
         ]
 
         setParticipants(updatedParticipants)
       } catch (error) {
         console.error('현재 위치를 가져오지 못했습니다:', error)
-
         const fallbackInfo = {
+          id: 0,
           name: '기본 위치',
           time: '기본 시간',
-          icon: '/sampleProfile.png',
+          image: '/sampleProfile.png',
           lat: 37.5665,
           lng: 126.978,
           transport: 'subway',
-          transportIcon: '/subwayPurple.svg',
+          transportIcon: '/train.svg',
           depart: '서울역',
         }
 
@@ -84,7 +110,7 @@ export default function Middle() {
           fallbackInfo,
           ...dummyDataArray[currentIndex].participants.map((participant) => ({
             ...participant,
-            transportIcon: '/subwayYellow.svg',
+            transportIcon: '/subwayGray.svg',
           })),
         ]
 
@@ -94,7 +120,7 @@ export default function Middle() {
 
     initializeMap()
     updateParticipants()
-  }, [currentIndex])
+  }, [currentIndex, destination.lat, destination.lng])
 
   const handleSlideChange = (direction: 'left' | 'right') => {
     setCurrentIndex((prevIndex) => {
@@ -106,67 +132,59 @@ export default function Middle() {
     })
   }
 
-  const handleConfirm = () => {
-    console.log(`현재 도착지 확정: ${destination.name}`)
-    // 추가 작업 (예: 서버로 확정 상태 전송)
-  }
-
   return (
-    <div className="flex flex-col h-screen relative">
-      <div
-        className="absolute inset-0 z-0"
-        ref={mapContainerRef}
-        style={{ width: '100%', height: '100%' }}
-      ></div>
+    <Suspense fallback={<div>로딩 중...</div>}>
+      {/* Suspense 내부에서 검색 파라미터 처리 */}
+      <SearchParamsComponent setFrom={setFrom} />
+      <div className="flex flex-col h-screen relative">
+        <div
+          className="absolute inset-0 z-0 w-full h-full"
+          ref={mapContainerRef}
+        ></div>
 
-      {kakaoMap && destination && participants.length > 0 && (
-        <>
-          <PinMap
-            kakaoMap={kakaoMap}
-            participants={participants}
-            destination={destination}
-          />
-          <RouteMap
-            kakaoMap={kakaoMap}
-            participants={participants}
-            destination={destination}
-          />
-        </>
-      )}
+        {kakaoMap && destination && participants.length > 0 && (
+          <>
+            <PinMap
+              kakaoMap={kakaoMap}
+              participants={participants}
+              destination={destination}
+            />
+            <RouteMap
+              kakaoMap={kakaoMap}
+              participants={participants}
+              destination={destination}
+            />
+          </>
+        )}
 
-      <header
-        className="absolute top-0 left-0 right-0 z-10 bg-white shadow-md"
-        style={{
-          borderRadius: '0px 0px 24px 24px',
-        }}
-      >
-        <Title
-          buttonText="확정"
-          buttonLink="#"
-          initialTitle="제목 없는 일정"
-          onTitleChange={(newTitle) => console.log('새 제목:', newTitle)}
-          isPurple={true}
-          isDisabled={participants.length <= 1} // 참여 인원이 1명 이하일 경우 비활성화
-          onConfirm={handleConfirm} // 확정 동작
+        <header className="absolute top-0 left-0 right-0 shadow-md rounded-b-[24px]">
+          <Title
+            buttonText="확정"
+            buttonLink="#"
+            initialTitle="제목 없는 일정"
+            onTitleChange={(newTitle) => console.log('새 제목:', newTitle)}
+            isPurple
+            isDisabled={participants.length <= 1}
+          />
+        </header>
+
+        <BackButton
+          onClick={() => router.push(`/search?from=${from}`)}
+          style={{
+            position: 'relative',
+            top: '72px',
+            left: '10px',
+            zIndex: 2,
+          }}
         />
-      </header>
 
-      <BackButton
-        onClick={() => router.push(`/search?from=${from}`)}
-        style={{
-          position: 'relative',
-          top: '72px',
-          left: '10px',
-          zIndex: 2,
-        }}
-      />
-
-      <BottomSheet
-        placeName={destination.name}
-        participants={participants}
-        totalParticipants={participants.length}
-        onSlideChange={handleSlideChange}
-      />
-    </div>
+        <BottomSheet
+          placeName={destination.name}
+          participants={participants}
+          totalParticipants={participants.length}
+          onSlideChange={handleSlideChange}
+        />
+      </div>
+    </Suspense>
   )
 }
