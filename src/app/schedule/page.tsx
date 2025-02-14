@@ -320,6 +320,7 @@ export default function ScheduleLanding() {
                   endTime={schedule?.endTime}
                   location={schedule?.location}
                   participants={schedule?.participants}
+                  getSchedule={getSchedule}
                 />
               </div>
             ))}

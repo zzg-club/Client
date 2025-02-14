@@ -17,6 +17,7 @@ export interface ScheduleCardProps {
   endTime: string
   location?: string
   participants: { id: number; name: string; image: string; type: string }[]
+  getSchedule: () => void
 }
 
 export function ScheduleCard({
@@ -27,6 +28,7 @@ export function ScheduleCard({
   endTime,
   location,
   participants,
+  getSchedule,
 }: ScheduleCardProps) {
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
   const [isMembersModalOpen, setIsMembersModalOpen] = useState(false)
@@ -45,8 +47,12 @@ export function ScheduleCard({
   // 장소 선정하기 버튼 모달 open 핸들
   const handleOpenSelectedPlace = (e: React.MouseEvent) => {
     e.stopPropagation() // 이벤트 버블링 방지
-    setIsSelectedPlace(true)
-    console.log('dkdkdk')
+    if (startTime === '' && endTime === '') {
+      return '이어서 하기 '
+    } else {
+      setIsSelectedPlace(true)
+      console.log('장소 정하기 모달 오픈')
+    }
   }
 
   // 장소 선정하기 버튼 모달 close 핸들
@@ -83,7 +89,8 @@ export function ScheduleCard({
       })
 
       console.log(`${type} 삭제 성공:`, response.data.data)
-      router.refresh()
+      setIsMembersModalOpen(false)
+      getSchedule()
       return response
     } catch (error) {
       console.error(`${type} 삭제 실패:`, error)
