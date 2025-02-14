@@ -10,8 +10,8 @@ import CustomModal from '@/components/Modals/CustomModal'
 import DecideBottom from '@/components/Footer/BottomSheet/DecideBottom'
 import { ScheduleItem } from '@/components/Footer/ListItem/ScheduleItem'
 import { useRouter } from 'next/navigation'
-// import axios from 'axios'
 import { useSurveyStore } from '@/store/surveyStore'
+import { useGroupStore } from '@/store/groupStore'
 import axios from 'axios'
 
 interface SelectedDate {
@@ -66,258 +66,14 @@ interface ScheduleData {
   date: [string, string][] // 날짜 배열: [날짜, 요일]의 배열
 }
 
-// const mockDateTime: PrevScheduleData[] = [
-//   {
-//     title: '팀플 대면 모임',
-//     userId: 2,
-//     groupId: 1,
-//     mode: 'range',
-//     selected: null,
-//     dateData: [
-//       {
-//         date: '2025-02-01',
-//         timeSlots: [
-//           {
-//             start: '09:30',
-//             end: '17:00',
-//             selectedBy: ['user1', 'user2', 'user3'],
-//           },
-//           { start: '17:00', end: '22:00', selectedBy: ['user1'] },
-//         ],
-//       },
-//       {
-//         date: '2025-02-02',
-//         timeSlots: [
-//           { start: '08:00', end: '13:00', selectedBy: ['user2', 'user3'] },
-//           { start: '13:00', end: '20:00', selectedBy: ['user1', 'user4'] },
-//           { start: '20:00', end: '23:00', selectedBy: ['user3'] },
-//         ],
-//       },
-//       {
-//         date: '2025-02-03',
-//         timeSlots: [
-//           { start: '05:00', end: '10:00', selectedBy: ['user1', 'user2'] },
-//           {
-//             start: '10:00',
-//             end: '16:00',
-//             selectedBy: ['user2', 'user3', 'user4'],
-//           },
-//           { start: '16:00', end: '21:00', selectedBy: ['user1', 'user3'] },
-//         ],
-//       },
-//       {
-//         date: '2025-02-04',
-//         timeSlots: [
-//           {
-//             start: '11:00',
-//             end: '18:00',
-//             selectedBy: ['user1', 'user2', 'user3', 'user4'],
-//           },
-//           { start: '18:00', end: '19:00', selectedBy: ['user2'] },
-//         ],
-//       },
-//       {
-//         date: '2025-02-05',
-//         timeSlots: [
-//           { start: '10:00', end: '15:00', selectedBy: ['user1'] },
-//           {
-//             start: '15:00',
-//             end: '18:00',
-//             selectedBy: ['user1', 'user2', 'user3'],
-//           },
-//           { start: '28:00', end: '22:00', selectedBy: ['user2', 'user4'] },
-//         ],
-//       },
-//       {
-//         date: '2025-02-06',
-//         timeSlots: [
-//           { start: '04:00', end: '06:00', selectedBy: ['user3'] },
-//           {
-//             start: '06:00',
-//             end: '21:00',
-//             selectedBy: ['user1', 'user2', 'user3', 'user4'],
-//           },
-//         ],
-//       },
-//       {
-//         date: '2025-02-07',
-//         timeSlots: [
-//           { start: '06:00', end: '07:00', selectedBy: ['user2'] },
-//           {
-//             start: '07:00',
-//             end: '19:00',
-//             selectedBy: ['user1', 'user3', 'user4'],
-//           },
-//           { start: '19:00', end: '22:00', selectedBy: ['user1', 'user2'] },
-//         ],
-//       },
-//       {
-//         date: '2025-02-08',
-//         timeSlots: [
-//           {
-//             start: '10:00',
-//             end: '19:00',
-//             selectedBy: ['user1', 'user3', 'user4'],
-//           },
-//           { start: '19:00', end: '22:00', selectedBy: ['user1', 'user2'] },
-//         ],
-//       },
-//     ],
-//   },
-// ]
-
-// const mockDateTime: PrevScheduleData[] = [
-//   {
-//     title: '팀플 대면 모임',
-//     userId: 2,
-//     groupId: 1,
-//     mode: 'week',
-//     selected: ['mon', 'wed', 'fri'],
-//     dateData: [
-//       {
-//         date: '2025-01-06',
-//         timeSlots: [
-//           {
-//             start: '09:30',
-//             end: '17:00',
-//             selectedBy: ['user1', 'user2', 'user3'],
-//           },
-//           { start: '17:00', end: '22:00', selectedBy: ['user1'] },
-//         ],
-//       },
-//       {
-//         date: '2025-02-05',
-//         timeSlots: [
-//           { start: '08:00', end: '13:00', selectedBy: ['user2', 'user3'] },
-//           { start: '13:00', end: '20:00', selectedBy: ['user1', 'user4'] },
-//           { start: '20:00', end: '23:00', selectedBy: ['user3'] },
-//         ],
-//       },
-//       {
-//         date: '2025-01-13',
-//         timeSlots: [
-//           { start: '05:00', end: '10:00', selectedBy: ['user1', 'user2'] },
-//           {
-//             start: '10:00',
-//             end: '16:00',
-//             selectedBy: ['user2', 'user3', 'user4'],
-//           },
-//           { start: '16:00', end: '21:00', selectedBy: ['user1', 'user3'] },
-//         ],
-//       },
-//       {
-//         date: '2025-02-12',
-//         timeSlots: [
-//           {
-//             start: '11:00',
-//             end: '18:00',
-//             selectedBy: ['user1', 'user2', 'user3', 'user4'],
-//           },
-//           { start: '18:00', end: '19:00', selectedBy: ['user2'] },
-//         ],
-//       },
-//       {
-//         date: '2025-03-07',
-//         timeSlots: [
-//           { start: '10:00', end: '15:00', selectedBy: ['user1'] },
-//           {
-//             start: '15:00',
-//             end: '18:00',
-//             selectedBy: ['user1', 'user2', 'user3'],
-//           },
-//           { start: '28:00', end: '22:00', selectedBy: ['user2', 'user4'] },
-//         ],
-//       },
-//       {
-//         date: '2025-02-19',
-//         timeSlots: [
-//           { start: '04:00', end: '06:00', selectedBy: ['user3'] },
-//           {
-//             start: '06:00',
-//             end: '21:00',
-//             selectedBy: ['user1', 'user2', 'user3', 'user4'],
-//           },
-//         ],
-//       },
-//       {
-//         date: '2025-01-20',
-//         timeSlots: [
-//           // { start: '06:00', end: '07:00', selectedBy: ['user2'] },
-//           // {
-//           //   start: '07:00',
-//           //   end: '19:00',
-//           //   selectedBy: ['user1', 'user3', 'user4'],
-//           // },
-//           // { start: '19:00', end: '22:00', selectedBy: ['user1', 'user2'] },
-//         ],
-//       },
-//       {
-//         date: '2025-01-27',
-//         timeSlots: [
-//           {
-//             start: '10:00',
-//             end: '19:00',
-//             selectedBy: ['user1', 'user3', 'user4'],
-//           },
-//           { start: '19:00', end: '22:00', selectedBy: ['user1', 'user2'] },
-//         ],
-//       },
-//     ],
-//   },
-// ]
-
-const participants = [
-  {
-    id: 1,
-    name: '나',
-    image: '/sampleProfile.png',
-  },
-  {
-    id: 2,
-    name: '김태엽',
-    image: '/sampleProfile.png',
-  },
-  {
-    id: 3,
-    name: '지유진',
-    image: '/sampleProfile.png',
-  },
-  {
-    id: 4,
-    name: '이소룡',
-    image: '/sampleProfile.png',
-  },
-  {
-    id: 5,
-    name: '박진우',
-    image: '/sampleProfile.png',
-  },
-  {
-    id: 6,
-    name: '이예지',
-    image: '/sampleProfile.png',
-  },
-  {
-    id: 7,
-    name: '조성하',
-    image: '/sampleProfile.png',
-  },
-  {
-    id: 8,
-    name: '성윤정',
-    image: '/sampleProfile.png',
-  },
-  {
-    id: 9,
-    name: '김나영',
-    image: '/sampleProfile.png',
-  },
-  {
-    id: 10,
-    name: '이채연',
-    image: '/sampleProfile.png',
-  },
-]
+interface Participants {
+  id: number
+  name: string
+  image: string
+  scheduleComplete: string
+  locationComplete: string
+  type: string
+}
 
 export default function Page() {
   const [isPurple, setIsPurple] = useState(false)
@@ -350,12 +106,16 @@ export default function Page() {
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
 
   const { selectedSurveyId } = useSurveyStore() // Zustand에서 가져옴
+  const { selectedGroupId } = useGroupStore()
   console.log('surveyId', selectedSurveyId)
+  console.log('groupId', selectedGroupId)
+
   const [decideData, setDecideData] = useState<PrevScheduleData[]>([])
+  const [participants, setParticipants] = useState<Participants[]>()
 
   // 모든 인원의 survey 정보 받아오기
   useEffect(() => {
-    if (!selectedSurveyId) return
+    if (!selectedSurveyId || !selectedGroupId) return
     console.log('surveyId', selectedSurveyId)
     const getSurveyData = async () => {
       try {
@@ -373,8 +133,27 @@ export default function Page() {
       }
     }
 
+    // 멤버 불러오기
+    const getMemberData = async () => {
+      try {
+        const res = await axios.get(
+          `${API_BASE_URL}/api/group-members/List/${selectedGroupId}`,
+          {
+            withCredentials: true, // 쿠키 전송을 위해 필요
+          },
+        )
+
+        console.log('멤버 불러오기 성공', res.data.data)
+        const member = res.data.data
+        setParticipants(member)
+      } catch (error) {
+        console.log('멤버 불러오기 실패', error)
+      }
+    }
+
+    getMemberData()
     getSurveyData()
-  }, [API_BASE_URL, selectedSurveyId])
+  }, [API_BASE_URL, selectedSurveyId, selectedGroupId])
 
   const [title, setTitle] = useState(decideData[0]?.title)
 
@@ -744,7 +523,7 @@ export default function Page() {
         highlightedCol={highlightedCol}
         onDateCountsChange={handleDateCountsChange}
         isPurple={isPurple}
-        participants={participants}
+        participants={participants ?? []}
         title={title}
       />
       <div className="flex-grow overflow-hidden mt-2">
