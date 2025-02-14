@@ -20,7 +20,7 @@ export interface ModalProps {
     image: string
     type: string
   }>
-  onClickX: (id: number) => void
+  onClickX: (id: number, type: string) => void
 }
 
 export default function MembersVariant({
@@ -33,21 +33,24 @@ export default function MembersVariant({
 }: ModalProps) {
   const [showNotification, setShowNotification] = useState(false)
   const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null)
+  const [selectedMemberType, setSelectedMemberType] = useState<string>()
 
   // 멤버 프로필 이미지위의 X버튼 클릭 핸들러
-  const handleRemoveClick = (id: number) => {
+  const handleRemoveClick = (id: number, type: string) => {
     setSelectedMemberId(id)
+    setSelectedMemberType(type)
     setShowNotification(true)
   }
 
   // Notification 컴포넌트로 넘기는 클릭 핸들러
   const handleConfirm = () => {
-    if (selectedMemberId !== null) {
-      onClickX(selectedMemberId)
+    if (selectedMemberId !== null && selectedMemberType) {
+      onClickX(selectedMemberId, selectedMemberType)
       console.log(selectedMemberId)
     }
     setShowNotification(false)
     setSelectedMemberId(null)
+    setSelectedMemberType('')
     console.log('컨펌')
   }
 
@@ -147,7 +150,7 @@ export default function MembersVariant({
               {(member.type === 'creator&my' || member.type === '&my') && (
                 <button
                   className="absolute top-0.5 right-0.5 transform translate-x-1/2 -translate-y-1/2 w-5 h-5 p-0.5 opacity-80 bg-[#afafaf] rounded-full border-2 border-[#8e8d8d] flex items-center justify-center z-20"
-                  onClick={() => handleRemoveClick(member.id)}
+                  onClick={() => handleRemoveClick(member.id, member.type)}
                 >
                   <X className="w-4 h-4 text-[#1e1e1e]" />
                 </button>
