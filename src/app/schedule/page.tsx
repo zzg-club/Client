@@ -161,27 +161,6 @@ export default function ScheduleLanding() {
     setEndDate(endDate)
   }
 
-  // 캐러셀 알림 목데이터
-  // const notifications = [
-  //   {
-  //     id: 1,
-  //     notiMessage: '생성하던 일정이 있습니다!',
-  //     leftBtnText: '이어서 하기',
-  //     RightBtnText: '새로 만들기',
-  //   },
-  //   {
-  //     id: 2,
-  //     notiMessage: '생성하던 일정이 있습니다!!',
-  //     leftBtnText: '이어서 하기',
-  //     RightBtnText: '새로 만들기',
-  //   },
-  //   {
-  //     id: 3,
-  //     notiMessage: '생성하던 일정이 있습니다~!',
-  //     leftBtnText: '이어서 하기',
-  //     RightBtnText: '새로 만들기',
-  //   },
-  // ]
   // 캐러셀 알림 버튼 클릭 이벤트
   const handleLeftBtn = () => {
     alert('왼쪽 버튼 클릭')
