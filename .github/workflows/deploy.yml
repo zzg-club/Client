@@ -52,6 +52,7 @@ jobs:
             docker stop inkv-container || true
             docker rm inkv-container || true
             docker run -d --name inkv-container -p 3000:3000 \
+              -v /mnt/ebs-volume:/app \
               -e ENV_LOCAL_CONTENT="${{ secrets.ENV_LOCAL_CONTENT }}" \
               inkv-image
 
