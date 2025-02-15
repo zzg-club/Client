@@ -1,4 +1,4 @@
-FROM node:20-alpine AS builder  # 안정적인 LTS 버전 사용
+FROM node:23-alpine AS builder  # 안정적인 LTS 버전 사용
 
 WORKDIR /app
 
@@ -14,7 +14,7 @@ COPY . .
 
 RUN npx next build  # `npx` 사용해서 실행 보장
 
-FROM node:20-alpine AS runner
+FROM node:23-alpine AS runner
 WORKDIR /app
 
 COPY --from=builder /app/.next ./.next
