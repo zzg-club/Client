@@ -13,8 +13,10 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Build Next.js
-        run: npm run build
+      - name: Build Docker Image
+        run: |
+          docker build --platform linux/amd64 -t inkv-image .
+          docker save -o inkv.tar inkv-image  # ✅ Docker 이미지를 파일로 저장
 
       - name: Configure AWS CLI
         run: |
@@ -26,14 +28,11 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: "ap-northeast-2"
 
-      - name: Upload Build Files to S3
+      - name: Upload Docker Image to S3
         run: |
-          echo "🚀 S3 업로드 시작..."
-          aws s3 cp --recursive .next s3://clienttbucket/.next/
-          aws s3 cp package.json s3://clienttbucket/
-          aws s3 cp --recursive public s3://clienttbucket/public/
-          aws s3 cp --recursive node_modules s3://clienttbucket/node_modules/
-          echo "✅ S3 업로드 완료!"
+          echo "🚀 S3에 Docker 이미지 업로드 중..."
+          aws s3 cp inkv.tar s3://clienttbucket/inkv.tar
+          echo "✅ Docker 이미지 S3 업로드 완료!"
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -46,9 +45,12 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            echo "✅ EC2에 배포 스크립트 실행 중..."
-            chmod +x /home/ubuntu/deploy.sh
-            /home/ubuntu/deploy.sh
+            echo "✅ EC2에서 Docker 이미지 다운로드 중..."
+            aws s3 cp s3://clienttbucket/inkv.tar /home/ubuntu/inkv.tar
+            docker load -i /home/ubuntu/inkv.tar  # ✅ Docker 이미지 로드
+            docker stop inkv-container || true
+            docker rm inkv-container || true
+            docker run -d --name inkv-container -p 3000:3000 inkv-image
             echo "🚀 배포 완료!"
 
       - name: Notify Discord
