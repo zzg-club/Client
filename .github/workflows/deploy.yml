@@ -54,6 +54,7 @@ jobs:
             docker load -i /mnt/ebs-volume/docker/inkv.tar
             docker stop inkv-container || true
             docker rm inkv-container || true
+            docker rmi inkv-image || true
             docker run -d --name inkv-container -p 3000:3000 \
               -e ENV_LOCAL_CONTENT="${{ secrets.ENV_LOCAL_CONTENT }}" \
               inkv-image

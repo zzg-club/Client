@@ -220,14 +220,14 @@ export default function Home() {
             }}
             onClick={handleKakaoLogin}
           >
-            <img
+            {/* <img
               src="/kakao.svg"
               alt="Kakao Icon"
               style={{
                 width: '20px',
                 height: '20px',
               }}
-            />
+            /> */}
             <span
               style={{
                 color: '#000',
