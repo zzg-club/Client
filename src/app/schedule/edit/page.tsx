@@ -181,11 +181,11 @@ export default function SchedulePage() {
     }
   }, [API_BASE_URL, selectedSurveyId])
 
-  //getHeaderData, getTimeslotData 설정
-  useEffect(() => {
-    getHeaderData()
-    getTimeslotData()
-  }, [getHeaderData, getTimeslotData])
+  // //getHeaderData, getTimeslotData 설정
+  // useEffect(() => {
+  //   getHeaderData()
+  //   getTimeslotData()
+  // }, [getHeaderData, getTimeslotData])
 
   const DAYS_PER_PAGE = 7
   const highlightedIndex =
@@ -357,7 +357,7 @@ export default function SchedulePage() {
 
     setIsOpen(true)
   }
-  const handleDeleteSchedule = (slotId: number) => {
+  const handleDeleteSchedule = async (slotId: number) => {
     // setUpdateData((prev) => prev.filter((item) => item.slotId !== slotId))
     console.log(slotId)
 
@@ -365,6 +365,21 @@ export default function SchedulePage() {
     console.log('deletedSlot: ', deletedSlot)
 
     if (deletedSlot) {
+      try {
+        const response = await axios.delete(
+          `${API_BASE_URL}/api/timeslot/${selectedSurveyId}/delete/${deletedSlot.slotId}`,
+          {
+            withCredentials: true, // 쿠키 전송 허용
+          },
+        )
+        console.log('타임슬롯 정보 삭제 성공:', response.data.data)
+        getHeaderData()
+        console.log('실행')
+        getTimeslotData()
+      } catch (error) {
+        console.error('타임슬롯 정보 삭제 실패:', error)
+        return []
+      }
       console.log(`${deletedSlot.slotId} 삭제`)
       console.log(
         `${deletedSlot.slotId}의 일자: ${deletedSlot.startDate} ${deletedSlot.startTime}  - ${deletedSlot.endTime} 삭제`,
@@ -458,7 +473,8 @@ export default function SchedulePage() {
   }
 
   useEffect(() => {
-    // getHeaderData()
+    getHeaderData()
+    getTimeslotData()
     if (selectedTimeInfo) {
       setUpdateData((prev) => {
         const updatedData = prev.map((item) =>
@@ -488,7 +504,7 @@ export default function SchedulePage() {
         return updatedData
       })
     }
-  }, [selectedTimeInfo])
+  }, [getHeaderData, getTimeslotData, selectedTimeInfo])
 
   return (
     <div className="flex flex-col h-full bg-white">
