@@ -437,13 +437,13 @@ export default function SchedulePage() {
     [currentPage],
   )
 
-  const handleDateCountsChange = (
-    counts: number[],
-    groupedData: GroupedDate[],
-  ) => {
-    setDateCounts(counts)
-    setGroupedDate(groupedData)
-  }
+  const handleDateCountsChange = useCallback(
+    (counts: number[], groupedData: GroupedDate[]) => {
+      setDateCounts(counts)
+      setGroupedDate(groupedData)
+    },
+    [],
+  )
 
   const handleTimeSelect = (
     colIndex: number,
