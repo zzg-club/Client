@@ -181,11 +181,17 @@ export default function SchedulePage() {
     }
   }, [API_BASE_URL, selectedSurveyId])
 
-  // //getHeaderData, getTimeslotData 설정
-  // useEffect(() => {
-  //   getHeaderData()
-  //   getTimeslotData()
-  // }, [getHeaderData, getTimeslotData])
+  // getHeaderData, getTimeslotData 설정
+  useEffect(() => {
+    const fetchData = async () => {
+      await getHeaderData()
+      await getTimeslotData()
+    }
+
+    if (selectedSurveyId) {
+      fetchData()
+    }
+  }, [getHeaderData, getTimeslotData, selectedSurveyId])
 
   const DAYS_PER_PAGE = 7
   const highlightedIndex =
@@ -373,17 +379,26 @@ export default function SchedulePage() {
           },
         )
         console.log('타임슬롯 정보 삭제 성공:', response.data.data)
-        getHeaderData()
-        console.log('실행')
-        getTimeslotData()
+
+        // 데이터 다시 불러오기
+        const fetchData = async () => {
+          await getHeaderData()
+          await getTimeslotData()
+        }
+
+        await fetchData() // 데이터 리로드
+
+        // updateData 상태 업데이트
+        setUpdateData((prev) => prev.filter((item) => item.slotId !== slotId))
+
+        // console.log(`${deletedSlot.slotId} 삭제`)
+        // console.log(
+        //   `${deletedSlot.slotId}의 일자: ${deletedSlot.startDate} ${deletedSlot.startTime}  - ${deletedSlot.endTime} 삭제`,
+        // )
       } catch (error) {
         console.error('타임슬롯 정보 삭제 실패:', error)
         return []
       }
-      console.log(`${deletedSlot.slotId} 삭제`)
-      console.log(
-        `${deletedSlot.slotId}의 일자: ${deletedSlot.startDate} ${deletedSlot.startTime}  - ${deletedSlot.endTime} 삭제`,
-      )
     }
   }
 
@@ -473,8 +488,6 @@ export default function SchedulePage() {
   }
 
   useEffect(() => {
-    getHeaderData()
-    getTimeslotData()
     if (selectedTimeInfo) {
       setUpdateData((prev) => {
         const updatedData = prev.map((item) =>
@@ -504,7 +517,7 @@ export default function SchedulePage() {
         return updatedData
       })
     }
-  }, [getHeaderData, getTimeslotData, selectedTimeInfo])
+  }, [selectedTimeInfo])
 
   return (
     <div className="flex flex-col h-full bg-white">
