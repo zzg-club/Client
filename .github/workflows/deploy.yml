@@ -34,7 +34,6 @@ jobs:
         run: |
           echo "S3에 Docker 이미지 및 Next.js 빌드 파일 업로드 중..."
           aws s3 cp inkv.tar s3://clienttbucket/inkv.tar
-          aws s3 cp package.json s3://clienttbucket/package.json
           echo "Docker 이미지 및 Next.js 빌드 파일 S3 업로드 완료!"
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -50,7 +49,6 @@ jobs:
           script: |
             echo "S3에서 Docker 이미지 및 Next.js 빌드 파일 다운로드 중..."
             aws s3 cp s3://clienttbucket/inkv.tar /home/ubuntu/inkv.tar
-            aws s3 cp s3://clienttbucket/package.json /mnt/ebs-volume/app/package.json
             echo "Next.js 빌드 파일 다운로드 완료!"
 
             docker load -i /home/ubuntu/inkv.tar 
