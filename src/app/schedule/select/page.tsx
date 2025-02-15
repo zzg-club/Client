@@ -48,38 +48,6 @@ export default function Page() {
   const { selectedSurveyId } = useSurveyStore()
   const { selectedGroupId } = useGroupStore()
   // console.log('zustand에서 가져온 surveyId', selectedSurveyId)
-
-  const selectApi = {
-    createTimeSlot: async (
-      surveyId: number,
-      slotDate: string,
-      startTime: string,
-      endTime: string,
-    ) => {
-      // console.log('surveyId', surveyId)
-      try {
-        const response = await axios.post(
-          `${API_BASE_URL}/api/timeslot/${surveyId}`,
-          {
-            slotDate: slotDate,
-            startTime: startTime,
-            endTime: endTime,
-          },
-          {
-            withCredentials: true, // 쿠키 전송을 위해 필요
-            headers: {
-              'Content-Type': 'application/json', // JSON 형식 명시
-            },
-          },
-        )
-        console.log('타임슬롯', slotDate, startTime, endTime)
-        console.log('타임슬롯 생성 성공', response)
-      } catch (error) {
-        console.log('타임슬롯 생성 실패', error)
-      }
-    },
-  }
-
   const [title, setTitle] = useState('제목 없는 일정')
   const [currentPage, setCurrentPage] = useState(0)
   const [highlightedCol, setHighlightedCol] = useState<number | null>(null)
@@ -160,6 +128,11 @@ export default function Page() {
 
     getSavedSlot()
   }, [API_BASE_URL, selectedSurveyId])
+
+  useEffect(() => {
+    setDateTime(confirmedData)
+    console.log('냐냐냐')
+  }, [confirmedData])
 
   const handleTitleChange = (newTitle: string) => {
     setTitle(newTitle)
@@ -246,8 +219,40 @@ export default function Page() {
     setIsOpen(true)
   }
 
+  const selectApi = {
+    createTimeSlot: async (
+      surveyId: number,
+      slotDate: string,
+      startTime: string,
+      endTime: string,
+    ) => {
+      // console.log('surveyId', surveyId)
+      try {
+        const response = await axios.post(
+          `${API_BASE_URL}/api/timeslot/${surveyId}`,
+          {
+            slotDate: slotDate,
+            startTime: startTime,
+            endTime: endTime,
+          },
+          {
+            withCredentials: true, // 쿠키 전송을 위해 필요
+            headers: {
+              'Content-Type': 'application/json', // JSON 형식 명시
+            },
+          },
+        )
+        console.log('타임슬롯', slotDate, startTime, endTime)
+        console.log('타임슬롯 생성 성공', response)
+      } catch (error) {
+        console.log('타임슬롯 생성 실패', error)
+      }
+    },
+  }
+
   const getDateTime = async (date: string, start: string, end: string) => {
     setDateTime((prev) => {
+      console.log('setDateTime 호출', prev)
       const existingDateIndex = prev.findIndex((item) => item.date === date)
       let newEntry = null
 
@@ -309,13 +314,13 @@ export default function Page() {
         }
 
         timeSlots.sort((a, b) => toMinutes(a.start) - toMinutes(b.start))
+
         const postTimeSlot = {
           slotDate: date,
           startTime: newEntry.timeSlots[0].start,
           endTime: newEntry.timeSlots[0].end,
         }
 
-        // createTimeSlot 함수 호출
         if (selectedSurveyId !== null) {
           console.log('Post할 항목:', postTimeSlot)
           selectApi.createTimeSlot(
@@ -396,7 +401,7 @@ export default function Page() {
     getMemberList()
   }, [API_BASE_URL, selectedGroupId])
 
-  console.log('selectedGroupID', selectedGroupId)
+  // console.log('selectedGroupID', selectedGroupId)
 
   const router = useRouter()
   // 완료 버튼 누르면 나오는 일정 입력 중 모달
