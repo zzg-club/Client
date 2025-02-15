@@ -7,7 +7,7 @@ RUN echo "$ENV_LOCAL_CONTENT" > .env.local
 
 COPY package.json package-lock.json ./
 
-RUN npm ci --legacy-peer-deps
+RUN npm ci --legacy-peer-deps && ls -la node_modules/.bin
 
 COPY . .
 
