@@ -40,3 +40,10 @@ jobs:
             docker image prune -f
 
             docker run -d --name inkv-container -p 3000:3000 nayoungg/inkv:latest
+
+      - name: Notify Discord
+        run: |
+          curl -H "Content-Type: application/json" \
+          -X POST \
+          -d '{"username": "Spidey Bot", "content": "🕷️ **배포 완료!** 🚀\n🔗 https://moim.team"}' \
+          ${{ secrets.DISCORD_WEBHOOK_URL }}
