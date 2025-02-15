@@ -2,7 +2,8 @@ FROM node:23-alpine AS builder
 
 WORKDIR /app
 
-COPY .env.local /app/.env.local
+RUN ls -la /app || echo "❌ /app 디렉토리 존재 안 함!"
+RUN ls -la / || echo
 
 COPY package.json package-lock.json ./
 
