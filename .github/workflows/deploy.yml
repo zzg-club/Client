@@ -47,7 +47,6 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            echo "✅ EC2에서 Docker 이미지 다운로드 중..."
             aws s3 cp s3://clienttbucket/inkv.tar /home/ubuntu/inkv.tar
             docker load -i /home/ubuntu/inkv.tar 
             docker stop inkv-container || true
@@ -55,7 +54,6 @@ jobs:
             docker run -d --name inkv-container -p 3000:3000 \
               -e ENV_LOCAL_CONTENT="${{ secrets.ENV_LOCAL_CONTENT }}" \
               inkv-image
-            echo "🚀 배포 완료!"
 
       - name: Notify Discord
         run: |
