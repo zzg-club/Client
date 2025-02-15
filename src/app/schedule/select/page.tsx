@@ -314,10 +314,10 @@ export default function Page() {
           startTime: newEntry.timeSlots[0].start,
           endTime: newEntry.timeSlots[0].end,
         }
-        console.log('Post할 항목:', postTimeSlot)
 
         // createTimeSlot 함수 호출
         if (selectedSurveyId !== null) {
+          console.log('Post할 항목:', postTimeSlot)
           selectApi.createTimeSlot(
             selectedSurveyId,
             postTimeSlot.slotDate,
@@ -365,50 +365,6 @@ export default function Page() {
     )
   }
 
-  // const scheduleData: ScheduleData[] = [
-  //   {
-  //     title: '팀플 대면 모임',
-  //     userId: 2,
-  //     groupId: 1,
-  //     // mode: 'week',
-  //     // selected: ['mon', 'wed', 'fri'],
-  //     // date: [
-  //     //   ['2024-01-06', 'mon'],
-  //     //   ['2024-02-08', 'wed'],
-  //     //   ['2024-01-13', 'mon'],
-  //     //   ['2024-02-15', 'wed'],
-  //     //   ['2024-01-20', 'mon'],
-  //     //   ['2024-02-22', 'wed'],
-  //     //   ['2024-01-27', 'mon'],
-  //     //   ['2024-03-03', 'fri'],
-  //     //   ['2024-03-10', 'fri'],
-  //     //   ['2024-03-17', 'fri'],
-  //     //   ['2024-03-24', 'fri'],
-  //     //   ['2024-03-31', 'fri'],
-  //     // ],
-  //     mode: 'range',
-  //     selected: null,
-  //     date: [
-  //       ['2024-12-30', 'mon'],
-  //       ['2024-12-31', 'tue'],
-  //       ['2024-01-01', 'wed'],
-  //       ['2024-01-02', 'thu'],
-  //       ['2024-01-03', 'fri'],
-  //       ['2024-01-04', 'sat'],
-  //       ['2024-01-05', 'sun'],
-  //       ['2024-01-06', 'mon'],
-  //       ['2024-01-07', 'tue'],
-  //       ['2024-01-08', 'wed'],
-  //       ['2024-01-09', 'thu'],
-  //       ['2024-01-10', 'fri'],
-  //       ['2024-01-11', 'sat'],
-  //       ['2024-01-12', 'sun'],
-  //     ],
-  //   },
-  // ]
-
-  // console.log('surveyData', surveyData)
-
   const selectedDates: SelectedDate[] = convertToSelectedDates(surveyData)
   const mode = surveyData[0]?.mode
   const dayofWeek = surveyData[0]?.selected
@@ -418,78 +374,6 @@ export default function Page() {
         ? `${selectedDates[highlightedCol ?? currentPage * DAYS_PER_PAGE]?.month}월`
         : `${selectedDates[currentPage * DAYS_PER_PAGE]?.month}월`
       : `${groupedDate[currentPage]?.date?.[highlightedIndex ?? 0]?.month ?? groupedDate[currentPage]?.date?.[0]?.month}월`
-
-  // const scheduleModalData = [
-  //   {
-  //     id: 2,
-  //     number: 2,
-  //     startDate: '12월 30일',
-  //     startTime: '18:00',
-  //     endTime: '20:00',
-  //     participants: [
-  //       {
-  //         id: 1,
-  //         name: '나',
-  //         image: '/sampleProfile.png',
-  //         isScheduleSelect: true,
-  //       },
-  //       {
-  //         id: 2,
-  //         name: '김태엽',
-  //         image: '/sampleProfile.png',
-  //         isScheduleSelect: true,
-  //       },
-  //       {
-  //         id: 3,
-  //         name: '지유진',
-  //         image: '/sampleProfile.png',
-  //         isScheduleSelect: true,
-  //       },
-  //       {
-  //         id: 4,
-  //         name: '이소룡',
-  //         image: '/sampleProfile.png',
-  //         isScheduleSelect: false,
-  //       },
-  //       {
-  //         id: 5,
-  //         name: '박진우',
-  //         image: '/sampleProfile.png',
-  //         isScheduleSelect: false,
-  //       },
-  //       {
-  //         id: 6,
-  //         name: '이예지',
-  //         image: '/sampleProfile.png',
-  //         isScheduleSelect: false,
-  //       },
-  //       {
-  //         id: 7,
-  //         name: '조성하',
-  //         image: '/sampleProfile.png',
-  //         isScheduleSelect: true,
-  //       },
-  //       {
-  //         id: 8,
-  //         name: '성윤정',
-  //         image: '/sampleProfile.png',
-  //         isScheduleSelect: false,
-  //       },
-  //       {
-  //         id: 9,
-  //         name: '김나영',
-  //         image: '/sampleProfile.png',
-  //         isScheduleSelect: false,
-  //       },
-  //       {
-  //         id: 10,
-  //         name: '이채연',
-  //         image: '/sampleProfile.png',
-  //         isScheduleSelect: false,
-  //       },
-  //     ],
-  //   },
-  // ]
 
   useEffect(() => {
     if (!selectedGroupId) return
