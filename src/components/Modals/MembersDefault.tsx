@@ -10,7 +10,7 @@ export interface ModalProps {
     id: number
     name: string
     image: string
-    isScheduleSelect?: boolean
+    scheduleComplete?: string
   }[]
   blackText: boolean
 }
@@ -65,7 +65,10 @@ export default function MembersDefault({
         {members.map((member) => (
           <div key={member.id} className="flex flex-col items-center gap-1">
             <div className="relative w-12 h-12 rounded-3xl border-2 border-[#9562fa] overflow-hidden">
-              {!(member.isScheduleSelect ?? true) && (
+              {/* {!(member.isScheduleSelect ?? true) && (
+                <div className="absolute inset-0 bg-[#afafaf]/80 rounded-3xl z-10"></div>
+              )} */}
+              {member.scheduleComplete === 'INCOMPLETE' && (
                 <div className="absolute inset-0 bg-[#afafaf]/80 rounded-3xl z-10"></div>
               )}
               <Image
