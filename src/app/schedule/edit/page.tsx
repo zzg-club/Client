@@ -6,6 +6,8 @@ import Title from '@/components/Header/Title'
 import EditTimeStamp from '@/components/Body/EditTimeStamp'
 import SelectedBottom from '@/components/Footer/BottomSheet/SelectedBottom'
 import { EditItem } from '@/components/Footer/ListItem/EditItem'
+import { useSurveyStore } from '@/store/surveyStore'
+import axios from 'axios'
 
 interface GroupedDate {
   weekday: string
@@ -51,345 +53,6 @@ interface SelectedDate {
   weekday: string
 }
 
-const mockSelectedSchedule: DateData[] = [
-  {
-    date: '2024-01-06',
-    timeSlots: [
-      {
-        slotId: 1,
-        start: '01:00',
-        end: '05:30',
-      },
-      {
-        slotId: 2,
-        start: '06:30',
-        end: '08:00',
-      },
-    ],
-  },
-  {
-    date: '2024-02-08',
-    timeSlots: [
-      {
-        slotId: 3,
-        start: '06:00',
-        end: '10:30',
-      },
-      {
-        slotId: 4,
-        start: '17:30',
-        end: '22:00',
-      },
-    ],
-  },
-  // {
-  //   date: '2024-01-13',
-  //   timeSlots: [
-  //     // {
-  //     //   slotId: 5,
-  //     //   start: '09:00',
-  //     //   end: '12:00',
-  //     // },
-  //     // {
-  //     //   slotId: 6,
-  //     //   start: '13:30',
-  //     //   end: '15:30',
-  //     // },
-  //   ],
-  // },
-  {
-    date: '2024-02-15',
-    timeSlots: [
-      {
-        slotId: 7,
-        start: '04:30',
-        end: '10:00',
-      },
-      {
-        slotId: 8,
-        start: '13:30',
-        end: '16:00',
-      },
-    ],
-  },
-  // {
-  //   date: '2024-01-20',
-  //   timeSlots: [
-  //     {
-  //       slotId: 9,
-  //       start: '06:00',
-  //       end: '10:30',
-  //     },
-  //     {
-  //       slotId: 10,
-  //       start: '17:30',
-  //       end: '22:00',
-  //     },
-  //   ],
-  // },
-  {
-    date: '2024-02-22',
-    timeSlots: [
-      {
-        slotId: 11,
-        start: '06:00',
-        end: '10:30',
-      },
-      {
-        slotId: 12,
-        start: '16:30',
-        end: '22:00',
-      },
-    ],
-  },
-  {
-    date: '2024-01-27',
-    timeSlots: [
-      {
-        slotId: 13,
-        start: '06:00',
-        end: '10:30',
-      },
-      {
-        slotId: 14,
-        start: '19:30',
-        end: '22:00',
-      },
-    ],
-  },
-  {
-    date: '2024-03-03',
-    timeSlots: [
-      {
-        slotId: 15,
-        start: '06:00',
-        end: '10:30',
-      },
-      {
-        slotId: 16,
-        start: '16:30',
-        end: '22:00',
-      },
-    ],
-  },
-  {
-    date: '2024-03-10',
-    timeSlots: [
-      {
-        slotId: 17,
-        start: '06:00',
-        end: '10:30',
-      },
-      {
-        slotId: 18,
-        start: '19:30',
-        end: '22:00',
-      },
-    ],
-  },
-  {
-    date: '2024-03-17',
-    timeSlots: [
-      {
-        slotId: 19,
-        start: '06:00',
-        end: '10:30',
-      },
-      // {
-      //   slotId: 20,
-      //   start: '19:30',
-      //   end: '22:00',
-      // },
-    ],
-  },
-  {
-    date: '2024-03-24',
-    timeSlots: [
-      {
-        slotId: 21,
-        start: '06:00',
-        end: '10:30',
-      },
-      {
-        slotId: 22,
-        start: '19:30',
-        end: '22:00',
-      },
-    ],
-  },
-  {
-    date: '2024-03-31',
-    timeSlots: [
-      {
-        slotId: 23,
-        start: '06:00',
-        end: '10:30',
-      },
-      {
-        slotId: 24,
-        start: '14:30',
-        end: '15:00',
-      },
-      {
-        slotId: 25,
-        start: '17:30',
-        end: '19:00',
-      },
-    ],
-  },
-  //range 데이터
-  // {
-  //   date: '2024-12-30',
-  //   timeSlots: [
-  //     {
-  //       slotId: 1,
-  //       start: '01:00',
-  //       end: '05:30',
-  //     },
-  //     {
-  //       slotId: 2,
-  //       start: '12:30',
-  //       end: '16:00',
-  //     },
-  //   ],
-  // },
-  // {
-  //   date: '2024-12-31',
-  //   timeSlots: [
-  //     {
-  //       slotId: 3,
-  //       start: '06:00',
-  //       end: '10:30',
-  //     },
-  //     {
-  //       slotId: 4,
-  //       start: '17:30',
-  //       end: '22:00',
-  //     },
-  //   ],
-  // },
-  // {
-  //   date: '2025-01-01',
-  //   timeSlots: [
-  //     {
-  //       slotId: 5,
-  //       start: '09:00',
-  //       end: '13:00',
-  //     },
-  //     {
-  //       slotId: 6,
-  //       start: '17:30',
-  //       end: '22:00',
-  //     },
-  //   ],
-  // },
-  // {
-  //   date: '2025-01-02',
-  //   timeSlots: [
-  //     {
-  //       slotId: 7,
-  //       start: '04:30',
-  //       end: '10:00',
-  //     },
-  //     {
-  //       slotId: 8,
-  //       start: '13:30',
-  //       end: '16:00',
-  //     },
-  //   ],
-  // },
-  // {
-  //   date: '2025-01-03',
-  //   timeSlots: [
-  //     {
-  //       slotId: 9,
-  //       start: '06:00',
-  //       end: '10:30',
-  //     },
-  //     {
-  //       slotId: 10,
-  //       start: '17:30',
-  //       end: '22:00',
-  //     },
-  //   ],
-  // },
-  // {
-  //   date: '2025-01-04',
-  //   timeSlots: [
-  //     {
-  //       slotId: 11,
-  //       start: '06:00',
-  //       end: '10:30',
-  //     },
-  //     {
-  //       slotId: 12,
-  //       start: '16:30',
-  //       end: '22:00',
-  //     },
-  //   ],
-  // },
-  // {
-  //   date: '2025-01-05',
-  //   timeSlots: [
-  //     {
-  //       slotId: 13,
-  //       start: '06:00',
-  //       end: '10:30',
-  //     },
-  //     {
-  //       slotId: 14,
-  //       start: '19:30',
-  //       end: '22:00',
-  //     },
-  //   ],
-  // },
-  // {
-  //   date: '2025-01-06',
-  //   timeSlots: [
-  //     {
-  //       slotId: 15,
-  //       start: '06:00',
-  //       end: '10:30',
-  //     },
-  //     {
-  //       slotId: 16,
-  //       start: '16:30',
-  //       end: '22:00',
-  //     },
-  //   ],
-  // },
-  // {
-  //   date: '2025-01-07',
-  //   timeSlots: [
-  //     {
-  //       slotId: 17,
-  //       start: '06:00',
-  //       end: '10:30',
-  //     },
-  //     {
-  //       slotId: 18,
-  //       start: '19:30',
-  //       end: '22:00',
-  //     },
-  //   ],
-  // },
-  // {
-  //   date: '2025-01-08',
-  //   timeSlots: [
-  //     {
-  //       slotId: 19,
-  //       start: '06:00',
-  //       end: '10:30',
-  //     },
-  //     {
-  //       slotId: 20,
-  //       start: '19:30',
-  //       end: '22:00',
-  //     },
-  //   ],
-  // },
-]
-
 export default function SchedulePage() {
   const [currentPage, setCurrentPage] = useState(0)
   const [title, setTitle] = useState('제목 없는 일정')
@@ -432,6 +95,10 @@ export default function SchedulePage() {
     sat: '토',
     sun: '일',
   }
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
+  const { selectedSurveyId } = useSurveyStore() // Zustand에서 가져온 그룹아이디
+  console.log('zustand에서 가져온 surveyId', selectedSurveyId)
+
   function convertToSelectedDates(
     scheduleData: ScheduleData[],
   ): SelectedDate[] {
@@ -447,47 +114,78 @@ export default function SchedulePage() {
       }),
     )
   }
-  const scheduleData: ScheduleData[] = [
-    {
-      title: '팀플 대면 모임',
-      userId: 2,
-      groupId: 1,
-      mode: 'week',
-      selected: ['mon', 'wed', 'fri'],
-      date: [
-        ['2024-01-06', 'mon'],
-        ['2024-02-08', 'wed'],
-        ['2024-01-13', 'mon'],
-        ['2024-02-15', 'wed'],
-        ['2024-01-20', 'mon'],
-        ['2024-02-22', 'wed'],
-        ['2024-01-27', 'mon'],
-        ['2024-03-03', 'fri'],
-        ['2024-03-10', 'fri'],
-        ['2024-03-17', 'fri'],
-        ['2024-03-24', 'fri'],
-        ['2024-03-31', 'fri'],
-      ],
-      // mode: 'range',
-      // selected: null,
-      // date: [
-      //   ['2024-12-30', 'mon'],
-      //   ['2024-12-31', 'tue'],
-      //   ['2025-01-01', 'wed'],
-      //   ['2025-01-02', 'thu'],
-      //   ['2025-01-03', 'fri'],
-      //   ['2025-01-04', 'sat'],
-      //   ['2025-01-05', 'sun'],
-      //   ['2025-01-06', 'mon'],
-      //   ['2025-01-07', 'tue'],
-      //   ['2025-01-08', 'wed'],
-      //   // ['2024-01-09', 'thu'],
-      //   // ['2024-01-10', 'fri'],
-      //   // ['2024-01-11', 'sat'],
-      //   // ['2024-01-12', 'sun'],
-      // ],
-    },
-  ]
+  const [scheduleData, setScheduleData] = useState<ScheduleData[]>([])
+
+  const [selectedSchedule, setSelectedSchedule] = useState<DateData[]>([])
+  const [, setSelectedTimeslot] = useState<DateData[]>([])
+
+  const getHeaderData = useCallback(async () => {
+    try {
+      const res = await axios.get(
+        `${API_BASE_URL}/api/survey/${selectedSurveyId}`,
+        { withCredentials: true },
+      )
+
+      console.log('header data', res.data.data)
+
+      // scheduleData 저장
+      setScheduleData([res.data.data])
+
+      // 받아온 데이터로 selectedSchedule 생성
+      const dates = res.data.data.date.map(([fullDate]: [string, string]) => ({
+        date: fullDate,
+        timeSlots: [], // 초기에는 빈 배열로 설정
+      }))
+
+      setSelectedSchedule(dates)
+      // console.log('selectedSchedule', selectedSchedule)
+    } catch (error) {
+      console.error('header data get 실패', error)
+    }
+  }, [API_BASE_URL, selectedSurveyId])
+
+  const getTimeslotData = useCallback(async () => {
+    try {
+      const res = await axios.get(
+        `${API_BASE_URL}/api/timeslot/${selectedSurveyId}/edit`,
+        { withCredentials: true },
+      )
+      console.log('timeslot data', res.data.data.data)
+
+      // selectedSchedule 업데이트
+      setSelectedSchedule((prevSchedule) => {
+        return prevSchedule.map((scheduleItem) => {
+          // 현재 날짜와 일치하는 타임슬롯 데이터 찾기
+          const matchingTimeslot = res.data.data.data.find(
+            (timeslot: DateData) => timeslot.date === scheduleItem.date,
+          )
+
+          // 일치하는 데이터가 있으면 해당 타임슬롯으로 업데이트, 없으면 기존 배열 유지
+          return {
+            date: scheduleItem.date,
+            timeSlots: matchingTimeslot
+              ? matchingTimeslot.timeSlots
+              : scheduleItem.timeSlots,
+          }
+        })
+      })
+
+      // 타임슬롯 데이터 저장
+      setSelectedTimeslot(
+        Array.isArray(res.data.data.data)
+          ? res.data.data.data
+          : [res.data.data.data],
+      )
+    } catch (error) {
+      console.error('timeslot data get 실패', error)
+    }
+  }, [API_BASE_URL, selectedSurveyId])
+
+  //getHeaderData, getTimeslotData 설정
+  useEffect(() => {
+    getHeaderData()
+    getTimeslotData()
+  }, [getHeaderData, getTimeslotData])
 
   const DAYS_PER_PAGE = 7
   const highlightedIndex =
@@ -496,8 +194,8 @@ export default function SchedulePage() {
       : null
 
   const selectedDates: SelectedDate[] = convertToSelectedDates(scheduleData)
-  const mode = scheduleData[0].mode
-  const dayofWeek = scheduleData[0].selected
+  const mode = scheduleData[0]?.mode
+  const dayofWeek = scheduleData[0]?.selected
   const month =
     mode === 'range'
       ? currentPage === Math.floor((highlightedCol ?? 0) / DAYS_PER_PAGE)
@@ -617,7 +315,7 @@ export default function SchedulePage() {
   }
 
   const initializeSelectedDates = useCallback(() => {
-    return mockSelectedSchedule.map((dateData) => ({
+    return selectedSchedule.map((dateData) => ({
       day: parseInt(dateData.date.split('-')[2]),
       weekday: new Date(dateData.date).toLocaleDateString('ko-KR', {
         weekday: 'short',
@@ -625,7 +323,7 @@ export default function SchedulePage() {
       month: parseInt(dateData.date.split('-')[1]),
       year: parseInt(dateData.date.split('-')[0]),
     }))
-  }, [])
+  }, [selectedSchedule])
 
   useEffect(() => {
     if (selectedDates.length === 0) {
@@ -760,6 +458,7 @@ export default function SchedulePage() {
   }
 
   useEffect(() => {
+    // getHeaderData()
     if (selectedTimeInfo) {
       setUpdateData((prev) => {
         const updatedData = prev.map((item) =>
@@ -821,7 +520,7 @@ export default function SchedulePage() {
           handleSelectedCol={handleSelectedCol}
           getDateTime={getDateTime}
           groupedDate={groupedDate}
-          mockSelectedSchedule={mockSelectedSchedule}
+          mockSelectedSchedule={selectedSchedule}
           handleTimeSelect={handleTimeSelect}
           isBottomSheetOpen={isOpen}
         />
