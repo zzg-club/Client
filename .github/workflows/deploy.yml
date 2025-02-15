@@ -53,24 +53,24 @@ jobs:
             sudo chmod 644 /mnt/ebs-volume/docker/inkv.tar
             echo "Next.js 빌드 파일 다운로드 완료!"
 
-            docker load -i /mnt/ebs-volume/docker/inkv.tar
-            # inkv-container 컨테이너가 존재하면 중지 및 삭제
             if [ "$(docker ps -aq -f name=inkv-container)" ]; then
               echo "기존 컨테이너 중지 및 삭제..."
               docker stop inkv-container
               docker rm inkv-container
             else
-              echo "inkv-container가 존재하지 않음. 삭제 스킵."
+              echo "inkv-container가 존재하지 않음. 삭제 스킵!"
             fi
 
-            # inkv-image 이미지가 존재하면 삭제
             if [ "$(docker images -q inkv-image)" ]; then
               echo "기존 Docker 이미지 삭제..."
               docker rmi inkv-image
             else
               echo "inkv-image가 존재하지 않음. 삭제 스킵!"
             fi
-            
+
+            echo "Docker 이미지 로드 중..."
+            docker load -i /mnt/ebs-volume/docker/inkv.tar
+
             docker run -d --name inkv-container -p 3000:3000 \
               -e ENV_LOCAL_CONTENT="${{ secrets.ENV_LOCAL_CONTENT }}" \
               inkv-image
