@@ -15,8 +15,10 @@ jobs:
 
       - name: Build Docker Image
         run: |
-          docker build --platform linux/amd64 -t inkv-image .
-          docker save -o inkv.tar inkv-image  # ✅ Docker 이미지를 파일로 저장
+          docker build --platform linux/amd64 \
+            --build-arg ENV_LOCAL_CONTENT="${{ secrets.ENV_LOCAL_CONTENT }}" \
+            -t inkv-image .
+          docker save -o inkv.tar inkv-image
 
       - name: Configure AWS CLI
         run: |
@@ -50,7 +52,9 @@ jobs:
             docker load -i /home/ubuntu/inkv.tar  # ✅ Docker 이미지 로드
             docker stop inkv-container || true
             docker rm inkv-container || true
-            docker run -d --name inkv-container -p 3000:3000 inkv-image
+            docker run -d --name inkv-container -p 3000:3000 \
+              -e ENV_LOCAL_CONTENT="${{ secrets.ENV_LOCAL_CONTENT }}" \
+              inkv-image
             echo "🚀 배포 완료!"
 
       - name: Notify Discord

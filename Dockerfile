@@ -1,9 +1,9 @@
-FROM node:18-alpine AS builder  # 안정적인 LTS 버전 사용
+FROM node:18-alpine AS builder
 
 WORKDIR /app
 
 ARG ENV_LOCAL_CONTENT
-RUN echo "$ENV_LOCAL_CONTENT" > .env.local
+RUN echo "🔍 ENV_LOCAL_CONTENT:" && echo "$ENV_LOCAL_CONTENT" > .env.local && cat .env.local
 
 COPY package.json package-lock.json ./
 
@@ -20,5 +20,7 @@ COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/node_modules ./node_modules
+
+RUN npm install --omit=dev
 
 CMD ["npm", "run", "start"]
