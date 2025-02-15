@@ -55,7 +55,7 @@ interface SelectedDate {
 
 export default function SchedulePage() {
   const [currentPage, setCurrentPage] = useState(0)
-  const [title, setTitle] = useState('제목 없는 일정')
+  const [, setTitle] = useState('제목 없는 일정')
   const [isPurple, setIsPurple] = useState(false)
   const [isEdit] = useState(true)
   const [, setDateTime] = useState<
@@ -520,7 +520,7 @@ export default function SchedulePage() {
     <div className="flex flex-col h-full bg-white">
       <Title
         buttonText="완료"
-        initialTitle={title}
+        initialTitle={scheduleData[0]?.title}
         onTitleChange={handleTitleChange}
         isEdit={isEdit}
       />
