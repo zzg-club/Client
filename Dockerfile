@@ -2,7 +2,7 @@ FROM node:23-alpine AS builder
 
 WORKDIR /app
 
-COPY .env.local ./
+COPY .env.local /app/.env.local
 
 COPY package.json package-lock.json ./
 
