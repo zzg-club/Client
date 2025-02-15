@@ -21,6 +21,4 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/node_modules ./node_modules
 
-RUN npm install --omit=dev
-
 CMD ["npm", "run", "start"]
