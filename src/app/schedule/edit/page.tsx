@@ -364,9 +364,6 @@ export default function SchedulePage() {
     setIsOpen(true)
   }
   const handleDeleteSchedule = async (slotId: number) => {
-    // setUpdateData((prev) => prev.filter((item) => item.slotId !== slotId))
-    console.log(slotId)
-
     const deletedSlot = updateData.find((item) => item.slotId === slotId)
     console.log('deletedSlot: ', deletedSlot)
 
@@ -389,7 +386,7 @@ export default function SchedulePage() {
         await fetchData() // 데이터 리로드
 
         // updateData 상태 업데이트
-        setUpdateData((prev) => prev.filter((item) => item.slotId !== slotId))
+        // setUpdateData((prev) => prev.filter((item) => item.slotId !== slotId))
 
         // console.log(`${deletedSlot.slotId} 삭제`)
         // console.log(
