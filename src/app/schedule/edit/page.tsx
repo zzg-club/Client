@@ -332,10 +332,11 @@ export default function SchedulePage() {
   }, [selectedSchedule])
 
   useEffect(() => {
-    if (selectedDates.length === 0) {
+    // scheduleData가 비어있고 selectedSchedule이 있을 때만 초기화
+    if (scheduleData.length === 0 && selectedSchedule.length > 0) {
       setSelectedEditDates(initializeSelectedDates())
     }
-  }, [initializeSelectedDates, selectedDates])
+  }, [scheduleData, selectedSchedule, initializeSelectedDates])
 
   const handleActiveTime = (start: number, end: number) => {
     const getStartLabel = (rowIndex: number) => {
