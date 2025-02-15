@@ -49,7 +49,7 @@ jobs:
           script: |
             echo "✅ EC2에서 Docker 이미지 다운로드 중..."
             aws s3 cp s3://clienttbucket/inkv.tar /home/ubuntu/inkv.tar
-            docker load -i /home/ubuntu/inkv.tar  # ✅ Docker 이미지 로드
+            docker load -i /home/ubuntu/inkv.tar 
             docker stop inkv-container || true
             docker rm inkv-container || true
             docker run -d --name inkv-container -p 3000:3000 \
