@@ -1,4 +1,4 @@
-name: Deploy to EC2
+name: Deploy to EC2 via S3
 
 on:
   push:
@@ -6,23 +6,41 @@ on:
       - main
 
 jobs:
-  build-and-deploy:
+  build-and-upload:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+      - name: Install Dependencies
+        run: npm ci
 
-      - name: Build and Push Docker Image
+      - name: Build Next.js
+        run: npm run build
+
+      - name: Configure AWS CLI
         run: |
-          docker build --platform linux/amd64 -t nayoungg/inkv:latest .
-          docker push nayoungg/inkv:latest
+          aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws configure set default.region ap-northeast-2
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: "ap-northeast-2"
+
+      - name: Upload Build Files to S3
+        run: |
+          echo "🚀 S3 업로드 시작..."
+          aws s3 cp --recursive .next s3://clienttbucket/.next/
+          aws s3 cp package.json s3://clienttbucket/
+          aws s3 cp --recursive public s3://clienttbucket/public/
+          aws s3 cp --recursive node_modules s3://clienttbucket/node_modules/
+          echo "✅ S3 업로드 완료!"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: "ap-northeast-2"
 
       - name: Deploy on EC2
         uses: appleboy/ssh-action@master
@@ -31,15 +49,10 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            echo "✅ SSH 연결 성공임!"
-            docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-            docker pull nayoungg/inkv:latest
-            docker stop inkv-container || true
-            docker rm inkv-container || true
-
-            docker image prune -f
-
-            docker run -d --name inkv-container -p 3000:3000 nayoungg/inkv:latest
+            echo "✅ EC2에 배포 스크립트 실행 중..."
+            chmod +x /home/ubuntu/deploy.sh
+            /home/ubuntu/deploy.sh
+            echo "🚀 배포 완료!"
 
       - name: Notify Discord
         run: |
