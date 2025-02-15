@@ -11,6 +11,7 @@ import { ProfileLarge } from '@/components/Profiles/ProfileLarge'
 import MembersDefault from '@/components/Modals/MembersDefault'
 import { useRouter } from 'next/navigation'
 import { useSurveyStore } from '@/store/surveyStore'
+import { useGroupStore } from '@/store/groupStore'
 import axios from 'axios'
 
 interface SelectedDate {
@@ -38,67 +39,41 @@ interface GroupedDate {
 
 interface ScheduleData {
   title: string // 일정 이름
-  userId: number // 사용자 ID
-  groupId: number // 그룹 ID
   mode: string
   selected: string[] | null
   date: [string, string][] // 날짜 배열: [날짜, 요일]의 배열
 }
 
 export default function Page() {
+  const { selectedSurveyId } = useSurveyStore()
+  const { selectedGroupId } = useGroupStore()
+  // console.log('zustand에서 가져온 surveyId', selectedSurveyId)
   const [title, setTitle] = useState('제목 없는 일정')
   const [currentPage, setCurrentPage] = useState(0)
   const [highlightedCol, setHighlightedCol] = useState<number | null>(null)
   const [startTime, setStartTime] = useState<string | null>(null)
   const [endTime, setEndTime] = useState<string | null>(null)
 
-  const { selectedSurveyId } = useSurveyStore() // Zustand에서 가져온 그룹아이디
-  console.log('zustand에서 가져온 surveyId', selectedSurveyId)
-
-  const confirmedData = [
-    {
-      date: '2024-12-31',
-      timeSlots: [{ start: '03:00', end: '09:30' }],
-    },
-    {
-      date: '2024-01-03',
-      timeSlots: [{ start: '06:30', end: '12:00' }],
-    },
-    {
-      date: '2024-01-05',
-      timeSlots: [{ start: '06:00', end: '12:00' }],
-    },
-    {
-      date: '2024-01-06',
-      timeSlots: [{ start: '06:00', end: '12:00' }],
-    },
-    // {
-    //   date: '2024-01-06',
-    //   timeSlots: [{ start: '03:00', end: '09:30' }],
-    // },
-    // {
-    //   date: '2024-01-13',
-    //   timeSlots: [{ start: '06:00', end: '12:00' }],
-    // },
-    // {
-    //   date: '2024-02-08',
-    //   timeSlots: [{ start: '06:00', end: '12:00' }],
-    // },
-    // {
-    //   date: '2024-03-17',
-    //   timeSlots: [{ start: '06:00', end: '12:00' }],
-    // },
-  ]
-
-  const [dateTime, setDateTime] =
-    useState<{ date: string; timeSlots: { start: string; end: string }[] }[]>(
-      confirmedData,
-    )
-  const [isPurple, setIsPurple] = useState(confirmedData.length > 0)
   const [isOpen, setIsOpen] = useState(false)
   const [dateCounts, setDateCounts] = useState<number[]>([])
   const [groupedDate, setGroupedDate] = useState<GroupedDate[]>([])
   const [surveyData, setSurveyData] = useState<ScheduleData[]>([])
+  const [confirmedData, setConfirmedData] = useState<
+    { date: string; timeSlots: { start: string; end: string }[] }[]
+  >([])
+  const [dateTime, setDateTime] =
+    useState<{ date: string; timeSlots: { start: string; end: string }[] }[]>(
+      confirmedData,
+    )
+  const [participants, setParticipants] = useState<
+    {
+      id: number
+      name: string
+      image: string
+      isScheduleSelect: boolean
+    }[]
+  >([])
+  const [isPurple, setIsPurple] = useState(false)
 
   const DAYS_PER_PAGE = 7
   const highlightedIndex =
@@ -129,6 +104,35 @@ export default function Page() {
 
     getSurveyData()
   }, [API_BASE_URL, selectedSurveyId])
+
+  useEffect(() => {
+    if (!selectedSurveyId) return
+    console.log('surveyId', selectedSurveyId)
+    const getSavedSlot = async () => {
+      try {
+        const res = await axios.get(
+          `${API_BASE_URL}/api/timeslot/${selectedSurveyId}/select`,
+          {
+            withCredentials: true, // 쿠키 전송을 위해 필요
+          },
+        )
+        console.log('Saved slot data get 성공', res.data)
+        setConfirmedData(res.data.data)
+        if (res.data.data.length > 0) {
+          setIsPurple(true)
+        }
+      } catch (error) {
+        console.log('Saved slot data get 실패', error)
+      }
+    }
+
+    getSavedSlot()
+  }, [API_BASE_URL, selectedSurveyId])
+
+  useEffect(() => {
+    setDateTime(confirmedData)
+    console.log('냐냐냐')
+  }, [confirmedData])
 
   const handleTitleChange = (newTitle: string) => {
     setTitle(newTitle)
@@ -215,8 +219,40 @@ export default function Page() {
     setIsOpen(true)
   }
 
-  const getDateTime = (date: string, start: string, end: string) => {
+  const selectApi = {
+    createTimeSlot: async (
+      surveyId: number,
+      slotDate: string,
+      startTime: string,
+      endTime: string,
+    ) => {
+      // console.log('surveyId', surveyId)
+      try {
+        const response = await axios.post(
+          `${API_BASE_URL}/api/timeslot/${surveyId}`,
+          {
+            slotDate: slotDate,
+            startTime: startTime,
+            endTime: endTime,
+          },
+          {
+            withCredentials: true, // 쿠키 전송을 위해 필요
+            headers: {
+              'Content-Type': 'application/json', // JSON 형식 명시
+            },
+          },
+        )
+        console.log('타임슬롯', slotDate, startTime, endTime)
+        console.log('타임슬롯 생성 성공', response)
+      } catch (error) {
+        console.log('타임슬롯 생성 실패', error)
+      }
+    },
+  }
+
+  const getDateTime = async (date: string, start: string, end: string) => {
     setDateTime((prev) => {
+      console.log('setDateTime 호출', prev)
       const existingDateIndex = prev.findIndex((item) => item.date === date)
       let newEntry = null
 
@@ -276,15 +312,29 @@ export default function Page() {
           timeSlots.push(newSlot)
           newEntry = { date: date, timeSlots: [newSlot] }
         }
-        // console.log(date)
+
         timeSlots.sort((a, b) => toMinutes(a.start) - toMinutes(b.start))
 
+        const postTimeSlot = {
+          slotDate: date,
+          startTime: newEntry.timeSlots[0].start,
+          endTime: newEntry.timeSlots[0].end,
+        }
+
+        if (selectedSurveyId !== null) {
+          console.log('Post할 항목:', postTimeSlot)
+          selectApi.createTimeSlot(
+            selectedSurveyId,
+            postTimeSlot.slotDate,
+            postTimeSlot.startTime,
+            postTimeSlot.endTime,
+          )
+        }
+
         updated[existingDateIndex].timeSlots = timeSlots
-        // console.log('새로 추가된 항목:', newEntry)
         return updated
       } else {
         newEntry = { date: date, timeSlots: [{ start, end }] }
-        // console.log('새로 추가된 항목:', newEntry)
         return [...prev, newEntry]
       }
     })
@@ -320,50 +370,6 @@ export default function Page() {
     )
   }
 
-  // const scheduleData: ScheduleData[] = [
-  //   {
-  //     title: '팀플 대면 모임',
-  //     userId: 2,
-  //     groupId: 1,
-  //     // mode: 'week',
-  //     // selected: ['mon', 'wed', 'fri'],
-  //     // date: [
-  //     //   ['2024-01-06', 'mon'],
-  //     //   ['2024-02-08', 'wed'],
-  //     //   ['2024-01-13', 'mon'],
-  //     //   ['2024-02-15', 'wed'],
-  //     //   ['2024-01-20', 'mon'],
-  //     //   ['2024-02-22', 'wed'],
-  //     //   ['2024-01-27', 'mon'],
-  //     //   ['2024-03-03', 'fri'],
-  //     //   ['2024-03-10', 'fri'],
-  //     //   ['2024-03-17', 'fri'],
-  //     //   ['2024-03-24', 'fri'],
-  //     //   ['2024-03-31', 'fri'],
-  //     // ],
-  //     mode: 'range',
-  //     selected: null,
-  //     date: [
-  //       ['2024-12-30', 'mon'],
-  //       ['2024-12-31', 'tue'],
-  //       ['2024-01-01', 'wed'],
-  //       ['2024-01-02', 'thu'],
-  //       ['2024-01-03', 'fri'],
-  //       ['2024-01-04', 'sat'],
-  //       ['2024-01-05', 'sun'],
-  //       ['2024-01-06', 'mon'],
-  //       ['2024-01-07', 'tue'],
-  //       ['2024-01-08', 'wed'],
-  //       ['2024-01-09', 'thu'],
-  //       ['2024-01-10', 'fri'],
-  //       ['2024-01-11', 'sat'],
-  //       ['2024-01-12', 'sun'],
-  //     ],
-  //   },
-  // ]
-
-  console.log('surveyData', surveyData)
-
   const selectedDates: SelectedDate[] = convertToSelectedDates(surveyData)
   const mode = surveyData[0]?.mode
   const dayofWeek = surveyData[0]?.selected
@@ -374,77 +380,28 @@ export default function Page() {
         : `${selectedDates[currentPage * DAYS_PER_PAGE]?.month}월`
       : `${groupedDate[currentPage]?.date?.[highlightedIndex ?? 0]?.month ?? groupedDate[currentPage]?.date?.[0]?.month}월`
 
-  const scheduleModalData = [
-    {
-      id: 2,
-      number: 2,
-      startDate: '12월 30일',
-      startTime: '18:00',
-      endTime: '20:00',
-      participants: [
-        {
-          id: 1,
-          name: '나',
-          image: '/sampleProfile.png',
-          isScheduleSelect: true,
-        },
-        {
-          id: 2,
-          name: '김태엽',
-          image: '/sampleProfile.png',
-          isScheduleSelect: true,
-        },
-        {
-          id: 3,
-          name: '지유진',
-          image: '/sampleProfile.png',
-          isScheduleSelect: true,
-        },
-        {
-          id: 4,
-          name: '이소룡',
-          image: '/sampleProfile.png',
-          isScheduleSelect: false,
-        },
-        {
-          id: 5,
-          name: '박진우',
-          image: '/sampleProfile.png',
-          isScheduleSelect: false,
-        },
-        {
-          id: 6,
-          name: '이예지',
-          image: '/sampleProfile.png',
-          isScheduleSelect: false,
-        },
-        {
-          id: 7,
-          name: '조성하',
-          image: '/sampleProfile.png',
-          isScheduleSelect: true,
-        },
-        {
-          id: 8,
-          name: '성윤정',
-          image: '/sampleProfile.png',
-          isScheduleSelect: false,
-        },
-        {
-          id: 9,
-          name: '김나영',
-          image: '/sampleProfile.png',
-          isScheduleSelect: false,
-        },
-        {
-          id: 10,
-          name: '이채연',
-          image: '/sampleProfile.png',
-          isScheduleSelect: false,
-        },
-      ],
-    },
-  ]
+  useEffect(() => {
+    if (!selectedGroupId) return
+    console.log('groupId', selectedGroupId)
+    const getMemberList = async () => {
+      try {
+        const res = await axios.get(
+          `${API_BASE_URL}/api/group-members/List/${selectedGroupId}`,
+          {
+            withCredentials: true, // 쿠키 전송을 위해 필요
+          },
+        )
+        console.log('참여자 리스트 get 성공', res.data)
+        setParticipants(res.data.data)
+      } catch (error) {
+        console.log('참여자 리스트 get 실패', error)
+      }
+    }
+
+    getMemberList()
+  }, [API_BASE_URL, selectedGroupId])
+
+  // console.log('selectedGroupID', selectedGroupId)
 
   const router = useRouter()
   // 완료 버튼 누르면 나오는 일정 입력 중 모달
@@ -468,7 +425,7 @@ export default function Page() {
   // onNext 버튼 누르면 경고 문구 출력 상태 관리
   const [isDanger, setIsDanger] = useState(false)
   const handleDanger = () => {
-    const hasIncompleteMember = scheduleModalData[0].participants.some(
+    const hasIncompleteMember = participants.some(
       (participant) => !participant.isScheduleSelect,
     )
     setIsDanger(hasIncompleteMember ? !isDanger : isDanger)
@@ -561,8 +518,8 @@ export default function Page() {
           </div>
           <div className="flex item-center justify-center mb-[12px]">
             <ProfileLarge
-              key={scheduleModalData[0].id}
-              profiles={scheduleModalData[0].participants}
+              // key={scheduleModalData[0].id}
+              profiles={participants}
               onExpandChange={handleExpandChange}
             />
           </div>
@@ -582,8 +539,8 @@ export default function Page() {
               <MembersDefault
                 blackText={false}
                 title={title}
-                members={scheduleModalData[0].participants}
-                memberCount={scheduleModalData[0].participants.length}
+                members={participants}
+                memberCount={participants.length}
               />
             )}
           </div>

@@ -6,7 +6,7 @@ import Button from '@/components/Buttons/Floating/Button'
 import { ScheduleOptions } from '@/components/Buttons/Floating/Options'
 import CarouselNotification from '@/components/Notification/CarouselNotification'
 import { LetsmeetCard } from '@/components/Cards/LetsmeetCard'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import LocationModal from '@/components/Modals/DirectSelect/LocationModal'
 
 type Schedule = {
@@ -21,13 +21,17 @@ type Schedule = {
 
 export default function LetsMeetPage() {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const isDirectModal = searchParams.get('direct') === 'true'
-  const place = searchParams.get('place') || ''
-  const lat = searchParams.get('lat')
+  const [searchParams, setSearchParams] = useState<URLSearchParams | null>(null)
+  useEffect(() => {
+    setSearchParams(new URLSearchParams(window.location.search))
+  }, [])
+
+  const isDirectModal = searchParams?.get('direct') === 'true'
+  const place = searchParams?.get('place') || ''
+  const lat = searchParams?.get('lat')
     ? parseFloat(searchParams.get('lat')!)
     : null
-  const lng = searchParams.get('lng')
+  const lng = searchParams?.get('lng')
     ? parseFloat(searchParams.get('lng')!)
     : null
 

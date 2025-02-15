@@ -81,12 +81,14 @@ export default function MembersVariant({
         <div className="text-black text-base font-medium leading-snug">
           {dateText}
         </div>
-        <button
-          className="text-[#9562fa] mr-[32px]"
-          onClick={handleOpenUserPlus}
-        >
-          <UserPlus size={24} />
-        </button>
+        {isCreator && (
+          <button
+            className="text-[#9562fa] mr-[32px]"
+            onClick={handleOpenUserPlus}
+          >
+            <UserPlus size={24} />
+          </button>
+        )}
       </div>
       {/* 제목, 부제목 부분*/}
       <div className="mb-4">

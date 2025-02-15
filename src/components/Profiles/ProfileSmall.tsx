@@ -7,8 +7,8 @@ export interface ProfileSmallProps {
     id: number
     name: string
     image: string
-    scheduleComplete: string
-    locationComplete: string
+    scheduleComplete?: string
+    locationComplete?: string
     type: string
   }[]
   maxDisplayImg?: number // 선택적으로 처리할 수 있게 하기 위해 물음표 사용, 물음표 없이 number로 선언되면 무조건 props로 넘겨받아야 함
