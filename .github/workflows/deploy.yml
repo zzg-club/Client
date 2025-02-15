@@ -48,14 +48,13 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             echo "S3에서 Docker 이미지 및 Next.js 빌드 파일 다운로드 중..."
-            aws s3 cp s3://clienttbucket/inkv.tar /home/ubuntu/inkv.tar
+            aws s3 cp s3://clienttbucket/inkv.tar /mnt/ebs-volume/docker/inkv.tar
             echo "Next.js 빌드 파일 다운로드 완료!"
 
-            docker load -i /home/ubuntu/inkv.tar 
+            docker load -i /mnt/ebs-volume/docker/inkv.tar
             docker stop inkv-container || true
             docker rm inkv-container || true
             docker run -d --name inkv-container -p 3000:3000 \
-              -v /mnt/ebs-volume:/app \
               -e ENV_LOCAL_CONTENT="${{ secrets.ENV_LOCAL_CONTENT }}" \
               inkv-image
 
