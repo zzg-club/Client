@@ -42,7 +42,14 @@ interface SelectedDaysProps {
   highlightedCol: number | null
   onDateCountsChange: (counts: number[], groupedData: GroupedDate[]) => void
   isPurple: boolean
-  participants: { id: number; name: string; image: string }[]
+  participants: {
+    id: number
+    name: string
+    image: string
+    scheduleComplete: string
+    locationComplete: string
+    type: string
+  }[]
   title: string
 }
 

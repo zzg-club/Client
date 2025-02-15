@@ -1,7 +1,9 @@
 'use client'
 
 import { GoPencil } from 'react-icons/go'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useSurveyStore } from '@/store/surveyStore'
+import axios from 'axios'
 
 interface EditTitleProps {
   initialTitle: string
@@ -14,14 +16,39 @@ export default function EditTitle({
 }: EditTitleProps) {
   const [title, setTitle] = useState(initialTitle)
   const [isEditing, setIsEditing] = useState(false)
+  const { selectedSurveyId } = useSurveyStore()
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
+
+  useEffect(() => {
+    setTitle(initialTitle)
+  }, [initialTitle])
 
   const handleTitleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setTitle(event.target.value)
   }
 
-  const handleSave = () => {
+  console.log('initialTitle', initialTitle)
+  console.log('title', title)
+
+  const handleSave = async () => {
     setIsEditing(false)
     onTitleChange(title)
+
+    try {
+      const res = axios.patch(
+        `${API_BASE_URL}/api/survey/${selectedSurveyId}`,
+        {
+          name: title,
+        },
+        {
+          withCredentials: true, // 쿠키 전송을 위해 필요
+        },
+      )
+
+      console.log('일정 이름 변경 성공', res)
+    } catch (error) {
+      console.log('일정 이름 변경 실패', error)
+    }
   }
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -31,7 +58,7 @@ export default function EditTitle({
   }
 
   const truncateTitle = (text: string, maxLength: number) => {
-    return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text
+    return text?.length > maxLength ? `${text.slice(0, maxLength)}...` : text
   }
 
   return (
