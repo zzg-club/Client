@@ -183,9 +183,34 @@ export default function Page() {
             )
             .flatMap((decideSlot) => decideSlot.selectedBy || [])
 
+          // UTC 변환을 명확하게 지정
+          const startDateObj = new Date(`${date}T${start}:00`)
+          const endDateObj = new Date(`${date}T${end}:00`)
+
+          // 날짜와 시간에서 UTC 변환
+          const startDate = new Date(
+            Date.UTC(
+              startDateObj.getFullYear(),
+              startDateObj.getMonth(),
+              startDateObj.getDate(),
+              startDateObj.getHours(),
+              startDateObj.getMinutes(),
+            ),
+          ).toISOString()
+
+          const endDate = new Date(
+            Date.UTC(
+              endDateObj.getFullYear(),
+              endDateObj.getMonth(),
+              endDateObj.getDate(),
+              endDateObj.getHours(),
+              endDateObj.getMinutes(),
+            ),
+          ).toISOString()
+
           return {
-            startDate: new Date(`${date}T${start}:00`).toISOString(),
-            endDate: new Date(`${date}T${end}:00`).toISOString(),
+            startDate,
+            endDate,
             userIds: [...new Set(userIds)], // 중복 제거
           }
         })
