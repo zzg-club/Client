@@ -13,6 +13,13 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
+      - name: Build Next.js 
+        run: |
+          echo "Next.js 빌드 시작..."
+          npm install
+          npm run build
+          echo "Next.js 빌드 완료!"
+
       - name: Build Docker Image
         run: |
           docker build --platform linux/amd64 \
@@ -50,7 +57,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            echo "🚀 S3에서 Docker 이미지 및 Next.js 빌드 파일 다운로드 중..."
+            echo "S3에서 Docker 이미지 및 Next.js 빌드 파일 다운로드 중..."
             aws s3 cp s3://clienttbucket/inkv.tar /home/ubuntu/inkv.tar
             aws s3 cp s3://clienttbucket/package.json /mnt/ebs-volume/app/package.json
             aws s3 cp --recursive s3://clienttbucket/.next /mnt/ebs-volume/app/.next
