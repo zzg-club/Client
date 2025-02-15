@@ -157,15 +157,76 @@ export default function Page() {
 
   const [title, setTitle] = useState(decideData[0]?.title)
 
-  console.log(decideData[0]?.dateData)
+  // dateTime(최종 선택 결과)에서 각 타임슬롯별로 가능한 유저ID 추가하는 함수 - userIds
+  function transformToReqData(
+    dateTime: { date: string; timeSlots: { start: string; end: string }[] }[],
+    decideData: PrevScheduleData[],
+    title: string,
+  ) {
+    return {
+      title,
+      timeSlots: dateTime.flatMap(({ date, timeSlots }) => {
+        return timeSlots.map(({ start, end }) => {
+          // 모든 `decideData`에서 해당 날짜의 `timeSlots` 찾기
+          const matchingDecideSlots = decideData.flatMap(
+            (d) =>
+              d.dateData.find((dData) => dData.date === date)?.timeSlots || [],
+          )
 
-  const onClickConfirm = () => {
+          // 겹치는 시간대의 `selectedBy` 정보를 `userIds`로 추가
+          const userIds = matchingDecideSlots
+            .filter(
+              (decideSlot) =>
+                (start >= decideSlot.start && start < decideSlot.end) || // 시작 시간이 겹치는 경우
+                (end > decideSlot.start && end <= decideSlot.end) || // 끝 시간이 겹치는 경우
+                (start <= decideSlot.start && end >= decideSlot.end), // `dateTime`이 `decideData` 전체를 포함하는 경우
+            )
+            .flatMap((decideSlot) => decideSlot.selectedBy || [])
+
+          return {
+            startDate: new Date(`${date}T${start}:00`).toISOString(),
+            endDate: new Date(`${date}T${end}:00`).toISOString(),
+            userIds: [...new Set(userIds)], // 중복 제거
+          }
+        })
+      }),
+    }
+  }
+
+  const onClickConfirm = async () => {
     if (isPurple && !decideBottomOpen) {
       setDecideBottomOpen(true)
     } else if (!isPurple && !decideBottomOpen) {
       setWarning(true)
     } else if (isPurple && decideBottomOpen) {
-      router.push('/schedule')
+      console.log('dateTime', dateTime)
+      console.log('decideData', decideData)
+      console.log(
+        'reqData',
+        transformToReqData(dateTime, decideData, decideData[0]?.title),
+      )
+      // 요청 바디 형식에 맞춰 변경
+      const reqBody = transformToReqData(
+        dateTime,
+        decideData,
+        title || decideData[0]?.title,
+      )
+
+      // api 요청
+      try {
+        const res = await axios.post(
+          `${API_BASE_URL}/api/schedule/${selectedSurveyId}/decide`,
+          reqBody,
+          {
+            withCredentials: true, // 쿠키 전송을 위해 필요
+          },
+        )
+
+        console.log('일정 확정 성공', res)
+        router.push('/schedule')
+      } catch (error) {
+        console.log('일정 확정 실패', error)
+      }
     }
   }
 
