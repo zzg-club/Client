@@ -2,6 +2,8 @@
 
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
 import '@/styles/TimeStamp.css'
+import axios from 'axios'
+import { useSurveyStore } from '@/store/surveyStore'
 
 interface TimeSlot {
   slotId: number
@@ -99,6 +101,28 @@ export default function EditTimeStamp({
   const gridRef = useRef<HTMLDivElement>(null)
   const [initialTouchRow] = useState<number | null>(null)
   const [sortedMockData, setSortedMockData] = useState<DateData[]>([]) // 정렬된 데이터를 상태로 관리
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
+  const { selectedSurveyId } = useSurveyStore()
+
+  const putTimeslotData = useCallback(
+    async (slotId: number, startTime: string, endTime: string) => {
+      try {
+        const response = await axios.put(
+          `${API_BASE_URL}/api/timeslot/${selectedSurveyId}/edit/${slotId}`,
+          {
+            withCredentials: true, // 쿠키 전송 허용
+            startTime: startTime,
+            endTime: endTime,
+          },
+        )
+        console.log('타임슬롯 정보 수정 성공:', response.data)
+      } catch (error) {
+        console.error('타임슬롯 정보 수정 실패:', error)
+        return []
+      }
+    },
+    [API_BASE_URL, selectedSurveyId],
+  )
 
   const currentDates = useMemo(() => {
     if (mode === 'range') {
@@ -407,7 +431,7 @@ export default function EditTimeStamp({
 
       const schedule = currentDates[startCol]
       if (schedule) {
-        let selectedSlotId = null
+        let selectedSlotId: number = -1
 
         // 병합 및 업데이트
         const updatedTimeSlots = []
@@ -499,16 +523,21 @@ export default function EditTimeStamp({
           // console.log('mergedSelections:', mergedSelections)
 
           handleDateTimeSelect(String(startCol), mergedStartTime, mergedEndTime)
-          console.log('handleMouseUp')
           return {
             ...prev,
             [currentPage]: mergedSelections,
           }
         })
+        // if (selectedSlotId !== null) {
+        //   console.log('수정 호출 전')
+        //   putTimeslotData(selectedSlotId, mergedStartTime, mergedEndTime)
+        // }
 
         console.log(
           `최종 병합 영역:${selectedSlotId} ${mergedStartTime} - ${mergedEndTime}`,
         )
+        console.log('수정 호출 전')
+        putTimeslotData(selectedSlotId, mergedStartTime, mergedEndTime)
       }
 
       // 리사이징 상태 초기화
@@ -518,10 +547,10 @@ export default function EditTimeStamp({
     }
   }, [
     activeSelection,
-    currentPage,
     currentDates,
+    putTimeslotData,
+    currentPage,
     handleDateTimeSelect,
-    setSelectionsByPage,
   ])
 
   const handleTouchClick = (rowIndex: number, colIndex: number) => {

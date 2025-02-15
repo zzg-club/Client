@@ -96,6 +96,24 @@ export default function ScheduleLanding() {
     }
   }, [API_BASE_URL])
 
+  const fetchNotification = useCallback(async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/members/notification`, {
+        method: 'GET',
+        credentials: 'include', // 쿠키 전송을 위해 필요
+      })
+
+      if (!response.ok) {
+        throw new Error(`서버 에러: ${response.status}`)
+      }
+      const notiData = await response.json()
+      setNotifications(notiData.data)
+      console.log('알림 정보:', notiData)
+    } catch (error) {
+      console.error('알림 정보 불러오기 실패:', error)
+    }
+  }, [API_BASE_URL])
+
   // 연동 데이터
   useEffect(() => {
     const fetchUserInfo = async () => {
@@ -115,31 +133,10 @@ export default function ScheduleLanding() {
       }
     }
 
-    const fetchNotification = async () => {
-      try {
-        const response = await fetch(
-          `${API_BASE_URL}/api/members/notification`,
-          {
-            method: 'GET',
-            credentials: 'include', // 쿠키 전송을 위해 필요
-          },
-        )
-
-        if (!response.ok) {
-          throw new Error(`서버 에러: ${response.status}`)
-        }
-        const notiData = await response.json()
-        setNotifications(notiData.data)
-        console.log('알림 정보:', notiData)
-      } catch (error) {
-        console.error('알림 정보 불러오기 실패:', error)
-      }
-    }
-
     fetchUserInfo()
     fetchNotification()
     getSchedule()
-  }, [API_BASE_URL, getSchedule])
+  }, [API_BASE_URL, fetchNotification, getSchedule])
 
   // 제목 수정 함수
   const handleTitleChange = (newTitle: string) => {
@@ -319,6 +316,7 @@ export default function ScheduleLanding() {
                   participants={schedule?.participants}
                   surveyId={schedule?.surveyId}
                   getSchedule={getSchedule}
+                  fetchNotification={fetchNotification}
                 />
               </div>
             ))}

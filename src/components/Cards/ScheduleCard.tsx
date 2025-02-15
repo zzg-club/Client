@@ -20,6 +20,7 @@ export interface ScheduleCardProps {
   participants: { id: number; name: string; image: string; type: string }[]
   surveyId: number
   getSchedule: () => void
+  fetchNotification: () => void
 }
 
 export function ScheduleCard({
@@ -32,6 +33,7 @@ export function ScheduleCard({
   participants,
   surveyId,
   getSchedule,
+  fetchNotification,
 }: ScheduleCardProps) {
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
   const [isMembersModalOpen, setIsMembersModalOpen] = useState(false)
@@ -97,6 +99,7 @@ export function ScheduleCard({
       console.log(`${type} 삭제 성공:`, response.data.data)
       setIsMembersModalOpen(false)
       getSchedule()
+      fetchNotification()
       return response
     } catch (error) {
       console.error(`${type} 삭제 실패:`, error)
