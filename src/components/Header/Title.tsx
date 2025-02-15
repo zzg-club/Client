@@ -60,7 +60,7 @@ export default function Title({
         onOpenChange={handleOpenDdialg}
         isFooter={false}
       >
-        <ScheduleSelectShareModal inviteUrl="https://moim.team/" />
+        <ScheduleSelectShareModal />
       </CustomModal>
     </div>
   )

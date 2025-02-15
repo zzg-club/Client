@@ -147,7 +147,8 @@ export default function TimeStamp({
     }
 
     // range 모드일 때는 기존 로직 유지
-    const startDate = new Date(mockDateTime[0].date)
+    // const startDate = new Date(mockDateTime[0]?.date)
+    const startDate = new Date(mockDateTime[0]?.date)
     const pageStartDate = new Date(
       startDate.getTime() + currentPage * 7 * 24 * 60 * 60 * 1000,
     )
