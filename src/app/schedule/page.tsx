@@ -7,7 +7,7 @@ import CustomCalendar from '@/components/Calendars/CustomCalendar'
 import Button from '@/components/Buttons/Floating/Button'
 import NavBar from '@/components/Navigate/NavBar'
 import { ScheduleCard } from '@/components/Cards/ScheduleCard'
-import EditTitle from '@/components/Header/EditTitle'
+import DirectEditTitle from '@/components/Header/DirectEditTitle'
 import CarouselNotification from '@/components/Notification/CarouselNotification'
 import DateTimeModal from '@/components/Modals/DirectSelect/DateTimeModal'
 import { useHandleSelect } from '@/hooks/useHandleSelect'
@@ -369,7 +369,10 @@ export default function ScheduleLanding() {
         isFooter={true}
         footerText={'입력완료'}
       >
-        <EditTitle initialTitle={title} onTitleChange={handleTitleChange} />
+        <DirectEditTitle
+          initialTitle={title}
+          onTitleChange={handleTitleChange}
+        />
         <DateTimeModal onDateChange={handleDateChange} />
       </CustomModal>
     </div>
