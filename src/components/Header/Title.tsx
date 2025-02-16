@@ -38,7 +38,10 @@ export default function Title({
   }
 
   useEffect(() => {
-    if (!selectedGroupId) return
+    if (!selectedGroupId) {
+      setIsGroupLeader(false) // selectedGroupId가 없을 때 초기화
+      return
+    }
     console.log('groupId', selectedGroupId)
     const getGroupLeader = async () => {
       try {
