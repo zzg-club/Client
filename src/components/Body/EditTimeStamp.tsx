@@ -79,7 +79,7 @@ const indexToTime = (index: number) => {
 }
 
 export default function EditTimeStamp({
-  selectedDates,
+  // selectedDates,
   currentPage,
   handleSelectedCol,
   getDateTime,
@@ -87,9 +87,9 @@ export default function EditTimeStamp({
   isBottomSheetOpen,
   handleTimeSelect,
   mode,
-  dateCounts,
+  // dateCounts,
   // handleActiveTime,
-  // groupedDate,
+  groupedDate,
 }: EditTimeStampProps) {
   const [selections] = useState<Selection[]>([])
   const [isResizing, setIsResizing] = useState(false)
@@ -110,9 +110,14 @@ export default function EditTimeStamp({
         const response = await axios.put(
           `${API_BASE_URL}/api/timeslot/${selectedSurveyId}/edit/${slotId}`,
           {
-            withCredentials: true, // 쿠키 전송 허용
             startTime: startTime,
             endTime: endTime,
+          },
+          {
+            withCredentials: true,
+            headers: {
+              'Content-Type': 'application/json',
+            },
           },
         )
         console.log('타임슬롯 정보 수정 성공:', response.data)
@@ -131,38 +136,17 @@ export default function EditTimeStamp({
         (currentPage + 1) * COLUMNS_PER_PAGE,
       )
     } else {
-      let startIndex = 0
-      let endIndex = 0
-
-      for (let i = 0; i < dateCounts.length; i++) {
-        if (currentPage === i) {
-          endIndex = startIndex + dateCounts[i]
-          break
-        }
-        startIndex += dateCounts[i]
+      if (!groupedDate[currentPage]) {
+        return []
       }
 
-      const sortedSelectedDates = [...selectedDates].sort((a, b) => {
-        const dateA = new Date(a.year, a.month - 1, a.day)
-        const dateB = new Date(b.year, b.month - 1, b.day)
-        return dateA.getTime() - dateB.getTime()
-      })
+      const currentGroupData = groupedDate[currentPage].date || []
+      const matchedData = currentGroupData.map((dateInfo) => {
+        const formattedDate = `${dateInfo.year}-${String(dateInfo.month).padStart(2, '0')}-${String(dateInfo.day).padStart(2, '0')}`
 
-      const slicedSelectedDates = sortedSelectedDates.slice(
-        startIndex,
-        endIndex,
-      )
-      // console.log('slicedSelectedDates', slicedSelectedDates)
-      // console.log('sortedSelectedDates', sortedSelectedDates)
-
-      const matchedData = slicedSelectedDates.map((selectedDate) => {
         return (
-          sortedMockData.find(
-            (data) =>
-              data.date ===
-              `${selectedDate.year}-${String(selectedDate.month).padStart(2, '0')}-${String(selectedDate.day).padStart(2, '0')}`,
-          ) || {
-            date: `${selectedDate.year}-${String(selectedDate.month).padStart(2, '0')}-${String(selectedDate.day).padStart(2, '0')}`,
+          sortedMockData.find((data) => data.date === formattedDate) || {
+            date: formattedDate,
             timeSlots: [],
           }
         )
@@ -170,7 +154,7 @@ export default function EditTimeStamp({
 
       return matchedData
     }
-  }, [selectedDates, sortedMockData, currentPage, mode, dateCounts])
+  }, [mode, currentPage, groupedDate, sortedMockData])
 
   const onColumnClick = useCallback(
     (colIndex: number, rowIndex: number) => {
@@ -739,7 +723,7 @@ export default function EditTimeStamp({
 
       const schedule = currentDates[startCol]
       if (schedule) {
-        let selectedSlotId = null
+        let selectedSlotId: number = -1
 
         // 병합 및 업데이트
         const updatedTimeSlots = []
@@ -841,13 +825,20 @@ export default function EditTimeStamp({
         console.log(
           `최종 병합 영역:${selectedSlotId} ${mergedStartTime} - ${mergedEndTime}`,
         )
+        putTimeslotData(selectedSlotId, mergedStartTime, mergedEndTime)
       }
 
       setIsResizing(false)
       setActiveSelection(null)
       setResizingPoint(null)
     }
-  }, [activeSelection, currentDates, currentPage, handleDateTimeSelect])
+  }, [
+    activeSelection,
+    currentDates,
+    currentPage,
+    handleDateTimeSelect,
+    putTimeslotData,
+  ])
 
   useEffect(() => {
     const handleMouseUpWithColumnClick = () => {

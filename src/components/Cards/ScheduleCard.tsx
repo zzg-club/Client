@@ -55,6 +55,7 @@ export function ScheduleCard({
     e.stopPropagation() // 이벤트 버블링 방지
     if (startTime === '' && endTime === '') {
       setSelectedSurveyId(surveyId)
+      setSelectedGroupId(id)
       router.push('/schedule/select')
       console.log('이어서 하기')
     } else {
