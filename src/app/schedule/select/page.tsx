@@ -561,7 +561,10 @@ export default function Page() {
       {isGroupLeader ? (
         <CustomModal
           open={isToDecideModal}
-          onOpenChange={() => setIsToDecideModal(!isToDecideModal)}
+          onOpenChange={() => {
+            setIsToDecideModal(!isToDecideModal)
+            isToDecideModal && setIsExpanded(false)
+          }}
           onNext={handleDanger}
           isFooter={true}
           footerText={'최적의 일정 찾기'}
@@ -604,7 +607,10 @@ export default function Page() {
       ) : (
         <CustomModal
           open={isToDecideModal}
-          onOpenChange={() => setIsToDecideModal(!isToDecideModal)}
+          onOpenChange={() => {
+            setIsToDecideModal(!isToDecideModal)
+            !isToDecideModal && setIsExpanded(false)
+          }}
           onNext={() => router.push('/schedule')}
           isFooter={true}
           footerText={'확정된 일정은 곧 안내해드릴게요!'}
