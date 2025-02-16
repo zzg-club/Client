@@ -24,11 +24,11 @@ export default function ModalNotification({
   return (
     <div className="w-[280px] -mx-6 flex items-center justify-center">
       <div className="w-full h-auto bg-[#9562fa] flex-col justify-center items-center gap-3 inline-flex">
-        <div className="flex-col justify-center items-center gap-3 flex py-3">
+        <div className="flex-col justify-center items-center gap-3 flex py-4">
           {/* 메시지 텍스트 */}
-          <div className="h-auto text-center text-white text-base font-normal leading-[22px]">
+          <div className="h-auto text-center text-white text-base font-normal leading-[23px]">
             {messageText} <br />
-            {alertText && <span className="text-sm">{alertText}</span>}
+            {alertText && <span className="">{alertText}</span>}
           </div>
           <div className="justify-center items-center gap-4 inline-flex">
             {/* 확인 버튼 */}
