@@ -83,6 +83,59 @@ export default function Page() {
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
 
+  const selectApi = {
+    createTimeSlot: async (
+      surveyId: number,
+      slotDate: string,
+      startTime: string,
+      endTime: string,
+    ) => {
+      // console.log('surveyId', surveyId)
+      try {
+        const response = await axios.post(
+          `${API_BASE_URL}/api/timeslot/${surveyId}`,
+          {
+            slotDate: slotDate,
+            startTime: startTime,
+            endTime: endTime,
+          },
+          {
+            withCredentials: true, // 쿠키 전송을 위해 필요
+          },
+        )
+        console.log('타임슬롯', slotDate, startTime, endTime)
+        console.log('타임슬롯 생성 성공', response)
+      } catch (error) {
+        console.log('타임슬롯 생성 실패', error)
+      }
+    },
+  }
+
+  const patchApi = {
+    updateMemberState: async (groupId: number, state: string) => {
+      // console.log('surveyId', surveyId)
+      try {
+        const response = await axios.patch(
+          `${API_BASE_URL}/api/group-members/schedule`,
+          {
+            groupId: groupId,
+            state: state,
+          },
+          {
+            withCredentials: true, // 쿠키 전송을 위해 필요
+          },
+        )
+        console.log('멤버 상태 업데이트 성공', response)
+      } catch (error) {
+        console.log('멤버 상태 업데이트 실패', error)
+      }
+    },
+  }
+
+  if (confirmedData.length > 0 && selectedGroupId) {
+    patchApi.updateMemberState(selectedGroupId, 'ONGOING')
+  }
+
   useEffect(() => {
     if (!selectedSurveyId) return
     console.log('surveyId', selectedSurveyId)
@@ -216,37 +269,6 @@ export default function Page() {
     setEndTime(calculatedEndTime)
 
     setIsOpen(true)
-  }
-
-  const selectApi = {
-    createTimeSlot: async (
-      surveyId: number,
-      slotDate: string,
-      startTime: string,
-      endTime: string,
-    ) => {
-      // console.log('surveyId', surveyId)
-      try {
-        const response = await axios.post(
-          `${API_BASE_URL}/api/timeslot/${surveyId}`,
-          {
-            slotDate: slotDate,
-            startTime: startTime,
-            endTime: endTime,
-          },
-          {
-            withCredentials: true, // 쿠키 전송을 위해 필요
-            headers: {
-              'Content-Type': 'application/json', // JSON 형식 명시
-            },
-          },
-        )
-        console.log('타임슬롯', slotDate, startTime, endTime)
-        console.log('타임슬롯 생성 성공', response)
-      } catch (error) {
-        console.log('타임슬롯 생성 실패', error)
-      }
-    },
   }
 
   const getDateTime = async (date: string, start: string, end: string) => {
