@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
   images: {
     domains: ['img1.kakaocdn.net', 't1.kakaocdn.net'],
   },
+  reactStrictMode: false,
 }
 
 export default nextConfig
