@@ -3,6 +3,7 @@
 import { GoPencil } from 'react-icons/go'
 import { useEffect, useState } from 'react'
 import { useSurveyStore } from '@/store/surveyStore'
+import { useGroupStore } from '@/store/groupStore'
 import axios from 'axios'
 
 interface EditTitleProps {
@@ -16,8 +17,33 @@ export default function EditTitle({
 }: EditTitleProps) {
   const [title, setTitle] = useState(initialTitle)
   const [isEditing, setIsEditing] = useState(false)
-  const { selectedSurveyId } = useSurveyStore()
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
+  const { selectedSurveyId } = useSurveyStore()
+  const { selectedGroupId } = useGroupStore()
+  const [isGroupLeader, setIsGroupLeader] = useState(false)
+
+  useEffect(() => {
+    if (!selectedGroupId) return
+    console.log('groupId', selectedGroupId)
+    const getGroupLeader = async () => {
+      try {
+        const res = await axios.get(
+          `${API_BASE_URL}/api/members/creator/check/${selectedGroupId}`,
+          {
+            withCredentials: true, // 쿠키 전송을 위해 필요
+          },
+        )
+        console.log('모임장 여부 get 성공', res.data)
+        setIsGroupLeader(res.data.data)
+      } catch (error) {
+        console.log('모임장 여부 get 실패', error)
+      }
+    }
+
+    getGroupLeader()
+  }, [API_BASE_URL, selectedGroupId])
+
+  console.log('getGroupLeader', isGroupLeader)
 
   useEffect(() => {
     setTitle(initialTitle)
@@ -87,7 +113,7 @@ export default function EditTitle({
             {truncateTitle(title, 10)}
           </span>
         )}
-        {!isEditing && (
+        {!isEditing && isGroupLeader && (
           <button onClick={() => setIsEditing(true)} className="z-20">
             <GoPencil className="w-6 h-6 text-[#afafaf]" strokeWidth={1} />
           </button>

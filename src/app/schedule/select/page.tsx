@@ -335,6 +335,10 @@ export default function Page() {
         return updated
       } else {
         newEntry = { date: date, timeSlots: [{ start, end }] }
+        if (selectedSurveyId !== null) {
+          console.log('Post할 항목:', newEntry)
+          selectApi.createTimeSlot(selectedSurveyId, date, start, end)
+        }
         return [...prev, newEntry]
       }
     })
