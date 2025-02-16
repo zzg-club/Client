@@ -419,6 +419,11 @@ export default function Page() {
     }
   }
 
+  const handleNonSelection = () => {
+    setIsNextOpen(false)
+    setIsToDecideModal(true)
+  }
+
   // 확장 상태 관리, ProfileLarge에서 전달받은 확장 상태 업데이트
   const [isExpanded, setIsExpanded] = useState(false)
   const handleExpandChange = (newExpandState: boolean) => {
@@ -449,6 +454,31 @@ export default function Page() {
   }
 
   const [isNextOpen, setIsNextOpen] = useState(false)
+  const [isGroupLeader, setIsGroupLeader] = useState(false)
+
+  useEffect(() => {
+    if (!selectedGroupId) {
+      setIsGroupLeader(false) // selectedGroupId가 없을 때 초기화
+      return
+    }
+    console.log('groupId', selectedGroupId)
+    const getGroupLeader = async () => {
+      try {
+        const res = await axios.get(
+          `${API_BASE_URL}/api/members/creator/check/${selectedGroupId}`,
+          {
+            withCredentials: true, // 쿠키 전송을 위해 필요
+          },
+        )
+        console.log('모임장 여부 get 성공', res.data)
+        setIsGroupLeader(res.data.data)
+      } catch (error) {
+        console.log('모임장 여부 get 실패', error)
+      }
+    }
+
+    getGroupLeader()
+  }, [API_BASE_URL, selectedGroupId])
 
   return (
     <div>
@@ -507,52 +537,89 @@ export default function Page() {
           />
         </div>
       </SelectedBottom>
-      <CustomModal
-        open={isToDecideModal}
-        onOpenChange={handleToDecideModal}
-        onNext={handleDanger}
-        isFooter={true}
-        footerText={'최적의 일정 찾기'}
-      >
-        <div className="flex flex-col item-center justify-center">
-          <div className="text-center text-[#1e1e1e] text-[18px] font-medium leading-[25px] mb-[24px]">
-            함께하는 친구들이
-            <br /> 시간을 입력하고 있어요!
-          </div>
-          <div className="flex item-center justify-center mb-[12px]">
-            <ProfileLarge
-              // key={scheduleModalData[0].id}
-              profiles={participants}
-              onExpandChange={handleExpandChange}
-            />
-          </div>
-          {isDanger ? (
-            <div className="text-center text-[#ff0000] text-xs font-medium ">
-              아직 입력을 마치지 않은 친구가 있어요!
-              <br />
-              그래도 진행하시겠어요?
+      {isGroupLeader ? (
+        <CustomModal
+          open={isToDecideModal}
+          onOpenChange={handleToDecideModal}
+          onNext={handleDanger}
+          isFooter={true}
+          footerText={'최적의 일정 찾기'}
+        >
+          <div className="flex flex-col item-center justify-center">
+            <div className="text-center text-[#1e1e1e] text-[18px] font-medium leading-[25px] mb-[24px]">
+              함께하는 친구들이
+              <br /> 시간을 입력하고 있어요!
             </div>
-          ) : (
+            <div className="flex item-center justify-center mb-[12px]">
+              <ProfileLarge
+                // key={scheduleModalData[0].id}
+                profiles={participants}
+                onExpandChange={handleExpandChange}
+              />
+            </div>
+            {isDanger ? (
+              <div className="text-center text-[#ff0000] text-xs font-medium ">
+                아직 입력을 마치지 않은 친구가 있어요!
+                <br />
+                그래도 진행하시겠어요?
+              </div>
+            ) : (
+              <div className="text-center text-[#afafaf] text-xs font-medium">
+                입력을 완료한 친구의 프로필만 활성화돼요!
+              </div>
+            )}
+            <div className="flex item-center justify-center">
+              {isExpanded && (
+                <MembersDefault
+                  blackText={false}
+                  title={title}
+                  members={participants}
+                  memberCount={participants.length}
+                />
+              )}
+            </div>
+          </div>
+        </CustomModal>
+      ) : (
+        <CustomModal
+          open={isToDecideModal}
+          onOpenChange={handleToDecideModal}
+          onNext={() => router.push('/schedule')}
+          isFooter={true}
+          footerText={'확정된 일정은 곧 안내해드릴게요!'}
+        >
+          <div className="flex flex-col item-center justify-center">
+            <div className="text-center text-[#1e1e1e] text-[18px] font-medium leading-[25px] mb-[24px]">
+              함께하는 친구들이
+              <br /> 시간을 입력하고 있어요!
+            </div>
+            <div className="flex item-center justify-center mb-[12px]">
+              <ProfileLarge
+                // key={scheduleModalData[0].id}
+                profiles={participants}
+                onExpandChange={handleExpandChange}
+              />
+            </div>
             <div className="text-center text-[#afafaf] text-xs font-medium">
               입력을 완료한 친구의 프로필만 활성화돼요!
             </div>
-          )}
-          <div className="flex item-center justify-center">
-            {isExpanded && (
-              <MembersDefault
-                blackText={false}
-                title={title}
-                members={participants}
-                memberCount={participants.length}
-              />
-            )}
+            <div className="flex item-center justify-center">
+              {isExpanded && (
+                <MembersDefault
+                  blackText={false}
+                  title={title}
+                  members={participants}
+                  memberCount={participants.length}
+                />
+              )}
+            </div>
           </div>
-        </div>
-      </CustomModal>
+        </CustomModal>
+      )}
       <CustomModal
         open={isNextOpen}
         onOpenChange={handleToDecideModal}
-        onNext={() => router.push('/schedule/decide')}
+        onNext={handleNonSelection}
         isFooter={true}
         footerText={'다음으로'}
       >
