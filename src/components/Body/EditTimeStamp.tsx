@@ -110,9 +110,14 @@ export default function EditTimeStamp({
         const response = await axios.put(
           `${API_BASE_URL}/api/timeslot/${selectedSurveyId}/edit/${slotId}`,
           {
-            withCredentials: true, // 쿠키 전송 허용
             startTime: startTime,
             endTime: endTime,
+          },
+          {
+            withCredentials: true, // 쿠키 전송을 위해 필요
+            headers: {
+              'Content-Type': 'application/json', // JSON 형식 명시
+            },
           },
         )
         console.log('타임슬롯 정보 수정 성공:', response.data)
