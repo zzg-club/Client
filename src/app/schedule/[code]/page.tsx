@@ -3,6 +3,7 @@
 import React, { useEffect } from 'react'
 import axios from 'axios'
 import { useParams, useRouter } from 'next/navigation'
+import Image from 'next/image'
 
 export default function CodePage() {
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
@@ -30,6 +31,9 @@ export default function CodePage() {
           if (error.response.status === 403) {
             console.log('초대 실패 403', error)
             alert('로그인 후 다시 초대링크에 접속해주세요.') // 403 에러(로그아웃 상태) 시 알림 -> 예외처리 확인 필요
+          } else if (error.response.status === 409) {
+            alert('이미 초대된 모임입니다.')
+            router.push('/schedule')
           } else {
             console.log('초대 코드 실패', error)
           }
@@ -39,5 +43,11 @@ export default function CodePage() {
 
     postCode()
   }, [API_BASE_URL, code, router])
-  return <div>모임에 초대 중...</div>
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen background-blue">
+      {/* <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-500"></div> */}
+      <Image src="/loadingspinner.gif" alt="로딩" width={100} height={50} />
+      <div className="font-medium">모임에 초대 중입니다...</div>
+    </div>
+  )
 }
