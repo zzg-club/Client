@@ -593,7 +593,7 @@ export default function Page() {
               {isExpanded && (
                 <MembersDefault
                   blackText={false}
-                  title={title}
+                  title={surveyData[0]?.title || title}
                   members={participants}
                   memberCount={participants.length}
                 />
@@ -627,7 +627,7 @@ export default function Page() {
               {isExpanded && (
                 <MembersDefault
                   blackText={false}
-                  title={title}
+                  title={surveyData[0]?.title || title}
                   members={participants}
                   memberCount={participants.length}
                 />
