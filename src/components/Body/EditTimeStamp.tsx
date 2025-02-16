@@ -853,7 +853,13 @@ export default function EditTimeStamp({
       setActiveSelection(null)
       setResizingPoint(null)
     }
-  }, [activeSelection, currentDates, currentPage, handleDateTimeSelect])
+  }, [
+    activeSelection,
+    currentDates,
+    currentPage,
+    handleDateTimeSelect,
+    putTimeslotData,
+  ])
 
   useEffect(() => {
     const handleMouseUpWithColumnClick = () => {
