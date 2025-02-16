@@ -131,7 +131,6 @@ export default function Page() {
 
   useEffect(() => {
     setDateTime(confirmedData)
-    console.log('냐냐냐')
   }, [confirmedData])
 
   const handleTitleChange = (newTitle: string) => {
