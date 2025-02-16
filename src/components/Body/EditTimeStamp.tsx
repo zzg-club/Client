@@ -744,7 +744,7 @@ export default function EditTimeStamp({
 
       const schedule = currentDates[startCol]
       if (schedule) {
-        let selectedSlotId = null
+        let selectedSlotId: number = -1
 
         // 병합 및 업데이트
         const updatedTimeSlots = []
@@ -846,6 +846,7 @@ export default function EditTimeStamp({
         console.log(
           `최종 병합 영역:${selectedSlotId} ${mergedStartTime} - ${mergedEndTime}`,
         )
+        putTimeslotData(selectedSlotId, mergedStartTime, mergedEndTime)
       }
 
       setIsResizing(false)
