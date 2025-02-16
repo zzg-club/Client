@@ -70,7 +70,7 @@ export default function Page() {
       id: number
       name: string
       image: string
-      isScheduleSelect: boolean
+      scheduleComplete: string
     }[]
   >([])
   const [isPurple, setIsPurple] = useState(false)
@@ -125,6 +125,7 @@ export default function Page() {
             withCredentials: true, // 쿠키 전송을 위해 필요
           },
         )
+        console.log('status', state)
         console.log('멤버 상태 업데이트 성공', response)
       } catch (error) {
         console.log('멤버 상태 업데이트 실패', error)
@@ -135,6 +136,9 @@ export default function Page() {
   if (confirmedData.length > 0 && selectedGroupId) {
     patchApi.updateMemberState(selectedGroupId, 'ONGOING')
   }
+  // if (confirmedData.length === 0 && selectedGroupId) {
+  //   patchApi.updateMemberState(selectedGroupId, 'INCOMPLETE')
+  // }
 
   useEffect(() => {
     if (!selectedSurveyId) return
@@ -431,19 +435,16 @@ export default function Page() {
   const router = useRouter()
   // 완료 버튼 누르면 나오는 일정 입력 중 모달
   const [isToDecideModal, setIsToDecideModal] = useState(false)
+  const [isNextOpen, setIsNextOpen] = useState(false)
+
   const handleToDecideModal = () => {
     if (isPurple) {
-      setIsToDecideModal(!isToDecideModal)
+      setIsToDecideModal(true)
       setIsExpanded(false)
       setIsDanger(false)
     } else {
-      setIsNextOpen(!isNextOpen)
+      setIsNextOpen(true)
     }
-  }
-
-  const handleNonSelection = () => {
-    setIsNextOpen(false)
-    setIsToDecideModal(true)
   }
 
   // 확장 상태 관리, ProfileLarge에서 전달받은 확장 상태 업데이트
@@ -456,7 +457,7 @@ export default function Page() {
   const [isDanger, setIsDanger] = useState(false)
   const handleDanger = () => {
     const hasIncompleteMember = participants.some(
-      (participant) => !participant.isScheduleSelect,
+      (participant) => !participant.scheduleComplete,
     )
     setIsDanger(hasIncompleteMember ? !isDanger : isDanger)
 
@@ -474,8 +475,6 @@ export default function Page() {
       router.push('/schedule/decide')
     }
   }
-
-  const [isNextOpen, setIsNextOpen] = useState(false)
   const [isGroupLeader, setIsGroupLeader] = useState(false)
 
   useEffect(() => {
@@ -562,7 +561,7 @@ export default function Page() {
       {isGroupLeader ? (
         <CustomModal
           open={isToDecideModal}
-          onOpenChange={handleToDecideModal}
+          onOpenChange={() => setIsToDecideModal(!isToDecideModal)}
           onNext={handleDanger}
           isFooter={true}
           footerText={'최적의 일정 찾기'}
@@ -605,7 +604,7 @@ export default function Page() {
       ) : (
         <CustomModal
           open={isToDecideModal}
-          onOpenChange={handleToDecideModal}
+          onOpenChange={() => setIsToDecideModal(!isToDecideModal)}
           onNext={() => router.push('/schedule')}
           isFooter={true}
           footerText={'확정된 일정은 곧 안내해드릴게요!'}
@@ -617,7 +616,6 @@ export default function Page() {
             </div>
             <div className="flex item-center justify-center mb-[12px]">
               <ProfileLarge
-                // key={scheduleModalData[0].id}
                 profiles={participants}
                 onExpandChange={handleExpandChange}
               />
@@ -640,8 +638,11 @@ export default function Page() {
       )}
       <CustomModal
         open={isNextOpen}
-        onOpenChange={handleToDecideModal}
-        onNext={handleNonSelection}
+        onOpenChange={() => setIsNextOpen(!isNextOpen)}
+        onNext={() => {
+          setIsToDecideModal(true)
+          setIsNextOpen(false)
+        }}
         isFooter={true}
         footerText={'다음으로'}
       >
