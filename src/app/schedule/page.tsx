@@ -88,7 +88,7 @@ export default function ScheduleLanding() {
           surveyId: schedule.surveyId,
         }))
 
-        setScheduleList(formattedSchedules)
+        setScheduleList(formattedSchedules.reverse())
       } else {
         console.error('데이터 구조 에러:', data.data)
       }
