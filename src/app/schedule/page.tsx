@@ -16,6 +16,7 @@ import { useRouter } from 'next/navigation'
 import { useSurveyStore } from '@/store/surveyStore'
 import { useGroupStore } from '@/store/groupStore'
 import axios from 'axios'
+import '../../styles/BottomSheet.css'
 
 // /api/members/List 연동
 export type Participant = {
@@ -303,7 +304,7 @@ export default function ScheduleLanding() {
               +{scheduleList.length}
             </div>
           </div>
-          <div className="flex-1 overflow-y-auto pb-[120px]">
+          <div className="flex-1 overflow-y-auto pb-[120px] overflow-hidden">
             {scheduleList.map((schedule) => (
               <div key={schedule?.id}>
                 <ScheduleCard
