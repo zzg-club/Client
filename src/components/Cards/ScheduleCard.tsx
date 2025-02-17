@@ -32,6 +32,7 @@ export interface ScheduleCardProps {
 export function ScheduleCard({
   id,
   startDate,
+  endDate,
   title,
   startTime,
   endTime,
@@ -54,7 +55,12 @@ export function ScheduleCard({
     (p) => p.type === '&my' || p.type === 'creator&my',
   )
 
-  const dateText = startDate === '' ? '날짜 미정' : `${startDate}`
+  const dateText =
+    startDate === '' && endDate === ''
+      ? '날짜 미정'
+      : endDate === ''
+        ? startDate
+        : `${startDate} - ${endDate}`
 
   const timeText =
     startTime === '' && endTime === ''

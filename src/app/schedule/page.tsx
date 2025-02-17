@@ -30,6 +30,7 @@ export type Participant = {
 export type Schedule = {
   id: number
   startDate: string
+  endDate?: string
   title: string
   startTime: string
   endTime: string
@@ -84,6 +85,7 @@ export default function ScheduleLanding() {
         let formattedSchedules = data.data.map((schedule: Schedule) => ({
           id: schedule.id,
           startDate: schedule.startDate,
+          endDate: schedule.endDate,
           title: schedule.title,
           startTime: schedule.startTime,
           endTime: schedule.endTime,
@@ -362,6 +364,7 @@ export default function ScheduleLanding() {
                 <ScheduleCard
                   id={schedule?.id}
                   startDate={schedule?.startDate}
+                  endDate={schedule?.endDate}
                   title={schedule?.title}
                   startTime={schedule?.startTime}
                   endTime={schedule?.endTime}
