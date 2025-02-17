@@ -17,7 +17,13 @@ export interface ScheduleCardProps {
   startTime: string
   endTime: string
   location?: string
-  participants: { id: number; name: string; image: string; type: string }[]
+  participants: {
+    id: number
+    name: string
+    image: string
+    type: string
+    scheduleComplete: string
+  }[]
   surveyId: number
   getSchedule: () => void
   fetchNotification: () => void
@@ -44,6 +50,31 @@ export function ScheduleCard({
   const { setSelectedGroupId, selectedGroupId } = useGroupStore()
   const { setSelectedSurveyId } = useSurveyStore()
 
+  const myCompleteIndex = participants.findIndex(
+    (p) => p.type === '&my' || p.type === 'creator&my',
+  )
+
+  const dateText = startDate === '' ? '날짜 미정' : `${startDate}`
+
+  const timeText =
+    startTime === '' && endTime === ''
+      ? '조율 진행중'
+      : `${startTime} - ${endTime}`
+
+  const buttonText =
+    myCompleteIndex !== -1 &&
+    participants[myCompleteIndex]?.scheduleComplete === 'COMPLETED'
+      ? participants[myCompleteIndex]?.type === 'creator&my'
+        ? '+ 일정 확정하기'
+        : '내 일정 수정'
+      : startTime === '' && endTime === ''
+        ? '+ 이어서 하기'
+        : '+ 장소 정하기'
+
+  const filteredParticipants = participants.map(
+    ({ scheduleComplete, ...rest }) => rest,
+  )
+
   // membersVariant 모달 핸들
   const handleMembersModalOpen = () => {
     setSelectedGroupId(id)
@@ -53,7 +84,11 @@ export function ScheduleCard({
   // 장소 선정하기 버튼 모달 open 핸들
   const handleOpenSelectedPlace = (e: React.MouseEvent) => {
     e.stopPropagation() // 이벤트 버블링 방지
-    if (startTime === '' && endTime === '') {
+    if (buttonText === '+ 일정 확정하기') {
+      setSelectedSurveyId(surveyId)
+      setSelectedGroupId(id)
+      router.push('/schedule/decide')
+    } else if (startTime === '' && endTime === '') {
       setSelectedSurveyId(surveyId)
       setSelectedGroupId(id)
       router.push('/schedule/select')
@@ -108,16 +143,6 @@ export function ScheduleCard({
     }
   }
 
-  const dateText = startDate === '' ? '날짜 미정' : `${startDate}`
-
-  const timeText =
-    startTime === '' && endTime === ''
-      ? '조율 진행중'
-      : `${startTime} - ${endTime}`
-
-  const buttonText =
-    startTime === '' && endTime === '' ? '이어서 하기' : '장소 정하기'
-
   return (
     <div className="px-4 mb-5">
       <div className="text-[#1e1e1e] text-xs font-medium leading-[17px] ml-[12px]">
@@ -136,7 +161,7 @@ export function ScheduleCard({
                 {title}
               </span>
               {/* 모임원 프로필 */}
-              <ProfileSmall profiles={participants} />
+              <ProfileSmall profiles={filteredParticipants} />
             </div>
 
             {/* 약속 시간, 장소 */}
