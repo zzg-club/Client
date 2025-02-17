@@ -83,34 +83,6 @@ export default function Page() {
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
 
-  const selectApi = {
-    createTimeSlot: async (
-      surveyId: number,
-      slotDate: string,
-      startTime: string,
-      endTime: string,
-    ) => {
-      // console.log('surveyId', surveyId)
-      try {
-        const response = await axios.post(
-          `${API_BASE_URL}/api/timeslot/${surveyId}`,
-          {
-            slotDate: slotDate,
-            startTime: startTime,
-            endTime: endTime,
-          },
-          {
-            withCredentials: true, // 쿠키 전송을 위해 필요
-          },
-        )
-        console.log('타임슬롯', slotDate, startTime, endTime)
-        console.log('타임슬롯 생성 성공', response)
-      } catch (error) {
-        console.log('타임슬롯 생성 실패', error)
-      }
-    },
-  }
-
   const patchApi = {
     updateMemberState: async (groupId: number, state: string) => {
       // console.log('surveyId', surveyId)
@@ -133,12 +105,36 @@ export default function Page() {
     },
   }
 
-  if (confirmedData.length > 0 && selectedGroupId) {
-    patchApi.updateMemberState(selectedGroupId, 'ONGOING')
+  const selectApi = {
+    createTimeSlot: async (
+      surveyId: number,
+      slotDate: string,
+      startTime: string,
+      endTime: string,
+    ) => {
+      // console.log('surveyId', surveyId)
+      try {
+        const response = await axios.post(
+          `${API_BASE_URL}/api/timeslot/${surveyId}`,
+          {
+            slotDate: slotDate,
+            startTime: startTime,
+            endTime: endTime,
+          },
+          {
+            withCredentials: true, // 쿠키 전송을 위해 필요
+          },
+        )
+        console.log('타임슬롯', slotDate, startTime, endTime)
+        console.log('타임슬롯 생성 성공', response)
+        if (selectedGroupId) {
+          patchApi.updateMemberState(selectedGroupId, 'ONGOING')
+        }
+      } catch (error) {
+        console.log('타임슬롯 생성 실패', error)
+      }
+    },
   }
-  // if (confirmedData.length === 0 && selectedGroupId) {
-  //   patchApi.updateMemberState(selectedGroupId, 'INCOMPLETE')
-  // }
 
   useEffect(() => {
     if (!selectedSurveyId) return
@@ -175,8 +171,12 @@ export default function Page() {
         )
         console.log('Saved slot data get 성공', res.data)
         setConfirmedData(res.data.data)
-        if (res.data.data.length > 0) {
+        if (res.data.data.length > 0 && selectedGroupId) {
           setIsPurple(true)
+          patchApi.updateMemberState(selectedGroupId, 'ONGOING')
+        }
+        if (res.data.data.length == 0 && selectedGroupId) {
+          patchApi.updateMemberState(selectedGroupId, 'INCOMPLETE')
         }
       } catch (error) {
         console.log('Saved slot data get 실패', error)
@@ -184,11 +184,17 @@ export default function Page() {
     }
 
     getSavedSlot()
-  }, [API_BASE_URL, selectedSurveyId])
+  }, [API_BASE_URL, selectedGroupId, selectedSurveyId])
 
   useEffect(() => {
     setDateTime(confirmedData)
   }, [confirmedData])
+
+  const patchCompletedStatus = () => {
+    if (selectedGroupId) {
+      patchApi.updateMemberState(selectedGroupId, 'COMPLETED')
+    }
+  }
 
   const handleTitleChange = (newTitle: string) => {
     setTitle(newTitle)
@@ -409,26 +415,26 @@ export default function Page() {
         : `${selectedDates[currentPage * DAYS_PER_PAGE]?.month}월`
       : `${groupedDate[currentPage]?.date?.[highlightedIndex ?? 0]?.month ?? groupedDate[currentPage]?.date?.[0]?.month}월`
 
+  const getMemberList = useCallback(async () => {
+    try {
+      const res = await axios.get(
+        `${API_BASE_URL}/api/group-members/List/${selectedGroupId}`,
+        {
+          withCredentials: true, // 쿠키 전송을 위해 필요
+        },
+      )
+      console.log('참여자 리스트 get 성공', res.data)
+      setParticipants(res.data.data)
+    } catch (error) {
+      console.log('참여자 리스트 get 실패', error)
+    }
+  }, [API_BASE_URL, selectedGroupId])
+
   useEffect(() => {
     if (!selectedGroupId) return
     console.log('groupId', selectedGroupId)
-    const getMemberList = async () => {
-      try {
-        const res = await axios.get(
-          `${API_BASE_URL}/api/group-members/List/${selectedGroupId}`,
-          {
-            withCredentials: true, // 쿠키 전송을 위해 필요
-          },
-        )
-        console.log('참여자 리스트 get 성공', res.data)
-        setParticipants(res.data.data)
-      } catch (error) {
-        console.log('참여자 리스트 get 실패', error)
-      }
-    }
-
     getMemberList()
-  }, [API_BASE_URL, selectedGroupId])
+  }, [API_BASE_URL, getMemberList, selectedGroupId])
 
   // console.log('selectedGroupID', selectedGroupId)
 
@@ -438,6 +444,7 @@ export default function Page() {
   const [isNextOpen, setIsNextOpen] = useState(false)
 
   const handleToDecideModal = () => {
+    getMemberList()
     if (isPurple) {
       setIsToDecideModal(true)
       setIsExpanded(false)
@@ -562,7 +569,10 @@ export default function Page() {
         <CustomModal
           open={isToDecideModal}
           onOpenChange={() => setIsToDecideModal(!isToDecideModal)}
-          onNext={handleDanger}
+          onNext={() => {
+            patchCompletedStatus()
+            handleDanger()
+          }}
           isFooter={true}
           footerText={'최적의 일정 찾기'}
         >
@@ -605,7 +615,10 @@ export default function Page() {
         <CustomModal
           open={isToDecideModal}
           onOpenChange={() => setIsToDecideModal(!isToDecideModal)}
-          onNext={() => router.push('/schedule')}
+          onNext={() => {
+            patchCompletedStatus()
+            router.push('/schedule')
+          }}
           isFooter={true}
           footerText={'확정된 일정은 곧 안내해드릴게요!'}
         >
