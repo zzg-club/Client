@@ -24,6 +24,7 @@ export type Participant = {
   name: string
   image: string
   type: string
+  scheduleComplete: string
 }
 
 export type Schedule = {
