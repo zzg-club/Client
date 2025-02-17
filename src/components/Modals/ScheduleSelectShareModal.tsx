@@ -2,10 +2,11 @@
 
 import { Copy } from 'lucide-react'
 import { useState, useEffect } from 'react'
-import Image from 'next/image'
+// import Image from 'next/image'
 import { QRCodeSVG } from 'qrcode.react'
 import { useGroupStore } from '@/store/groupStore'
 import axios from 'axios'
+import KakaoShareButton from '@/components/Buttons/KakaoShareButton'
 
 export default function ScheduleSelectShareModal() {
   const [copied, setCopied] = useState(false)
@@ -80,16 +81,7 @@ export default function ScheduleSelectShareModal() {
         </div>
 
         <div>
-          <div className="h-[45px] px-[27px] py-2.5 bg-[#fee500] rounded-xl flex-col justify-start items-start gap-2.5 inline-flex overflow-hidden mt-[4px]">
-            <div className="w-[158px] justify-center items-center gap-[5px] inline-flex">
-              <div className="relative w-6 h-6 py-[5px] flex-col justify-center items-center gap-2.5 inline-flex overflow-hidden">
-                <Image src="/share-kakao.svg" alt="share-kakao" fill />
-              </div>
-              <div className="text-center text-black/90 text-[15px] font-normal font-['Pretendard'] leading-[17px]">
-                카카오 공유하기
-              </div>
-            </div>
-          </div>
+          <KakaoShareButton inviteUrl={inviteUrl} />
         </div>
       </div>
     </div>
