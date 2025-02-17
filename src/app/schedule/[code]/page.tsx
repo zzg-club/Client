@@ -1,14 +1,25 @@
 'use client'
 
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import { useParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
+import { useSurveyStore } from '@/store/surveyStore'
+import { useGroupStore } from '@/store/groupStore'
+import { MdError } from 'react-icons/md'
+import { useInviteStore } from '@/store/inviteStore'
 
 export default function CodePage() {
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
   const { code } = useParams() // URL에서 code 파라미터 가져오기
   const router = useRouter()
+  const [err, setErr] = useState<string>()
+
+  const { setSelectedSurveyId } = useSurveyStore()
+  const { setSelectedGroupId } = useGroupStore()
+  const { setInviteUrl } = useInviteStore()
+
+  const FRONT_URL = 'https://localhost:3000'
 
   useEffect(() => {
     console.log(code)
@@ -25,16 +36,31 @@ export default function CodePage() {
         )
 
         console.log('초대 코드 성공', response)
-        router.push('/schedule')
+        const surveyId = response.data.data.surveyId
+        const groupId = response.data.data.groupId
+
+        if (surveyId === -1) {
+          // 확정된 일정일 경우 스케줄 카드로 이동
+          router.push('/schedule')
+        } else {
+          // 조율중인 일정일 경우 select 페이지로 이동
+          setSelectedGroupId(groupId)
+          setSelectedSurveyId(surveyId)
+          router.push('/schedule/select')
+        }
       } catch (error) {
         if (axios.isAxiosError(error) && error.response) {
           if (error.response.status === 403) {
-            console.log('초대 실패 403', error)
-            alert('로그인 후 다시 초대링크에 접속해주세요.') // 403 에러(로그아웃 상태) 시 알림 -> 예외처리 확인 필요
+            //setErr('로그인 후 다시 초대링크에 접속해주세요.')
+            console.log('초대 실패 403', error) // 403 에러(로그아웃 상태) 시 알림 -> 예외처리 확인 필요
+            setInviteUrl(`${FRONT_URL}/schedule/select/${code}`)
+            alert('로그인 후 다시 초대링크에 접속해주세요.')
+            router.push('/')
           } else if (error.response.status === 409) {
-            alert('이미 초대된 모임입니다.')
+            setErr('이미 초대된 모임입니다.')
             router.push('/schedule')
           } else {
+            setErr('오류가 발생했습니다.')
             console.log('초대 코드 실패', error)
           }
         }
@@ -42,12 +68,20 @@ export default function CodePage() {
     }
 
     postCode()
-  }, [API_BASE_URL, code, router])
+  }, [API_BASE_URL, code, router, setSelectedGroupId, setSelectedSurveyId])
   return (
     <div className="flex flex-col items-center justify-center min-h-screen background-blue">
-      {/* <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-500"></div> */}
-      <Image src="/loadingspinner.gif" alt="로딩" width={100} height={50} />
-      <div className="font-medium">모임에 초대 중입니다</div>
+      {err ? (
+        <div className="flex flex-col items-center justify-center">
+          <MdError color="#9562FB" size={80} />
+          <div className="font-medium mt-2">{err}</div>
+        </div>
+      ) : (
+        <>
+          <Image src="/loadingspinner.gif" alt="로딩" width={100} height={50} />
+          <div className="font-medium">모임에 초대 중입니다</div>
+        </>
+      )}
     </div>
   )
 }
