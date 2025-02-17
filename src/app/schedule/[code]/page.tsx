@@ -68,7 +68,7 @@ export default function CodePage() {
     }
 
     postCode()
-  }, [API_BASE_URL, code, router, setSelectedGroupId, setSelectedSurveyId])
+  }, [API_BASE_URL, code, router, setSelectedGroupId, setSelectedSurveyId, setInviteUrl])
   return (
     <div className="flex flex-col items-center justify-center min-h-screen background-blue">
       {err ? (
