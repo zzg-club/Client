@@ -36,7 +36,8 @@ export function ProfileSmall({
             className="relative h-8 w-8 rounded-[20px] border-2 border-[#9562fa] overflow-hidden"
           >
             {/* 프로필 이미지 */}
-            {profile.scheduleComplete === 'INCOMPLETE' || 'ONGOING' ? (
+            {profile.scheduleComplete === 'INCOMPLETE' ||
+            profile.scheduleComplete === 'ONGOING' ? (
               <div className="absolute inset-0 bg-[#afafaf]/80 rounded-[20px] z-10"></div>
             ) : (
               <></>
