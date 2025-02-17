@@ -68,7 +68,8 @@ export default function MembersDefault({
               {/* {!(member.isScheduleSelect ?? true) && (
                 <div className="absolute inset-0 bg-[#afafaf]/80 rounded-3xl z-10"></div>
               )} */}
-              {member.scheduleComplete === 'INCOMPLETE' || 'ONGOING' ? (
+              {member.scheduleComplete === 'INCOMPLETE' ||
+              member.scheduleComplete === 'ONGOIN' ? (
                 <div className="absolute inset-0 bg-[#afafaf]/80 rounded-[20px] z-10"></div>
               ) : (
                 <></>
