@@ -47,7 +47,8 @@ export function ProfileLarge({
             {/* {!profile.isScheduleSelect && (
               <div className="absolute inset-0 bg-[#afafaf]/80 rounded-[20px] z-10"></div>
             )} */}
-            {profile.scheduleComplete === 'INCOMPLETE' || 'ONGOING' ? (
+            {profile.scheduleComplete === 'INCOMPLETE' ||
+            profile.scheduleComplete === 'ONGOING' ? (
               <div className="absolute inset-0 bg-[#afafaf]/80 rounded-[20px] z-10"></div>
             ) : (
               <></>
