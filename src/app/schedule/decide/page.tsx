@@ -107,8 +107,6 @@ export default function Page() {
 
   const { selectedSurveyId } = useSurveyStore() // Zustand에서 가져옴
   const { selectedGroupId } = useGroupStore()
-  console.log('surveyId', selectedSurveyId)
-  console.log('groupId', selectedGroupId)
 
   const [decideData, setDecideData] = useState<PrevScheduleData[]>([])
   const [participants, setParticipants] = useState<Participants[]>()
@@ -116,6 +114,7 @@ export default function Page() {
   // 모든 인원의 survey 정보 받아오기
   useEffect(() => {
     if (!selectedSurveyId || !selectedGroupId) return
+    
     console.log('surveyId', selectedSurveyId)
     const getSurveyData = async () => {
       try {
@@ -224,7 +223,7 @@ export default function Page() {
     } else if (!isPurple && !decideBottomOpen) {
       setWarning(true)
     } else if (isPurple && decideBottomOpen) {
-      console.log('dateTime', dateTime)
+      //console.log('dateTime', dateTime)
       console.log('decideData', decideData)
       console.log(
         'reqData',
@@ -456,7 +455,7 @@ export default function Page() {
   }
 
   useEffect(() => {
-    console.log(`Updated dateTimeData:`, dateTime)
+    //console.log(`Updated dateTimeData:`, dateTime)
 
     // 먼저 모든 날짜와 시간대를 하나의 배열로 변환
     const allTimeSlots = dateTime
@@ -497,7 +496,7 @@ export default function Page() {
     }))
 
     setFinalData(transformedData)
-    console.log('transformedData', transformedData)
+    //console.log('transformedData', transformedData)
   }, [dateTime])
 
   const weekdayMap: { [key: string]: string } = {
