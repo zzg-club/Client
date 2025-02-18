@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import Title from '@/components/Header/Title'
 import SelectedDays from '@/components/Header/SelectedDays'
 import TimeStamp from '@/components/Body/TimeStamp'
@@ -12,7 +12,6 @@ import MembersDefault from '@/components/Modals/MembersDefault'
 import { useRouter } from 'next/navigation'
 import { useSurveyStore } from '@/store/surveyStore'
 import { useGroupStore } from '@/store/groupStore'
-import { useNotificationStore } from '@/store/notificationStore'
 import axios from 'axios'
 
 interface SelectedDate {
@@ -48,9 +47,6 @@ interface ScheduleData {
 export default function Page() {
   const { selectedSurveyId } = useSurveyStore()
   const { selectedGroupId } = useGroupStore()
-  const showNotification = useNotificationStore(
-    (state) => state.showNotification,
-  )
   // console.log('zustand에서 가져온 surveyId', selectedSurveyId)
   const [title, setTitle] = useState('제목 없는 일정')
   const [currentPage, setCurrentPage] = useState(0)
@@ -88,27 +84,24 @@ export default function Page() {
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
 
-  const patchApi = {
-    updateMemberState: async (groupId: number, state: string) => {
-      // console.log('surveyId', surveyId)
-      try {
-        const response = await axios.patch(
-          `${API_BASE_URL}/api/group-members/schedule`,
-          {
-            groupId: groupId,
-            state: state,
-          },
-          {
-            withCredentials: true, // 쿠키 전송을 위해 필요
-          },
-        )
-        console.log('status', state)
-        console.log('멤버 상태 업데이트 성공', response)
-      } catch (error) {
-        console.log('멤버 상태 업데이트 실패', error)
-      }
-    },
-  }
+  const patchApi = useMemo(
+    () => ({
+      updateMemberState: async (groupId: number, state: string) => {
+        try {
+          const response = await axios.patch(
+            `${API_BASE_URL}/api/group-members/schedule`,
+            { groupId, state },
+            { withCredentials: true },
+          )
+          console.log('status', state)
+          console.log('멤버 상태 업데이트 성공', response)
+        } catch (error) {
+          console.log('멤버 상태 업데이트 실패', error)
+        }
+      },
+    }),
+    [API_BASE_URL],
+  )
 
   const selectApi = {
     createTimeSlot: async (
@@ -189,7 +182,7 @@ export default function Page() {
     }
 
     getSavedSlot()
-  }, [API_BASE_URL, selectedGroupId, selectedSurveyId])
+  }, [API_BASE_URL, patchApi, selectedGroupId, selectedSurveyId])
 
   useEffect(() => {
     setDateTime(confirmedData)
@@ -199,10 +192,6 @@ export default function Page() {
     if (selectedGroupId) {
       patchApi.updateMemberState(selectedGroupId, 'COMPLETED')
     }
-  }
-
-  const handleNotification = () => {
-    showNotification('모임 생성 완료!')
   }
 
   const handleTitleChange = (newTitle: string) => {
@@ -595,7 +584,6 @@ export default function Page() {
             onNext={() => {
               patchCompletedStatus()
               handleDanger()
-              handleNotification()
             }}
             isFooter={true}
             footerText={'최적의 일정 찾기'}
@@ -642,7 +630,6 @@ export default function Page() {
           onNext={() => {
             patchCompletedStatus()
             router.push('/schedule')
-            handleNotification()
           }}
           isFooter={true}
           footerText={'확정된 일정은 곧 안내해드릴게요!'}
