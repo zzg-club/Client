@@ -46,7 +46,7 @@ export default function EditTitle({
     getGroupLeader()
   }, [API_BASE_URL, selectedGroupId])
 
-  console.log('getGroupLeader', isGroupLeader)
+  // console.log('getGroupLeader', isGroupLeader)
 
   useEffect(() => {
     setTitle(initialTitle)
@@ -56,18 +56,18 @@ export default function EditTitle({
     setTitle(event.target.value)
   }
 
-  console.log('initialTitle', initialTitle)
-  console.log('title', title)
+  // console.log('initialTitle', initialTitle)
+  // console.log('title', title)
 
   const handleSave = async () => {
     setIsEditing(false)
     onTitleChange(title)
 
     try {
-      const res = axios.patch(
+      const res = await axios.patch(
         `${API_BASE_URL}/api/survey/${selectedSurveyId}`,
         {
-          name: title,
+          title: title,
         },
         {
           withCredentials: true, // 쿠키 전송을 위해 필요

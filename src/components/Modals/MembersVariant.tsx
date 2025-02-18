@@ -67,6 +67,28 @@ export default function MembersVariant({
     setIsUserPlusOpen(!isUserPlusOpen)
   }
 
+  function formatDate(dateStr: string | null | undefined) {
+    if (!dateStr) return null
+    // 문자열에서 숫자(월, 일)와 요일 추출
+    const match = dateStr.match(/(\d+)월 (\d+)일 (\S+)/)
+    if (!match) return null // 형식이 다르면 null 반환
+
+    const [, month, day, dayOfWeek] = match
+
+    // 요일을 변환 (한 글자로 줄이기)
+    const dayMap: Record<string, string> = {
+      월요일: '월',
+      화요일: '화',
+      수요일: '수',
+      목요일: '목',
+      금요일: '금',
+      토요일: '토',
+      일요일: '일',
+    }
+
+    return `${month.padStart(2, '0')}.${day.padStart(2, '0')}(${dayMap[dayOfWeek] || '?'})`
+  }
+
   const dateText =
     startDate === '' && endDate === '' ? (
       '날짜 미정'
@@ -74,8 +96,7 @@ export default function MembersVariant({
       startDate
     ) : (
       <>
-        {startDate}
-        <br />- {endDate}
+        {formatDate(startDate)} - {formatDate(endDate)}
       </>
     )
 

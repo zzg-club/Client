@@ -111,6 +111,8 @@ export default function Page() {
   const [decideData, setDecideData] = useState<PrevScheduleData[]>([])
   const [participants, setParticipants] = useState<Participants[]>()
 
+  const [title, setTitle] = useState<string>('')
+
   // 모든 인원의 survey 정보 받아오기
   useEffect(() => {
     if (!selectedSurveyId || !selectedGroupId) return
@@ -127,6 +129,7 @@ export default function Page() {
 
         console.log('decide data', res.data.data)
         setDecideData([res.data.data])
+        setTitle(res.data.data.title)
       } catch (error) {
         if (axios.isAxiosError(error) && error.response) {
           if (error.response.status === 404) {
@@ -162,8 +165,6 @@ export default function Page() {
     getMemberData()
     getSurveyData()
   }, [API_BASE_URL, selectedSurveyId, selectedGroupId, router])
-
-  const [title, setTitle] = useState(decideData[0]?.title)
 
   // dateTime(최종 선택 결과)에서 각 타임슬롯별로 가능한 유저ID 추가하는 함수 - userIds
   function transformToReqData(
