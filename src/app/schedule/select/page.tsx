@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import Title from '@/components/Header/Title'
 import SelectedDays from '@/components/Header/SelectedDays'
 import TimeStamp from '@/components/Body/TimeStamp'
@@ -70,6 +70,7 @@ export default function Page() {
       id: number
       name: string
       image: string
+      type: string
       scheduleComplete: string
     }[]
   >([])
@@ -83,27 +84,24 @@ export default function Page() {
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
 
-  const patchApi = {
-    updateMemberState: async (groupId: number, state: string) => {
-      // console.log('surveyId', surveyId)
-      try {
-        const response = await axios.patch(
-          `${API_BASE_URL}/api/group-members/schedule`,
-          {
-            groupId: groupId,
-            state: state,
-          },
-          {
-            withCredentials: true, // 쿠키 전송을 위해 필요
-          },
-        )
-        console.log('status', state)
-        console.log('멤버 상태 업데이트 성공', response)
-      } catch (error) {
-        console.log('멤버 상태 업데이트 실패', error)
-      }
-    },
-  }
+  const patchApi = useMemo(
+    () => ({
+      updateMemberState: async (groupId: number, state: string) => {
+        try {
+          const response = await axios.patch(
+            `${API_BASE_URL}/api/group-members/schedule`,
+            { groupId, state },
+            { withCredentials: true },
+          )
+          console.log('status', state)
+          console.log('멤버 상태 업데이트 성공', response)
+        } catch (error) {
+          console.log('멤버 상태 업데이트 실패', error)
+        }
+      },
+    }),
+    [API_BASE_URL],
+  )
 
   const selectApi = {
     createTimeSlot: async (
@@ -184,7 +182,7 @@ export default function Page() {
     }
 
     getSavedSlot()
-  }, [API_BASE_URL, selectedGroupId, selectedSurveyId])
+  }, [API_BASE_URL, patchApi, selectedGroupId, selectedSurveyId])
 
   useEffect(() => {
     setDateTime(confirmedData)
@@ -454,6 +452,13 @@ export default function Page() {
     }
   }
 
+  const handleOpenChange = () => {
+    setIsToDecideModal(!isToDecideModal)
+    if (isToDecideModal) {
+      setIsExpanded(false)
+    }
+  }
+
   // 확장 상태 관리, ProfileLarge에서 전달받은 확장 상태 업데이트
   const [isExpanded, setIsExpanded] = useState(false)
   const handleExpandChange = (newExpandState: boolean) => {
@@ -507,6 +512,12 @@ export default function Page() {
 
     getGroupLeader()
   }, [API_BASE_URL, selectedGroupId])
+
+  const otherParticipants = participants.filter((p) => !p.type.includes('&my'))
+
+  const allOthersCompleted = otherParticipants.every(
+    (p) => p.scheduleComplete === 'COMPLETED',
+  )
 
   return (
     <div>
@@ -566,61 +577,56 @@ export default function Page() {
         </div>
       </SelectedBottom>
       {isGroupLeader ? (
-        <CustomModal
-          open={isToDecideModal}
-          onOpenChange={() => {
-            setIsToDecideModal(!isToDecideModal)
-            isToDecideModal && setIsExpanded(false)
-          }}
-          onNext={() => {
-            patchCompletedStatus()
-            handleDanger()
-          }}
-          isFooter={true}
-          footerText={'최적의 일정 찾기'}
-        >
-          <div className="flex flex-col item-center justify-center">
-            <div className="text-center text-[#1e1e1e] text-[18px] font-medium leading-[25px] mb-[24px]">
-              함께하는 친구들이
-              <br /> 시간을 입력하고 있어요!
-            </div>
-            <div className="flex item-center justify-center mb-[12px]">
-              <ProfileLarge
-                // key={scheduleModalData[0].id}
-                profiles={participants}
-                onExpandChange={handleExpandChange}
-              />
-            </div>
-            {isDanger ? (
-              <div className="text-center text-[#ff0000] text-xs font-medium ">
-                아직 입력을 마치지 않은 친구가 있어요!
-                <br />
-                그래도 진행하시겠어요?
+        !allOthersCompleted && (
+          <CustomModal
+            open={isToDecideModal}
+            onOpenChange={handleOpenChange}
+            onNext={() => {
+              patchCompletedStatus()
+              handleDanger()
+            }}
+            isFooter={true}
+            footerText={'최적의 일정 찾기'}
+          >
+            <div className="flex flex-col item-center justify-center">
+              <div className="text-center text-[#1e1e1e] text-[18px] font-medium leading-[25px] mb-[24px]">
+                함께하는 친구들이
+                <br /> 시간을 입력하고 있어요!
               </div>
-            ) : (
-              <div className="text-center text-[#afafaf] text-xs font-medium">
-                입력을 완료한 친구의 프로필만 활성화돼요!
-              </div>
-            )}
-            <div className="flex item-center justify-center">
-              {isExpanded && (
-                <MembersDefault
-                  blackText={false}
-                  title={surveyData[0]?.title || title}
-                  members={participants}
-                  memberCount={participants.length}
+              <div className="flex item-center justify-center mb-[12px]">
+                <ProfileLarge
+                  profiles={participants}
+                  onExpandChange={handleExpandChange}
                 />
+              </div>
+              {isDanger ? (
+                <div className="text-center text-[#ff0000] text-xs font-medium ">
+                  아직 입력을 마치지 않은 친구가 있어요!
+                  <br />
+                  그래도 진행하시겠어요?
+                </div>
+              ) : (
+                <div className="text-center text-[#afafaf] text-xs font-medium">
+                  입력을 완료한 친구의 프로필만 활성화돼요!
+                </div>
               )}
+              <div className="flex item-center justify-center">
+                {isExpanded && (
+                  <MembersDefault
+                    blackText={false}
+                    title={surveyData[0]?.title || title}
+                    members={participants}
+                    memberCount={participants.length}
+                  />
+                )}
+              </div>
             </div>
-          </div>
-        </CustomModal>
+          </CustomModal>
+        )
       ) : (
         <CustomModal
           open={isToDecideModal}
-          onOpenChange={() => {
-            setIsToDecideModal(!isToDecideModal)
-            !isToDecideModal && setIsExpanded(false)
-          }}
+          onOpenChange={handleOpenChange}
           onNext={() => {
             patchCompletedStatus()
             router.push('/schedule')

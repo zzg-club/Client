@@ -7,6 +7,7 @@ import MembersVariant from '../Modals/MembersVariant'
 import SelectModal from '../Modals/SelectModal'
 import { useGroupStore } from '@/store/groupStore'
 import { useSurveyStore } from '@/store/surveyStore'
+import { useNotificationStore } from '@/store/notificationStore'
 import axios from 'axios'
 
 export interface ScheduleCardProps {
@@ -50,6 +51,9 @@ export function ScheduleCard({
 
   const { setSelectedGroupId, selectedGroupId } = useGroupStore()
   const { setSelectedSurveyId } = useSurveyStore()
+  const showNotification = useNotificationStore(
+    (state) => state.showNotification,
+  )
 
   const myCompleteIndex = participants.findIndex(
     (p) => p.type === '&my' || p.type === 'creator&my',
@@ -76,10 +80,6 @@ export function ScheduleCard({
       : startTime === '' && endTime === ''
         ? '+ 이어서 하기'
         : '+ 장소 정하기'
-
-  // const filteredParticipants = participants.map(
-  //   ({ scheduleComplete, ...rest }) => rest,
-  // )
 
   // membersVariant 모달 핸들
   const handleMembersModalOpen = () => {
@@ -113,6 +113,18 @@ export function ScheduleCard({
   // 선택된 멤버의 id값 전달을 위한 상태추적
   // const [selectedMember, setSelectedMember] = useState(participants)
 
+  const handleNotification = (type: string) => {
+    if (type == 'creator&my') {
+      showNotification('모임 나가기 완료!')
+    } else if (type == '&other') {
+      showNotification('내보내기 완료!')
+    } else if (type == '&my') {
+      showNotification('모임 나가기 완료!')
+    } else {
+      showNotification('삭제 실패')
+    }
+  }
+
   // 모임장, 모임원 삭제하기 api 조건
   const handleRemoveMember = async (userId: number, type: string) => {
     try {
@@ -142,9 +154,11 @@ export function ScheduleCard({
       setIsMembersModalOpen(false)
       getSchedule()
       fetchNotification()
+      handleNotification(type)
       return response
     } catch (error) {
       console.error(`${type} 삭제 실패:`, error)
+      handleNotification('error')
       throw error
     }
   }

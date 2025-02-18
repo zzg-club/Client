@@ -15,6 +15,7 @@ import { useDateTimeStore } from '@/store/dateTimeStore'
 import { useRouter } from 'next/navigation'
 import { useSurveyStore } from '@/store/surveyStore'
 import { useGroupStore } from '@/store/groupStore'
+import { useNotificationStore } from '@/store/notificationStore'
 import axios from 'axios'
 import '../../styles/BottomSheet.css'
 
@@ -68,6 +69,9 @@ export default function ScheduleLanding() {
 
   const { setSelectedSurveyId } = useSurveyStore() // Zustand에서 가져옴
   const { setSelectedGroupId } = useGroupStore()
+  const showNotification = useNotificationStore(
+    (state) => state.showNotification,
+  )
 
   const getSchedule = useCallback(async () => {
     try {
@@ -134,6 +138,10 @@ export default function ScheduleLanding() {
       console.error('알림 정보 불러오기 실패:', error)
     }
   }, [API_BASE_URL])
+
+  const handleNotification = () => {
+    showNotification('모임 생성 완료!')
+  }
 
   // 연동 데이터
   useEffect(() => {
@@ -293,6 +301,7 @@ export default function ScheduleLanding() {
 
       // 일정이 추가된 후 다시 스케줄 목록 가져오기
       await getSchedule()
+      handleNotification()
     } catch (error) {
       console.error('API 요청 실패', error)
     }
