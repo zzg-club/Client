@@ -7,6 +7,7 @@ import ModalNotification from '../Notification/ModalNotification'
 import CustomModal from './CustomModal'
 import ScheduleSelectShareModal from './ScheduleSelectShareModal'
 import '../../styles/BottomSheet.css'
+import { FaCrown } from 'react-icons/fa6'
 
 export interface ModalProps {
   startDate: string
@@ -187,7 +188,11 @@ export default function MembersVariant({
                 </button>
               )}
             </div>
-            <span className="self-stretch text-center text-[#8e8d8d] text-base font-normal leading-[17px]">
+            <span className="flex items-center text-center text-[#8e8d8d] text-base font-normal leading-[17px]">
+              {(member.type === 'creator&my' ||
+                member.type === 'creator&other') && (
+                <FaCrown size={16} className="text-[#9562fa] inline mr-[3px]" />
+              )}
               {member.type === 'creator&my' || member.type === '&my'
                 ? '나'
                 : `${member.name}`}

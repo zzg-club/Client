@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import '../../styles/BottomSheet.css'
+import { FaCrown } from 'react-icons/fa6'
 
 export interface ModalProps {
   title: string
@@ -10,6 +11,7 @@ export interface ModalProps {
     id: number
     name: string
     image: string
+    type: string
     scheduleComplete?: string
   }[]
   blackText: boolean
@@ -82,8 +84,14 @@ export default function MembersDefault({
                 style={{ objectFit: 'cover' }} // 비율 유지하며 채우기
               />
             </div>
-            <span className="self-stretch text-center text-[#8e8d8d] text-base font-normal leading-[17px]">
-              {member.name}
+            <span className="flex items-center text-center text-[#8e8d8d] text-base font-normal leading-[17px]">
+              {(member.type === 'creator&my' ||
+                member.type === 'creator&other') && (
+                <FaCrown size={16} className="text-[#9562fa] inline mr-[3px]" />
+              )}
+              {member.type === 'creator&my' || member.type === '&my'
+                ? '나'
+                : `${member.name}`}
             </span>
           </div>
         ))}
