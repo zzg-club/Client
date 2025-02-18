@@ -193,9 +193,15 @@ export default function ScheduleLanding() {
   // // 캐러셀 알림 버튼 클릭 이벤트
   const handleLeftBtn = (id: number) => {
     const currentNotification = notifications.find((n) => n.id === id)
-    if (currentNotification?.leftBtnText === '확정하기') {
+    // if (currentNotification?.leftBtnText === '확정하기') {
+    //   setSelectedSurveyId(currentNotification.surveyId)
+    //   router.push('schedule/select')
+    // }
+    if (currentNotification?.notiMessage?.includes('일정')) {
       setSelectedSurveyId(currentNotification.surveyId)
       router.push('schedule/select')
+    } else {
+      router.push('letsmeet/middle')
     }
   }
 
