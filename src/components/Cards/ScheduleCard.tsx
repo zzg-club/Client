@@ -77,9 +77,9 @@ export function ScheduleCard({
         ? '+ 이어서 하기'
         : '+ 장소 정하기'
 
-  const filteredParticipants = participants.map(
-    ({ scheduleComplete, ...rest }) => rest,
-  )
+  // const filteredParticipants = participants.map(
+  //   ({ scheduleComplete, ...rest }) => rest,
+  // )
 
   // membersVariant 모달 핸들
   const handleMembersModalOpen = () => {
@@ -167,7 +167,12 @@ export function ScheduleCard({
                 {title}
               </span>
               {/* 모임원 프로필 */}
-              <ProfileSmall profiles={filteredParticipants} />
+              <ProfileSmall
+                profiles={participants.map((p) => ({
+                  ...p,
+                  scheduleComplete: 'COMPLETE',
+                }))}
+              />
             </div>
 
             {/* 약속 시간, 장소 */}
