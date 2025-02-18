@@ -610,7 +610,7 @@ export default function Page() {
                   입력을 완료한 친구의 프로필만 활성화돼요!
                 </div>
               )}
-              <div className="flex item-center justify-center">
+              <div>
                 {isExpanded && (
                   <MembersDefault
                     blackText={false}
@@ -648,7 +648,7 @@ export default function Page() {
             <div className="text-center text-[#afafaf] text-xs font-medium">
               입력을 완료한 친구의 프로필만 활성화돼요!
             </div>
-            <div className="flex item-center justify-center">
+            <div>
               {isExpanded && (
                 <MembersDefault
                   blackText={false}
