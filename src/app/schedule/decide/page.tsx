@@ -114,7 +114,7 @@ export default function Page() {
   // 모든 인원의 survey 정보 받아오기
   useEffect(() => {
     if (!selectedSurveyId || !selectedGroupId) return
-    
+
     console.log('surveyId', selectedSurveyId)
     const getSurveyData = async () => {
       try {
@@ -128,7 +128,16 @@ export default function Page() {
         console.log('decide data', res.data.data)
         setDecideData([res.data.data])
       } catch (error) {
-        console.log('survey data get 실패', error)
+        if (axios.isAxiosError(error) && error.response) {
+          if (error.response.status === 404) {
+            alert(
+              '모든 모임원이 가능 시간을 입력하지 않아서 일정을 조율할 수 없어요.',
+            )
+            router.push('/schedule/select')
+          } else {
+            console.log('survey data get 실패', error)
+          }
+        }
       }
     }
 
@@ -152,7 +161,7 @@ export default function Page() {
 
     getMemberData()
     getSurveyData()
-  }, [API_BASE_URL, selectedSurveyId, selectedGroupId])
+  }, [API_BASE_URL, selectedSurveyId, selectedGroupId, router])
 
   const [title, setTitle] = useState(decideData[0]?.title)
 
