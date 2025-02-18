@@ -36,8 +36,11 @@ export function ProfileSmall({
             className="relative h-8 w-8 rounded-[20px] border-2 border-[#9562fa] overflow-hidden"
           >
             {/* 프로필 이미지 */}
-            {profile.scheduleComplete === 'INCOMPLETE' && (
+            {profile.scheduleComplete === 'INCOMPLETE' ||
+            profile.scheduleComplete === 'ONGOING' ? (
               <div className="absolute inset-0 bg-[#afafaf]/80 rounded-[20px] z-10"></div>
+            ) : (
+              <></>
             )}
             <Image src={profile.image} alt={profile.name} fill sizes="32px" />
             {/* 다섯 번째 프로필 이미지에 회색 배경, 더보기 아이콘 */}
