@@ -34,6 +34,9 @@ export function ProfileSmall({
           <div
             key={profile.id}
             className="relative h-8 w-8 rounded-[20px] border-2 border-[#9562fa] overflow-hidden"
+            style={{
+              zIndex: displayProfiles.length + index,
+            }}
           >
             {/* 프로필 이미지 */}
             {profile.scheduleComplete === 'INCOMPLETE' ||
