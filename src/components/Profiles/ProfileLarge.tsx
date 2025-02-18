@@ -43,6 +43,9 @@ export function ProfileLarge({
           <div
             key={profile.id}
             className="relative w-[42px] h-[42px] rounded-[20px] border-2 border-[#9562fa] z-20 overflow-hidden"
+            style={{
+              zIndex: displayProfiles.length + index,
+            }}
           >
             {/* {!profile.isScheduleSelect && (
               <div className="absolute inset-0 bg-[#afafaf]/80 rounded-[20px] z-10"></div>
