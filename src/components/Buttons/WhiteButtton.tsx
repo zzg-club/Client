@@ -13,7 +13,7 @@ export function WhiteButton({ text, onClick, className = '' }: ButtonProps) {
         onClick={onClick}
         className={'text-sm text-center font-semibold leading-[17px]'}
       >
-        + {text}
+        {text}
       </button>
     </div>
   )
