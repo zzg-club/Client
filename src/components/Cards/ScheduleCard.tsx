@@ -201,6 +201,7 @@ export function ScheduleCard({
         <MembersVariant
           onClickX={handleRemoveMember}
           startDate={startDate}
+          endDate={endDate}
           location={location}
           startTime={startTime}
           endTime={endTime}
