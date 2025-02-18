@@ -40,7 +40,8 @@ interface GroupedDate {
 interface TimeSlot {
   start: string
   end: string
-  selectedBy: string[]
+  selectedById: string[]
+  selectedByName: string[]
 }
 
 interface DateData {
@@ -182,7 +183,7 @@ export default function Page() {
               d.dateData.find((dData) => dData.date === date)?.timeSlots || [],
           )
 
-          // 겹치는 시간대의 `selectedBy` 정보를 `userIds`로 추가
+          // 겹치는 시간대의 `selectedById` 정보를 `userIds`로 추가
           const userIds = matchingDecideSlots
             .filter(
               (decideSlot) =>
@@ -190,7 +191,7 @@ export default function Page() {
                 (end > decideSlot.start && end <= decideSlot.end) || // 끝 시간이 겹치는 경우
                 (start <= decideSlot.start && end >= decideSlot.end), // `dateTime`이 `decideData` 전체를 포함하는 경우
             )
-            .flatMap((decideSlot) => decideSlot.selectedBy || [])
+            .flatMap((decideSlot) => decideSlot.selectedById || [])
 
           // UTC 변환을 명확하게 지정
           const startDateObj = new Date(`${date}T${start}:00`)
