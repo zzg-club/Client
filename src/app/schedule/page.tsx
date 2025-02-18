@@ -24,11 +24,13 @@ export type Participant = {
   name: string
   image: string
   type: string
+  scheduleComplete: string
 }
 
 export type Schedule = {
   id: number
   startDate: string
+  endDate?: string
   title: string
   startTime: string
   endTime: string
@@ -55,6 +57,9 @@ export default function ScheduleLanding() {
   const [endDate, setEndDate] = useState<string | null>(null) // 직접입력하기-끝날짜,시간
   const [scheduleList, setScheduleList] = useState<Schedule[]>([])
   const [notifications, setNotifications] = useState<Notification[]>([])
+  const [filterOption, setFilterOption] = useState<
+    'all' | 'confirmed' | 'unconfirmed'
+  >('all')
 
   const resetDateTime = useDateTimeStore((state) => state.resetDateTime)
   const router = useRouter()
@@ -68,18 +73,19 @@ export default function ScheduleLanding() {
     try {
       const response = await fetch(`${API_BASE_URL}/api/members/List`, {
         method: 'GET',
-        credentials: 'include', // 쿠키 전송을 위해 필요
+        credentials: 'include',
       })
       if (!response.ok) {
-        // 예외 처리
         throw new Error(`서버 에러: ${response.status}`)
       }
       const data = await response.json()
       console.log('스케줄 정보:', data.data)
+
       if (Array.isArray(data.data)) {
-        const formattedSchedules = data.data.map((schedule: Schedule) => ({
+        let formattedSchedules = data.data.map((schedule: Schedule) => ({
           id: schedule.id,
           startDate: schedule.startDate,
+          endDate: schedule.endDate,
           title: schedule.title,
           startTime: schedule.startTime,
           endTime: schedule.endTime,
@@ -88,6 +94,16 @@ export default function ScheduleLanding() {
           surveyId: schedule.surveyId,
         }))
 
+        if (filterOption === 'confirmed') {
+          formattedSchedules = formattedSchedules.filter(
+            (schedule: Schedule) => schedule.startDate,
+          )
+        } else if (filterOption === 'unconfirmed') {
+          formattedSchedules = formattedSchedules.filter(
+            (schedule: Schedule) => !schedule.startDate,
+          )
+        }
+
         setScheduleList(formattedSchedules.reverse())
       } else {
         console.error('데이터 구조 에러:', data.data)
@@ -95,7 +111,11 @@ export default function ScheduleLanding() {
     } catch (error) {
       console.error('스케줄 정보 불러오기 실패:', error)
     }
-  }, [API_BASE_URL])
+  }, [API_BASE_URL, filterOption])
+
+  const handleFilterChange = (option: 'all' | 'confirmed' | 'unconfirmed') => {
+    setFilterOption(option)
+  }
 
   const fetchNotification = useCallback(async () => {
     try {
@@ -173,9 +193,15 @@ export default function ScheduleLanding() {
   // // 캐러셀 알림 버튼 클릭 이벤트
   const handleLeftBtn = (id: number) => {
     const currentNotification = notifications.find((n) => n.id === id)
-    if (currentNotification?.leftBtnText === '확정하기') {
+    // if (currentNotification?.leftBtnText === '확정하기') {
+    //   setSelectedSurveyId(currentNotification.surveyId)
+    //   router.push('schedule/select')
+    // }
+    if (currentNotification?.notiMessage?.includes('일정')) {
       setSelectedSurveyId(currentNotification.surveyId)
       router.push('schedule/select')
+    } else {
+      router.push('letsmeet/middle')
     }
   }
 
@@ -296,12 +322,46 @@ export default function ScheduleLanding() {
       {/* 스케줄 카드 컴포넌트 */}
       {scheduleList.length > 0 ? (
         <>
-          <div className="w-full h-[34px] px-4 my-[8px] flex justify-start items-center gap-[2px]">
-            <div className="ml-[8px] text-[#1e1e1e] text-xs font-medium leading-[17px]">
-              내 일정
+          <div className="w-full h-[34px] px-4 my-[8px] flex justify-between items-center">
+            <div className="flex justify-start items-center gap-[2px]">
+              <div className="ml-[8px] text-[#1e1e1e] text-xs font-medium leading-[17px]">
+                내 일정
+              </div>
+              <div className="text-[#9562fa] text-base font-medium leading-[17px]">
+                +{scheduleList.length}
+              </div>
             </div>
-            <div className="text-[#9562fa] text-base font-medium leading-[17px]">
-              +{scheduleList.length}
+            <div className="flex text-[15px] items-center gap-[10px] ">
+              <button
+                className={` ${
+                  filterOption === 'all'
+                    ? 'text-[#9562fa] font-bold'
+                    : 'text-[#afafaf]'
+                }`}
+                onClick={() => handleFilterChange('all')}
+              >
+                전체
+              </button>
+              <button
+                className={` ${
+                  filterOption === 'unconfirmed'
+                    ? 'text-[#9562fa] font-bold'
+                    : 'text-[#afafaf]'
+                }`}
+                onClick={() => handleFilterChange('unconfirmed')}
+              >
+                진행중
+              </button>
+              <button
+                className={` ${
+                  filterOption === 'confirmed'
+                    ? 'text-[#9562fa] font-bold'
+                    : 'text-[#afafaf]'
+                }`}
+                onClick={() => handleFilterChange('confirmed')}
+              >
+                확정
+              </button>
             </div>
           </div>
           <div className="flex-1 overflow-y-auto pb-[120px] overflow-hidden">
@@ -310,6 +370,7 @@ export default function ScheduleLanding() {
                 <ScheduleCard
                   id={schedule?.id}
                   startDate={schedule?.startDate}
+                  endDate={schedule?.endDate}
                   title={schedule?.title}
                   startTime={schedule?.startTime}
                   endTime={schedule?.endTime}
@@ -326,7 +387,7 @@ export default function ScheduleLanding() {
       ) : (
         // 스케줄 정보 없는 경우 렌더링 화면
         <div className="flex flex-col items-center justify-center flex-1">
-          <div className="text-center text-zinc-400 text-base font-medium leading-[17px]">
+          <div className="text-center text-[#afafaf] text-base font-medium leading-[17px]">
             모임 일정을 추가해봐요!
           </div>
         </div>

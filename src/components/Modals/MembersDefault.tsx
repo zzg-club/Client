@@ -68,8 +68,11 @@ export default function MembersDefault({
               {/* {!(member.isScheduleSelect ?? true) && (
                 <div className="absolute inset-0 bg-[#afafaf]/80 rounded-3xl z-10"></div>
               )} */}
-              {member.scheduleComplete === 'INCOMPLETE' && (
-                <div className="absolute inset-0 bg-[#afafaf]/80 rounded-3xl z-10"></div>
+              {member.scheduleComplete === 'INCOMPLETE' ||
+              member.scheduleComplete === 'ONGOING' ? (
+                <div className="absolute inset-0 bg-[#afafaf]/80 rounded-[20px] z-10"></div>
+              ) : (
+                <></>
               )}
               <Image
                 src={member.image}

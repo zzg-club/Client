@@ -576,7 +576,10 @@ export default function Page() {
       {isGroupLeader ? (
         <CustomModal
           open={isToDecideModal}
-          onOpenChange={() => setIsToDecideModal(!isToDecideModal)}
+          onOpenChange={() => {
+            setIsToDecideModal(!isToDecideModal)
+            isToDecideModal && setIsExpanded(false)
+          }}
           onNext={() => {
             patchCompletedStatus()
             handleDanger()
@@ -612,7 +615,7 @@ export default function Page() {
               {isExpanded && (
                 <MembersDefault
                   blackText={false}
-                  title={title}
+                  title={surveyData[0]?.title || title}
                   members={participants}
                   memberCount={participants.length}
                 />
@@ -623,7 +626,10 @@ export default function Page() {
       ) : (
         <CustomModal
           open={isToDecideModal}
-          onOpenChange={() => setIsToDecideModal(!isToDecideModal)}
+          onOpenChange={() => {
+            setIsToDecideModal(!isToDecideModal)
+            !isToDecideModal && setIsExpanded(false)
+          }}
           onNext={() => {
             patchCompletedStatus()
             router.push('/schedule')
@@ -650,7 +656,7 @@ export default function Page() {
               {isExpanded && (
                 <MembersDefault
                   blackText={false}
-                  title={title}
+                  title={surveyData[0]?.title || title}
                   members={participants}
                   memberCount={participants.length}
                 />

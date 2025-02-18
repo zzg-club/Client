@@ -10,6 +10,7 @@ import '../../styles/BottomSheet.css'
 
 export interface ModalProps {
   startDate: string
+  endDate?: string
   location?: string
   startTime?: string
   endTime?: string
@@ -24,6 +25,7 @@ export interface ModalProps {
 
 export default function MembersVariant({
   startDate,
+  endDate,
   location,
   startTime,
   endTime,
@@ -65,7 +67,17 @@ export default function MembersVariant({
     setIsUserPlusOpen(!isUserPlusOpen)
   }
 
-  const dateText = startDate === '' ? '날짜 미정' : `${startDate}`
+  const dateText =
+    startDate === '' && endDate === '' ? (
+      '날짜 미정'
+    ) : endDate === '' ? (
+      startDate
+    ) : (
+      <>
+        {startDate}
+        <br />- {endDate}
+      </>
+    )
 
   const timeText =
     startTime === '' && endTime === ''
