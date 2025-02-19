@@ -12,16 +12,30 @@ const KakaoShareButton = ({ inviteUrl }: KakaoShareProps) => {
   const [isKakaoLoaded, setIsKakaoLoaded] = useState(false)
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.Kakao) {
-      if (!window.Kakao.isInitialized()) {
-        window.Kakao.init(process.env.NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY!)
+    const loadKakaoSDK = () => {
+      const script = document.createElement('script')
+      script.src = 'https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js'
+      script.integrity =
+        'sha384-DKYJZ8NLiK8MN4/C5P2dtSmLQ4KwPaoqAfyA/DfmEc1VDxu4yyC7wy6K1Hs90nka'
+      script.crossOrigin = 'anonymous'
+      script.onload = () => {
+        if (window.Kakao && !window.Kakao.isInitialized()) {
+          window.Kakao.init(process.env.NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY!)
+        }
+        setIsKakaoLoaded(true)
       }
-      setIsKakaoLoaded(true)
+      document.body.appendChild(script)
     }
+
+    loadKakaoSDK()
   }, [])
 
   const handleKakaoShare = () => {
-    if (!isKakaoLoaded || !window.Kakao) return
+    if (!isKakaoLoaded) {
+      return
+    }
+
+    if (!window.Kakao || !window.Kakao.Share) return
 
     window.Kakao.Share.sendDefault({
       objectType: 'feed',

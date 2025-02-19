@@ -5,13 +5,18 @@ import { useState, useEffect } from 'react'
 // import Image from 'next/image'
 import { QRCodeSVG } from 'qrcode.react'
 import { useGroupStore } from '@/store/groupStore'
+import { useNotificationStore } from '@/store/notificationStore'
 import axios from 'axios'
 import KakaoShareButton from '@/components/Buttons/KakaoShareButton'
+import { FaCheck } from 'react-icons/fa6'
 
 export default function ScheduleSelectShareModal() {
   const [copied, setCopied] = useState(false)
   const { selectedGroupId } = useGroupStore()
   const [inviteUrl, setInviteUrl] = useState('')
+  const showNotification = useNotificationStore(
+    (state) => state.showNotification,
+  )
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
   const FRONT_URL = 'https://localhost:3000'
@@ -44,6 +49,7 @@ export default function ScheduleSelectShareModal() {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
       console.log(copied)
+      showNotification('복사되었습니다.')
     } catch (err) {
       console.error('Failed to copy:', err)
     }
@@ -63,7 +69,7 @@ export default function ScheduleSelectShareModal() {
           링크는 24시간 동안 유효해요!
         </p>
 
-        <div className="flex w-[212px] h-8 px-3.5 py-[5px] rounded-xl border border-[#afafaf] justify-end items-center gap-7 inline-flex mb-[4px]">
+        <div className="flex w-[212px] h-8 pl-3.5 pr-2 py-[5px] rounded-xl border border-[#afafaf] justify-end items-center gap-7 inline-flex mb-[4px]">
           <div className="flex relative">
             <input
               type="text"
@@ -75,7 +81,11 @@ export default function ScheduleSelectShareModal() {
               onClick={handleCopy}
               className=" hover:bg-gray-100 rounded-md transition-colors rounded-[50%]"
             >
-              <Copy className="h-4 w-4 text-[#d9d9d9]" />
+              {!copied ? (
+                <Copy className="h-4 w-4 text-[#d9d9d9] m-1" />
+              ) : (
+                <FaCheck className="h-4 w-4 text-[#d9d9d9] m-1" />
+              )}
             </button>
           </div>
         </div>

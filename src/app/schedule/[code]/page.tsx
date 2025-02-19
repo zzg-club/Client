@@ -47,6 +47,7 @@ export default function CodePage() {
         )
 
         console.log('초대 코드 성공', response)
+        handleNotification('초대받은 모임에 참여했어요!')
         const surveyId = response.data.data.surveyId
         const groupId = response.data.data.groupId
 
@@ -66,10 +67,10 @@ export default function CodePage() {
             console.log('초대 실패 403', error) // 403 에러(로그아웃 상태) 시 알림 -> 예외처리 확인 필요
             setInviteUrl(`${FRONT_URL}/schedule/select/${code}`)
             router.push('/')
-            handleNotification('로그인 후 다시 초대링크에 접속해주세요.')
+            handleNotification('로그인이 필요합니다.')
           } else if (error.response.status === 409) {
             router.push('/schedule')
-            handleNotification('이미 초대된 모임입니다.')
+            handleNotification('이미 참여중인 모임이에요!')
           } else {
             setErr('오류가 발생했습니다.')
             console.log('초대 코드 실패', error)
