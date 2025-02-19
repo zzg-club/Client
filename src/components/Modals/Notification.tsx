@@ -4,6 +4,7 @@ import React from 'react'
 import { useEffect } from 'react'
 import { ToastContainer, Zoom, toast } from 'react-toastify'
 import { useNotificationStore } from '@/store/notificationStore'
+import '@/styles/Notification.css'
 
 export default function Notification() {
   const { notification, hideNotification } = useNotificationStore()
@@ -22,6 +23,7 @@ export default function Notification() {
         hideProgressBar
         newestOnTop={false}
         closeOnClick={false}
+        closeButton={false}
         rtl={false}
         pauseOnFocusLoss
         draggable
