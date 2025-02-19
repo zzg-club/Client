@@ -466,6 +466,16 @@ export default function Page() {
     }
   }
 
+  const handleNextModal = () => {
+    patchCompletedStatus()
+    if (isGroupLeader && allOthersCompleted) {
+      router.push('/schedule/decide')
+    }
+    setIsNextOpen(false)
+    // getMemberList()
+    setIsToDecideModal(true)
+  }
+
   const handleOpenChange = () => {
     setIsToDecideModal(!isToDecideModal)
     if (isToDecideModal) {
@@ -672,12 +682,7 @@ export default function Page() {
       <CustomModal
         open={isNextOpen}
         onOpenChange={() => setIsNextOpen(!isNextOpen)}
-        onNext={() => {
-          patchCompletedStatus()
-          setIsNextOpen(false)
-          // getMemberList()
-          setIsToDecideModal(true)
-        }}
+        onNext={handleNextModal}
         isFooter={true}
         footerText={'다음으로'}
       >
