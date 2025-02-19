@@ -99,6 +99,7 @@ export default function ScheduleLanding() {
         }))
 
         setScheduleList(formattedSchedules.reverse())
+        setFilterOption('all')
       } else {
         console.error('데이터 구조 에러:', data.data)
       }
