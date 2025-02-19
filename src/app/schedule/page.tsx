@@ -68,7 +68,7 @@ export default function ScheduleLanding() {
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
 
   const { setSelectedSurveyId } = useSurveyStore() // Zustand에서 가져옴
-  const { setSelectedGroupId } = useGroupStore()
+  const { selectedGroupId, setSelectedGroupId } = useGroupStore()
   const showNotification = useNotificationStore(
     (state) => state.showNotification,
   )
@@ -204,6 +204,7 @@ export default function ScheduleLanding() {
       setSelectedSurveyId(currentNotification.surveyId)
       router.push('schedule/select')
     } else {
+      if (selectedGroupId) setSelectedGroupId(selectedGroupId)
       router.push('letsmeet/middle')
     }
   }
