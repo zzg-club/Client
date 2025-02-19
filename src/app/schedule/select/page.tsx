@@ -441,12 +441,23 @@ export default function Page() {
   const [isToDecideModal, setIsToDecideModal] = useState(false)
   const [isNextOpen, setIsNextOpen] = useState(false)
 
+  const otherParticipants = participants.filter((p) => !p.type.includes('&my'))
+
+  const allOthersCompleted = otherParticipants.every(
+    (p) => p.scheduleComplete === 'COMPLETED',
+  )
+
   const handleToDecideModal = () => {
     getMemberList()
     if (isPurple) {
-      setIsToDecideModal(true)
-      setIsExpanded(false)
-      setIsDanger(false)
+      if (isGroupLeader && allOthersCompleted) {
+        patchCompletedStatus()
+        router.push('/schedule/decide')
+      } else {
+        setIsToDecideModal(true)
+        setIsExpanded(false)
+        setIsDanger(false)
+      }
     } else {
       setIsNextOpen(true)
     }
@@ -512,12 +523,6 @@ export default function Page() {
 
     getGroupLeader()
   }, [API_BASE_URL, selectedGroupId])
-
-  const otherParticipants = participants.filter((p) => !p.type.includes('&my'))
-
-  const allOthersCompleted = otherParticipants.every(
-    (p) => p.scheduleComplete === 'COMPLETED',
-  )
 
   return (
     <div>
