@@ -309,6 +309,7 @@ export default function ScheduleLanding() {
     setIsDdialogOpen(false)
     setIsOpen(false)
     resetDateTime()
+    setTitle('제목 없는 일정')
     router.push('/schedule')
   }
 
