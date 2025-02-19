@@ -84,6 +84,27 @@ export default function Page() {
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
 
+  const getMemberList = useCallback(async () => {
+    try {
+      const res = await axios.get(
+        `${API_BASE_URL}/api/group-members/List/${selectedGroupId}`,
+        {
+          withCredentials: true, // 쿠키 전송을 위해 필요
+        },
+      )
+      console.log('참여자 리스트 get 성공', res.data)
+      setParticipants(res.data.data)
+    } catch (error) {
+      console.log('참여자 리스트 get 실패', error)
+    }
+  }, [API_BASE_URL, selectedGroupId])
+
+  useEffect(() => {
+    if (!selectedGroupId) return
+    console.log('groupId', selectedGroupId)
+    getMemberList()
+  }, [API_BASE_URL, getMemberList, selectedGroupId])
+
   const patchApi = useMemo(
     () => ({
       updateMemberState: async (groupId: number, state: string) => {
@@ -95,12 +116,13 @@ export default function Page() {
           )
           console.log('status', state)
           console.log('멤버 상태 업데이트 성공', response)
+          getMemberList()
         } catch (error) {
           console.log('멤버 상태 업데이트 실패', error)
         }
       },
     }),
-    [API_BASE_URL],
+    [API_BASE_URL, getMemberList],
   )
 
   const selectApi = {
@@ -413,27 +435,6 @@ export default function Page() {
         : `${selectedDates[currentPage * DAYS_PER_PAGE]?.month}월`
       : `${groupedDate[currentPage]?.date?.[highlightedIndex ?? 0]?.month ?? groupedDate[currentPage]?.date?.[0]?.month}월`
 
-  const getMemberList = useCallback(async () => {
-    try {
-      const res = await axios.get(
-        `${API_BASE_URL}/api/group-members/List/${selectedGroupId}`,
-        {
-          withCredentials: true, // 쿠키 전송을 위해 필요
-        },
-      )
-      console.log('참여자 리스트 get 성공', res.data)
-      setParticipants(res.data.data)
-    } catch (error) {
-      console.log('참여자 리스트 get 실패', error)
-    }
-  }, [API_BASE_URL, selectedGroupId])
-
-  useEffect(() => {
-    if (!selectedGroupId) return
-    console.log('groupId', selectedGroupId)
-    getMemberList()
-  }, [API_BASE_URL, getMemberList, selectedGroupId])
-
   // console.log('selectedGroupID', selectedGroupId)
 
   const router = useRouter()
@@ -448,17 +449,19 @@ export default function Page() {
   )
 
   const handleToDecideModal = () => {
-    getMemberList()
+    // getMemberList()
     if (isPurple) {
+      patchCompletedStatus()
       if (isGroupLeader && allOthersCompleted) {
-        patchCompletedStatus()
         router.push('/schedule/decide')
       } else {
+        // getMemberList()
         setIsToDecideModal(true)
         setIsExpanded(false)
         setIsDanger(false)
       }
     } else {
+      // getMemberList()
       setIsNextOpen(true)
     }
   }
@@ -587,7 +590,7 @@ export default function Page() {
             open={isToDecideModal}
             onOpenChange={handleOpenChange}
             onNext={() => {
-              patchCompletedStatus()
+              // patchCompletedStatus()
               handleDanger()
             }}
             isFooter={true}
@@ -633,7 +636,7 @@ export default function Page() {
           open={isToDecideModal}
           onOpenChange={handleOpenChange}
           onNext={() => {
-            patchCompletedStatus()
+            // patchCompletedStatus()
             router.push('/schedule')
           }}
           isFooter={true}
@@ -670,8 +673,10 @@ export default function Page() {
         open={isNextOpen}
         onOpenChange={() => setIsNextOpen(!isNextOpen)}
         onNext={() => {
-          setIsToDecideModal(true)
+          patchCompletedStatus()
           setIsNextOpen(false)
+          // getMemberList()
+          setIsToDecideModal(true)
         }}
         isFooter={true}
         footerText={'다음으로'}
