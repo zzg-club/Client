@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import '../../styles/BottomSheet.css'
+import { FaCrown } from 'react-icons/fa6'
 
 export interface ModalProps {
   title: string
@@ -10,6 +11,7 @@ export interface ModalProps {
     id: number
     name: string
     image: string
+    type: string
     scheduleComplete?: string
   }[]
   blackText: boolean
@@ -61,7 +63,7 @@ export default function MembersDefault({
       )}
 
       {/* 멤버 그리드 부분 */}
-      <div className="py-1 grid grid-cols-3 gap-[32px] max-h-[170px] overflow-hidden">
+      <div className="py-1 grid grid-cols-3 gap-[15px] max-h-[154px] overflow-hidden">
         {members.map((member) => (
           <div key={member.id} className="flex flex-col items-center gap-1">
             <div className="relative w-12 h-12 rounded-3xl border-2 border-[#9562fa] overflow-hidden">
@@ -82,9 +84,26 @@ export default function MembersDefault({
                 style={{ objectFit: 'cover' }} // 비율 유지하며 채우기
               />
             </div>
-            <span className="self-stretch text-center text-[#8e8d8d] text-base font-normal leading-[17px]">
-              {member.name}
-            </span>
+            <div className="relative flex justify-center items-center">
+              {member.type === 'creator&my' ||
+              member.type === 'creator&other' ? (
+                <>
+                  <FaCrown
+                    size={14}
+                    className="absolute -left-2 text-[#9562fa]"
+                  />
+                  <span className="ml-[8px] text-center text-[#8e8d8d] text-base font-normal leading-[17px]">
+                    {member.type === 'creator&my' ? '나' : member.name}
+                  </span>
+                </>
+              ) : (
+                <span className="text-center text-[#8e8d8d] text-base font-normal leading-[17px]">
+                  {member.type === 'creator&my' || member.type === '&my'
+                    ? '나'
+                    : member.name}
+                </span>
+              )}
+            </div>
           </div>
         ))}
       </div>
