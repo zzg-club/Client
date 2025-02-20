@@ -1,18 +1,55 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import './CustomPin.css'
 import Image from 'next/image'
 
 interface CustomPinProps {
   imagePath: string
-  isMine?: boolean // 본인 핀 여부를 결정하는 프로퍼티
-  depart?: string
+  isMine?: boolean
+  userId: number // 사용자 ID 추가
+  groupId: number // 그룹 ID 추가
 }
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
 
 const CustomPin: React.FC<CustomPinProps> = ({
   imagePath,
   isMine = false,
-  depart = '',
+  userId,
+  groupId,
 }) => {
+  const [depart, setDepart] = useState<string>('')
+  useEffect(() => {
+    const fetchDepartInfo = async () => {
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/api/location/${groupId}`,
+          {
+            method: 'GET',
+            credentials: 'include',
+          },
+        )
+
+        if (!response.ok) throw new Error('Failed to fetch location data')
+
+        const data = await response.json()
+
+        if (data.success) {
+          const userLocation = [
+            data.data.myLocation,
+            ...data.data.membersLocation,
+          ].find((member) => member.userId === userId)
+          if (userLocation) {
+            setDepart(userLocation.stationName || '출발지 미정')
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch depart location:', error)
+      }
+    }
+
+    fetchDepartInfo()
+  }, [groupId, userId])
+
   return (
     <div className={`pin-container ${isMine ? 'pin-purple' : 'pin-gray'}`}>
       <div
