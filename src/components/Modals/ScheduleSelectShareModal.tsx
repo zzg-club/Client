@@ -19,7 +19,7 @@ export default function ScheduleSelectShareModal() {
   )
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
-  const FRONT_URL = 'https://localhost:3000'
+  const FRONT_BASE_URL = process.env.NEXT_PUBLIC_FRONT_BASE_URL
 
   useEffect(() => {
     // console.log('그룹아이디', selectedGroupId)
@@ -34,14 +34,14 @@ export default function ScheduleSelectShareModal() {
 
         const code = codeRes.data.data.code
         console.log('초대 코드 생성 성공', code)
-        setInviteUrl(`${FRONT_URL}/schedule/${code}`)
+        setInviteUrl(`${FRONT_BASE_URL}/schedule/${code}`)
       } catch (error) {
         console.log('초대 코드 생성 실패', error)
       }
     }
 
     getCode()
-  }, [selectedGroupId, API_BASE_URL])
+  }, [selectedGroupId, API_BASE_URL, FRONT_BASE_URL])
 
   const handleCopy = async () => {
     try {

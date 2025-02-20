@@ -23,7 +23,7 @@ export default function CodePage() {
     (state) => state.showNotification,
   )
 
-  const FRONT_URL = 'https://localhost:3000'
+  const FRONT_BASE_URL = process.env.NEXT_PUBLIC_FRONT_BASE_URL
 
   const handleNotification = useCallback(
     (message: string) => {
@@ -65,7 +65,7 @@ export default function CodePage() {
           if (error.response.status === 403) {
             //setErr('로그인 후 다시 초대링크에 접속해주세요.')
             console.log('초대 실패 403', error) // 403 에러(로그아웃 상태) 시 알림 -> 예외처리 확인 필요
-            setInviteUrl(`${FRONT_URL}/schedule/select/${code}`)
+            setInviteUrl(`${FRONT_BASE_URL}/schedule/select/${code}`)
             router.push('/')
             handleNotification('로그인이 필요합니다.')
           } else if (error.response.status === 409) {
@@ -82,6 +82,7 @@ export default function CodePage() {
     postCode()
   }, [
     API_BASE_URL,
+    FRONT_BASE_URL,
     code,
     router,
     setSelectedGroupId,
