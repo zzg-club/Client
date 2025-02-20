@@ -13,6 +13,8 @@ import { useRouter } from 'next/navigation'
 import { useSurveyStore } from '@/store/surveyStore'
 import { useGroupStore } from '@/store/groupStore'
 import axios from 'axios'
+import { useNotificationStore } from '@/store/notificationStore'
+import Image from 'next/image'
 
 interface SelectedDate {
   year: number
@@ -113,6 +115,11 @@ export default function Page() {
   const [participants, setParticipants] = useState<Participants[]>()
 
   const [title, setTitle] = useState<string>('')
+  const [err, setErr] = useState(false)
+
+  const showNotification = useNotificationStore(
+    (state) => state.showNotification,
+  )
 
   // 모든 인원의 survey 정보 받아오기
   useEffect(() => {
@@ -132,9 +139,11 @@ export default function Page() {
         setDecideData([res.data.data])
         setTitle(res.data.data.title)
       } catch (error) {
+        setErr(true)
         if (axios.isAxiosError(error) && error.response) {
           if (error.response.status === 404) {
-            alert(
+            console.log(404)
+            showNotification(
               '모든 모임원이 가능 시간을 입력하지 않아서 일정을 조율할 수 없어요.',
             )
             router.push('/schedule/select')
@@ -165,7 +174,13 @@ export default function Page() {
 
     getMemberData()
     getSurveyData()
-  }, [API_BASE_URL, selectedSurveyId, selectedGroupId, router])
+  }, [
+    API_BASE_URL,
+    selectedSurveyId,
+    selectedGroupId,
+    router,
+    showNotification,
+  ])
 
   // dateTime(최종 선택 결과)에서 각 타임슬롯별로 가능한 유저ID 추가하는 함수 - userIds
   function transformToReqData(
@@ -247,21 +262,24 @@ export default function Page() {
         title || decideData[0]?.title,
       )
 
-      // api 요청
-      try {
-        const res = await axios.post(
-          `${API_BASE_URL}/api/schedule/${selectedSurveyId}/decide`,
-          reqBody,
-          {
-            withCredentials: true, // 쿠키 전송을 위해 필요
-          },
-        )
+      console.log('req', reqBody)
 
-        console.log('일정 확정 성공', res)
-        router.push('/schedule')
-      } catch (error) {
-        console.log('일정 확정 실패', error)
-      }
+      // api 요청
+      //   try {
+      //     const res = await axios.post(
+      //       `${API_BASE_URL}/api/schedule/${selectedSurveyId}/decide`,
+      //       reqBody,
+      //       {
+      //         withCredentials: true, // 쿠키 전송을 위해 필요
+      //       },
+      //     )
+
+      //     console.log('일정 확정 성공', res)
+      //     router.push('/schedule')
+      //     showNotification('모임 확정 완료!')
+      //   } catch (error) {
+      //     console.log('일정 확정 실패', error)
+      //   }
     }
   }
 
@@ -508,6 +526,10 @@ export default function Page() {
 
     setFinalData(transformedData)
     //console.log('transformedData', transformedData)
+
+    if (dateTime.length === 0) {
+      setIsPurple(false)
+    }
   }, [dateTime])
 
   const weekdayMap: { [key: string]: string } = {
@@ -602,6 +624,11 @@ export default function Page() {
 
   return (
     <div className="flex flex-col h-full bg-white">
+      {err && (
+        <div className="flex flex-col items-center justify-center min-h-screen">
+          <Image src="/loadingspinner.gif" alt="로딩" width={100} height={50} />
+        </div>
+      )}
       <Title
         buttonText={'확정'}
         initialTitle={decideData[0]?.title}
