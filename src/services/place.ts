@@ -31,7 +31,7 @@ export const fetchCategoryData = async (
   
     try {
       const response = await fetch(
-        `${API_BASE_URL}/api/places/category/${categoryIndex}`,
+        `${API_BASE_URL}/api/places/category/cardList/${categoryIndex}`,
         {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
@@ -45,11 +45,11 @@ export const fetchCategoryData = async (
       }
   
       const result = await response.json()
-      if (!result?.data || !Array.isArray(result.data)) {
+      if (!result?.data.content || !Array.isArray(result.data.content)) {
         throw new Error('Invalid response format received from the API.')
       }
   
-      return result.data
+      return result.data.content
     } catch (error) {
       console.error('Error in fetchCategoryData:', error)
       throw error
