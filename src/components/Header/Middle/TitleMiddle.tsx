@@ -23,7 +23,6 @@ export default function Title({
   initialTitle,
   isPurple,
   onTitleChange,
-
   isDisabled = false,
   onConfirm,
 }: TitleProps) {
@@ -80,7 +79,7 @@ export default function Title({
         onOpenChange={handleOpenDdialg}
         isFooter={false}
       >
-        <ScheduleSelectShareModal inviteUrl="https://moim.team/" />
+        <ScheduleSelectShareModal />
       </CustomModal>
     </div>
   )
