@@ -265,21 +265,21 @@ export default function Page() {
       console.log('req', reqBody)
 
       // api 요청
-      //   try {
-      //     const res = await axios.post(
-      //       `${API_BASE_URL}/api/schedule/${selectedSurveyId}/decide`,
-      //       reqBody,
-      //       {
-      //         withCredentials: true, // 쿠키 전송을 위해 필요
-      //       },
-      //     )
+      try {
+        const res = await axios.post(
+          `${API_BASE_URL}/api/schedule/${selectedSurveyId}/decide`,
+          reqBody,
+          {
+            withCredentials: true, // 쿠키 전송을 위해 필요
+          },
+        )
 
-      //     console.log('일정 확정 성공', res)
-      //     router.push('/schedule')
-      //     showNotification('모임 확정 완료!')
-      //   } catch (error) {
-      //     console.log('일정 확정 실패', error)
-      //   }
+        console.log('일정 확정 성공', res)
+        router.push('/schedule')
+        showNotification('모임 확정 완료!')
+      } catch (error) {
+        console.log('일정 확정 실패', error)
+      }
     }
   }
 
