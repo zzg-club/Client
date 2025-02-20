@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { ScheduleOptions } from '@/components/Buttons/Floating/Options'
 import CustomModal from '@/components/Modals/CustomModal'
 import CustomCalendar from '@/components/Calendars/CustomCalendar'
@@ -68,7 +68,7 @@ export default function ScheduleLanding() {
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
 
   const { setSelectedSurveyId } = useSurveyStore() // Zustand에서 가져옴
-  const { setSelectedGroupId } = useGroupStore()
+  const { selectedGroupId, setSelectedGroupId } = useGroupStore()
   const showNotification = useNotificationStore(
     (state) => state.showNotification,
   )
@@ -86,7 +86,7 @@ export default function ScheduleLanding() {
       console.log('스케줄 정보:', data.data)
 
       if (Array.isArray(data.data)) {
-        let formattedSchedules = data.data.map((schedule: Schedule) => ({
+        const formattedSchedules = data.data.map((schedule: Schedule) => ({
           id: schedule.id,
           startDate: schedule.startDate,
           endDate: schedule.endDate,
@@ -98,24 +98,24 @@ export default function ScheduleLanding() {
           surveyId: schedule.surveyId,
         }))
 
-        if (filterOption === 'confirmed') {
-          formattedSchedules = formattedSchedules.filter(
-            (schedule: Schedule) => schedule.startDate,
-          )
-        } else if (filterOption === 'unconfirmed') {
-          formattedSchedules = formattedSchedules.filter(
-            (schedule: Schedule) => !schedule.startDate,
-          )
-        }
-
         setScheduleList(formattedSchedules.reverse())
+        setFilterOption('all')
       } else {
         console.error('데이터 구조 에러:', data.data)
       }
     } catch (error) {
       console.error('스케줄 정보 불러오기 실패:', error)
     }
-  }, [API_BASE_URL, filterOption])
+  }, [API_BASE_URL])
+
+  const filteredSchedules = useMemo(() => {
+    if (filterOption === 'confirmed') {
+      return scheduleList.filter((schedule) => schedule.startDate)
+    } else if (filterOption === 'unconfirmed') {
+      return scheduleList.filter((schedule) => !schedule.startDate)
+    }
+    return scheduleList
+  }, [filterOption, scheduleList])
 
   const handleFilterChange = (option: 'all' | 'confirmed' | 'unconfirmed') => {
     setFilterOption(option)
@@ -201,14 +201,11 @@ export default function ScheduleLanding() {
   // // 캐러셀 알림 버튼 클릭 이벤트
   const handleLeftBtn = (id: number) => {
     const currentNotification = notifications.find((n) => n.id === id)
-    // if (currentNotification?.leftBtnText === '확정하기') {
-    //   setSelectedSurveyId(currentNotification.surveyId)
-    //   router.push('schedule/select')
-    // }
     if (currentNotification?.notiMessage?.includes('일정')) {
       setSelectedSurveyId(currentNotification.surveyId)
       router.push('schedule/select')
     } else {
+      if (selectedGroupId) setSelectedGroupId(selectedGroupId)
       router.push('letsmeet/middle')
     }
   }
@@ -216,7 +213,6 @@ export default function ScheduleLanding() {
   const handleRightBtn = (id: number) => {
     const filter = notifications.filter((n) => n.id !== id)
     setNotifications(filter)
-    console.log('filter', filter)
   }
 
   const handlePostSchedule = async () => {
@@ -374,7 +370,7 @@ export default function ScheduleLanding() {
             </div>
           </div>
           <div className="flex-1 overflow-y-auto pb-[120px] overflow-hidden">
-            {scheduleList.map((schedule) => (
+            {filteredSchedules.map((schedule: Schedule) => (
               <div key={schedule?.id}>
                 <ScheduleCard
                   id={schedule?.id}
