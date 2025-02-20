@@ -23,8 +23,8 @@ export default function DirectEditTitle({
     setTitle(event.target.value)
   }
 
-  console.log('initialTitle', initialTitle)
-  console.log('title', title)
+  // console.log('initialTitle', initialTitle)
+  // console.log('title', title)
 
   const handleSave = async () => {
     setIsEditing(false)

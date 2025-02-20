@@ -33,7 +33,7 @@ export default function CodePage() {
   )
 
   useEffect(() => {
-    console.log(code)
+    // console.log(code)
     const postCode = async () => {
       try {
         const response = await axios.post(

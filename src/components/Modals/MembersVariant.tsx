@@ -48,18 +48,16 @@ export default function MembersVariant({
   const handleConfirm = () => {
     if (selectedMemberId !== null && selectedMemberType) {
       onClickX(selectedMemberId, selectedMemberType)
-      console.log(selectedMemberId)
+      // console.log(selectedMemberId)
     }
     setShowNotification(false)
     setSelectedMemberId(null)
     setSelectedMemberType('')
-    console.log('컨펌')
   }
 
   const handleCancel = () => {
     setShowNotification(false)
     setSelectedMemberId(null)
-    console.log('취소')
   }
 
   // 친구 추가 버튼 클릭 핸들러

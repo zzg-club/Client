@@ -216,9 +216,9 @@ export default function ScheduleLanding() {
   }
 
   const handlePostSchedule = async () => {
-    console.log('선택날짜', stringDates)
-    console.log('mode', mode)
-    console.log('selected', selected)
+    // console.log('선택날짜', stringDates)
+    // console.log('mode', mode)
+    // console.log('selected', selected)
 
     try {
       // 1. 그룹 생성
@@ -261,8 +261,8 @@ export default function ScheduleLanding() {
   }
 
   const handlePostDirectSchedule = async () => {
-    console.log('startDate', startDate)
-    console.log('endDate', endDate)
+    // console.log('startDate', startDate)
+    // console.log('endDate', endDate)
 
     try {
       // 그룹 생성
@@ -334,7 +334,7 @@ export default function ScheduleLanding() {
                 내 일정
               </div>
               <div className="text-[#9562fa] text-base font-medium leading-[17px]">
-                +{scheduleList.length}
+                +{filteredSchedules.length}
               </div>
             </div>
             <div className="flex text-[15px] items-center gap-[10px] ">

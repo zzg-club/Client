@@ -22,7 +22,7 @@ export default function ScheduleSelectShareModal() {
   const FRONT_URL = 'https://localhost:3000'
 
   useEffect(() => {
-    console.log('그룹아이디', selectedGroupId)
+    // console.log('그룹아이디', selectedGroupId)
     const getCode = async () => {
       try {
         const codeRes = await axios.get(`${API_BASE_URL}/api/members/code`, {
@@ -48,7 +48,7 @@ export default function ScheduleSelectShareModal() {
       await navigator.clipboard.writeText(inviteUrl)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
-      console.log(copied)
+      // console.log(copied)
       showNotification('복사되었습니다.')
     } catch (err) {
       console.error('Failed to copy:', err)

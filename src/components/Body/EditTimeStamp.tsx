@@ -99,7 +99,7 @@ export default function EditTimeStamp({
   )
   const [scale, setScale] = useState(1)
   const gridRef = useRef<HTMLDivElement>(null)
-  const [initialTouchRow] = useState<number | null>(null)
+  // const [initialTouchRow] = useState<number | null>(null)
   const [sortedMockData, setSortedMockData] = useState<DateData[]>([]) // 정렬된 데이터를 상태로 관리
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
   const { selectedSurveyId } = useSurveyStore()
@@ -159,7 +159,7 @@ export default function EditTimeStamp({
   const onColumnClick = useCallback(
     (colIndex: number, rowIndex: number) => {
       if (colIndex === -1 && rowIndex === -1) {
-        console.log('oncolumnindex:', colIndex)
+        // console.log('oncolumnindex:', colIndex)
         handleSelectedCol(colIndex, rowIndex)
         return
       }
@@ -201,7 +201,7 @@ export default function EditTimeStamp({
       return dateA.getTime() - dateB.getTime()
     })
     setSortedMockData(sortingData)
-    console.log('sortingData:', sortingData)
+    // console.log('sortingData:', sortingData)
   }, [mockSelectedSchedule])
 
   const currentSelections = useMemo(() => {
@@ -250,7 +250,7 @@ export default function EditTimeStamp({
 
     if (!clickedSlot) return
 
-    console.log(schedule.date, clickedSlot?.start, '-', clickedSlot?.end)
+    // console.log(schedule.date, clickedSlot?.start, '-', clickedSlot?.end)
 
     if (clickedSlot) {
       const startIdx = timeToIndex(clickedSlot.start)
@@ -284,9 +284,9 @@ export default function EditTimeStamp({
       })
 
       // 바텀시트 열기
-      console.log('handleMouseClick')
+      // console.log('handleMouseClick')
       handleSelectedCol(colIndex, rowIndex)
-      console.log('colIndex', colIndex, 'rowIndex', rowIndex)
+      // console.log('colIndex', colIndex, 'rowIndex', rowIndex)
 
       // 시간 정보 전달
       handleTimeSelect(
@@ -517,10 +517,10 @@ export default function EditTimeStamp({
         //   putTimeslotData(selectedSlotId, mergedStartTime, mergedEndTime)
         // }
 
-        console.log(
-          `최종 병합 영역:${selectedSlotId} ${mergedStartTime} - ${mergedEndTime}`,
-        )
-        console.log('수정 호출 전')
+        // console.log(
+        //   `최종 병합 영역:${selectedSlotId} ${mergedStartTime} - ${mergedEndTime}`,
+        // )
+        // console.log('수정 호출 전')
         putTimeslotData(selectedSlotId, mergedStartTime, mergedEndTime)
       }
 
@@ -614,7 +614,7 @@ export default function EditTimeStamp({
         }
       }
     }
-    console.log('handleTouchDown', rowIndex, initialTouchRow)
+    // console.log('handleTouchDown', rowIndex, initialTouchRow)
   }
 
   const handleTouchMove = useCallback(
@@ -815,16 +815,16 @@ export default function EditTimeStamp({
           // console.log('mergedSelections:', mergedSelections)
 
           handleDateTimeSelect(String(startCol), mergedStartTime, mergedEndTime)
-          console.log('handleMouseUp')
+          // console.log('handleMouseUp')
           return {
             ...prev,
             [currentPage]: mergedSelections,
           }
         })
 
-        console.log(
-          `최종 병합 영역:${selectedSlotId} ${mergedStartTime} - ${mergedEndTime}`,
-        )
+        // console.log(
+        //   `최종 병합 영역:${selectedSlotId} ${mergedStartTime} - ${mergedEndTime}`,
+        // )
         putTimeslotData(selectedSlotId, mergedStartTime, mergedEndTime)
       }
 

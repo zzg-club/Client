@@ -72,7 +72,7 @@ export default function CustomCalendar({
     (weekday: number) => {
       setHasNewSelection(true)
       const monthKey = getMonthKey(month)
-      console.log(monthKey)
+      // console.log(monthKey)
       setSelectedWeekdaysByMonth((prev) => {
         const currentMonthWeekdays = prev[monthKey] || []
         let newWeekdays: number[]
@@ -93,7 +93,7 @@ export default function CustomCalendar({
           // 요일이 하나라도 선택된 경우
           setMode('multiple')
           const dates = getDatesByWeekdays(newWeekdays, month)
-          console.log('dates', dates)
+          // console.log('dates', dates)
           onSelect?.(dates)
         } else {
           // 모든 요일 선택이 해제된 경우
@@ -110,7 +110,7 @@ export default function CustomCalendar({
   const handleMonthChange = useCallback(
     (newMonth: Date) => {
       setMonth(newMonth)
-      console.log('swdbm', selectedWeekdaysByMonth)
+      // console.log('swdbm', selectedWeekdaysByMonth)
       if (mode === 'multiple') {
         if (hasNewSelection) {
           // Reset weekday selections when changing months after a new selection
@@ -121,7 +121,7 @@ export default function CustomCalendar({
         }
       }
     },
-    [hasNewSelection, mode, onSelect, selectedWeekdaysByMonth],
+    [hasNewSelection, mode, onSelect],
   )
 
   const handleDayClick = useCallback(

@@ -98,10 +98,10 @@ export function ScheduleCard({
       setSelectedSurveyId(surveyId)
       setSelectedGroupId(id)
       router.push('/schedule/select')
-      console.log('이어서 하기')
+      // console.log('이어서 하기')
     } else {
       setIsSelectedPlace(true)
-      console.log('장소 정하기 모달 오픈')
+      // console.log('장소 정하기 모달 오픈')
     }
   }
 
@@ -143,7 +143,7 @@ export function ScheduleCard({
         return
       }
 
-      console.log(`API URL: ${url}, 데이터:`, requestData)
+      // console.log(`API URL: ${url}, 데이터:`, requestData)
 
       const response = await axios.delete(url, {
         withCredentials: true,

@@ -27,7 +27,7 @@ export default function EditTitle({
       setIsGroupLeader(false) // selectedGroupId가 없을 때 초기화
       return
     }
-    console.log('groupId', selectedGroupId)
+    // console.log('groupId', selectedGroupId)
     const getGroupLeader = async () => {
       try {
         const res = await axios.get(

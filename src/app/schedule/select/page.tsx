@@ -101,7 +101,7 @@ export default function Page() {
 
   useEffect(() => {
     if (!selectedGroupId) return
-    console.log('groupId', selectedGroupId)
+    // console.log('groupId', selectedGroupId)
     getMemberList()
   }, [API_BASE_URL, getMemberList, selectedGroupId])
 
@@ -114,7 +114,7 @@ export default function Page() {
             { groupId, state },
             { withCredentials: true },
           )
-          console.log('status', state)
+          // console.log('status', state)
           console.log('멤버 상태 업데이트 성공', response)
           getMemberList()
         } catch (error) {
@@ -145,7 +145,7 @@ export default function Page() {
             withCredentials: true, // 쿠키 전송을 위해 필요
           },
         )
-        console.log('타임슬롯', slotDate, startTime, endTime)
+        // console.log('타임슬롯', slotDate, startTime, endTime)
         console.log('타임슬롯 생성 성공', response)
         if (selectedGroupId) {
           patchApi.updateMemberState(selectedGroupId, 'ONGOING')
@@ -158,7 +158,7 @@ export default function Page() {
 
   useEffect(() => {
     if (!selectedSurveyId) return
-    console.log('surveyId', selectedSurveyId)
+    // console.log('surveyId', selectedSurveyId)
     const getSurveyData = async () => {
       try {
         const res = await axios.get(
@@ -180,7 +180,7 @@ export default function Page() {
 
   useEffect(() => {
     if (!selectedSurveyId) return
-    console.log('surveyId', selectedSurveyId)
+    // console.log('surveyId', selectedSurveyId)
     const getSavedSlot = async () => {
       try {
         const res = await axios.get(
@@ -303,7 +303,7 @@ export default function Page() {
 
   const getDateTime = async (date: string, start: string, end: string) => {
     setDateTime((prev) => {
-      console.log('setDateTime 호출', prev)
+      // console.log('setDateTime 호출', prev)
       const existingDateIndex = prev.findIndex((item) => item.date === date)
       let newEntry = null
 
@@ -373,7 +373,7 @@ export default function Page() {
         }
 
         if (selectedSurveyId !== null) {
-          console.log('Post할 항목:', postTimeSlot)
+          // console.log('Post할 항목:', postTimeSlot)
           selectApi.createTimeSlot(
             selectedSurveyId,
             postTimeSlot.slotDate,
@@ -387,7 +387,7 @@ export default function Page() {
       } else {
         newEntry = { date: date, timeSlots: [{ start, end }] }
         if (selectedSurveyId !== null) {
-          console.log('Post할 항목:', newEntry)
+          // console.log('Post할 항목:', newEntry)
           selectApi.createTimeSlot(selectedSurveyId, date, start, end)
         }
         return [...prev, newEntry]
@@ -398,7 +398,7 @@ export default function Page() {
   }
 
   useEffect(() => {
-    console.log(`Updated dateTimeData:`, dateTime)
+    // console.log(`Updated dateTimeData:`, dateTime)
   }, [dateTime])
 
   const weekdayMap: { [key: string]: string } = {
@@ -518,7 +518,7 @@ export default function Page() {
       setIsGroupLeader(false) // selectedGroupId가 없을 때 초기화
       return
     }
-    console.log('groupId', selectedGroupId)
+    // console.log('groupId', selectedGroupId)
     const getGroupLeader = async () => {
       try {
         const res = await axios.get(

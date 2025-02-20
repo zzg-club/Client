@@ -125,7 +125,7 @@ export default function Page() {
   useEffect(() => {
     if (!selectedSurveyId || !selectedGroupId) return
 
-    console.log('surveyId', selectedSurveyId)
+    // console.log('surveyId', selectedSurveyId)
     const getSurveyData = async () => {
       try {
         const res = await axios.get(
@@ -142,7 +142,7 @@ export default function Page() {
         setErr(true)
         if (axios.isAxiosError(error) && error.response) {
           if (error.response.status === 404) {
-            console.log(404)
+            // console.log(404)
             showNotification(
               '모든 모임원이 가능 시간을 입력하지 않아서 일정을 조율할 수 없어요.',
             )
@@ -250,11 +250,7 @@ export default function Page() {
       setWarning(true)
     } else if (isPurple && decideBottomOpen) {
       //console.log('dateTime', dateTime)
-      console.log('decideData', decideData)
-      console.log(
-        'reqData',
-        transformToReqData(dateTime, decideData, decideData[0]?.title),
-      )
+      // console.log('decideData', decideData)
       // 요청 바디 형식에 맞춰 변경
       const reqBody = transformToReqData(
         dateTime,

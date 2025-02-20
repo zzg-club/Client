@@ -97,7 +97,7 @@ export default function SchedulePage() {
   }
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
   const { selectedSurveyId } = useSurveyStore() // Zustand에서 가져온 그룹아이디
-  console.log('zustand에서 가져온 surveyId', selectedSurveyId)
+  // console.log('zustand에서 가져온 surveyId', selectedSurveyId)
 
   function convertToSelectedDates(
     scheduleData: ScheduleData[],
@@ -366,7 +366,7 @@ export default function SchedulePage() {
   }
   const handleDeleteSchedule = async (slotId: number) => {
     const deletedSlot = updateData.find((item) => item.slotId === slotId)
-    console.log('deletedSlot: ', deletedSlot)
+    // console.log('deletedSlot: ', deletedSlot)
 
     if (deletedSlot) {
       try {
@@ -470,8 +470,8 @@ export default function SchedulePage() {
       const actualColIndex = currentPage * DAYS_PER_PAGE + colIndex
       if (colIndex >= 0 && selectedDates[actualColIndex]) {
         const selectedDate = selectedDates[actualColIndex]
-        console.log('rangemodecol', actualColIndex)
-        console.log('rangemode', selectedDate)
+        // console.log('rangemodecol', actualColIndex)
+        // console.log('rangemode', selectedDate)
         if (!selectedDate) return
         setTimeout(() => {
           setSelectedTimeInfo({
