@@ -5,8 +5,8 @@ import Image from 'next/image'
 interface CustomPinProps {
   imagePath: string
   isMine?: boolean
-  userId: number // 사용자 ID 추가
-  groupId: number // 그룹 ID 추가
+  latitude: number
+  longitude: number
 }
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
@@ -14,41 +14,35 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
 const CustomPin: React.FC<CustomPinProps> = ({
   imagePath,
   isMine = false,
-  userId,
-  groupId,
+  latitude,
+  longitude,
 }) => {
   const [depart, setDepart] = useState<string>('')
-  useEffect(() => {
-    const fetchDepartInfo = async () => {
-      try {
-        const response = await fetch(
-          `${API_BASE_URL}/api/location/${groupId}`,
-          {
-            method: 'GET',
-            credentials: 'include',
-          },
-        )
 
-        if (!response.ok) throw new Error('Failed to fetch location data')
+  useEffect(() => {
+    const fetchNearestTransit = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/transit`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ latitude, longitude }),
+        })
+
+        if (!response.ok) throw new Error('Failed to fetch nearest transit')
 
         const data = await response.json()
 
         if (data.success) {
-          const userLocation = [
-            data.data.myLocation,
-            ...data.data.membersLocation,
-          ].find((member) => member.userId === userId)
-          if (userLocation) {
-            setDepart(userLocation.stationName || '출발지 미정')
-          }
+          setDepart(data.data.transitName || '출발지 미정')
         }
       } catch (error) {
-        console.error('Failed to fetch depart location:', error)
+        console.error('Failed to fetch nearest transit:', error)
       }
     }
 
-    fetchDepartInfo()
-  }, [groupId, userId])
+    fetchNearestTransit()
+  }, [latitude, longitude])
 
   return (
     <div className={`pin-container ${isMine ? 'pin-purple' : 'pin-gray'}`}>
