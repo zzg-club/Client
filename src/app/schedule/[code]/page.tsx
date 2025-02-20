@@ -72,7 +72,7 @@ export default function CodePage() {
             router.push('/schedule')
             handleNotification('이미 참여중인 모임이에요!')
           } else {
-            setErr('오류가 발생했습니다.')
+            setErr('해당 페이지를 찾을 수 없습니다.')
             console.log('초대 코드 실패', error)
           }
         }
