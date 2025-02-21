@@ -44,7 +44,7 @@ type Notification = {
   id: number
   leftBtnText: string
   surveyId: number
-  notiMessage?: string // 옵셔널 속성
+  notiMessage?: string
 }
 
 export default function ScheduleLanding() {
