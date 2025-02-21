@@ -159,24 +159,30 @@ const PlaceDetail = ({ placeData }: PlaceDetailProps) => {
               </div>
               <button
                 style={{
-                  backgroundColor: '#61C56C',
-                  color: '#FFFFFF',
-                  border: 'none',
-                  borderRadius: '24px',
-                  padding: '8px 16px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  cursor: 'pointer',
-                  width: '92px',
-                  height: '44px',
+                  backgroundColor: "#61C56C",
+                  color: "#FFFFFF",
+                  border: "none",
+                  borderRadius: "24px",
+                  padding: "8px 16px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                  cursor: placeData.phoneNumber ? "pointer" : "default",
+                  width: "92px",
+                  height: "44px",
                 }}
+                onClick={() => {
+                  if (placeData.phoneNumber) {
+                    window.location.href = `tel:${placeData.phoneNumber}`;
+                  }
+                }}
+                disabled={!placeData.phoneNumber} 
               >
                 <img
                   src="/call.svg"
                   alt="Call Icon"
-                  style={{ width: '36px', height: '36px' }}
+                  style={{ width: "36px", height: "36px" }}
                 />
               </button>
             </div>
