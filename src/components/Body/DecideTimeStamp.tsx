@@ -6,7 +6,6 @@ import {
   useCallback,
   useEffect,
   useMemo,
-  type CSSProperties,
   type TouchEvent as ReactTouchEvent,
 } from 'react'
 import '@/styles/TimeStamp.css'
@@ -973,25 +972,21 @@ export default function TimeStamp({
     const top = !isSelected(row - 1, col) && !isActiveSelection(row - 1, col)
     const bottom = !isSelected(row + 1, col) && !isActiveSelection(row + 1, col)
 
-    const styles: CSSProperties = {
-      // height: `${18 * scale}px`,
+    return {
       borderTop: top ? borderStyle : 'none',
       borderBottom: bottom ? borderStyle : 'none',
       borderLeft: borderStyle,
       borderRight: borderStyle,
       boxShadow: [
-        top ? '0 -4px 8px -2px rgba(255, 255, 255, 0.7)' : '',
-        bottom ? '0 4px 8px -2px rgba(255, 255, 255, 0.7)' : '',
-        //left ? '-4px 0 8px -20px rgba(255, 255, 255, 0.7)' : '',
-        //right ? '4px 0 8px -2px rgba(255, 255, 255, 0.7)' : '',
+        top ? '0 -2px 4px rgba(255, 255, 255, 0.5)' : '',
+        bottom ? '0 2px 4px rgba(255, 255, 255, 0.5)' : '',
       ]
         .filter(Boolean)
         .join(', '),
       position: 'relative' as const,
       zIndex: cellStatus.isSelected ? 1000 : 'auto',
+      minHeight: '18px', // 모바일에서 최소 높이 지정
     }
-
-    return styles
   }
 
   useEffect(() => {
