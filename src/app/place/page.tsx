@@ -39,20 +39,82 @@ export default function Home() {
   const [cardData, setCardData] = useState<CardData[]>([]) // 카드 데이터를 저장
   const [userName, setUserName] = useState('')
   const isDraggingRef = useRef<boolean>(false)
+  const [page, setPage] = useState(0); 
+  const [loading, setLoading] = useState(false); 
+  const bottomSheetRef = useRef<HTMLDivElement | null>(null); 
+
+  const loadMoreData = async (forcePage?: number) => {
+    if (loading) return; 
+    setLoading(true);
+  
+    try {
+      const categoryIndex = tabs.findIndex((tab) => tab.id === selectedTab);
+      if (categoryIndex === -1) return;
+  
+      const newPage = forcePage !== undefined ? forcePage : page + 1;
+  
+      const newData = await fetchCategoryData(categoryIndex, newPage);
+  
+      if (!newData || newData.length === 0) {
+        return;
+      }
+  
+      setCardData((prev) => {
+        const existingIds = new Set(prev.map((card) => card.id));
+        const filteredNewData = newData.filter((card) => !existingIds.has(card.id));
+        return [...prev, ...filteredNewData];
+      });
+  
+      setPage(newPage); 
+    } catch (error) {
+      console.error("Error fetching more data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (page === 0) return; 
+    loadMoreData(page);
+  }, [page]); 
+  
+  
+  const handleScroll = () => {
+    if (loading) return;
+  
+    const bottomSheet = bottomSheetRef.current;
+    if (!bottomSheet) return;
+  
+    const { scrollTop, scrollHeight, clientHeight } = bottomSheet;
+  
+    if ((bottomSheetState === "expanded" || bottomSheetState === "middle") && scrollTop + clientHeight >= scrollHeight * 0.9) {  
+      setPage((prev) => prev + 1);
+    }
+  };
+
+  useEffect(() => {
+    const bottomSheet = bottomSheetRef.current;
+    if (!bottomSheet) return;
+  
+    bottomSheet.addEventListener("scroll", handleScroll);
+    return () => bottomSheet.removeEventListener("scroll", handleScroll);
+  }, [bottomSheetState]);
+
+  useEffect(() => {
+    handleTabClick(selectedTab);
+  }, [selectedTab]);
+
 
   const handleCardClick = (placeId: number) => {
-    router.push(`/place/${placeId}`); // 클릭한 카드의 ID로 이동
+    router.push(`/place/${placeId}`); 
   };
 
   const handleLikeButtonClick = async (placeId: number, liked: boolean | undefined) => {
     try {
-      // 좋아요 상태 토글
       const updatedLiked = await toggleLike(placeId, liked ?? false)
 
-      // 최신 좋아요 개수 가져오기
       const updatedLikesCount = await fetchLikeCount(placeId)
 
-      // 카드 데이터 업데이트 (좋아요 상태 + 좋아요 개수)
       setCardData((prev) =>
         prev.map((card) =>
           card.id === placeId
@@ -112,13 +174,8 @@ export default function Home() {
     return todayEntry ? todayEntry.hours : '운영 정보 없음';
   };
 
-  const fetchCategoryDataWithFilters = async (categoryIndex: number, selectedFilters: string[]) => {
+  const fetchCategoryDataWithFilters = async (categoryIndex: number, selectedFilters: string[], page: number) => {
     try {
-      if (selectedFilters.length === 0) {
-        console.log('Fetching default category data for categoryIndex:', categoryIndex);
-        return await fetchCategoryData(categoryIndex);
-      }
-      
       const filters = getCurrentTabFilters().reduce<Record<string, boolean>>(
         (acc, filter, index) => {
           const filterKey = `filter${index + 1}`;
@@ -127,25 +184,20 @@ export default function Home() {
         },
         {}
       );
-      
-      console.log('Fetching filtered category data with filters:', filters);
-      const data = await fetchFilteredCategoryData(categoryIndex, filters);
-
-      console.log('fetchFilteredCategoryData data :', data)
-      
+      const data = await fetchFilteredCategoryData(categoryIndex, page, filters);
+  
       return data.length ? data : [];
     } catch (error) {
-      console.error('Error fetching category data:', error);
       return [];
     }
   };
+  
   
   const updateCardData = async (data: CardData[]) => {
     return await Promise.all(
       data.map(async (card) => {
         const liked = await fetchLikedStates(card.id.toString());
   
-        // 모든 필터 필드 추출
         const filters = Object.entries(card)
           .filter(([key]) => key.startsWith("filter"))
           .reduce<Record<string, boolean>>((acc, [key, value]) => {
@@ -155,7 +207,7 @@ export default function Home() {
   
         return {
           ...card,
-          filters, // 새로운 필터 객체 추가
+          filters, 
           liked,
         };
       })
@@ -164,57 +216,54 @@ export default function Home() {
   
   const handleTabClick = async (tabId: string) => {
     setSelectedTab(tabId);
-    setSelectedFilters([]);
+    setSelectedFilters([]); 
   
     const categoryIndex = tabs.findIndex((tab) => tab.id === tabId);
     if (categoryIndex === -1) {
       console.warn('Invalid tabId provided:', tabId);
       return;
     }
-    
-    try {
-      const data = await fetchCategoryDataWithFilters(categoryIndex, selectedFilters);
+  
+    try {  
+      const data = await fetchCategoryData(categoryIndex, 0);
       const updatedData = await updateCardData(data);
       setCardData(updatedData);
+      setPage(1);
     } catch (error) {
       console.error('Error updating card data:', error);
     }
   };
   
-  useEffect(() => {
-    const fetchData = async () => {
-      const categoryIndex = tabs.findIndex((tab) => tab.id === selectedTab);
-      if (categoryIndex === -1) {
-        console.warn('Invalid tabId provided:', selectedTab);
-        return;
-      }
-      
-      try {
-        const data = await fetchCategoryDataWithFilters(categoryIndex, selectedFilters);
-        const updatedData = await updateCardData(data);
-        setCardData(updatedData);
-      } catch (error) {
-        console.error('Error updating card data:', error);
-      }
-    };
-  
-    fetchData();
-  }, [selectedTab, selectedFilters]);  
-
-  useEffect(() => {
-    handleTabClick(selectedTab)
-  }, [])
-
   const handleFilterButtonClick = (filter: string) => {
     setSelectedFilters((prevSelected) => {
       const updatedFilters = prevSelected.includes(filter)
-        ? prevSelected.filter((item) => item !== filter) 
-        : [...prevSelected, filter] // 새로 선택
+        ? prevSelected.filter((item) => item !== filter)
+        : [...prevSelected, filter];
+  
+      const categoryIndex = tabs.findIndex((tab) => tab.id === selectedTab);
+      if (categoryIndex !== -1) {
+        setPage(0); 
+        setCardData([]);
+  
+        if (updatedFilters.length > 0) {
+          fetchCategoryDataWithFilters(categoryIndex, updatedFilters, 0).then((data) => {
+            updateCardData(data).then(setCardData);
+          });
+        } else {
+          fetchCategoryData(categoryIndex, 0).then((data) => {
+            updateCardData(data).then(setCardData);
+          });
+        }
+      }
+  
+      return updatedFilters;
+    });
+  };
+  
 
-      console.log('Updated Filters:', updatedFilters) 
-      return updatedFilters
-    })
-  }
+  useEffect(() => {
+    handleTabClick(selectedTab);
+  }, [selectedTab]);
 
   const handleVectorButtonClick = () => {
     if (mapRef.current) {
@@ -238,20 +287,28 @@ export default function Home() {
     if (!isDraggingRef.current || startY.current === null) return
     const deltaY = startY.current - y
 
-    // **단계별 상태 변경 (중간 상태 유지)**
     if (deltaY > threshold && bottomSheetState === 'collapsed') {
       setBottomSheetState('middle')
-      startY.current = y // 중간 상태에서 다시 기준점 설정
+      startY.current = y 
     } else if (deltaY > threshold && bottomSheetState === 'middle') {
       setBottomSheetState('expanded')
-      startY.current = y // 확장 상태에서 다시 기준점 설정
+      startY.current = y
     } else if (deltaY < -threshold && bottomSheetState === 'expanded') {
       setBottomSheetState('middle')
-      startY.current = y // 중간 상태에서 다시 기준점 설정
+      startY.current = y 
     } else if (deltaY < -threshold && bottomSheetState === 'middle') {
       setBottomSheetState('collapsed')
-      startY.current = y // 축소 상태에서 다시 기준점 설정
+      startY.current = y 
     }
+
+    const handleElement = document.querySelector(`.${styles.dragHandle}`);
+      if (handleElement) {
+        const handleRect = handleElement.getBoundingClientRect();
+        if (handleRect.bottom >= window.innerHeight) {
+          console.log('📌 드래그 핸들이 화면 아래 닿음!');
+          // 필요한 동작 수행 (예: 특정 이벤트 트리거)
+        }
+      }
   }
 
   const handleMouseMove = (e: MouseEvent) => {
@@ -269,7 +326,7 @@ export default function Home() {
   useEffect(() => {
     const loadFilters = async () => {
       try {
-        const { success, data } = await fetchFilters();  // JSON 처리된 데이터 반환
+        const { success, data } = await fetchFilters(); 
   
         if (success && Array.isArray(data)) {
           setFilters(data); 
@@ -279,7 +336,7 @@ export default function Home() {
       }
     };
   
-    loadFilters(); // 필터 데이터 로드
+    loadFilters(); 
   }, []);
 
   const getCurrentTabFilters = () => {
@@ -294,7 +351,7 @@ export default function Home() {
 
     console.log("categoryFilters :",categoryFilters)
 
-    return Object.values(categoryFilters.filters) // ["24시", "학교", "주점", "룸"]
+    return Object.values(categoryFilters.filters) 
   }
 
   const getCardFiltersWithNames = (
@@ -366,6 +423,7 @@ export default function Home() {
 
       {/* Bottom Sheet */}
       <div
+        ref={bottomSheetRef}
         className={`${styles.bottomSheet} ${styles[bottomSheetState]}`}
         onTouchStart={(e) => handleStart(e.touches[0].clientY)}
         onTouchMove={(e) => handleMove(e.touches[0].clientY)}
@@ -398,8 +456,8 @@ export default function Home() {
             선배들이 픽 했어요!
           </div>
           <div className={styles.content}>
-            {cardData.map((card) => (
-              <div key={card.id} className={styles.card} onClick={() => handleCardClick(card.id)}>
+            {cardData.map((card, index) => (
+              <div key={`${card.id}-${index}`} className={styles.card} onClick={() => handleCardClick(card.id)}>
                 <div className={styles.cardImage}>
                   {card.pictures?.[0] ? (
                     <img

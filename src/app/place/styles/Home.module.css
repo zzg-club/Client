@@ -55,12 +55,8 @@
 
 /* 오른쪽 버튼 스타일 */
 .vector-button {
-  width: clamp(
-    36px,
-    10vw,
-    42px
-  ); /* Minimum 36px, max 42px, scales with viewport width */
-  height: clamp(36px, 10vw, 42px);
+  width: 12%;
+  height: 12%;
   background: white;
   border: none;
   border-radius: 16px;

@@ -135,23 +135,29 @@ const StoreInfo = ({ selectedPlace }: { selectedPlace: Place }) => {
         <button
           style={{
             backgroundColor: '#AFAFAF',
-            color: '#FFFFFF',
-            border: 'none',
-            borderRadius: '24px',
-            padding: '16px 64px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px',
-            cursor: 'pointer',
-            width: '60%',
-            height: '60px',
+            color: "#FFFFFF",
+            border: "none",
+            borderRadius: "24px",
+            padding: "8px 16px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "8px",
+            cursor: selectedPlace.phoneNumber ? "pointer" : "default",
+            width: "92px",
+            height: "44px",
           }}
+          onClick={() => {
+            if (selectedPlace.phoneNumber) {
+              window.location.href = `tel:${selectedPlace.phoneNumber}`;
+            }
+          }}
+          disabled={!selectedPlace.phoneNumber} 
         >
           <img
             src="/call.svg"
             alt="Call Icon"
-            style={{ width: '36px', height: '36px' }}
+            style={{ width: "36px", height: "36px" }}
           />
         </button>
       </div>
