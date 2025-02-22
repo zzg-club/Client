@@ -936,6 +936,10 @@ export default function TimeStamp({
     }
   }
 
+  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
+
+  console.log(isSafari)
+
   const getCellBorder = (row: number, col: number) => {
     const allSelections = [...currentSelections, ...selections].filter(
       Boolean,
@@ -972,9 +976,12 @@ export default function TimeStamp({
     const top = !isSelected(row - 1, col) && !isActiveSelection(row - 1, col)
     const bottom = !isSelected(row + 1, col) && !isActiveSelection(row + 1, col)
 
+    console.log('Safari 체크', navigator.userAgent.includes('Safari'))
+    console.log('row:', row, 'col:', col, 'isSelected:', isSelected(row, col))
+
     return {
-      borderTop: top ? borderStyle : 'none',
-      borderBottom: bottom ? borderStyle : 'none',
+      borderTop: top ? borderStyle : '0px solid transparent',
+      borderBottom: bottom ? borderStyle : '0px solid transparent',
       borderLeft: borderStyle,
       borderRight: borderStyle,
       boxShadow: [
@@ -1197,9 +1204,8 @@ export default function TimeStamp({
                       key={rowIndex}
                       className={`relative cursor-pointer ${cornerStyleRound}`}
                       style={{
-                        ...cellBorder,
                         height: `${18 * scale}px`,
-                        // borderCollapse: 'separate',
+                        borderCollapse: 'separate',
                       }}
                       onMouseDown={() => {
                         handleMouseClick(rowIndex, colIndex)
@@ -1234,11 +1240,15 @@ export default function TimeStamp({
                         className={`absolute inset-0 ${cornerStyleRound} ${
                           cellStatus.isSelected
                             ? cellStatus.isConfirmed
-                              ? 'opacity-50 bg-[#2a027a]'
-                              : 'opacity-50 bg-[#2a027a]'
+                              ? 'bg-opacity-50 bg-[#2a027a]'
+                              : 'bg-opacity-50 bg-[#2a027a]'
                             : ''
                         }`}
-                        style={{ zIndex: 100 }}
+                        style={{
+                          zIndex: 100,
+                          ...cellBorder,
+                          height: `${18 * scale}px`,
+                        }}
                       />
                       {hoveredCell?.row === rowIndex &&
                         hoveredCell?.col === colIndex &&
@@ -1292,7 +1302,7 @@ export default function TimeStamp({
                         })()}
                       {!cellStatus.isConfirmed && cellStatus.isStartCell && (
                         <div
-                          className="absolute -top-[5px] left-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move"
+                          className="absolute -top-[3px] left-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move"
                           style={{ zIndex: 3000 }}
                           onMouseDown={() => {
                             handleMouseDown(
@@ -1306,7 +1316,7 @@ export default function TimeStamp({
                       )}
                       {!cellStatus.isConfirmed && cellStatus.isEndCell && (
                         <div
-                          className="absolute -bottom-[5px] right-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move "
+                          className="absolute -bottom-[3px] right-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move "
                           style={{ zIndex: 3000 }}
                           onMouseDown={() => {
                             handleMouseDown(
