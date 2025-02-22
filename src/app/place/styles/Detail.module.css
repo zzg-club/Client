@@ -143,15 +143,15 @@
 .bottomSheet {
   position: fixed;
   bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  max-width: 600px;
-  width: 100%;
+  left: 50%; 
+  transform: translateX(-50%); 
+  max-width: 600px; 
+  width: 100%; 
   background-color: #ffffff;
   border-radius: 24px 24px 0 0;
-  overflow-y: auto;
+  overflow-y: auto; 
   transition: height 0.3s ease-in-out;
-  height: var(--bottomSheetHeight);
+  height: var(--bottomSheetHeight); 
   z-index: 10;
   margin-bottom: 30px;
 }
@@ -372,7 +372,7 @@
 
 /* 좋아요 배경 */
 .likeBackground {
-  width: calc(2.5rem + 2vw);
+  width: calc(2.5rem + 2.0vw);
   height: calc(1.8rem + 1.2vw);
   border-radius: 12px;
   background: #a9f3b2; /* 배경 색상 */
@@ -400,11 +400,12 @@
   color: #61c56c;
 }
 
-/* 태그 섹션 */
+
 .tags {
-  display: flex; /* Flexbox로 가로 정렬 */
-  gap: 8px; /* 태그 간 간격 */
+  display: flex;
+  gap: 8px; 
   margin-top: 5px;
+  margin-bottom: 8px;
   min-height: 25px;
 }
 
