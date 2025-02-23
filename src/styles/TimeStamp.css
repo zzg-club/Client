@@ -9,6 +9,8 @@
   min-height: 100%;
   width: max-content;
   min-width: 100%;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .timestamp-container::-webkit-scrollbar {
