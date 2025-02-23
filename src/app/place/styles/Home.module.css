@@ -129,7 +129,7 @@
 }
 
 .bottomSheet.expanded {
-  --bottomSheetHeight: calc(70vh); /* 최대 높이 */
+  --bottomSheetHeight: calc(67vh); /* 최대 높이 */
 }
 
 .dragHandle {
@@ -143,9 +143,11 @@
 
 /* Tabs */
 .tabs {
-  position: absolute;
-  left: 0;
+  position: fixed;
+  left: 50.2%;
   width: 100%;
+  max-width: 600px; 
+  transform: translateX(-50%);
   display: flex;
   transition: bottom 0.3s ease-in-out;
   z-index: 5;
@@ -185,7 +187,7 @@
 }
 
 .tabs.collapsed {
-  bottom: 52px; /* Bottom Sheet가 collapsed일 때 */
+  bottom: 52px;
 }
 
 
@@ -194,7 +196,7 @@
 }
 
 .tabs.expanded {
-  bottom: calc(70vh - 46px); /* Bottom Sheet가 expanded일 때 */
+  bottom: calc(67vh - 46px); /* Bottom Sheet가 expanded일 때 */
 }
 
 /* 버튼 컨테이너 */
