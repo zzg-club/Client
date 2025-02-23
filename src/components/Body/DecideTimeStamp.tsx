@@ -936,10 +936,6 @@ export default function TimeStamp({
     }
   }
 
-  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
-
-  console.log(isSafari)
-
   const getCellBorder = (row: number, col: number) => {
     const allSelections = [...currentSelections, ...selections].filter(
       Boolean,
@@ -975,9 +971,6 @@ export default function TimeStamp({
 
     const top = !isSelected(row - 1, col) && !isActiveSelection(row - 1, col)
     const bottom = !isSelected(row + 1, col) && !isActiveSelection(row + 1, col)
-
-    console.log('Safari 체크', navigator.userAgent.includes('Safari'))
-    console.log('row:', row, 'col:', col, 'isSelected:', isSelected(row, col))
 
     return {
       borderTop: top ? borderStyle : '0px solid transparent',
