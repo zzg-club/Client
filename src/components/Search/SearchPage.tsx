@@ -1,17 +1,26 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import SearchBar from '@/components/SearchBar/SearchBar'
 import Image from 'next/image'
+import { useGroupStore } from '@/store/groupStore'
 
 export default function SearchPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const from = searchParams.get('from') || '/schedule'
   const isDirectModal = searchParams.get('direct') === 'true'
-
+  const { selectedGroupId } = useGroupStore()
   const [searchQuery, setSearchQuery] = useState('')
+
+  useEffect(() => {
+    if (!selectedGroupId) {
+      console.warn('그룹 ID가 설정되지 않았습니다.')
+    } else {
+      console.log('현재 그룹 ID:', selectedGroupId)
+    }
+  }, [selectedGroupId])
 
   const handleSearchClick = () => {
     if (!searchQuery.trim()) {
@@ -19,16 +28,16 @@ export default function SearchPage() {
       return
     }
 
-    // 🔹 검색어를 URL에 담아 `LocationPage`로 전달
+    // 검색어를 URL에 담아 `LocationPage`로 전달
     router.push(
       `/search/location?from=${from}&query=${encodeURIComponent(searchQuery)}&direct=${isDirectModal}`,
-    ) // ✅ `direct` 값을 유지하면서 전달
+    )
   }
 
   const handleLocationClick = () => {
     router.push(
-      `/search/location?from=${from}&query=current&direct=${isDirectModal}`,
-    ) // ✅ `direct` 값을 유지하면서 전달
+      `/search/location?from=${from}&query=current&direct=${isDirectModal}&direct=${isDirectModal}`,
+    )
   }
 
   const handleBackClick = () => {
