@@ -13,7 +13,7 @@ const useNavigateToNaverMap = () => {
 
     const naverDirectionsUrl = `https://map.naver.com/p/directions/-/${lng},${lat},${encodeURIComponent(destinationName)},PLACE_POI/-/transit?c=15.00,0,0,0,dh`;
 
-    const naverMobileDirectionsUrl = `https://m.search.naver.com/search.naver?query=빠른길찾기&nso_path=placeType^place;name^${encodeURIComponent(destinationName)};address^;longitude^${lng};latitude^${lat};code^`;
+    const naverMobileDirectionsUrl = `https://m.map.naver.com/route.nhn?menu=route&sx=&sy=&ex=${lng}&ey=${lat}&en=${encodeURIComponent(destinationName)}&pathType=pubtrans`;
 
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
