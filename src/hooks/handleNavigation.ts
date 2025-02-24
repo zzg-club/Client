@@ -13,12 +13,11 @@ const useNavigateToNaverMap = () => {
 
     const naverDirectionsUrl = `https://map.naver.com/p/directions/-/${lng},${lat},${encodeURIComponent(destinationName)},PLACE_POI/-/transit?c=15.00,0,0,0,dh`;
 
-    const naverAppDirectionsUrl = `https://map.naver.com/v5/directions/-/-/${lng},${lat},${encodeURIComponent(destinationName)}/transit`;
+    const naverMobileDirectionsUrl = `https://m.search.naver.com/search.naver?query=빠른길찾기&nso_path=placeType^place;name^${encodeURIComponent(destinationName)};address^;longitude^${lng};latitude^${lat};code^`;
 
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
     if (isMobile) {
-      console.log("📱 모바일 환경 → 네이버 지도 앱 실행");
 
       let hasAppOpened = false;
 
@@ -29,13 +28,13 @@ const useNavigateToNaverMap = () => {
       };
 
       document.addEventListener("visibilitychange", handleVisibilityChange);
-      
+
       window.location.href = naverAppUrl;
       setTimeout(() => {
         document.removeEventListener("visibilitychange", handleVisibilityChange);
 
         if (!hasAppOpened) {
-          window.location.href = naverAppDirectionsUrl;
+          window.location.href = naverMobileDirectionsUrl;
         }
       }, 1500);
     } else {
