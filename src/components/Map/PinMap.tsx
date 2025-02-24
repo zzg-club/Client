@@ -1,136 +1,127 @@
-import { useEffect, useRef } from 'react'
+'use client'
+
+import { useEffect, useRef, useState } from 'react'
 import ReactDOMServer from 'react-dom/server'
 import CustomPin from '@/components/Pin/CustomPin'
 import DestinationPin from '@/components/Pin/DestinationPin'
-
-interface Participant {
-  id: number
-  name: string
-  time: string
-  image: string
-  lat: number
-  lng: number
-  transport: string
-  transportIcon: string
-  depart: string
-}
-
-interface Destination {
-  name: string
-  lat: number
-  lng: number
-}
+import useWebSocket from '@/hooks/useWebSocket'
+import { useGroupStore } from '@/store/groupStore'
 
 interface PinMapProps {
   kakaoMap: kakao.maps.Map | null
-  participants: Participant[]
-  destination: Destination
+  groupId: number | null
 }
 
-const PinMap: React.FC<PinMapProps> = ({
-  kakaoMap,
-  participants,
-  destination,
-}) => {
-  const overlays = useRef<kakao.maps.CustomOverlay[]>([]) // 기존 핀들을 저장할 배열
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
+
+const PinMap: React.FC<PinMapProps> = ({ kakaoMap, groupId }) => {
+  const { locations } = useWebSocket(groupId)
+  const overlays = useRef<kakao.maps.CustomOverlay[]>([])
+  const { selectedGroupId } = useGroupStore()
+  const [destinations, setDestinations] = useState<
+    { stationName: string; latitude: number; longitude: number }[]
+  >([])
 
   useEffect(() => {
-    if (!kakaoMap) {
-      console.error('Kakao map is not initialized')
-      return
-    }
+    if (!kakaoMap || locations.length === 0) return
 
     const bounds = new window.kakao.maps.LatLngBounds()
 
-    // 기존 핀 제거 함수
-    const clearOverlays = () => {
-      overlays.current.forEach((overlay) => overlay.setMap(null))
-      overlays.current = [] // 배열을 초기화하지만 참조 유지
-    }
-
     // 기존 핀 제거
-    clearOverlays()
+    overlays.current.forEach((overlay) => overlay.setMap(null))
+    overlays.current = []
 
-    // 내 위치 핀 추가 (participants 배열의 첫 번째 항목)
-    if (participants.length > 0) {
-      const myPinHtml = ReactDOMServer.renderToString(
-        <CustomPin
-          imagePath={participants[0].image}
-          isMine={true}
-          depart={participants[0].depart}
-        />,
+    // 참여자 위치 핀 추가
+    locations.forEach((location) => {
+      const pinHtml = ReactDOMServer.renderToString(
+        <CustomPin/>
       )
 
-      const myOverlay = new window.kakao.maps.CustomOverlay({
+      const overlay = new window.kakao.maps.CustomOverlay({
         position: new window.kakao.maps.LatLng(
-          participants[0].lat,
-          participants[0].lng,
+          location.latitude,
+          location.longitude,
         ),
-        content: myPinHtml,
+        content: pinHtml,
         clickable: true,
       })
 
-      myOverlay.setMap(kakaoMap)
-      overlays.current.push(myOverlay) // 배열에 추가
+      overlay.setMap(kakaoMap)
+      overlays.current.push(overlay)
       bounds.extend(
-        new window.kakao.maps.LatLng(participants[0].lat, participants[0].lng),
-      )
-    }
-
-    // 나머지 참여자 핀 추가
-    participants.slice(1).forEach((participant) => {
-      const participantPinHtml = ReactDOMServer.renderToString(
-        <CustomPin
-          imagePath={participant.image}
-          isMine={false}
-          depart={participant.depart}
-        />,
-      )
-
-      const participantOverlay = new window.kakao.maps.CustomOverlay({
-        position: new window.kakao.maps.LatLng(
-          participant.lat,
-          participant.lng,
-        ),
-        content: participantPinHtml,
-        clickable: true,
-      })
-
-      participantOverlay.setMap(kakaoMap)
-      overlays.current.push(participantOverlay) // 배열에 추가
-      bounds.extend(
-        new window.kakao.maps.LatLng(participant.lat, participant.lng),
+        new window.kakao.maps.LatLng(location.latitude, location.longitude),
       )
     })
 
-    // 목적지 핀 추가
-    if (destination) {
+    // 추천 목적지 가져오기
+    const fetchRecommendedLocations = async () => {
+      if (!selectedGroupId) return
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/api/location/threeLocation/${selectedGroupId}`,
+          {
+            method: 'GET',
+            credentials: 'include',
+          },
+        )
+
+        if (!response.ok)
+          throw new Error(`목적지 조회 실패: ${response.status}`)
+        const data = await response.json()
+
+        if (data.success) {
+          setDestinations(data.data)
+        }
+      } catch (error) {
+        console.error('추천 목적지 조회 오류:', error)
+      }
+    }
+
+    fetchRecommendedLocations()
+
+    // 모든 핀이 포함되도록 지도 조정
+    kakaoMap.setBounds(bounds)
+
+    return () => overlays.current.forEach((overlay) => overlay.setMap(null))
+  }, [kakaoMap, locations, selectedGroupId])
+
+  // 추천 목적지 핀 추가
+  useEffect(() => {
+    if (!kakaoMap || destinations.length === 0) return
+
+    const bounds = new window.kakao.maps.LatLngBounds()
+
+    destinations.forEach((destination, index) => {
       const destinationPinHtml = ReactDOMServer.renderToString(
-        <DestinationPin stationName={destination.name} />,
+        <DestinationPin
+          stationName={`${index + 1}. ${destination.stationName}`}
+        />,
       )
 
       const destinationOverlay = new window.kakao.maps.CustomOverlay({
         position: new window.kakao.maps.LatLng(
-          destination.lat,
-          destination.lng,
+          destination.latitude,
+          destination.longitude,
         ),
         content: destinationPinHtml,
         clickable: true,
       })
 
       destinationOverlay.setMap(kakaoMap)
-      overlays.current.push(destinationOverlay) // 배열에 추가
+      overlays.current.push(destinationOverlay)
       bounds.extend(
-        new window.kakao.maps.LatLng(destination.lat, destination.lng),
+        new window.kakao.maps.LatLng(
+          destination.latitude,
+          destination.longitude,
+        ),
       )
-    }
+    })
 
-    // 모든 핀이 포함되도록 지도 범위 설정
+    // 모든 핀이 포함되도록 지도 조정
     kakaoMap.setBounds(bounds)
 
-    // 컴포넌트 언마운트 시 기존 핀 제거
-    return () => clearOverlays()
-  }, [kakaoMap, participants, destination])
+    return () => overlays.current.forEach((overlay) => overlay.setMap(null))
+  }, [kakaoMap, destinations])
 
   return null
 }
