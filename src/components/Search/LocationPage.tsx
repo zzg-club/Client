@@ -66,23 +66,15 @@ const LocationPage: React.FC<LocationPageProps> = ({
     const from = searchParams.get('from')
     const queryParam = searchParams.get('query') || ''
     const { selectedGroupId } = useGroupStore()
-    const { sendLocation, isConnected } = useWebSocket(groupId) // isConnected 추가
-
+    const { sendLocation } = useWebSocket(groupId) // isConnected 추가
+    const { selectedLocation, setSelectedLocation } = useLocationStore()
     const [searchQuery, setSearchQuery] = useState(queryParam)
-    const [locations, setLocations] = useState<
-      { place: string; jibun: string; road: string; lat: number; lng: number }[]
-    >([])
 
     const [isModalVisible, setIsModalVisible] = useState(isDirectModal)
-    const [finalLocation, setFinalLocation] = useState<{
-      place: string
-      lat: number
-      lng: number
-    } | null>(null)
 
     const fetchAddressByQuery = useCallback(async (query: string) => {
       if (!query.trim()) {
-        setLocations([])
+        setSelectedLocation(null)
         return
       }
 
@@ -301,14 +293,14 @@ const LocationPage: React.FC<LocationPageProps> = ({
           ))}
         </div>
         {/* 중앙 위치 직접선택 모달 */}
-        {isModalVisible && finalLocation && (
+        {isModalVisible && selectedLocation && (
           <LocationModal
             isVisible={isModalVisible}
             onClose={() => setIsModalVisible(false)}
             onClickRight={() => setIsModalVisible(false)}
-            initialTitle={finalLocation.place}
+            initialTitle={selectedLocation.place}
             onTitleChange={() => {}}
-            selectedLocation={finalLocation}
+            selectedLocation={selectedLocation}
           />
         )}
       </div>
