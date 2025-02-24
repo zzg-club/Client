@@ -91,6 +91,7 @@ export default function LetsMeetPage() {
 
   const handleFindMidpoint = async () => {
     try {
+      // 1. 약속 그룹 생성 (groupId 발급)
       const membersResponse = await fetch(`${API_BASE_URL}/api/members`, {
         method: 'POST',
         credentials: 'include',
@@ -104,25 +105,26 @@ export default function LetsMeetPage() {
       const newGroupId = membersData.data.groupId
 
       console.log('생성된 groupId:', newGroupId)
+
       setSelectedGroupId(newGroupId)
 
+      // 2. 렛츠밋 약속(위치) 생성
       const locationResponse = await fetch(
         `${API_BASE_URL}/api/location/create`,
         {
           method: 'POST',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ groupId: selectedGroupId }),
+          body: JSON.stringify({ groupId: newGroupId }),
         },
       )
 
-      if (!locationResponse.ok) throw new Error('위치 등록 실패')
+      if (!locationResponse.ok) throw new Error('위치 생성 실패')
 
       const locationData = await locationResponse.json()
-      console.log('위치 등록 완료, location_id:', locationData.data.location_id)
+      console.log('위치 생성 완료, location_id:', locationData.data.location_id)
 
-      // 그룹 ID를 `search` 페이지로 전달
-      router.push(`/search?from=/letsmeet&groupId=${newGroupId}`)
+      router.push(`/search?from=/letsmeet`)
     } catch (error) {
       console.error('그룹 생성 오류:', error)
     }
