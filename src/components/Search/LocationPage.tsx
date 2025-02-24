@@ -66,15 +66,19 @@ const LocationPage: React.FC<LocationPageProps> = ({
     const from = searchParams.get('from')
     const queryParam = searchParams.get('query') || ''
     const { selectedGroupId } = useGroupStore()
-    const { sendLocation } = useWebSocket(groupId) // isConnected 추가
-    const { selectedLocation, setSelectedLocation } = useLocationStore()
+    const { sendLocation } = useWebSocket(selectedGroupId)
+    const { selectedLocation } = useLocationStore()
+    const [locations, setLocations] = useState<
+      { place: string; jibun: string; road: string; lat: number; lng: number }[]
+    >([])
+
     const [searchQuery, setSearchQuery] = useState(queryParam)
 
     const [isModalVisible, setIsModalVisible] = useState(isDirectModal)
 
     const fetchAddressByQuery = useCallback(async (query: string) => {
       if (!query.trim()) {
-        setSelectedLocation(null)
+        setLocations([])
         return
       }
 
@@ -226,7 +230,7 @@ const LocationPage: React.FC<LocationPageProps> = ({
           console.error('사용자 위치 저장 오류:', error)
         }
       },
-      [selectedGroupId, sendLocation, router],
+      [selectedGroupId, sendLocation, router, from],
     )
 
     const handleBackClick = () => {
