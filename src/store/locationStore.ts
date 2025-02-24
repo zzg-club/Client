@@ -6,8 +6,6 @@ interface Location {
   place: string;
   lat: number;
   lng: number;
-  jibun: string;
-  road: string;
 }
 
 // Zustand 스토어 정의
