@@ -45,7 +45,13 @@ export function ProfileSmall({
             ) : (
               <></>
             )}
-            <Image src={profile.image} alt={profile.name} fill sizes="32px" />
+            <Image
+              src={profile.image}
+              alt={profile.name}
+              fill
+              sizes="32px"
+              unoptimized={true}
+            />
             {/* 다섯 번째 프로필 이미지에 회색 배경, 더보기 아이콘 */}
             {viewMore && index === maxDisplayImg - 1 && (
               <div className="absolute inset-0 bg-[#afafaf]/80 flex items-center justify-center cursor-pointer">

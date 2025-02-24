@@ -178,6 +178,7 @@ export default function MembersVariant({
                 height={48}
                 style={{ objectFit: 'cover' }}
                 className="rounded-3xl"
+                unoptimized={true}
               />
               {/* X 버튼 */}
               {(isCreator || member.type === '&my') && (
