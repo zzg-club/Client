@@ -6,21 +6,21 @@ import PinMap from '@/components/Map/PinMap'
 import RouteMap from '@/components/Map/RouteMap'
 import Title from '@/components/Header/Middle/TitleMiddle'
 import BottomSheet from './BottomSheet'
-import dummyDataArray from '@/data/dummyDataArray.json'
 import { loadKakaoMaps } from '@/utils/kakaoLoader'
-import { getCurrentLocation } from '@/components/Map/getCurrentLocation'
 import BackButton from '@/components/Buttons/Middle/BackButton'
+import useWebSocket from '@/hooks/useWebSocket'
+import { useGroupStore } from '@/store/groupStore'
 
 interface Participant {
-  id: number
-  name: string
-  time: string
   image: string
-  lat: number
-  lng: number
-  transport: string
-  transportIcon: string
-  depart: string
+  type: string
+  locationComplete: string
+}
+
+interface RecommendedLocation {
+  stationName: string
+  latitude: number
+  longitude: number
 }
 
 // 검색 파라미터를 별도 컴포넌트로 분리 (Suspense 내부에서 실행)
@@ -38,100 +38,134 @@ const SearchParamsComponent = ({
 }
 
 export default function Middle() {
-  const [kakaoMap, setKakaoMap] = useState<kakao.maps.Map | null>(null)
-  const [currentIndex, setCurrentIndex] = useState(0) // 현재 인덱스
-  const [participants, setParticipants] = useState<Participant[]>([])
-  const [destination, setDestination] = useState(dummyDataArray[0].destination)
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
   const [from, setFrom] = useState('/schedule')
+
+  const [kakaoMap, setKakaoMap] = useState<kakao.maps.Map | null>(null)
+  const [participants, setParticipants] = useState<Participant[]>([])
+  const [destination, setDestination] = useState<RecommendedLocation | null>(
+    null,
+  )
+
+  const [isCreator, setIsCreator] = useState<boolean>(false)
+  const [recommendedLocations] = useState<RecommendedLocation[]>([])
+
+  const { selectedGroupId } = useGroupStore()
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
   const router = useRouter()
+  const { locations } = useWebSocket(selectedGroupId)
 
+  useEffect(() => {
+    if (!locations.length) return
+
+    console.log('실시간 참여자 위치 업데이트:', locations)
+
+    const updatedParticipants = locations.map((loc) => ({
+      id: loc.userId,
+      name: loc.userName,
+      image: loc.userProfile || '',
+      type: 'participant',
+      locationComplete: loc.latitude && loc.longitude ? '완료' : '미완료',
+      scheduleComplete: '미완료',
+    }))
+
+    setParticipants(updatedParticipants)
+  }, [locations])
+
+  //  2. 카카오 맵 초기화 (추천 장소 및 참여자 위치 표시)
   useEffect(() => {
     const initializeMap = async () => {
       try {
         await loadKakaoMaps()
-        const mapContainer = mapContainerRef.current
-        if (!mapContainer) return
+        if (!mapContainerRef.current) return
 
-        const kakaoMapInstance = new window.kakao.maps.Map(mapContainer, {
-          center: new window.kakao.maps.LatLng(
-            destination.lat,
-            destination.lng,
-          ),
-          level: 3,
-        })
-
+        const kakaoMapInstance = new window.kakao.maps.Map(
+          mapContainerRef.current,
+          {
+            center: new window.kakao.maps.LatLng(37.5665, 126.978),
+            level: 3,
+          },
+        )
         setKakaoMap(kakaoMapInstance)
-        setDestination(dummyDataArray[currentIndex].destination)
       } catch (error) {
         console.error('Error initializing Kakao Maps:', error)
       }
     }
-
-    const updateParticipants = async () => {
-      try {
-        const location = await getCurrentLocation()
-        const myInfo = {
-          id: 0,
-          name: '내 위치',
-          time: '50분',
-          image: '/sampleProfile.png',
-          lat: location.lat,
-          lng: location.lng,
-          transport: 'subway',
-          transportIcon: '/train.svg',
-          depart: '죽전역',
-        }
-
-        const updatedParticipants = [
-          myInfo,
-          ...dummyDataArray[currentIndex].participants.map((participant) => ({
-            ...participant,
-            transportIcon: '/subwayGray.svg',
-          })),
-        ]
-
-        setParticipants(updatedParticipants)
-      } catch (error) {
-        console.error('현재 위치를 가져오지 못했습니다:', error)
-        const fallbackInfo = {
-          id: 0,
-          name: '기본 위치',
-          time: '기본 시간',
-          image: '/sampleProfile.png',
-          lat: 37.5665,
-          lng: 126.978,
-          transport: 'subway',
-          transportIcon: '/train.svg',
-          depart: '서울역',
-        }
-
-        const updatedParticipants = [
-          fallbackInfo,
-          ...dummyDataArray[currentIndex].participants.map((participant) => ({
-            ...participant,
-            transportIcon: '/subwayGray.svg',
-          })),
-        ]
-
-        setParticipants(updatedParticipants)
-      }
-    }
-
     initializeMap()
-    updateParticipants()
-  }, [currentIndex, destination.lat, destination.lng])
+  }, [])
 
+  // 3. 추천 장소 변경 (슬라이드 이동)
   const handleSlideChange = (direction: 'left' | 'right') => {
-    setCurrentIndex((prevIndex) => {
-      if (direction === 'left') {
-        return prevIndex > 0 ? prevIndex - 1 : dummyDataArray.length - 1
-      } else {
-        return prevIndex < dummyDataArray.length - 1 ? prevIndex + 1 : 0
-      }
+    if (!recommendedLocations.length) return
+
+    setDestination((prev) => {
+      const currentIndex = recommendedLocations.findIndex((loc) => loc === prev)
+      const newIndex =
+        direction === 'left'
+          ? currentIndex > 0
+            ? currentIndex - 1
+            : recommendedLocations.length - 1
+          : currentIndex < recommendedLocations.length - 1
+            ? currentIndex + 1
+            : 0
+
+      return recommendedLocations[newIndex]
     })
   }
 
+  // 4. 모임장 판별
+  useEffect(() => {
+    if (!selectedGroupId) return
+
+    const checkCreator = async () => {
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/api/members/creator/check/${selectedGroupId}`,
+          {
+            method: 'GET',
+            credentials: 'include',
+          },
+        )
+
+        if (!response.ok) throw new Error('Failed to check creator status')
+
+        const data = await response.json()
+        setIsCreator(data.data) // true이면 모임장, false이면 일반 참여자
+      } catch (error) {
+        console.error('모임장 확인 실패:', error)
+      }
+    }
+
+    checkCreator()
+  }, [selectedGroupId, API_BASE_URL])
+
+  // 5. 약속 장소 확정 (모임장만 가능)
+  const createMeetingLocation = async () => {
+    if (!selectedGroupId || !destination || !isCreator) return
+
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/api/location/threeLocation`,
+        {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            selectedGroupId,
+            midAddress: destination.stationName,
+            latitude: destination.latitude,
+            longitude: destination.longitude,
+          }),
+        },
+      )
+
+      if (!response.ok) throw new Error('Failed to create meeting location')
+
+      console.log('약속 장소 확정 완료')
+    } catch (error) {
+      console.error('약속 장소 확정 실패:', error)
+    }
+  }
   return (
     <Suspense fallback={<div>로딩 중...</div>}>
       {/* Suspense 내부에서 검색 파라미터 처리 */}
@@ -144,15 +178,14 @@ export default function Middle() {
 
         {kakaoMap && destination && participants.length > 0 && (
           <>
-            <PinMap
-              kakaoMap={kakaoMap}
-              participants={participants}
-              destination={destination}
-            />
+            <PinMap kakaoMap={kakaoMap} groupId={selectedGroupId} />
             <RouteMap
               kakaoMap={kakaoMap}
-              participants={participants}
-              destination={destination}
+              groupId={selectedGroupId}
+              destination={{
+                latitude: destination.latitude,
+                longitude: destination.longitude,
+              }}
             />
           </>
         )}
@@ -164,7 +197,8 @@ export default function Middle() {
             initialTitle="제목 없는 일정"
             onTitleChange={(newTitle) => console.log('새 제목:', newTitle)}
             isPurple
-            isDisabled={participants.length <= 1}
+            isDisabled={!isCreator || participants.length < 1}
+            onConfirm={createMeetingLocation}
           />
         </header>
 
@@ -179,10 +213,11 @@ export default function Middle() {
         />
 
         <BottomSheet
-          placeName={destination.name}
+          placeName={destination ? destination.stationName : ''}
           participants={participants}
           totalParticipants={participants.length}
           onSlideChange={handleSlideChange}
+          onConfirm={createMeetingLocation}
         />
       </div>
     </Suspense>
