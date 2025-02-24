@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import NavBar from '@/components/Navigate/NavBar'
 import Button from '@/components/Buttons/Floating/Button'
 import { ScheduleOptions } from '@/components/Buttons/Floating/Options'
@@ -8,6 +8,18 @@ import CarouselNotification from '@/components/Notification/CarouselNotification
 import { LetsmeetCard } from '@/components/Cards/LetsmeetCard'
 import { useRouter } from 'next/navigation'
 import LocationModal from '@/components/Modals/DirectSelect/LocationModal'
+import { useSurveyStore } from '@/store/surveyStore'
+import { useGroupStore } from '@/store/groupStore'
+import { useNotificationStore } from '@/store/notificationStore'
+import { useLocationStore } from '@/store/locationStore'
+
+export type Participant = {
+  id: number
+  name: string
+  image: string
+  type: string
+  scheduleComplete: string
+}
 
 type Schedule = {
   id: number
@@ -16,7 +28,15 @@ type Schedule = {
   startTime: string
   endTime: string
   location?: string
-  participants: { id: number; name: string; image: string }[]
+  participants: Participant[]
+  surveyId: number
+}
+
+type Notification = {
+  id: number
+  leftBtnText: string
+  surveyId: number
+  notiMessage?: string
 }
 
 export default function LetsMeetPage() {
@@ -40,12 +60,19 @@ export default function LetsMeetPage() {
   const [isDirectModalOpen, setIsDirectModalOpen] = useState(false)
   const [title, setTitle] = useState('제목 없는 일정')
   const [scheduleList, setScheduleList] = useState<Schedule[]>([])
+  const [notifications, setNotifications] = useState<Notification[]>([])
+  const { selectedLocation, setSelectedLocation } = useLocationStore()
 
-  const [selectedLocation, setSelectedLocation] = useState<{
-    place: string
-    lat: number
-    lng: number
-  } | null>(null)
+  const [filterOption, setFilterOption] = useState<
+    'all' | 'confirmed' | 'unconfirmed'
+  >('all')
+
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
+  const { setSelectedSurveyId } = useSurveyStore()
+  const { selectedGroupId, setSelectedGroupId } = useGroupStore()
+  const showNotification = useNotificationStore(
+    (state) => state.showNotification,
+  )
 
   //`direct=true`이면 모달 자동으로 열기
   useEffect(() => {
@@ -54,21 +81,121 @@ export default function LetsMeetPage() {
     }
   }, [isDirectModal])
 
-  // ✅ URL에서 받아온 값으로 상태 업데이트
+  // URL에서 받아온 값으로 Zustand 상태 업데이트
   useEffect(() => {
     if (isDirectModal && place && lat && lng) {
-      setSelectedLocation({ place, lat, lng })
+      console.log('위치 설정: ', { place, lat, lng })
+      useLocationStore.getState().setSelectedLocation({ place, lat, lng })
     }
   }, [isDirectModal, place, lat, lng])
 
-  const handleFindMidpoint = () => {
-    router.push('/search?from=/letsmeet')
+  const handleFindMidpoint = async () => {
+    try {
+      const membersResponse = await fetch(`${API_BASE_URL}/api/members`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      })
+
+      if (!membersResponse.ok) throw new Error('약속 생성 실패')
+
+      const membersData = await membersResponse.json()
+      const newGroupId = membersData.data.groupId
+
+      console.log('생성된 groupId:', newGroupId)
+      setSelectedGroupId(newGroupId)
+
+      const locationResponse = await fetch(
+        `${API_BASE_URL}/api/location/create`,
+        {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ groupId: selectedGroupId }),
+        },
+      )
+
+      if (!locationResponse.ok) throw new Error('위치 등록 실패')
+
+      const locationData = await locationResponse.json()
+      console.log('위치 등록 완료, location_id:', locationData.data.location_id)
+
+      // 그룹 ID를 `search` 페이지로 전달
+      router.push(`/search?from=/letsmeet&groupId=${newGroupId}`)
+    } catch (error) {
+      console.error('그룹 생성 오류:', error)
+    }
   }
 
-  const handleDirectInput = () => {
-    setTitle('제목 없는 일정')
-    setSelectedLocation(null)
-    setIsDirectModalOpen(true)
+  const handleDirectInput = async () => {
+    try {
+      // 1. 약속 그룹 생성 (groupId 발급)
+      const membersResponse = await fetch(`${API_BASE_URL}/api/members`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      })
+
+      if (!membersResponse.ok) throw new Error('약속 생성 실패')
+
+      const membersData = await membersResponse.json()
+      const newGroupId = membersData.data.groupId
+
+      console.log('생성된 groupId:', newGroupId)
+
+      setSelectedGroupId(newGroupId)
+
+      // 2. 렛츠밋 약속(위치) 생성
+      const locationResponse = await fetch(
+        `${API_BASE_URL}/api/location/create`,
+        {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ groupId: newGroupId }),
+        },
+      )
+
+      if (!locationResponse.ok) throw new Error('위치 생성 실패')
+
+      const locationData = await locationResponse.json()
+      console.log('위치 생성 완료, location_id:', locationData.data.location_id)
+
+      // 3. 중앙 위치 확정 (selectedLocation 값 사용)
+      if (selectedLocation) {
+        const directLocationResponse = await fetch(
+          `${API_BASE_URL}/api/location/direct`,
+          {
+            method: 'PATCH',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              groupId: newGroupId,
+              midAddress: selectedLocation.place,
+              latitude: selectedLocation.lat,
+              longitude: selectedLocation.lng,
+            }),
+          },
+        )
+
+        if (!directLocationResponse.ok) throw new Error('중앙 위치 확정 실패')
+
+        const directLocationData = await directLocationResponse.json()
+        console.log('중앙 위치 확정 완료:', directLocationData.data)
+      } else {
+        console.warn(
+          'selectedLocation이 없습니다. 중앙 위치를 확정하지 못했습니다.',
+        )
+      }
+
+      // 직접 입력 모달 열기 (groupId 생성 후)
+      setTitle('제목 없는 일정')
+      setIsDirectModalOpen(true)
+    } catch (error) {
+      console.error('직접 입력 오류:', error)
+    }
   }
 
   const handleCloseModal = () => {
@@ -76,7 +203,7 @@ export default function LetsMeetPage() {
     router.replace('/letsmeet')
   }
 
-  const handleComplete = () => {
+  const addSchedule = async () => {
     if (!selectedLocation) return
 
     const newSchedule = {
@@ -89,95 +216,136 @@ export default function LetsMeetPage() {
       participants: [],
     }
 
-    setScheduleList([...scheduleList, newSchedule])
+    const response = await fetch(`${API_BASE_URL}/api/schedule`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(newSchedule),
+    })
+
+    if (!response.ok) {
+      throw new Error(`서버 에러: ${response.status}`)
+    }
+
+    //일정 추가 후 최신 데이터 다시 불러오기
+    await getSchedule()
+
+    //모달 닫기 및 리디렉션
     setIsDirectModalOpen(false)
     router.replace('/letsmeet')
   }
 
-  //유저 정보
+  const handleComplete = async () => {
+    await addSchedule()
+  }
+
+  // 스케줄 정보 리스트
+  const getSchedule = useCallback(async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/members/List`, {
+        method: 'GET',
+        credentials: 'include',
+      })
+      if (!response.ok) {
+        throw new Error(`서버 에러: ${response.status}`)
+      }
+
+      const data = await response.json()
+      console.log('스케줄 정보:', data.data)
+
+      if (Array.isArray(data.data)) {
+        let formattedSchedules = data.data.map((schedule: Schedule) => ({
+          id: schedule.id,
+          startDate: schedule.startDate || '',
+          title: schedule.title,
+          startTime: schedule.startTime || '',
+          endTime: schedule.endTime || '',
+          location: schedule.location || '',
+          participants: schedule.participants || [],
+          surveyId: schedule.surveyId,
+        }))
+
+        if (filterOption === 'confirmed') {
+          formattedSchedules = formattedSchedules.filter(
+            (schedule: Schedule) => schedule.startDate,
+          )
+        } else if (filterOption === 'unconfirmed') {
+          formattedSchedules = formattedSchedules.filter(
+            (schedule: Schedule) => !schedule.startDate,
+          )
+        }
+
+        setScheduleList(formattedSchedules.reverse())
+      } else {
+        console.error('데이터 구조 에러:', data.data)
+      }
+    } catch (error) {
+      console.error('스케줄 정보 불러오기 실패:', error)
+    }
+  }, [API_BASE_URL, filterOption])
+
+  //캐러셀 데이터 연동
+  const fetchNotification = useCallback(async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/members/notification`, {
+        method: 'GET',
+        credentials: 'include', // 쿠키 전송을 위해 필요
+      })
+
+      if (!response.ok) {
+        throw new Error(`서버 에러: ${response.status}`)
+      }
+      const notiData = await response.json()
+      setNotifications(notiData.data)
+      console.log('알림 정보:', notiData)
+    } catch (error) {
+      console.error('알림 정보 불러오기 실패:', error)
+    }
+  }, [API_BASE_URL])
+
+  //유저 정보 연동
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
-        const response = await fetch(
-          'https://api.moim.team/api/user/information',
-          {
-            method: 'GET',
-            credentials: 'include',
-          },
-        )
+        const response = await fetch(`${API_BASE_URL}/api/user/information`, {
+          method: 'GET',
+          credentials: 'include',
+        })
         if (!response.ok) {
+          // 예외 처리
           throw new Error(`서버 에러: ${response.status}`)
         }
+
         const data = await response.json()
-        console.log('유저 정보:', data)
+        console.log('원본 유저 정보:', data)
       } catch (error) {
         console.error('유저 정보 불러오기 실패:', error)
       }
     }
 
-    // 스케줄 정보 리스트
-    const getSchedule = async () => {
-      try {
-        const response = await fetch('https://api.moim.team/api/members/List', {
-          method: 'GET',
-          credentials: 'include',
-        })
-        if (!response.ok) {
-          throw new Error(`서버 에러: ${response.status}`)
-        }
-        const data = await response.json()
-        console.log('스케줄 정보:', data.data)
-        if (Array.isArray(data.data)) {
-          const formattedSchedules = data.data.map((schedule: Schedule) => ({
-            id: schedule.id,
-            startDate: schedule.startDate || '',
-            title: schedule.title,
-            startTime: schedule.startTime || '',
-            endTime: schedule.endTime || '',
-            location: schedule.location || '',
-            participants: schedule.participants || [],
-          }))
-          setScheduleList(formattedSchedules)
-        } else {
-          console.error('데이터 구조 에러:', data.data)
-        }
-      } catch (error) {
-        console.error('스케줄 정보 불러오기 실패:', error)
-      }
-    }
-
     fetchUserInfo()
+    fetchNotification()
     getSchedule()
-  }, [])
+  }, [API_BASE_URL, fetchNotification, getSchedule])
 
-  // 캐러셀 알림 목데이터
-  const notifications = [
-    {
-      id: 1,
-      notiMessage: '선정하던 장소가 있습니다!',
-      leftBtnText: '이어서 하기',
-      RightBtnText: '새로 만들기',
-    },
-    {
-      id: 2,
-      notiMessage: '선정하던 장소가 있습니다!!',
-      leftBtnText: '이어서 하기',
-      RightBtnText: '새로 만들기',
-    },
-    {
-      id: 3,
-      notiMessage: '선정하던 장소가 있습니다~!',
-      leftBtnText: '이어서 하기',
-      RightBtnText: '새로 만들기',
-    },
-  ]
   // 캐러셀 알림 버튼 클릭 이벤트
-  const handleLeftBtn = () => {
-    alert('왼쪽 버튼 클릭')
+  const handleLeftBtn = (id: number) => {
+    const currentNotification = notifications.find((n) => n.id === id)
+    if (currentNotification?.notiMessage?.includes('일정')) {
+      setSelectedSurveyId(currentNotification.surveyId)
+      router.push('schedule/select')
+    } else {
+      if (selectedGroupId) setSelectedGroupId(selectedGroupId)
+      router.push('letsmeet/middle')
+    }
   }
 
-  const handleRightBtn = () => {
-    alert('오른쪽 버튼 클릭')
+  const handleRightBtn = (id: number) => {
+    const filter = notifications.filter((n) => n.id !== id)
+    setNotifications(filter)
+    console.log('filter', filter)
   }
 
   return (
@@ -189,8 +357,8 @@ export default function LetsMeetPage() {
         <div className="flex justify-center items-center overflew-hidden">
           <CarouselNotification
             notifications={notifications}
-            onLeftBtn={handleLeftBtn}
-            onRightBtn={handleRightBtn}
+            onClickLeftBtn={handleLeftBtn}
+            onClickRightBtn={handleRightBtn}
           />
         </div>
       )}
@@ -208,7 +376,19 @@ export default function LetsMeetPage() {
           </div>
           <div className="flex-1 overflow-y-auto pb-[120px]">
             {scheduleList.map((schedule) => (
-              <LetsmeetCard key={schedule.id} {...schedule} />
+              <div key={schedule?.id}>
+                <LetsmeetCard
+                  id={schedule?.id}
+                  startDate={schedule?.startDate}
+                  title={schedule?.title}
+                  startTime={schedule?.startTime}
+                  endTime={schedule?.endTime}
+                  location={schedule?.location}
+                  participants={schedule?.participants}
+                  surveyId={schedule?.surveyId}
+                  getSchedule={getSchedule}
+                />
+              </div>
             ))}
           </div>
         </>
