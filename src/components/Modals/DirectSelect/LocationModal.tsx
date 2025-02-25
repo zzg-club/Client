@@ -5,6 +5,8 @@ import { X } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
+import { useGroupStore } from '@/store/groupStore'
+import { useLocationStore } from '@/store/locationStore'
 
 export interface LocationModalProps {
   isVisible: boolean
@@ -12,9 +14,10 @@ export interface LocationModalProps {
   onClickRight: () => void
   initialTitle: string
   onTitleChange: (newTitle: string) => void
-  selectedLocation?: { place: string; lat: number; lng: number } // 선택된 위치
-  scheduleId?: number // 수정할 스케줄 ID 추가
+  selectedLocation?: { place: string; lat: number; lng: number }
 }
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
 
 export default function LocationModal({
   isVisible,
@@ -22,7 +25,6 @@ export default function LocationModal({
   onClickRight,
   initialTitle,
   selectedLocation,
-  scheduleId,
 }: LocationModalProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -30,42 +32,20 @@ export default function LocationModal({
   const [isDirectModal, setIsDirectModal] = useState(directParam === 'true')
   const [title, setTitle] = useState(initialTitle)
   const [loading, setLoading] = useState(false)
+  const { setSelectedGroupId } = useGroupStore()
+  const { setSelectedLocation } = useLocationStore()
 
   const handleSearchNavigation = () => {
     setIsDirectModal(true) // `direct` 모달 활성화
     router.push(`/search?from=/letsmeet&direct=true`)
   }
 
-  // `PATCH /api/members` 약속 제목 수정 API 호출
+  // `제목 입력 시 UI 업데이트트
   const handleUpdateTitle = async (newTitle: string) => {
-    setTitle(newTitle) // UI 업데이트
-
-    try {
-      const response = await fetch(`/api/schedule/${scheduleId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          title: newTitle, // 새로운 제목 업데이트
-          startDate: new Date().toISOString(),
-          endDate: new Date().toISOString(),
-        }),
-        credentials: 'include',
-      })
-
-      if (!response.ok) {
-        throw new Error(`제목 변경 실패: ${response.status}`)
-      }
-
-      const data = await response.json()
-      console.log('스케줄 제목 변경 성공:', data)
-    } catch (error) {
-      console.error('제목 변경 오류:', error)
-    }
+    setTitle(newTitle)
   }
 
-  // `POST /api/members` 약속 생성 후 `PATCH /api/location/direct` 호출
+  // 입력완료 시 1. 그룹 생성 2. 약속 ID 생성 3. 직접 입력 위치 확정 4. 제목 생성성
   const handleDirectLocation = async () => {
     if (!selectedLocation) {
       alert('선택된 위치가 없습니다.')
@@ -75,8 +55,9 @@ export default function LocationModal({
     try {
       setLoading(true)
 
-      // 1. 그룹 생성 API 호출
-      const groupResponse = await fetch('https://api.moim.team/api/members', {
+      // 1️. 그룹 생성 API 호출
+      console.log('그룹 생성 요청 시작')
+      const groupResponse = await fetch(`${API_BASE_URL}/api/members`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -90,19 +71,42 @@ export default function LocationModal({
 
       const groupData = await groupResponse.json()
       const groupId = groupData.data.groupId
-      console.log(`그룹 생성 완료, groupId: ${groupId}`)
+      console.log(`그룹 생성 완료: groupId = ${groupId}`)
 
-      // 2. 중앙 위치 확정 API 호출
+      // 2️. 위치 ID 생성 API 호출
+      console.log('위치 ID 생성 요청 시작')
+      const locationCreateResponse = await fetch(
+        `${API_BASE_URL}/api/location/create`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({ groupId }),
+        },
+      )
+
+      if (!locationCreateResponse.ok) {
+        throw new Error(`위치 ID 생성 실패: ${locationCreateResponse.status}`)
+      }
+
+      const locationCreateData = await locationCreateResponse.json()
+      const locationId = locationCreateData.data.location_id
+      console.log(`위치 ID 생성 완료: locationId = ${locationId}`)
+
+      // 3️. 중앙 위치 확정 API 호출
+      console.log('중앙 위치 확정 요청 시작')
       const locationResponse = await fetch(
-        'https://api.moim.team/api/location/direct',
+        `${API_BASE_URL}/api/location/direct`,
         {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
           },
+          credentials: 'include',
           body: JSON.stringify({
-            groupId: groupId,
-            groupName: title,
+            groupId,
             midAddress: selectedLocation.place,
             latitude: selectedLocation.lat,
             longitude: selectedLocation.lng,
@@ -117,10 +121,39 @@ export default function LocationModal({
       const locationData = await locationResponse.json()
       console.log(`중앙 위치 확정 완료: ${locationData.data.midAddress}`)
 
-      alert('중앙 위치가 확정되었습니다!')
+      // 4. 제목 생성 API 호출
+      console.log('약속 제목 수정 요청 시작')
+      const updateTitleResponse = await fetch(`${API_BASE_URL}/api/members`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          groupId, // 그룹 ID 사용
+          groupName: title, // 사용자가 입력한 제목
+        }),
+      })
+
+      if (!updateTitleResponse.ok) {
+        throw new Error(`약속 제목 생성 실패: ${updateTitleResponse.status}`)
+      }
+
+      console.log('약속 제목 생성 완료')
+
+      // Zustand 스토어 업데이트
+      setSelectedGroupId(groupId)
+      setSelectedLocation(selectedLocation)
+
       onClickRight()
+
+      alert('중앙 위치가 확정되었습니다!')
+
+      // 렛츠밋 페이지 이동
+      router.replace('/letsmeet')
     } catch (error) {
       console.error('오류 발생:', error)
+      alert('오류가 발생했습니다. 다시 시도해주세요.')
     } finally {
       setLoading(false)
     }
