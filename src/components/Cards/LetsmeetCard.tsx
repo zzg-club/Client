@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import CustomModal from '@/components/Modals/CustomModal'
 import MembersVariant from '../Modals/MembersVariant'
 import DateTimeModal from '@/components/Modals/DirectSelect/DateTimeModal'
-import EditTitle from '@/components/Header/EditTitle'
+import DirectEditTitle from '@/components/Header/DirectEditTitle'
 import CustomCalendar from '@/components/Calendars/CustomCalendar'
 import { useHandleSelect } from '@/hooks/useHandleSelect'
 import { useDateTimeStore } from '@/store/dateTimeStore'
@@ -34,14 +34,13 @@ export function LetsmeetCard({
   id,
   startTime,
   endTime,
+  title,
   location,
   participants,
-  surveyId,
-  getSchedule,
 }: LetsmeetCardProps) {
   const [isOpen, setIsOpen] = useState(false)
 
-  const [title, setTitle] = useState('제목 없는 일정') // 제목 상태 관리
+  const [directTitle, setDirectTitle] = useState('제목 없는 일정') // 제목 상태 관리
 
   const [isMembersModalOpen, setIsMembersModalOpen] = useState(false)
   const [isCdialogOpen, setIsCdialogOpen] = useState(false) // 일정 조율하기 모달 상태 C: Coordinate
@@ -88,7 +87,7 @@ export function LetsmeetCard({
 
   //제목 수정
   const handleTitleChange = async (newTitle: string) => {
-    setTitle(newTitle) // UI 업데이트
+    setDirectTitle(newTitle) // UI 업데이트
 
     try {
       const response = await fetch(
@@ -167,9 +166,10 @@ export function LetsmeetCard({
     setIsCdialogOpen(!isCdialogOpen)
   }
 
-  const handleOpenDdialg = async () => {
+  const handleOpenDdialog = async () => {
     if (isDdialogOpen) {
       resetDateTime()
+      setDirectTitle('제목 없는 일정')
     }
     setIsDdialogOpen(!isDdialogOpen)
   }
@@ -192,28 +192,15 @@ export function LetsmeetCard({
     console.log('endDate', endDate)
 
     try {
-      // 1. 그룹 생성 API
-      const test = await fetch(`${API_BASE_URL}/api/members`, {
-        method: 'POST',
-        credentials: 'include',
-      })
-
-      if (!test.ok) {
-        throw new Error(`서버 에러: ${test.status}`)
-      }
-
-      const check = await test.json()
-      const groupId = check.data.groupId
-
-      // 2. 약속 생성 API
+      // 1. 약속(일정) 생성
       const response = await fetch(`${API_BASE_URL}/api/schedule`, {
         method: 'POST',
-        credentials: 'include', // 인증 정보 포함
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          groupId: groupId,
+          groupId: id,
           name: title,
           location: selectedLocation,
           startDate: startDate,
@@ -312,8 +299,8 @@ export function LetsmeetCard({
         onOpenChange={handleCloseScheduleModal}
         leftText={'직접 입력'}
         rightText={'선정하기'}
-        onClickLeft={handlePostDirectSchedule}
-        onClickRight={handlePostSchedule}
+        onClickLeft={handleOpenDdialog}
+        onClickRight={handleOpenCdialog}
       >
         {' '}
         <div className="flex item-center justify-center text-[#1e1e1e] text-xl font-medium leading-snug py-4 mt-3">
@@ -346,7 +333,10 @@ export function LetsmeetCard({
         isFooter={true}
         footerText={'입력완료'}
       >
-        <EditTitle initialTitle={title} onTitleChange={handleTitleChange} />
+        <DirectEditTitle
+          initialTitle={directTitle}
+          onTitleChange={handleTitleChange}
+        />
         <DateTimeModal onDateChange={handleDateChange} />
       </CustomModal>
     </div>
