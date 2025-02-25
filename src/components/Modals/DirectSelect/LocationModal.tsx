@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import { useGroupStore } from '@/store/groupStore'
 import { useLocationStore } from '@/store/locationsStore'
+import { transitStore } from '@/store/transitStore'
 
 export interface LocationModalProps {
   isVisible: boolean
@@ -30,17 +31,24 @@ export default function LocationModal({
   const searchParams = useSearchParams()
   const directParam = searchParams.get('direct') // URL에서 `direct` 가져오기
   const [isDirectModal, setIsDirectModal] = useState(directParam === 'true')
+  const { nearestTransit, fetchNearestTransit } = transitStore()
   const [title, setTitle] = useState(initialTitle)
   const [loading, setLoading] = useState(false)
   const { setSelectedGroupId } = useGroupStore()
   const { setSelectedLocation } = useLocationStore()
+
+  useEffect(() => {
+    if (selectedLocation) {
+      fetchNearestTransit()
+    }
+  })
 
   const handleSearchNavigation = () => {
     setIsDirectModal(true) // `direct` 모달 활성화
     router.push(`/search?from=/letsmeet&direct=true`)
   }
 
-  // `제목 입력 시 UI 업데이트트
+  // `제목 입력 시 UI 업데이트
   const handleUpdateTitle = async (newTitle: string) => {
     setTitle(newTitle)
   }
@@ -193,7 +201,7 @@ export default function LocationModal({
             >
               {/* 선택된 위치가 있으면 표시, 없으면 기본 텍스트 */}
               <span className="ml-4 text-[14px] font-medium text-[#1e1e1e] truncate">
-                {selectedLocation ? selectedLocation.place : ''}
+                {nearestTransit || ''}
               </span>
               <Image
                 src="/vector.svg"
