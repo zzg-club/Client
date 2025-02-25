@@ -9,6 +9,9 @@ import { useGroupStore } from '@/store/groupStore'
 import { useSurveyStore } from '@/store/surveyStore'
 import { useNotificationStore } from '@/store/notificationStore'
 import axios from 'axios'
+// import LocationModal from '@/components/Modals/DirectSelect/LocationModal'
+import { useLocationStore } from '@/store/locationStore'
+import Image from 'next/image'
 
 export interface ScheduleCardProps {
   id: number
@@ -46,11 +49,12 @@ export function ScheduleCard({
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
   const [isMembersModalOpen, setIsMembersModalOpen] = useState(false)
   const [isSelectedPlace, setIsSelectedPlace] = useState(false)
-
+  const [isDirectModalOpen, setIsDirectModalOpen] = useState(false)
   const router = useRouter()
 
   const { setSelectedGroupId, selectedGroupId } = useGroupStore()
   const { setSelectedSurveyId } = useSurveyStore()
+  const { selectedLocation } = useLocationStore()
   const showNotification = useNotificationStore(
     (state) => state.showNotification,
   )
@@ -110,9 +114,6 @@ export function ScheduleCard({
     setIsSelectedPlace(false)
   }
 
-  // 선택된 멤버의 id값 전달을 위한 상태추적
-  // const [selectedMember, setSelectedMember] = useState(participants)
-
   const handleNotification = (type: string) => {
     if (type == 'creator&my') {
       showNotification('모임 나가기 완료!')
@@ -143,8 +144,6 @@ export function ScheduleCard({
         return
       }
 
-      // console.log(`API URL: ${url}, 데이터:`, requestData)
-
       const response = await axios.delete(url, {
         withCredentials: true,
         data: requestData,
@@ -161,6 +160,21 @@ export function ScheduleCard({
       handleNotification('error')
       throw error
     }
+  }
+
+  const handleDirectLetsmeet = () => {
+    setIsSelectedPlace(false)
+    setIsDirectModalOpen(!isDirectModalOpen)
+  }
+
+  const handleSearchNavigation = () => {
+    // setIsDirectModalOpen(true) // `direct` 모달 활성화
+    router.push(`/search?from=/letsmeet&direct=true`)
+  }
+
+  const handleDirectComplete = () => {
+    setIsDirectModalOpen(false)
+    alert('입력완료 클릭시 선정한 장소 api 연동')
   }
 
   return (
@@ -234,7 +248,7 @@ export function ScheduleCard({
         onOpenChange={handleCloseSelectedPlace}
         leftText={'직접 입력'}
         rightText={'장소선정'}
-        onClickLeft={() => alert('직접 입력 모달 연결')}
+        onClickLeft={handleDirectLetsmeet}
         onClickRight={() => router.push('/search?from=schedule')}
       >
         <div className="flex item-center justify-center text-[#1e1e1e] text-xl font-medium leading-snug py-4 mt-3">
@@ -243,6 +257,43 @@ export function ScheduleCard({
           선정할까요?
         </div>
       </SelectModal>
+      <CustomModal
+        open={isDirectModalOpen}
+        onOpenChange={handleDirectLetsmeet}
+        isFooter={true}
+        footerText={'입력완료'}
+        onNext={handleDirectComplete}
+      >
+        <div className="text-[#1e1e1e] text-xl font-medium leading-[17px] mb-[15px] ml-[4px]">
+          {title}
+        </div>
+        <div className="text-[#8e8d8d] text-xl font-medium leading-[17px] mb-[20px] ml-[4px]">
+          {startTime}
+        </div>
+        <div className="flex justify-center items-center">
+          {selectedLocation ? (
+            <div className="ml-4 text-[14px] font-medium text-[#1e1e1e] truncate">
+              {selectedLocation.place}
+            </div>
+          ) : (
+            <button
+              onClick={handleSearchNavigation}
+              className="flex w-[228px] px-3 py-1.5 justify-end items-center gap-[10px] rounded-[24px] border border-[var(--NavBarColor,#AFAFAF)] bg-[var(--Grays-White,#FFF)] cursor-pointer"
+            >
+              {/* 선택된 위치가 있으면 표시, 없으면 기본 텍스트 */}
+              {/* <span className="ml-4 text-[14px] font-medium text-[#1e1e1e] truncate">
+              {selectedLocation ? selectedLocation.place : ''}
+            </span> */}
+              <Image
+                src="/vector.svg"
+                alt="위치 아이콘"
+                width={20}
+                height={20}
+              />
+            </button>
+          )}
+        </div>
+      </CustomModal>
     </div>
   )
 }

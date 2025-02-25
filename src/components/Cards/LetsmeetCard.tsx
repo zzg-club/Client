@@ -328,7 +328,7 @@ export function LetsmeetCard({
       {/* 직접 입력하기 모달 - 날짜, 시간 */}
       <CustomModal
         open={isDdialogOpen}
-        onOpenChange={handleOpenDdialg}
+        onOpenChange={handleOpenDdialog}
         onNext={handlePostDirectSchedule}
         isFooter={true}
         footerText={'입력완료'}

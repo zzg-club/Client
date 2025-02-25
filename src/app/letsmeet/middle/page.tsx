@@ -9,7 +9,6 @@ import BottomSheet from './BottomSheet'
 import { loadKakaoMaps } from '@/utils/kakaoLoader'
 import BackButton from '@/components/Buttons/Middle/BackButton'
 import { useGroupStore } from '@/store/groupStore'
-import { useWebSocketStore } from '@/store/websocketStore'
 import useWebSocket from '@/hooks/useWebSocket'
 
 interface Participant {
@@ -49,7 +48,7 @@ export default function Middle() {
   const [destination, setDestination] = useState<RecommendedLocation | null>(
     null,
   )
-  const { connectWebSocket, subscribeLocation } = useWebSocketStore()
+
   const [isCreator, setIsCreator] = useState<boolean>(false)
   const [recommendedLocations, setRecommendedLocations] = useState<
     RecommendedLocation[]

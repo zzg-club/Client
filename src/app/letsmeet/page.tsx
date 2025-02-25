@@ -41,9 +41,6 @@ type Notification = {
 export default function LetsMeetPage() {
   const router = useRouter()
   const [searchParams, setSearchParams] = useState<URLSearchParams | null>(null)
-  useEffect(() => {
-    setSearchParams(new URLSearchParams(window.location.search))
-  }, [])
 
   const isDirectModal = searchParams?.get('direct') === 'true'
 
@@ -58,7 +55,11 @@ export default function LetsMeetPage() {
   const { setSelectedSurveyId } = useSurveyStore()
   const { selectedGroupId, setSelectedGroupId } = useGroupStore()
   const { selectedLocation, setSelectedLocation } = useLocationStore()
-
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setSearchParams(new URLSearchParams(window.location.search))
+    }
+  }, [])
   //`direct=true`이면 모달 자동으로 열기
   useEffect(() => {
     if (isDirectModal) {
@@ -87,7 +88,7 @@ export default function LetsMeetPage() {
         lng: selectedLocation.lng,
       })
     }
-  }, [isDirectModal, selectedLocation, setSelectedLocation])
+  }, [selectedLocation, isDirectModal, setSelectedLocation])
 
   const fetchNotification = useCallback(async () => {
     try {
@@ -206,225 +207,136 @@ export default function LetsMeetPage() {
     } catch (error) {
       console.error('그룹 생성 오류:', error)
     }
-
-    const handleDirectInput = async () => {
-      try {
-        // 1. 약속 그룹 생성 (groupId 발급)
-        const membersResponse = await fetch(`${API_BASE_URL}/api/members`, {
-          method: 'POST',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({}),
-        })
-
-        if (!membersResponse.ok) throw new Error('약속 생성 실패')
-
-        const membersData = await membersResponse.json()
-        const newGroupId = membersData.data.groupId
-
-        console.log('생성된 groupId:', newGroupId)
-
-        setSelectedGroupId(newGroupId)
-
-        // 2. 렛츠밋 약속(위치) 생성
-        const locationResponse = await fetch(
-          `${API_BASE_URL}/api/location/create`,
-          {
-            method: 'POST',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ groupId: newGroupId }),
-          },
-        )
-
-        if (!locationResponse.ok) throw new Error('위치 생성 실패')
-
-        const locationData = await locationResponse.json()
-        console.log(
-          '위치 생성 완료, location_id:',
-          locationData.data.location_id,
-        )
-
-        // 3. 중앙 위치 확정 (selectedLocation 값 사용)
-        if (selectedLocation) {
-          const directLocationResponse = await fetch(
-            `${API_BASE_URL}/api/location/direct`,
-            {
-              method: 'PATCH',
-              credentials: 'include',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                groupId: newGroupId,
-                midAddress: selectedLocation.place,
-                latitude: selectedLocation.lat,
-                longitude: selectedLocation.lng,
-              }),
-            },
-          )
-
-          if (!directLocationResponse.ok) throw new Error('중앙 위치 확정 실패')
-
-          const directLocationData = await directLocationResponse.json()
-          console.log('중앙 위치 확정 완료:', directLocationData.data)
-        } else {
-          console.warn(
-            'selectedLocation이 없습니다. 중앙 위치를 확정하지 못했습니다.',
-          )
-        }
-
-        // 직접 입력 모달 열기 (groupId 생성 후)
-        setTitle('제목 없는 일정')
-        setIsDirectModalOpen(true)
-      } catch (error) {
-        console.error('직접 입력 오류:', error)
-      }
-    }
-
-    const handleCloseModal = () => {
-      setIsDirectModalOpen(false)
-      router.replace('/letsmeet')
-    }
-
-    const addSchedule = async () => {
-      if (!selectedLocation) return
-
-      const newSchedule = {
-        id: scheduleList.length + 1,
-        startDate: '',
-        title: title,
-        startTime: '',
-        endTime: '',
-        location: selectedLocation.place,
-        participants: [],
-      }
-
-      const response = await fetch(`${API_BASE_URL}/api/schedule`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newSchedule),
-      })
-
-      if (!response.ok) {
-        throw new Error(`서버 에러: ${response.status}`)
-      }
-
-      //일정 추가 후 최신 데이터 다시 불러오기
-      await getSchedule()
-
-      //모달 닫기 및 리디렉션
-      setIsDirectModalOpen(false)
-      router.replace('/letsmeet')
-    }
-
-    const handleComplete = async () => {
-      await addSchedule()
-    }
-
-    // 캐러셀 알림 버튼 클릭 이벤트
-    const handleLeftBtn = (id: number) => {
-      const currentNotification = notifications.find((n) => n.id === id)
-      if (currentNotification?.notiMessage?.includes('일정')) {
-        setSelectedSurveyId(currentNotification.surveyId)
-        router.push('schedule/select')
-      } else {
-        if (selectedGroupId) setSelectedGroupId(selectedGroupId)
-        router.push('letsmeet/middle')
-      }
-    }
-
-    const handleRightBtn = (id: number) => {
-      const filter = notifications.filter((n) => n.id !== id)
-      setNotifications(filter)
-      console.log('filter', filter)
-    }
-
-    return (
-      <div className="flex flex-col min-h-screen h-screen">
-        <NavBar activeTab="렛츠밋" />
-
-        {/* 캐로셀 알림 컴포넌트 */}
-        {notifications.length > 0 && (
-          <div className="flex justify-center items-center overflew-hidden">
-            <CarouselNotification
-              notifications={notifications}
-              onClickLeftBtn={handleLeftBtn}
-              onClickRightBtn={handleRightBtn}
-            />
-          </div>
-        )}
-
-        {/* 렛츠밋 카드 컴포넌트 */}
-        {scheduleList.length > 0 ? (
-          <>
-            <div className="w-full h-[34px] px-4 my-[8px] flex justify-start items-center gap-[2px]">
-              <div className="ml-[8px] text-[#1e1e1e] text-xs font-medium leading-[17px]">
-                내 장소
-              </div>
-              <div className="text-[#9562fa] text-base font-medium leading-[17px]">
-                +{scheduleList.length}
-              </div>
-            </div>
-            <div className="flex-1 overflow-y-auto pb-[120px]">
-              {scheduleList.map((schedule) => (
-                <div key={schedule?.id}>
-                  <LetsmeetCard
-                    id={schedule?.id}
-                    startDate={schedule?.startDate}
-                    title={schedule?.title}
-                    startTime={schedule?.startTime}
-                    endTime={schedule?.endTime}
-                    location={schedule?.location}
-                    participants={schedule?.participants}
-                    surveyId={schedule?.surveyId}
-                    getSchedule={getSchedule}
-                  />
-                </div>
-              ))}
-            </div>
-          </>
-        ) : (
-          // 장소 정보 없는 경우 렌더링 화면
-          <div className="flex flex-col items-center justify-center flex-1">
-            <div className="text-center text-zinc-400 text-base font-medium leading-[17px]">
-              모임 장소를 추가해봐요!
-            </div>
-          </div>
-        )}
-        {/* 장소 추가하기 버튼 */}
-        <Button
-          buttonString="장소 추가하기"
-          isOpen={isOpen}
-          onClick={() => {
-            setIsOpen(!isOpen)
-            setIsOptionsOpen(!isOptionsOpen)
-          }}
-        />
-
-        {/* 옵션 모달 */}
-        <ScheduleOptions
-          isOpen={isOptionsOpen}
-          onClose={() => setIsOptionsOpen(false)}
-          onClickUp={handleFindMidpoint} // "중간지점 찾기" 버튼 핸들러
-          onClickDown={handleDirectInput} // "직접 입력하기" 버튼 핸들러
-          optionStringUp="중간지점 찾기"
-          optionStringDown="직접 입력하기"
-        />
-        {/* LocationModal */}
-        {isDirectModalOpen && (
-          <LocationModal
-            isVisible={isDirectModalOpen}
-            onClose={handleCloseModal}
-            onClickRight={handleComplete}
-            initialTitle={title}
-            onTitleChange={setTitle}
-            selectedLocation={selectedLocation ?? undefined} // `null` 대신 `undefined` 전달
-            scheduleId={selectedLocation ? scheduleList.length + 1 : 0} // scheduleId 추가
-          />
-        )}
-      </div>
-    )
   }
+
+  const handleDirectInput = async () => {
+    try {
+      // 직접 입력 모달 열기
+      setTitle('제목 없는 일정')
+      setSelectedLocation(null)
+      setIsDirectModalOpen(true)
+    } catch (error) {
+      console.error('직접 입력 오류:', error)
+    }
+  }
+
+  const handleCloseModal = () => {
+    setIsDirectModalOpen(false)
+    router.replace('/letsmeet')
+  }
+
+  const addSchedule = async () => {
+    await getSchedule()
+    //모달 닫기 및 리디렉션
+    setIsDirectModalOpen(false)
+    router.replace('/letsmeet')
+  }
+
+  const handleComplete = async () => {
+    console.log('handleComplete 실행됨 - addSchedule 호출')
+    await addSchedule() // 중앙 위치 확정 → 일정 추가 실행
+  }
+
+  // 캐러셀 알림 버튼 클릭 이벤트
+  const handleLeftBtn = (id: number) => {
+    const currentNotification = notifications.find((n) => n.id === id)
+    if (currentNotification?.notiMessage?.includes('일정')) {
+      setSelectedSurveyId(currentNotification.surveyId)
+      router.push('schedule/select')
+    } else {
+      if (selectedGroupId) setSelectedGroupId(selectedGroupId)
+      router.push('letsmeet/middle')
+    }
+  }
+
+  const handleRightBtn = (id: number) => {
+    const filter = notifications.filter((n) => n.id !== id)
+    setNotifications(filter)
+    console.log('filter', filter)
+  }
+
+  return (
+    <div className="flex flex-col min-h-screen h-screen">
+      <NavBar activeTab="렛츠밋" />
+
+      {/* 캐로셀 알림 컴포넌트 */}
+      {notifications.length > 0 && (
+        <div className="flex justify-center items-center overflew-hidden">
+          <CarouselNotification
+            notifications={notifications}
+            onClickLeftBtn={handleLeftBtn}
+            onClickRightBtn={handleRightBtn}
+          />
+        </div>
+      )}
+
+      {/* 렛츠밋 카드 컴포넌트 */}
+      {scheduleList.length > 0 ? (
+        <>
+          <div className="w-full h-[34px] px-4 my-[8px] flex justify-start items-center gap-[2px]">
+            <div className="ml-[8px] text-[#1e1e1e] text-xs font-medium leading-[17px]">
+              내 장소
+            </div>
+            <div className="text-[#9562fa] text-base font-medium leading-[17px]">
+              +{scheduleList.length}
+            </div>
+          </div>
+          <div className="flex-1 overflow-y-auto pb-[120px]">
+            {scheduleList.map((schedule) => (
+              <div key={schedule?.id}>
+                <LetsmeetCard
+                  id={schedule?.id}
+                  startDate={schedule?.startDate}
+                  title={schedule?.title}
+                  startTime={schedule?.startTime}
+                  endTime={schedule?.endTime}
+                  location={schedule?.location}
+                  participants={schedule?.participants}
+                  surveyId={schedule?.surveyId}
+                  getSchedule={getSchedule}
+                />
+              </div>
+            ))}
+          </div>
+        </>
+      ) : (
+        // 장소 정보 없는 경우 렌더링 화면
+        <div className="flex flex-col items-center justify-center flex-1">
+          <div className="text-center text-zinc-400 text-base font-medium leading-[17px]">
+            모임 장소를 추가해봐요!
+          </div>
+        </div>
+      )}
+      {/* 장소 추가하기 버튼 */}
+      <Button
+        buttonString="장소 추가하기"
+        isOpen={isOpen}
+        onClick={() => {
+          setIsOpen(!isOpen)
+          setIsOptionsOpen(!isOptionsOpen)
+        }}
+      />
+
+      {/* 옵션 모달 */}
+      <ScheduleOptions
+        isOpen={isOptionsOpen}
+        onClose={() => setIsOptionsOpen(false)}
+        onClickUp={handleFindMidpoint} // "중간지점 찾기" 버튼 핸들러
+        onClickDown={handleDirectInput} // "직접 입력하기" 버튼 핸들러
+        optionStringUp="중간지점 찾기"
+        optionStringDown="직접 입력하기"
+      />
+      {/* LocationModal */}
+      {isDirectModalOpen && (
+        <LocationModal
+          isVisible={isDirectModalOpen}
+          onClose={handleCloseModal}
+          onClickRight={handleComplete}
+          initialTitle={title}
+          onTitleChange={(newTitle) => setTitle(newTitle)}
+          selectedLocation={selectedLocation ?? undefined}
+        />
+      )}
+    </div>
+  )
 }
