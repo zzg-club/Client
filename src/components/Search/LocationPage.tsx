@@ -7,7 +7,7 @@ import { getCurrentLocation } from '@/components/Map/getCurrentLocation'
 import Image from 'next/image'
 import LocationModal from '@/components/Modals/DirectSelect/LocationModal'
 import useWebSocket from '@/hooks/useWebSocket'
-import { useLocationStore } from '@/store/locationStore'
+import { useLocationStore } from '@/store/locationsStore'
 import { useGroupStore } from '@/store/groupStore'
 import { useWebSocketStore } from '@/store/websocketStore'
 

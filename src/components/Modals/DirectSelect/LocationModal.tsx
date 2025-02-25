@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import { useGroupStore } from '@/store/groupStore'
-import { useLocationStore } from '@/store/locationStore'
+import { useLocationStore } from '@/store/locationsStore'
 
 export interface LocationModalProps {
   isVisible: boolean

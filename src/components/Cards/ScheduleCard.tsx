@@ -10,7 +10,7 @@ import { useSurveyStore } from '@/store/surveyStore'
 import { useNotificationStore } from '@/store/notificationStore'
 import axios from 'axios'
 // import LocationModal from '@/components/Modals/DirectSelect/LocationModal'
-import { useLocationStore } from '@/store/locationStore'
+import { useLocationStore } from '@/store/locationsStore'
 import Image from 'next/image'
 
 export interface ScheduleCardProps {

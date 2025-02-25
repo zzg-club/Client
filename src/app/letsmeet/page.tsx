@@ -10,7 +10,7 @@ import { useRouter } from 'next/navigation'
 import LocationModal from '@/components/Modals/DirectSelect/LocationModal'
 import { useSurveyStore } from '@/store/surveyStore'
 import { useGroupStore } from '@/store/groupStore'
-import { useLocationStore } from '@/store/locationStore'
+import { useLocationStore } from '@/store/locationsStore'
 
 export type Participant = {
   id: number
