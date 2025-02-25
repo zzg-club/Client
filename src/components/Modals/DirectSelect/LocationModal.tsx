@@ -25,19 +25,18 @@ export default function LocationModal({
   scheduleId,
 }: LocationModalProps) {
   const router = useRouter()
-  const [loading, setLoading] = useState(false)
   const searchParams = useSearchParams()
   const directParam = searchParams.get('direct') // URL에서 `direct` 가져오기
-
   const [isDirectModal, setIsDirectModal] = useState(directParam === 'true')
   const [title, setTitle] = useState(initialTitle)
+  const [loading, setLoading] = useState(false)
 
   const handleSearchNavigation = () => {
     setIsDirectModal(true) // `direct` 모달 활성화
     router.push(`/search?from=/letsmeet&direct=true`)
   }
 
-  // 제목 변경 API 요청
+  // `PATCH /api/members` 약속 제목 수정 API 호출
   const handleUpdateTitle = async (newTitle: string) => {
     setTitle(newTitle) // UI 업데이트
 
@@ -66,7 +65,7 @@ export default function LocationModal({
     }
   }
 
-  // 중앙 위치 직접 선택 API 호출
+  // `POST /api/members` 약속 생성 후 `PATCH /api/location/direct` 호출
   const handleDirectLocation = async () => {
     if (!selectedLocation) {
       alert('선택된 위치가 없습니다.')
@@ -82,7 +81,7 @@ export default function LocationModal({
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'include', // 쿠키 포함 요청
+        credentials: 'include',
       })
 
       if (!groupResponse.ok) {
@@ -90,8 +89,7 @@ export default function LocationModal({
       }
 
       const groupData = await groupResponse.json()
-      const groupId = groupData.data.groupId // 그룹 ID 받아오기
-
+      const groupId = groupData.data.groupId
       console.log(`그룹 생성 완료, groupId: ${groupId}`)
 
       // 2. 중앙 위치 확정 API 호출
@@ -103,7 +101,7 @@ export default function LocationModal({
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            groupId: groupId, // 생성된 그룹 ID 사용
+            groupId: groupId,
             groupName: title,
             midAddress: selectedLocation.place,
             latitude: selectedLocation.lat,
