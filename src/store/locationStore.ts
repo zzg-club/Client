@@ -11,7 +11,7 @@ interface Location {
 // Zustand 스토어 정의
 interface LocationState {
   selectedLocation: Location | null;
-  setSelectedLocation: (location: Location) => void;
+  setSelectedLocation: (location: Location | null) => void;
   clearSelectedLocation: () => void;
 }
 
