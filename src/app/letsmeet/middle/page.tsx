@@ -8,13 +8,15 @@ import Title from '@/components/Header/Middle/TitleMiddle'
 import BottomSheet from './BottomSheet'
 import { loadKakaoMaps } from '@/utils/kakaoLoader'
 import BackButton from '@/components/Buttons/Middle/BackButton'
-import useWebSocket from '@/hooks/useWebSocket'
 import { useGroupStore } from '@/store/groupStore'
+import { useWebSocketStore } from '@/store/websocketStore'
 
 interface Participant {
-  image: string
-  type: string
-  locationComplete: string
+  userId: number
+  userName: string
+  userProfile: string
+  latitude: number
+  longitude: number
 }
 
 interface RecommendedLocation {
@@ -42,37 +44,80 @@ export default function Middle() {
   const [from, setFrom] = useState('/schedule')
 
   const [kakaoMap, setKakaoMap] = useState<kakao.maps.Map | null>(null)
-  const [participants, setParticipants] = useState<Participant[]>([])
+  const [participants] = useState<Participant[]>([])
   const [destination, setDestination] = useState<RecommendedLocation | null>(
     null,
   )
-
+const { connectWebSocket, subscribeLocation } = useWebSocketStore()
   const [isCreator, setIsCreator] = useState<boolean>(false)
-  const [recommendedLocations] = useState<RecommendedLocation[]>([])
+  const [recommendedLocations, setRecommendedLocations] = useState<
+    RecommendedLocation[]
+  >([])
 
   const { selectedGroupId } = useGroupStore()
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
   const router = useRouter()
-  const { locations } = useWebSocket(selectedGroupId)
 
+  /* 참여자 정보 */
+  // 기존 참여자 위치 데이터를 API에서 불러오기
   useEffect(() => {
-    if (!locations.length) return
-
-    console.log('실시간 참여자 위치 업데이트:', locations)
-
-    const updatedParticipants = locations.map((loc) => ({
-      id: loc.userId,
-      name: loc.userName,
-      image: loc.userProfile || '',
-      type: 'participant',
-      locationComplete: loc.latitude && loc.longitude ? '완료' : '미완료',
-      scheduleComplete: '미완료',
-    }))
-
-    setParticipants(updatedParticipants)
-  }, [locations])
-
-  //  2. 카카오 맵 초기화 (추천 장소 및 참여자 위치 표시)
+    if (!selectedGroupId) return
+  
+    // 1️. 기존 참여자의 위치 데이터 가져오기
+    const fetchParticipants = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/location/${selectedGroupId}`, {
+          method: 'GET',
+          credentials: 'include',
+        })
+  
+        if (!response.ok) throw new Error('참여자 위치 데이터 가져오기 실패')
+  
+        const data = await response.json()
+        console.log('초기 참여자 위치 데이터:', data)
+  
+        if (data.success) {
+          const initialParticipants: Participant[] = []
+  
+          // 내 위치 추가
+          if (data.data.myLocation) {
+            initialParticipants.push({
+              userId: data.data.myLocation.userId,
+              userName: data.data.myLocation.username,
+              userProfile: data.data.myLocation.userProfile || '',
+              latitude: data.data.myLocation.latitude,
+              longitude: data.data.myLocation.longitude,
+            })
+          }
+  
+          // 다른 참여자 위치 추가
+          data.data.membersLocation.forEach((member: any) => {
+            initialParticipants.push({
+              userId: member.userId,
+              userName: member.username,
+              userProfile: member.userProfile || '',
+              latitude: member.latitude,
+              longitude: member.longitude,
+            })
+          })
+  
+          setParticipants(initialParticipants)
+  
+          // 2️. WebSocket 연결 실행 (초기 데이터 세팅 후 실행)
+          connectWebSocket(selectedGroupId)
+  
+          // 3️. WebSocket 구독 실행 (초기 데이터 세팅 후 실행)
+          subscribeLocation(selectedGroupId)
+        }
+      } catch (error) {
+        console.error('초기 참여자 위치 데이터 가져오기 실패:', error)
+      }
+    }
+  
+    fetchParticipants()
+  }, [selectedGroupId, connectWebSocket, subscribeLocation])
+  
+  //  1. 카카오 맵 초기화 (추천 장소 및 참여자 위치 표시)
   useEffect(() => {
     const initializeMap = async () => {
       try {
@@ -93,6 +138,37 @@ export default function Middle() {
     }
     initializeMap()
   }, [])
+
+  // 2. 추천 중간 지점 가져오기
+  useEffect(() => {
+    if (!selectedGroupId) return
+
+    const fetchRecommendedLocations = async () => {
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/api/location/threeLocation/${selectedGroupId}`,
+          {
+            method: 'GET',
+            credentials: 'include',
+          },
+        )
+
+        if (!response.ok) throw new Error('추천 장소 가져오기 실패')
+
+        const data = await response.json()
+        console.log('추천 중간 지점:', data)
+
+        if (data.success && data.data.length > 0) {
+          setRecommendedLocations(data.data)
+          setDestination(data.data[0]) // 첫 번째 추천 장소를 기본값으로 설정
+        }
+      } catch (error) {
+        console.error('추천 장소 가져오기 실패:', error)
+      }
+    }
+
+    fetchRecommendedLocations()
+  }, [selectedGroupId, API_BASE_URL])
 
   // 3. 추천 장소 변경 (슬라이드 이동)
   const handleSlideChange = (direction: 'left' | 'right') => {
@@ -178,15 +254,8 @@ export default function Middle() {
 
         {kakaoMap && destination && participants.length > 0 && (
           <>
-            <PinMap kakaoMap={kakaoMap} groupId={selectedGroupId} />
-            <RouteMap
-              kakaoMap={kakaoMap}
-              groupId={selectedGroupId}
-              destination={{
-                latitude: destination.latitude,
-                longitude: destination.longitude,
-              }}
-            />
+            <PinMap kakaoMap={kakaoMap} destinations={recommendedLocations} />
+            <RouteMap kakaoMap={kakaoMap} destinations={recommendedLocations} />
           </>
         )}
 

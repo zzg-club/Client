@@ -9,6 +9,7 @@ import LocationModal from '@/components/Modals/DirectSelect/LocationModal'
 import useWebSocket from '@/hooks/useWebSocket'
 import { useLocationStore } from '@/store/locationStore'
 import { useGroupStore } from '@/store/groupStore'
+import { useWebSocketStore } from '@/store/websocketStore'
 
 const KAKAO_API_KEY = '7d67efb24d65fe323f795b1b4a52dd77'
 
@@ -71,7 +72,7 @@ const LocationPage: React.FC<LocationPageProps> = ({
     const [locations, setLocations] = useState<
       { place: string; jibun: string; road: string; lat: number; lng: number }[]
     >([])
-
+    const { connectWebSocket, sendMessage } = useWebSocketStore()
     const [searchQuery, setSearchQuery] = useState(queryParam)
 
     const [isModalVisible, setIsModalVisible] = useState(isDirectModal)
@@ -220,9 +221,9 @@ const LocationPage: React.FC<LocationPageProps> = ({
             lng: location.lng,
           })
 
-          // WebSocket을 통해 위치 전송
-          sendLocation(location.lat, location.lng)
-          console.log('📡 위치 전송 완료:', location)
+          connectWebSocket(selectedGroupId) // WebSocket 연결 (한 번만 실행됨)
+          sendMessage(selectedGroupId, location.lat, location.lng) // WebSocket 메시지 전송
+          console.log('location page->websocket 위치 전송 완료:', location)
 
           // 페이지 이동
           router.push(`/letsmeet/middle?from=${from}`)
@@ -230,7 +231,14 @@ const LocationPage: React.FC<LocationPageProps> = ({
           console.error('사용자 위치 저장 오류:', error)
         }
       },
-      [selectedGroupId, sendLocation, router, from],
+      [
+        selectedGroupId,
+        sendLocation,
+        router,
+        from,
+        connectWebSocket,
+        sendMessage,
+      ],
     )
 
     const handleBackClick = () => {

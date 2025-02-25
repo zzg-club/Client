@@ -10,7 +10,6 @@ import { useRouter } from 'next/navigation'
 import LocationModal from '@/components/Modals/DirectSelect/LocationModal'
 import { useSurveyStore } from '@/store/surveyStore'
 import { useGroupStore } from '@/store/groupStore'
-import { useNotificationStore } from '@/store/notificationStore'
 import { useLocationStore } from '@/store/locationStore'
 
 export type Participant = {
@@ -47,13 +46,6 @@ export default function LetsMeetPage() {
   }, [])
 
   const isDirectModal = searchParams?.get('direct') === 'true'
-  const place = searchParams?.get('place') || ''
-  const lat = searchParams?.get('lat')
-    ? parseFloat(searchParams.get('lat')!)
-    : null
-  const lng = searchParams?.get('lng')
-    ? parseFloat(searchParams.get('lng')!)
-    : null
 
   const [isOpen, setIsOpen] = useState(false)
   const [isOptionsOpen, setIsOptionsOpen] = useState(false)
@@ -61,18 +53,11 @@ export default function LetsMeetPage() {
   const [title, setTitle] = useState('제목 없는 일정')
   const [scheduleList, setScheduleList] = useState<Schedule[]>([])
   const [notifications, setNotifications] = useState<Notification[]>([])
-  const { selectedLocation, setSelectedLocation } = useLocationStore()
-
-  const [filterOption, setFilterOption] = useState<
-    'all' | 'confirmed' | 'unconfirmed'
-  >('all')
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
   const { setSelectedSurveyId } = useSurveyStore()
   const { selectedGroupId, setSelectedGroupId } = useGroupStore()
-  const showNotification = useNotificationStore(
-    (state) => state.showNotification,
-  )
+  const { selectedLocation, setSelectedLocation } = useLocationStore()
 
   //`direct=true`이면 모달 자동으로 열기
   useEffect(() => {
@@ -83,11 +68,26 @@ export default function LetsMeetPage() {
 
   // URL에서 받아온 값으로 Zustand 상태 업데이트
   useEffect(() => {
-    if (isDirectModal && place && lat && lng) {
-      console.log('위치 설정: ', { place, lat, lng })
-      useLocationStore.getState().setSelectedLocation({ place, lat, lng })
+    if (
+      isDirectModal &&
+      selectedLocation &&
+      selectedLocation.place &&
+      selectedLocation.lat !== undefined &&
+      selectedLocation.lng !== undefined
+    ) {
+      console.log('위치 설정: ', {
+        place: selectedLocation.place,
+        lat: selectedLocation.lat,
+        lng: selectedLocation.lng,
+      })
+
+      setSelectedLocation({
+        place: selectedLocation.place,
+        lat: selectedLocation.lat,
+        lng: selectedLocation.lng,
+      })
     }
-  }, [isDirectModal, place, lat, lng])
+  }, [isDirectModal, selectedLocation, setSelectedLocation])
 
   const handleFindMidpoint = async () => {
     try {
@@ -258,7 +258,7 @@ export default function LetsMeetPage() {
       console.log('스케줄 정보:', data.data)
 
       if (Array.isArray(data.data)) {
-        let formattedSchedules = data.data.map((schedule: Schedule) => ({
+        const formattedSchedules = data.data.map((schedule: Schedule) => ({
           id: schedule.id,
           startDate: schedule.startDate || '',
           title: schedule.title,
@@ -269,16 +269,6 @@ export default function LetsMeetPage() {
           surveyId: schedule.surveyId,
         }))
 
-        if (filterOption === 'confirmed') {
-          formattedSchedules = formattedSchedules.filter(
-            (schedule: Schedule) => schedule.startDate,
-          )
-        } else if (filterOption === 'unconfirmed') {
-          formattedSchedules = formattedSchedules.filter(
-            (schedule: Schedule) => !schedule.startDate,
-          )
-        }
-
         setScheduleList(formattedSchedules.reverse())
       } else {
         console.error('데이터 구조 에러:', data.data)
@@ -286,7 +276,7 @@ export default function LetsMeetPage() {
     } catch (error) {
       console.error('스케줄 정보 불러오기 실패:', error)
     }
-  }, [API_BASE_URL, filterOption])
+  }, [API_BASE_URL])
 
   //캐러셀 데이터 연동
   const fetchNotification = useCallback(async () => {
