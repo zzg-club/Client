@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useGroupStore } from '@/store/groupStore'
 
 interface Participant {
   id: number
@@ -10,34 +11,32 @@ interface Participant {
 }
 
 interface Location {
+  stationName: string
   latitude: number
   longitude: number
 }
 
 interface RouteMapProps {
   kakaoMap: kakao.maps.Map
-  groupId: number | null
-  destination: Location
+  destinations: Location[]
 }
 
-const RouteMap: React.FC<RouteMapProps> = ({
-  kakaoMap,
-  groupId,
-  destination,
-}) => {
+const RouteMap: React.FC<RouteMapProps> = ({ kakaoMap, destinations }) => {
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
   const polylineRefs = useRef<kakao.maps.Polyline[]>([])
   const [participants, setParticipants] = useState<Participant[]>([])
   const [participantLocations, setParticipantLocations] = useState<
     Record<number, { latitude: number; longitude: number }>
   >({})
+  const { selectedGroupId } = useGroupStore()
 
   useEffect(() => {
-    if (!kakaoMap || !groupId) return
+    if (!kakaoMap || !selectedGroupId) return
 
     const fetchParticipants = async () => {
       try {
         const response = await fetch(
-          `https://api.moim.team/api/location/${groupId}`,
+          `${API_BASE_URL}/api/location/${selectedGroupId}`,
           {
             method: 'GET',
             credentials: 'include',
@@ -88,7 +87,7 @@ const RouteMap: React.FC<RouteMapProps> = ({
     }
 
     fetchParticipants()
-  }, [groupId])
+  }, [selectedGroupId,API_BASE_URL, kakaoMap])
 
   useEffect(() => {
     if (!kakaoMap || participants.length === 0) return
@@ -102,19 +101,16 @@ const RouteMap: React.FC<RouteMapProps> = ({
         if (!location) continue
 
         try {
-          const res = await fetch(
-            'https://api.moim.team/api/location/get/route',
-            {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json', accept: '*/*' },
-              body: JSON.stringify({
-                startX: location.longitude, // 경로 시작 X 좌표 (경도)
-                startY: location.latitude, // 경로 시작 Y 좌표 (위도)
-                endX: destination.longitude, // 목적지 X 좌표 (경도)
-                endY: destination.latitude, // 목적지 Y 좌표 (위도)
-              }),
-            },
-          )
+          const res = await fetch(`${API_BASE_URL}/api/location/get/route`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', accept: '*/*' },
+            body: JSON.stringify({
+              startX: location.longitude, // 경로 시작 X 좌표 (경도)
+              startY: location.latitude, // 경로 시작 Y 좌표 (위도)
+              endX: destinations.longitude, // 목적지 X 좌표 (경도)
+              endY: destinations.latitude, // 목적지 Y 좌표 (위도)
+            }),
+          })
 
           if (!res.ok) {
             console.error(
@@ -164,7 +160,7 @@ const RouteMap: React.FC<RouteMapProps> = ({
       polylineRefs.current.forEach((polyline) => polyline.setMap(null))
       polylineRefs.current = []
     }
-  }, [kakaoMap, participants, participantLocations, destination])
+  }, [kakaoMap, participants, participantLocations, destinations, API_BASE_URL])
 
   return null
 }

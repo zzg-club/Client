@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import ReactDOMServer from 'react-dom/server'
 import CustomPin from '@/components/Pin/CustomPin'
 import DestinationPin from '@/components/Pin/DestinationPin'
@@ -9,18 +9,13 @@ import { useGroupStore } from '@/store/groupStore'
 
 interface PinMapProps {
   kakaoMap: kakao.maps.Map | null
-  groupId: number | null
+  destinations: { stationName: string; latitude: number; longitude: number }[]
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
-
-const PinMap: React.FC<PinMapProps> = ({ kakaoMap, groupId }) => {
-  const { locations } = useWebSocket(groupId)
+const PinMap: React.FC<PinMapProps> = ({ kakaoMap, destinations }) => {
   const overlays = useRef<kakao.maps.CustomOverlay[]>([])
   const { selectedGroupId } = useGroupStore()
-  const [destinations, setDestinations] = useState<
-    { stationName: string; latitude: number; longitude: number }[]
-  >([])
+  const { locations } = useWebSocket(selectedGroupId)
 
   useEffect(() => {
     if (!kakaoMap || locations.length === 0) return
@@ -33,9 +28,7 @@ const PinMap: React.FC<PinMapProps> = ({ kakaoMap, groupId }) => {
 
     // 참여자 위치 핀 추가
     locations.forEach((location) => {
-      const pinHtml = ReactDOMServer.renderToString(
-        <CustomPin/>
-      )
+      const pinHtml = ReactDOMServer.renderToString(<CustomPin />)
 
       const overlay = new window.kakao.maps.CustomOverlay({
         position: new window.kakao.maps.LatLng(
@@ -52,40 +45,13 @@ const PinMap: React.FC<PinMapProps> = ({ kakaoMap, groupId }) => {
         new window.kakao.maps.LatLng(location.latitude, location.longitude),
       )
     })
-
-    // 추천 목적지 가져오기
-    const fetchRecommendedLocations = async () => {
-      if (!selectedGroupId) return
-      try {
-        const response = await fetch(
-          `${API_BASE_URL}/api/location/threeLocation/${selectedGroupId}`,
-          {
-            method: 'GET',
-            credentials: 'include',
-          },
-        )
-
-        if (!response.ok)
-          throw new Error(`목적지 조회 실패: ${response.status}`)
-        const data = await response.json()
-
-        if (data.success) {
-          setDestinations(data.data)
-        }
-      } catch (error) {
-        console.error('추천 목적지 조회 오류:', error)
-      }
-    }
-
-    fetchRecommendedLocations()
-
     // 모든 핀이 포함되도록 지도 조정
     kakaoMap.setBounds(bounds)
 
     return () => overlays.current.forEach((overlay) => overlay.setMap(null))
-  }, [kakaoMap, locations, selectedGroupId])
+  }, [kakaoMap, locations])
 
-  // 추천 목적지 핀 추가
+  // 추천 목적지 핀 추가 (Middle에서 받은 destinations 사용)
   useEffect(() => {
     if (!kakaoMap || destinations.length === 0) return
 
