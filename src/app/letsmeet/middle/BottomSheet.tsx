@@ -5,18 +5,21 @@ import MiddleFooter2Right from '@/components/Buttons/Middle/Bottom/MiddleFooter2
 import MiddleFooter2Left from '@/components/Buttons/Middle/Bottom/MiddleFooter2Left'
 import styles from './BottomSheet.module.css'
 import Image from 'next/image'
+import { useGroupStore } from '@/store/groupStore'
 
 interface Participant {
-  name: string
-  time: string
-  image: string
-  transportIcon: string
+  userId: number
+  userName: string
+  userProfile: string
+  latitude: number
+  longitude: number
 }
 
 interface BottomSheetProps {
   placeName: string
   participants: Participant[]
   totalParticipants: number
+  onConfirm: () => void
   onSlideChange: (direction: 'left' | 'right') => void
 }
 
@@ -26,6 +29,7 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
   totalParticipants,
   onSlideChange,
 }) => {
+  const { selectedGroupId } = useGroupStore()
   const [isExpanded, setIsExpanded] = useState(false)
   const [translateY, setTranslateY] = useState(0)
   const [maxHeight, setMaxHeight] = useState(400)
@@ -159,10 +163,8 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
               <Image
                 src="/arrow_back_mirrored.svg"
                 alt="Arrow Icon"
-                layout="intrinsic"
                 width={6}
                 height={10}
-                style={{ width: 'auto', height: 'auto' }}
               />
             </div>
           </div>
@@ -181,8 +183,8 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
             {participants.map((participant, index) => (
               <div key={index} className={styles.participantItem}>
                 <Image
-                  src={participant.image}
-                  alt={`${participant.name} 아이콘`}
+                  src={participant.userProfile}
+                  alt={`프로필 아이콘`}
                   width={36}
                   height={36}
                   className={`${styles.participantIcon} `}
@@ -206,7 +208,7 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
                   {participant.time}
                 </p>
                 <Image
-                  src={participant.transportIcon}
+                  src={'/train.svg'}
                   alt="Transport Icon"
                   width={28}
                   height={28}
