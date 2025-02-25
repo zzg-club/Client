@@ -18,12 +18,6 @@ const useWebSocket = (groupId: number | null) => {
   useEffect(() => {
     if (!groupId) return
 
-    // 기존 WebSocket이 열려있다면 종료료
-    if (stompClientRef.current) {
-      console.log('⚡ 기존 WebSocket 연결 해제')
-      stompClientRef.current.deactivate()
-    }
-
     console.log(`WebSocket 연결 시도: ${WEBSOCKET_URL} (groupId: ${groupId})`)
 
     const stompClient = new Client({
@@ -77,8 +71,7 @@ const useWebSocket = (groupId: number | null) => {
     stompClient.activate()
 
     return () => {
-      console.log('WebSocket 연결 해제')
-      stompClient.deactivate()
+      console.log('WebSocket 연결상태')
     }
   }, [groupId])
 
