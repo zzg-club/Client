@@ -32,7 +32,7 @@
 .search-bar {
   display: flex;
   align-items: center;
-  width: 100%;
+  width: 87%;
   height: 42px;
   background: var(--Grays-White, #fff);
   border-radius: 24px;
@@ -51,16 +51,13 @@
   outline: none;
   font-size: 18px;
   padding: 0 0 0 8px;
+  overflow: hidden;
 }
 
 /* 오른쪽 버튼 스타일 */
 .vector-button {
-  width: clamp(
-    36px,
-    10vw,
-    42px
-  ); /* Minimum 36px, max 42px, scales with viewport width */
-  height: clamp(36px, 10vw, 42px);
+  width: 12%;
+  height: 12%;
   background: white;
   border: none;
   border-radius: 16px;
@@ -73,8 +70,8 @@
 }
 
 .vector-icon {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
 }
 
 .mobile-container {
@@ -109,15 +106,17 @@
 }
 
 .bottomSheet {
-  position: absolute;
+  position: fixed;
   bottom: 0;
-  left: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 600px;
   width: 100%;
   background-color: #ffffff;
   border-radius: 24px 24px 0 0;
-  overflow-y: auto; /* 스크롤 활성화 */
+  overflow-y: auto;
   transition: height 0.3s ease-in-out;
-  height: var(--bottomSheetHeight); /* 변수로 높이 설정 */
+  height: var(--bottomSheetHeight);
   z-index: 10;
 }
 
@@ -130,7 +129,7 @@
 }
 
 .bottomSheet.expanded {
-  --bottomSheetHeight: calc(70vh); /* 최대 높이 */
+  --bottomSheetHeight: calc(67vh); /* 최대 높이 */
 }
 
 .dragHandle {
@@ -144,9 +143,11 @@
 
 /* Tabs */
 .tabs {
-  position: absolute;
-  left: 0;
+  position: fixed;
+  left: 50.2%;
   width: 100%;
+  max-width: 600px; 
+  transform: translateX(-50%);
   display: flex;
   transition: bottom 0.3s ease-in-out;
   z-index: 5;
@@ -186,15 +187,16 @@
 }
 
 .tabs.collapsed {
-  bottom: 52px; /* Bottom Sheet가 collapsed일 때 */
+  bottom: 52px;
 }
+
 
 .tabs.middle {
   bottom: 212px; /* Bottom Sheet가 middle일 때 */
 }
 
 .tabs.expanded {
-  bottom: calc(70vh - 46px); /* Bottom Sheet가 expanded일 때 */
+  bottom: calc(67vh - 46px); /* Bottom Sheet가 expanded일 때 */
 }
 
 /* 버튼 컨테이너 */
@@ -378,7 +380,7 @@
 
 /* 좋아요 배경 */
 .likeBackground {
-  width: calc(2.5rem + 1vw);
+  width: calc(2.5rem);
   height: calc(1.8rem + 0.2vw);
   border-radius: 12px;
   background: #a9f3b2;

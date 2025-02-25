@@ -6,7 +6,6 @@ import {
   useCallback,
   useEffect,
   useMemo,
-  type CSSProperties,
   type TouchEvent as ReactTouchEvent,
 } from 'react'
 import '@/styles/TimeStamp.css'
@@ -973,25 +972,21 @@ export default function TimeStamp({
     const top = !isSelected(row - 1, col) && !isActiveSelection(row - 1, col)
     const bottom = !isSelected(row + 1, col) && !isActiveSelection(row + 1, col)
 
-    const styles: CSSProperties = {
-      // height: `${18 * scale}px`,
-      borderTop: top ? borderStyle : 'none',
-      borderBottom: bottom ? borderStyle : 'none',
+    return {
+      borderTop: top ? borderStyle : '0px solid transparent',
+      borderBottom: bottom ? borderStyle : '0px solid transparent',
       borderLeft: borderStyle,
       borderRight: borderStyle,
       boxShadow: [
-        top ? '0 -4px 8px -2px rgba(255, 255, 255, 0.7)' : '',
-        bottom ? '0 4px 8px -2px rgba(255, 255, 255, 0.7)' : '',
-        //left ? '-4px 0 8px -20px rgba(255, 255, 255, 0.7)' : '',
-        //right ? '4px 0 8px -2px rgba(255, 255, 255, 0.7)' : '',
+        top ? '0 -2px 4px rgba(255, 255, 255, 0.5)' : '',
+        bottom ? '0 2px 4px rgba(255, 255, 255, 0.5)' : '',
       ]
         .filter(Boolean)
         .join(', '),
       position: 'relative' as const,
       zIndex: cellStatus.isSelected ? 1000 : 'auto',
+      minHeight: '18px', // 모바일에서 최소 높이 지정
     }
-
-    return styles
   }
 
   useEffect(() => {
@@ -1202,9 +1197,8 @@ export default function TimeStamp({
                       key={rowIndex}
                       className={`relative cursor-pointer ${cornerStyleRound}`}
                       style={{
-                        ...cellBorder,
                         height: `${18 * scale}px`,
-                        // borderCollapse: 'separate',
+                        borderCollapse: 'separate',
                       }}
                       onMouseDown={() => {
                         handleMouseClick(rowIndex, colIndex)
@@ -1239,11 +1233,15 @@ export default function TimeStamp({
                         className={`absolute inset-0 ${cornerStyleRound} ${
                           cellStatus.isSelected
                             ? cellStatus.isConfirmed
-                              ? 'opacity-50 bg-[#2a027a]'
-                              : 'opacity-50 bg-[#2a027a]'
+                              ? 'bg-opacity-50 bg-[#2a027a]'
+                              : 'bg-opacity-50 bg-[#2a027a]'
                             : ''
                         }`}
-                        style={{ zIndex: 100 }}
+                        style={{
+                          zIndex: 100,
+                          ...cellBorder,
+                          height: `${18 * scale}px`,
+                        }}
                       />
                       {hoveredCell?.row === rowIndex &&
                         hoveredCell?.col === colIndex &&
@@ -1297,7 +1295,7 @@ export default function TimeStamp({
                         })()}
                       {!cellStatus.isConfirmed && cellStatus.isStartCell && (
                         <div
-                          className="absolute -top-[5px] left-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move"
+                          className="absolute -top-[3px] left-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move"
                           style={{ zIndex: 3000 }}
                           onMouseDown={() => {
                             handleMouseDown(
@@ -1311,7 +1309,7 @@ export default function TimeStamp({
                       )}
                       {!cellStatus.isConfirmed && cellStatus.isEndCell && (
                         <div
-                          className="absolute -bottom-[5px] right-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move "
+                          className="absolute -bottom-[3px] right-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move "
                           style={{ zIndex: 3000 }}
                           onMouseDown={() => {
                             handleMouseDown(

@@ -82,6 +82,7 @@ export default function MembersDefault({
                 width={48}
                 height={48}
                 style={{ objectFit: 'cover' }} // 비율 유지하며 채우기
+                unoptimized={true}
               />
             </div>
             <div className="relative flex justify-center items-center">
