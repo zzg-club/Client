@@ -221,8 +221,7 @@ const LocationPage: React.FC<LocationPageProps> = ({
             lng: location.lng,
           })
 
-          connectWebSocket(selectedGroupId) // WebSocket 연결 (한 번만 실행됨)
-          sendMessage(selectedGroupId, location.lat, location.lng) // WebSocket 메시지 전송
+          sendLocation(location.lat, location.lng)
           console.log('location page->websocket 위치 전송 완료:', location)
 
           // 페이지 이동

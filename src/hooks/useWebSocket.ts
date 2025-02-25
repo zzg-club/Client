@@ -94,16 +94,14 @@ const useWebSocket = (groupId: number | null) => {
     )
 
     if (!stompClientRef.current || !stompClientRef.current.connected) {
-      console.warn('WebSocket이 아직 연결되지 않음. 1초 후 재시도...')
-      setTimeout(() => sendLocation(latitude, longitude), 1000)
+      console.warn('WebSocket이 아직 연결되지 않음. 5초 후 재시도...')
+      setTimeout(() => sendLocation(latitude, longitude), 5000)
       return
     }
 
     const locationData = {
-      myLocation: {
-        latitude,
-        longitude,
-      },
+      latitude,
+      longitude,
     }
 
     try {
