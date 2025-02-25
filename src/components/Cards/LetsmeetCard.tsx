@@ -9,7 +9,14 @@ import CustomCalendar from '@/components/Calendars/CustomCalendar'
 import { useHandleSelect } from '@/hooks/useHandleSelect'
 import { useDateTimeStore } from '@/store/dateTimeStore'
 import { useRouter } from 'next/navigation'
-import { ScheduleOptions } from '@/components/Buttons/Floating/Options'
+import SelectModal from '../Modals/SelectModal'
+
+export type Participant = {
+  id: number
+  name: string
+  image: string
+  type: string
+}
 
 export interface LetsmeetCardProps {
   id: number
@@ -18,7 +25,9 @@ export interface LetsmeetCardProps {
   startTime: string
   endTime: string
   location?: string
-  participants: { id: number; name: string; image: string }[]
+  participants: Participant[]
+  surveyId: number
+  getSchedule: () => void
 }
 
 export function LetsmeetCard({
@@ -27,6 +36,8 @@ export function LetsmeetCard({
   endTime,
   location,
   participants,
+  surveyId,
+  getSchedule,
 }: LetsmeetCardProps) {
   const [isOpen, setIsOpen] = useState(false)
 
@@ -47,6 +58,7 @@ export function LetsmeetCard({
   const [selectedLocation, setSelectedLocation] = useState(location || '')
   const [isEditingLocation, setIsEditingLocation] = useState(false)
 
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
   const handleLocationClick = () => {
     setIsEditingLocation(true)
   }
@@ -62,7 +74,6 @@ export function LetsmeetCard({
   }
 
   //참가자
-  // membersVariant 모달 핸들
   const handleMembersModalOpen = () => {
     setIsMembersModalOpen(!isMembersModalOpen)
   }
@@ -80,17 +91,20 @@ export function LetsmeetCard({
     setTitle(newTitle) // UI 업데이트
 
     try {
-      const response = await fetch(`/api/members?groupId=${id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        `${API_BASE_URL}/api/members?groupId=${id}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            groupName: newTitle,
+            location: selectedLocation,
+          }),
+          credentials: 'include', // 인증 정보 포함
         },
-        body: JSON.stringify({
-          groupName: newTitle,
-          location: selectedLocation,
-        }),
-        credentials: 'include', // 인증 정보 포함
-      })
+      )
 
       if (!response.ok) {
         throw new Error(`서버 오류: ${response.status}`)
@@ -103,7 +117,6 @@ export function LetsmeetCard({
     }
   }
 
-  /// 장소 수정 API 요청
   const handleLocationChange = async (
     e: React.ChangeEvent<HTMLInputElement>,
   ) => {
@@ -111,17 +124,20 @@ export function LetsmeetCard({
     setSelectedLocation(newLocation)
 
     try {
-      const response = await fetch(`/api/members?groupId=${id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        `${API_BASE_URL}/api/members?groupId=${id}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            groupName: title,
+            location: newLocation, // 입력된 장소 업데이트
+          }),
+          credentials: 'include',
         },
-        body: JSON.stringify({
-          groupName: title,
-          location: newLocation, // 입력된 장소 업데이트
-        }),
-        credentials: 'include',
-      })
+      )
 
       if (!response.ok) {
         throw new Error(`서버 오류: ${response.status}`)
@@ -138,6 +154,10 @@ export function LetsmeetCard({
   const handleOpenScheduleModal = (e: React.MouseEvent) => {
     e.stopPropagation()
     setIsOpen(true)
+  }
+
+  const handleCloseScheduleModal = () => {
+    setIsOpen(false)
   }
 
   const handleOpenCdialog = () => {
@@ -173,7 +193,7 @@ export function LetsmeetCard({
 
     try {
       // 1. 그룹 생성 API
-      const test = await fetch('https://api.moim.team/api/members', {
+      const test = await fetch(`${API_BASE_URL}/api/members`, {
         method: 'POST',
         credentials: 'include',
       })
@@ -186,7 +206,7 @@ export function LetsmeetCard({
       const groupId = check.data.groupId
 
       // 2. 약속 생성 API
-      const response = await fetch('https://api.moim.team/api/schedule', {
+      const response = await fetch(`${API_BASE_URL}/api/schedule`, {
         method: 'POST',
         credentials: 'include', // 인증 정보 포함
         headers: {
@@ -284,18 +304,24 @@ export function LetsmeetCard({
           location={location}
           startTime={startTime}
           endTime={endTime}
-          members={selectedMember}
+          members={participants}
         />
       </CustomModal>
-      <ScheduleOptions
-        isOpen={isOpen}
-        onClose={() => setIsOpen(false)}
-        optionStringUp="일정 조율하기"
-        optionStringDown="직접 입력하기"
-        onClickUp={handleOpenCdialog}
-        onClickDown={handleOpenDdialg}
-      />
-
+      <SelectModal
+        open={isOpen}
+        onOpenChange={handleCloseScheduleModal}
+        leftText={'직접 입력'}
+        rightText={'선정하기'}
+        onClickLeft={handlePostDirectSchedule}
+        onClickRight={handlePostSchedule}
+      >
+        {' '}
+        <div className="flex item-center justify-center text-[#1e1e1e] text-xl font-medium leading-snug py-4 mt-3">
+          일정을
+          <br />
+          조율할까요?
+        </div>
+      </SelectModal>
       {/* 일정 조율하기 모달 */}
       <CustomModal
         open={isCdialogOpen}
