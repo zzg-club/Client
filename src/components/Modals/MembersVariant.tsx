@@ -174,8 +174,8 @@ export default function MembersVariant({
               <Image
                 src={member.image}
                 alt={member.name}
-                width={48}
-                height={48}
+                fill
+                sizes="48px"
                 style={{ objectFit: 'cover' }}
                 className="rounded-3xl"
                 unoptimized={true}

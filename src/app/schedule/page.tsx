@@ -86,17 +86,26 @@ export default function ScheduleLanding() {
       console.log('스케줄 정보:', data.data)
 
       if (Array.isArray(data.data)) {
-        const formattedSchedules = data.data.map((schedule: Schedule) => ({
-          id: schedule.id,
-          startDate: schedule.startDate,
-          endDate: schedule.endDate,
-          title: schedule.title,
-          startTime: schedule.startTime,
-          endTime: schedule.endTime,
-          location: schedule.location || '',
-          participants: schedule.participants || [],
-          surveyId: schedule.surveyId,
-        }))
+        const formattedSchedules = data.data
+          .map((schedule: Schedule) => ({
+            id: schedule.id,
+            startDate: schedule.startDate,
+            endDate: schedule.endDate,
+            title: schedule.title,
+            startTime: schedule.startTime,
+            endTime: schedule.endTime,
+            location: schedule.location || '',
+            participants: schedule.participants || [],
+            surveyId: schedule.surveyId,
+          }))
+          .filter(
+            (schedule: Schedule) =>
+              !(
+                schedule.location === '미확정' &&
+                schedule.startDate === '' &&
+                schedule.endDate === ''
+              ),
+          )
 
         setScheduleList(formattedSchedules.reverse())
         setFilterOption('all')
