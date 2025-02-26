@@ -90,7 +90,7 @@ const RouteMap: React.FC<RouteMapProps> = ({
           setParticipantLocations(transformedLocations)
         }
       } catch (error) {
-        console.error('❌ Failed to load participant locations:', error)
+        console.error('Failed to load participant locations:', error)
       }
     }
 
@@ -105,10 +105,10 @@ const RouteMap: React.FC<RouteMapProps> = ({
     polylineRefs.current.forEach((polyline) => polyline.setMap(null))
     polylineRefs.current = []
 
-    // 📌 **모든 출발지와 목적지를 포함할 Bounds 객체 생성**
+    // **모든 출발지와 목적지를 포함할 Bounds 객체 생성**
     const bounds = new window.kakao.maps.LatLngBounds()
 
-    // 📌 현재 선택된 목적지 좌표 가져오기
+    // 현재 선택된 목적지 좌표 가져오기
     const selectedDestination = destinations[currentDestinationIndex]
 
     if (!selectedDestination) {
@@ -160,7 +160,7 @@ const RouteMap: React.FC<RouteMapProps> = ({
             }),
           )
 
-          // 📌 **출발지 & 목적지를 지도 범위에 추가**
+          // **출발지 & 목적지를 지도 범위에 추가**
           bounds.extend(
             new window.kakao.maps.LatLng(location.latitude, location.longitude),
           )
@@ -189,7 +189,7 @@ const RouteMap: React.FC<RouteMapProps> = ({
         }
       }
 
-      // 📌 **경로가 모두 포함되도록 지도 조정**
+      // **경로가 모두 포함되도록 지도 조정**
       if (!bounds.isEmpty()) {
         kakaoMap.setBounds(bounds, 50) // 50px 여백 추가
       }

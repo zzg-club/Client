@@ -11,6 +11,7 @@ import LocationModal from '@/components/Modals/DirectSelect/LocationModal'
 import { useSurveyStore } from '@/store/surveyStore'
 import { useGroupStore } from '@/store/groupStore'
 import { useLocationStore } from '@/store/locationsStore'
+import axios from 'axios'
 
 export type Participant = {
   id: number
@@ -38,6 +39,8 @@ type Notification = {
   notiMessage?: string
 }
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
+
 export default function LetsMeetPage() {
   const router = useRouter()
   const [searchParams, setSearchParams] = useState<URLSearchParams | null>(null)
@@ -50,8 +53,7 @@ export default function LetsMeetPage() {
   const [title, setTitle] = useState('제목 없는 일정')
   const [scheduleList, setScheduleList] = useState<Schedule[]>([])
   const [notifications, setNotifications] = useState<Notification[]>([])
-
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
+  const [isMembersModalOpen, setIsMembersModalOpen] = useState(false)
   const { setSelectedSurveyId } = useSurveyStore()
   const { selectedGroupId, setSelectedGroupId } = useGroupStore()
   const { selectedLocation, setSelectedLocation } = useLocationStore()
@@ -108,7 +110,7 @@ export default function LetsMeetPage() {
     } catch (error) {
       console.error('알림 정보 불러오기 실패:', error)
     }
-  }, [API_BASE_URL])
+  }, [])
 
   // 스케줄 정보 리스트
   const getSchedule = useCallback(async () => {
@@ -143,7 +145,7 @@ export default function LetsMeetPage() {
     } catch (error) {
       console.error('스케줄 정보 불러오기 실패:', error)
     }
-  }, [API_BASE_URL])
+  }, [])
 
   //유저 정보 연동
   useEffect(() => {
@@ -168,7 +170,7 @@ export default function LetsMeetPage() {
     fetchUserInfo()
     fetchNotification()
     getSchedule()
-  }, [API_BASE_URL, fetchNotification, getSchedule])
+  }, [fetchNotification, getSchedule])
 
   const handleFindMidpoint = async () => {
     try {
@@ -215,7 +217,7 @@ export default function LetsMeetPage() {
     try {
       // 직접 입력 모달 열기
       setTitle('제목 없는 일정')
-      setSelectedLocation(null)
+      useLocationStore.getState().setSelectedLocation(null)
       setIsDirectModalOpen(true)
     } catch (error) {
       console.error('직접 입력 오류:', error)
@@ -257,6 +259,54 @@ export default function LetsMeetPage() {
     console.log('filter', filter)
   }
 
+  const handleRemoveMember = async (
+    groupId: number,
+    userId: number,
+    type: string,
+  ) => {
+    try {
+      let url = ''
+      let requestData: unknown = { userId }
+
+      switch (type) {
+        case 'creator&my':
+          url = `${API_BASE_URL}/api/members/creator/${groupId}`
+          requestData = undefined // 요청 데이터 필요 없음
+          break
+
+        case '&other':
+          url = `${API_BASE_URL}/api/group-members/delete/${groupId}`
+          break
+
+        case '&my':
+          url = `${API_BASE_URL}/api/group-members/delete/self/${groupId}`
+          break
+
+        default:
+          console.error('잘못된 삭제 타입:', type)
+          return
+      }
+
+      // `data`가 필요한 경우만 포함하여 요청
+      const response = await axios.delete(url, {
+        withCredentials: true,
+        ...(requestData ? { data: requestData } : {}), // `requestData`가 있을 경우만 포함
+      })
+
+      console.log(`${type} 삭제 성공:`, response.data.data)
+
+      // 모달 닫기 & 관련 데이터 갱신
+      setIsMembersModalOpen(false)
+      getSchedule()
+      fetchNotification()
+
+      return response
+    } catch (error) {
+      console.error(`${type} 삭제 실패:`, error)
+      throw error
+    }
+  }
+
   return (
     <div className="flex flex-col min-h-screen h-screen">
       <NavBar activeTab="렛츠밋" />
@@ -294,8 +344,11 @@ export default function LetsMeetPage() {
                   endTime={schedule?.endTime}
                   location={schedule?.location}
                   participants={schedule?.participants}
-                  surveyId={schedule?.surveyId}
+                  locationId={schedule?.surveyId}
                   getSchedule={getSchedule}
+                  onRemoveMember={(userId, type) =>
+                    handleRemoveMember(schedule?.id, userId, type)
+                  }
                 />
               </div>
             ))}
@@ -335,7 +388,6 @@ export default function LetsMeetPage() {
           onClose={handleCloseModal}
           onClickRight={handleComplete}
           initialTitle={title}
-          onTitleChange={(newTitle) => setTitle(newTitle)}
           selectedLocation={selectedLocation ?? undefined}
         />
       )}

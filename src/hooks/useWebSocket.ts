@@ -18,22 +18,22 @@ const useWebSocket = (groupId: number | null) => {
   useEffect(() => {
     if (!groupId) return
 
-    console.log(`WebSocket 연결 시도: ${WEBSOCKET_URL} (groupId: ${groupId})`)
+    //console.log(`WebSocket 연결 시도: ${WEBSOCKET_URL} (groupId: ${groupId})`)
 
     const stompClient = new Client({
       brokerURL: WEBSOCKET_URL,
       reconnectDelay: 5000, // 자동 재연결 설정
-      debug: (msg) => console.log('📡 STOMP 디버그:', msg),
+      //debug: (msg) => console.log('STOMP 디버그:', msg),
       connectHeaders: {
         Authorization: `Bearer ${document.cookie}`, // 인증 헤더 추가
       },
     })
 
     stompClient.onConnect = (frame) => {
-      console.log('WebSocket 연결 성공:', frame)
+      //console.log('WebSocket 연결 성공:', frame)
 
       stompClient.subscribe(`/topic/location/${groupId}`, (message) => {
-        console.log('위치 데이터 수신:', message.body)
+        //console.log('위치 데이터 수신:', message.body)
 
         try {
           const parsedData = JSON.parse(message.body)
@@ -48,7 +48,7 @@ const useWebSocket = (groupId: number | null) => {
             if (parsedData.membersLocation) {
               updatedLocations.push(...parsedData.membersLocation)
             }
-            console.log('📌 업데이트된 locations:', updatedLocations) // 업데이트된 배열 확인
+            //console.log('업데이트된 locations:', updatedLocations) // 업데이트된 배열 확인
             return updatedLocations
           })
         } catch (error) {
@@ -56,7 +56,7 @@ const useWebSocket = (groupId: number | null) => {
         }
       })
 
-      console.log('구독 완료: /topic/location/' + groupId)
+      //console.log('구독 완료: /topic/location/' + groupId)
     }
 
     stompClient.onStompError = (frame) => {
@@ -71,7 +71,7 @@ const useWebSocket = (groupId: number | null) => {
     stompClient.activate()
 
     return () => {
-      console.log('WebSocket 연결상태')
+      //console.log('WebSocket 연결상태')
     }
   }, [groupId])
 
@@ -82,9 +82,9 @@ const useWebSocket = (groupId: number | null) => {
       return
     }
 
-    console.log(
+    /*console.log(
       `위치 정보 전송 시도: 그룹 ${groupId}, 좌표: (${latitude}, ${longitude})`,
-    )
+    )*/
 
     if (!stompClientRef.current || !stompClientRef.current.connected) {
       console.warn('WebSocket이 아직 연결되지 않음. 5초 후 재시도...')
@@ -103,7 +103,7 @@ const useWebSocket = (groupId: number | null) => {
         body: JSON.stringify(locationData),
       })
 
-      console.log('위치 전송 완료:', locationData)
+      //console.log('위치 전송 완료:', locationData)
     } catch (error) {
       console.error('WebSocket 메시지 전송 중 오류 발생:', error)
     }

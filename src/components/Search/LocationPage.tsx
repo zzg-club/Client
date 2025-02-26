@@ -10,7 +10,7 @@ import useWebSocket from '@/hooks/useWebSocket'
 import { useLocationStore } from '@/store/locationsStore'
 import { useGroupStore } from '@/store/groupStore'
 
-const KAKAO_API_KEY = '7d67efb24d65fe323f795b1b4a52dd77'
+const KAKAO_API_KEY = process.env.NEXT_PUBLIC_KAKAO_REST_API_KEY
 
 interface LocationPageProps {
   onLocationClick: (location: {
@@ -55,6 +55,8 @@ interface AddressAPIResponse {
 interface PlaceAPIResponse {
   documents: PlaceDocument[]
 }
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
 
 const LocationPage: React.FC<LocationPageProps> = ({
   onLocationClick,
@@ -200,7 +202,9 @@ const LocationPage: React.FC<LocationPageProps> = ({
 
     // 위치 선택 핸들러
     const handleLocationSelect = useCallback(
-      (location: { place: string; lat: number; lng: number }) => {
+      async (location: { place: string; lat: number; lng: number }) => {
+        //console.log('handleLocationSelect 실행됨')
+
         if (!selectedGroupId) {
           console.error('groupId 없음')
           return
@@ -212,23 +216,53 @@ const LocationPage: React.FC<LocationPageProps> = ({
         }
 
         try {
-          // Zustand에 선택된 위치 저장 (place 포함)
+          //console.log('선택된 위치:', location)
+
+          //console.log('API 호출 시작:', API_BASE_URL)
+          const response = await fetch(`${API_BASE_URL}/api/transit`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+              latitude: location.lat,
+              longitude: location.lng,
+            }),
+          })
+
+          console.log('지하철역 API 응답 상태:', response.status)
+          if (!response.ok) throw new Error('가까운 지하철역 탐색 실패')
+
+          const data = await response.json()
+          //console.log('가까운 지하철역 응답:', data)
+
+          const transitName = data.success ? data.data.transitName : ''
+
+          //console.log('Zustand 상태 업데이트 실행')
+
           useLocationStore.getState().setSelectedLocation({
-            place: location.place,
+            place: transitName,
             lat: location.lat,
             lng: location.lng,
           })
 
+          useLocationStore.getState().setNearestTransit(transitName)
+
           sendLocation(location.lat, location.lng)
           console.log('location page->websocket 위치 전송 완료:', location)
 
-          // 페이지 이동
-          router.push(`/letsmeet/middle?from=${from}`)
+          // 이동할 때 transitName을 URL에 추가
+          if (!isDirectModal) {
+            router.push(`/letsmeet/middle?from=${from}`)
+          } else {
+            router.push(
+              `/letsmeet/?from=${from}&direct=${isDirectModal}&transitName=${encodeURIComponent(transitName)}`,
+            )
+          }
         } catch (error) {
           console.error('사용자 위치 저장 오류:', error)
         }
       },
-      [selectedGroupId, sendLocation, router, from],
+      [selectedGroupId, sendLocation, router, from, isDirectModal],
     )
 
     const handleBackClick = () => {
@@ -301,7 +335,6 @@ const LocationPage: React.FC<LocationPageProps> = ({
             onClose={() => setIsModalVisible(false)}
             onClickRight={() => setIsModalVisible(false)}
             initialTitle={selectedLocation.place}
-            onTitleChange={() => {}}
             selectedLocation={selectedLocation}
           />
         )}

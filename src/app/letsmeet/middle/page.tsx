@@ -53,6 +53,7 @@ export default function Middle() {
   const [destination, setDestination] = useState<RecommendedLocation | null>(
     null,
   )
+  const [groupTitle, setGroupTitle] = useState<string>('제목 없는 일정')
   const [time, setTime] = useState<Time[]>([])
   const [isCreator, setIsCreator] = useState<boolean>(false)
   const [recommendedLocations, setRecommendedLocations] = useState<
@@ -64,6 +65,10 @@ export default function Middle() {
   const { locations } = useWebSocket(selectedGroupId)
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
   const router = useRouter()
+
+  const handleTitleChange = (newTitle: string) => {
+    setGroupTitle(newTitle) // 🔹 제목 변경 상태 저장
+  }
 
   /* 참여자 정보 */
   // 기존 참여자 위치 데이터를 API에서 불러오기
@@ -120,42 +125,6 @@ export default function Middle() {
 
     fetchParticipants()
   }, [selectedGroupId, API_BASE_URL])
-
-  // 웹소켓에서 받아온 데이터 반영
-  useEffect(() => {
-    if (!locations.length) return
-
-    console.log('실시간 참여자 위치 업데이트:', locations)
-
-    setParticipants((prevParticipants) => {
-      const updatedParticipants = [...prevParticipants]
-
-      locations.forEach((loc) => {
-        const existingIndex = updatedParticipants.findIndex(
-          (p) => p.userId === loc.userId,
-        )
-        if (existingIndex !== -1) {
-          // 기존 참여자 위치 업데이트
-          updatedParticipants[existingIndex] = {
-            ...updatedParticipants[existingIndex],
-            latitude: loc.latitude,
-            longitude: loc.longitude,
-          }
-        } else {
-          // 새로운 참여자 추가
-          updatedParticipants.push({
-            userId: loc.userId,
-            userName: loc.userName,
-            userProfile: loc.userProfile || '',
-            latitude: loc.latitude,
-            longitude: loc.longitude,
-          })
-        }
-      })
-
-      return updatedParticipants
-    })
-  }, [locations])
 
   // 웹소켓에서 받아온 데이터 반영
   useEffect(() => {
@@ -293,31 +262,55 @@ export default function Middle() {
 
   // 5. 약속 장소 확정 (모임장만 가능)
   const createMeetingLocation = async () => {
-    if (!selectedGroupId || !destination || !isCreator) return
+    if (!selectedGroupId || !isCreator) return
+    const selectedDestination = recommendedLocations[currentDestinationIndex]
+
+    if (!selectedDestination) {
+      console.error('확정할 목적지가 없습니다.')
+      return
+    }
 
     try {
-      const response = await fetch(
+      // 1️. **목적지 확정 API 호출**
+      const response1 = await fetch(
         `${API_BASE_URL}/api/location/threeLocation`,
         {
           method: 'POST',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            selectedGroupId,
-            midAddress: destination.stationName,
-            latitude: destination.latitude,
-            longitude: destination.longitude,
+            groupId: selectedGroupId,
+            midAddress: selectedDestination.stationName,
+            latitude: selectedDestination.latitude,
+            longitude: selectedDestination.longitude,
           }),
         },
       )
 
-      if (!response.ok) throw new Error('Failed to create meeting location')
+      if (!response1.ok) throw new Error('약속 장소 확정 실패')
 
-      console.log('약속 장소 확정 완료')
+      // 2️. **제목 변경 API 호출**
+      const response2 = await fetch(`${API_BASE_URL}/api/members`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          groupId: selectedGroupId,
+          groupName: groupTitle,
+        }),
+      })
+
+      if (!response2.ok) throw new Error('약속 이름 수정 실패')
+
+      console.log('약속 장소 및 제목 변경 완료')
+
+      // 3️. **성공하면 `/letsmeet`으로 리디렉션**
+      router.push('/letsmeet')
     } catch (error) {
-      console.error('약속 장소 확정 실패:', error)
+      console.error('확정 실패:', error)
     }
   }
+
   useEffect(() => {
     console.log('현재 선택된 목적지 인덱스:', currentDestinationIndex)
     console.log(
@@ -357,7 +350,7 @@ export default function Middle() {
             buttonText="확정"
             buttonLink="#"
             initialTitle="제목 없는 일정"
-            onTitleChange={(newTitle) => console.log('새 제목:', newTitle)}
+            onTitleChange={handleTitleChange}
             isPurple
             isDisabled={!isCreator || participants.length < 1}
             onConfirm={createMeetingLocation}

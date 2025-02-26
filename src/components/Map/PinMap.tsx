@@ -61,7 +61,7 @@ const PinMap: React.FC<PinMapProps> = ({
         if (!response.ok) throw new Error('Failed to fetch location data')
 
         const data = await response.json()
-        console.log('📍 참여자 위치 데이터:', data)
+        console.log('참여자 위치 데이터:', data)
 
         if (!data.success) return
 
@@ -89,14 +89,96 @@ const PinMap: React.FC<PinMapProps> = ({
 
         setMembersLocation(members)
       } catch (error) {
-        console.error('❌ 참여자 위치 데이터 조회 실패:', error)
+        console.error('참여자 위치 데이터 조회 실패:', error)
       }
     }
 
     fetchLocationData()
   }, [selectedGroupId])
 
-  // 📌 지도에 위치 추가 (내 위치 + 멤버 위치 + 목적지)
+  const fetchTransitName = async (latitude: number, longitude: number) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/transit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ latitude, longitude }),
+      })
+
+      if (!response.ok) throw new Error('가까운 지하철역 탐색 실패')
+
+      const data = await response.json()
+      return data.success ? data.data.transitName : '출발지 미정'
+    } catch (error) {
+      console.error('Transit API 호출 오류:', error)
+      return '출발지 미정'
+    }
+  }
+
+  useEffect(() => {
+    if (!selectedGroupId) return
+
+    const fetchLocationData = async () => {
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/api/location/${selectedGroupId}`,
+          {
+            method: 'GET',
+            credentials: 'include',
+          },
+        )
+
+        if (!response.ok) throw new Error('Failed to fetch location data')
+
+        const data = await response.json()
+        console.log('참여자 위치 데이터:', data)
+
+        if (!data.success) return
+
+        // 내 위치 transitName 업데이트
+        if (data.data.myLocation) {
+          const transitName = await fetchTransitName(
+            data.data.myLocation.latitude,
+            data.data.myLocation.longitude,
+          )
+          setMyLocation({
+            userId: data.data.myLocation.userId,
+            username: data.data.myLocation.username,
+            userProfile: data.data.myLocation.userProfile || '',
+            latitude: data.data.myLocation.latitude,
+            longitude: data.data.myLocation.longitude,
+            transitName,
+          })
+        }
+
+        // 멤버 위치 transitName 업데이트
+        const members: MemberLocation[] = await Promise.all(
+          data.data.membersLocation.map(async (member: any) => {
+            const transitName = await fetchTransitName(
+              member.latitude,
+              member.longitude,
+            )
+            return {
+              userId: member.userId,
+              username: member.username,
+              userProfile: member.userProfile || '',
+              latitude: member.latitude,
+              longitude: member.longitude,
+              transitName,
+            }
+          }),
+        )
+
+        setMembersLocation(members)
+      } catch (error) {
+        console.error('참여자 위치 데이터 조회 실패:', error)
+      }
+    }
+
+    fetchLocationData()
+  }, [selectedGroupId])
+
+  // 지도에 위치 추가 (내 위치 + 멤버 위치 + 목적지)
   useEffect(() => {
     if (!kakaoMap) return
 
@@ -104,7 +186,7 @@ const PinMap: React.FC<PinMapProps> = ({
     overlays.current.forEach((overlay) => overlay.setMap(null))
     overlays.current = []
 
-    // 📍 내 위치 추가
+    // 내 위치 추가
     if (myLocation) {
       const myPinHtml = ReactDOMServer.renderToString(
         <CustomPin
@@ -132,7 +214,7 @@ const PinMap: React.FC<PinMapProps> = ({
       )
     }
 
-    // 📍 멤버 위치 추가
+    // 멤버 위치 추가
     membersLocation.forEach((member) => {
       const memberPinHtml = ReactDOMServer.renderToString(
         <CustomPin
@@ -160,13 +242,13 @@ const PinMap: React.FC<PinMapProps> = ({
       )
     })
 
-    // 📌 **현재 선택된 목적지 핀만 표시**
+    // **현재 선택된 목적지 핀만 표시**
     if (
       destinations.length > 0 &&
       currentDestinationIndex < destinations.length
     ) {
       const destination = destinations[currentDestinationIndex]
-      console.log('📍 추가할 목적지:', destination)
+      console.log('추가할 목적지:', destination)
 
       const destinationPinHtml = ReactDOMServer.renderToString(
         <DestinationPin stationName={`${destination.stationName}`} />,
@@ -198,7 +280,7 @@ const PinMap: React.FC<PinMapProps> = ({
       )
     }
 
-    // 📌 **모든 핀이 포함되도록 지도 조정**
+    // **모든 핀이 포함되도록 지도 조정**
     if (!bounds.isEmpty()) {
       kakaoMap.setBounds(bounds, 50) // 50px 여백 추가
     }
