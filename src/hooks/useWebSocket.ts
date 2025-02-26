@@ -48,7 +48,7 @@ const useWebSocket = (groupId: number | null) => {
             if (parsedData.membersLocation) {
               updatedLocations.push(...parsedData.membersLocation)
             }
-
+            console.log('📌 업데이트된 locations:', updatedLocations) // 업데이트된 배열 확인
             return updatedLocations
           })
         } catch (error) {

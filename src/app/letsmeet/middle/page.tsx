@@ -19,6 +19,11 @@ interface Participant {
   longitude: number
 }
 
+interface Time {
+  userId: number
+  time: number
+}
+
 interface RecommendedLocation {
   stationName: string
   latitude: number
@@ -48,11 +53,12 @@ export default function Middle() {
   const [destination, setDestination] = useState<RecommendedLocation | null>(
     null,
   )
-
+  const [time, setTime] = useState<Time[]>([])
   const [isCreator, setIsCreator] = useState<boolean>(false)
   const [recommendedLocations, setRecommendedLocations] = useState<
     RecommendedLocation[]
   >([])
+  const [currentDestinationIndex, setCurrentDestinationIndex] = useState(0)
 
   const { selectedGroupId } = useGroupStore()
   const { locations } = useWebSocket(selectedGroupId)
@@ -63,6 +69,7 @@ export default function Middle() {
   // 기존 참여자 위치 데이터를 API에서 불러오기
   useEffect(() => {
     if (!selectedGroupId) return
+    console.log('미들 그룹 :', selectedGroupId)
 
     const fetchParticipants = async () => {
       try {
@@ -229,7 +236,8 @@ export default function Middle() {
 
         if (data.success && data.data.length > 0) {
           setRecommendedLocations(data.data)
-          setDestination(data.data[0]) // 첫 번째 추천 장소를 기본값으로 설정
+          setDestination(data.data.stationName) // 첫 번째 추천 장소를 기본값으로 설정
+          setTime(data.data)
         }
       } catch (error) {
         console.error('추천 장소 가져오기 실패:', error)
@@ -243,18 +251,17 @@ export default function Middle() {
   const handleSlideChange = (direction: 'left' | 'right') => {
     if (!recommendedLocations.length) return
 
-    setDestination((prev) => {
-      const currentIndex = recommendedLocations.findIndex((loc) => loc === prev)
+    setCurrentDestinationIndex((prevIndex) => {
       const newIndex =
         direction === 'left'
-          ? currentIndex > 0
-            ? currentIndex - 1
+          ? prevIndex > 0
+            ? prevIndex - 1
             : recommendedLocations.length - 1
-          : currentIndex < recommendedLocations.length - 1
-            ? currentIndex + 1
+          : prevIndex < recommendedLocations.length - 1
+            ? prevIndex + 1
             : 0
 
-      return recommendedLocations[newIndex]
+      return newIndex
     })
   }
 
@@ -311,6 +318,14 @@ export default function Middle() {
       console.error('약속 장소 확정 실패:', error)
     }
   }
+  useEffect(() => {
+    console.log('현재 선택된 목적지 인덱스:', currentDestinationIndex)
+    console.log(
+      '현재 선택된 목적지:',
+      recommendedLocations[currentDestinationIndex],
+    )
+  }, [currentDestinationIndex, recommendedLocations])
+
   return (
     <Suspense fallback={<div>로딩 중...</div>}>
       {/* Suspense 내부에서 검색 파라미터 처리 */}
@@ -321,10 +336,19 @@ export default function Middle() {
           ref={mapContainerRef}
         ></div>
 
-        {kakaoMap && destination && participants.length > 0 && (
+        {kakaoMap && recommendedLocations && participants.length > 0 && (
           <>
-            <PinMap kakaoMap={kakaoMap} destinations={recommendedLocations} />
-            <RouteMap kakaoMap={kakaoMap} destinations={recommendedLocations} />
+            <PinMap
+              kakaoMap={kakaoMap}
+              destinations={recommendedLocations} // 현재 선택된 목적지만 전달
+              currentDestinationIndex={currentDestinationIndex}
+            />
+
+            <RouteMap
+              kakaoMap={kakaoMap}
+              destinations={recommendedLocations}
+              currentDestinationIndex={currentDestinationIndex}
+            />
           </>
         )}
 
@@ -351,9 +375,12 @@ export default function Middle() {
         />
 
         <BottomSheet
-          placeName={destination ? destination.stationName : ''}
+          placeName={
+            recommendedLocations[currentDestinationIndex]?.stationName || ''
+          }
           participants={participants}
           totalParticipants={participants.length}
+          time={time}
           onSlideChange={handleSlideChange}
           onConfirm={createMeetingLocation}
         />

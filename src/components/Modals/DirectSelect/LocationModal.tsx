@@ -115,7 +115,7 @@ export default function LocationModal({
           credentials: 'include',
           body: JSON.stringify({
             groupId,
-            midAddress: selectedLocation.place,
+            midAddress: nearestTransit,
             latitude: selectedLocation.lat,
             longitude: selectedLocation.lng,
           }),

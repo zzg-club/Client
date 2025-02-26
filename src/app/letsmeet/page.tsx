@@ -55,11 +55,13 @@ export default function LetsMeetPage() {
   const { setSelectedSurveyId } = useSurveyStore()
   const { selectedGroupId, setSelectedGroupId } = useGroupStore()
   const { selectedLocation, setSelectedLocation } = useLocationStore()
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
       setSearchParams(new URLSearchParams(window.location.search))
     }
   }, [])
+
   //`direct=true`이면 모달 자동으로 열기
   useEffect(() => {
     if (isDirectModal) {

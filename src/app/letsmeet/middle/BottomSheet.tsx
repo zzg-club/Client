@@ -15,10 +15,16 @@ interface Participant {
   longitude: number
 }
 
+interface Time {
+  userId: number
+  time: number
+}
+
 interface BottomSheetProps {
   placeName: string
   participants: Participant[]
   totalParticipants: number
+  time: Time[]
   onConfirm: () => void
   onSlideChange: (direction: 'left' | 'right') => void
 }
@@ -27,6 +33,7 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
   placeName,
   participants,
   totalParticipants,
+  time,
   onSlideChange,
 }) => {
   const { selectedGroupId } = useGroupStore()
@@ -134,6 +141,19 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
     setMaxHeight(highestMaxHeight) // 슬라이드 변경 시 최고 높이를 유지
   }
 
+  const getUserTime = (userId: number) => {
+    let foundTime = null
+
+    time.forEach((location) => {
+      const userTime = location.locations.find((l: any) => l.userId === userId)
+      if (userTime) {
+        foundTime = userTime.time
+      }
+    })
+
+    return foundTime
+  }
+
   return (
     <div
       ref={sheetRef}
@@ -180,42 +200,45 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
 
         <div ref={listRef} className={styles.participantList}>
           <div className={styles.participantGrid}>
-            {participants.map((participant, index) => (
-              <div key={index} className={styles.participantItem}>
-                <Image
-                  src={participant.userProfile}
-                  alt={`프로필 아이콘`}
-                  width={36}
-                  height={36}
-                  className={`${styles.participantIcon} `}
-                  style={{
-                    borderColor:
-                      index === 0
-                        ? 'var(--MainColor, #9562FB)'
-                        : 'var(--subway_time, #AFAFAF)',
-                  }}
-                />
+            {participants.map((participant, index) => {
+              const userTime = getUserTime(participant.userId)
+              return (
+                <div key={index} className={styles.participantItem}>
+                  <Image
+                    src={participant.userProfile}
+                    alt={`프로필 아이콘`}
+                    width={36}
+                    height={36}
+                    className={`${styles.participantIcon} `}
+                    style={{
+                      borderColor:
+                        index === 0
+                          ? 'var(--MainColor, #9562FB)'
+                          : 'var(--subway_time, #AFAFAF)',
+                    }}
+                  />
 
-                <p
-                  className={styles.participantText}
-                  style={{
-                    color:
-                      index === 0
-                        ? 'var(--MainColor, #9562FB)'
-                        : 'var(--subway_time, #AFAFAF)',
-                  }}
-                >
-                  {participant.time}
-                </p>
-                <Image
-                  src={'/train.svg'}
-                  alt="Transport Icon"
-                  width={28}
-                  height={28}
-                  className={`${styles.transportIcon} ${index === 0 ? styles.mainTransportIcon : ''}`}
-                />
-              </div>
-            ))}
+                  <p
+                    className={styles.participantText}
+                    style={{
+                      color:
+                        index === 0
+                          ? 'var(--MainColor, #9562FB)'
+                          : 'var(--subway_time, #AFAFAF)',
+                    }}
+                  >
+                    {userTime !== undefined ? `${userTime}분` : ''}
+                  </p>
+                  <Image
+                    src={'/train.svg'}
+                    alt="Transport Icon"
+                    width={28}
+                    height={28}
+                    className={`${styles.transportIcon} ${index === 0 ? styles.mainTransportIcon : ''}`}
+                  />
+                </div>
+              )
+            })}
           </div>
         </div>
 
