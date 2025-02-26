@@ -1,27 +1,31 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { fetchKakaoLoginUrl } from '@/services/place'
 
 export default function Home() {
-  const [isSheetExpanded, setIsSheetExpanded] = useState(false) // Bottom Sheet 상태
-  const startYRef = useRef<number | null>(null) // 드래그 시작 위치 저장
-  const isDraggingRef = useRef<boolean>(false) // 드래그 여부 확인
+  const [isSheetExpanded, setIsSheetExpanded] = useState(false) 
+  const startYRef = useRef<number | null>(null)
+  const isDraggingRef = useRef<boolean>(false)
+
+  useEffect(() => {
+    setTimeout(() => setIsSheetExpanded(true), 0) 
+  }, [])
 
   const handleKakaoLogin = async () => {
     try {
-      const kakaoLoginUrl = await fetchKakaoLoginUrl() // API 호출
+      const kakaoLoginUrl = await fetchKakaoLoginUrl()
       console.log('Kakao Login URL:', kakaoLoginUrl)
 
       // 반환된 URL로 이동
       if (kakaoLoginUrl.startsWith('http')) {
-        window.location.href = kakaoLoginUrl // 카카오 로그인 페이지로 이동
+        window.location.href = kakaoLoginUrl 
       } else {
         console.error('잘못된 로그인 URL:', kakaoLoginUrl)
         alert('로그인 URL이 유효하지 않습니다.')
       }
     } catch (error) {
-      console.error((error as Error).message) // 타입 단언
+      console.error((error as Error).message)
     }
   }
 
@@ -70,16 +74,16 @@ export default function Home() {
       }}
       onMouseMove={(e) => isDraggingRef.current && handleMove(e.clientY)}
       onMouseUp={handleEnd}
-      onMouseLeave={handleEnd} // 마우스가 화면 밖으로 나갔을 때 초기화
+      onMouseLeave={handleEnd}
     >
       {/* Splash 화면 */}
       <div
         className="flex flex-col items-center"
         style={{
-          paddingTop: '308px',
-          paddingBottom: '308px',
-          paddingLeft: '146px',
-          paddingRight: '146px',
+          position: 'absolute',
+          top: '25%',
+          left: '50%',
+          transform: 'translateX(-50%)',
         }}
       >
         <img
@@ -195,50 +199,55 @@ export default function Home() {
             {/* 오른쪽 실선 */}
             <div
               style={{
-                flex: 1, // 공간을 채우도록 설정
+                flex: 1, 
                 height: '0.5px',
                 backgroundColor: 'var(--NavBarColor, #AFAFAF)',
               }}
             ></div>
           </div>
-          {/* 카카오 로그인 버튼 */}
-          <div
-            className="kakao_button"
-            style={{
-              display: 'flex',
-              width: '300px',
-              height: '45px',
-              justifyContent: 'center',
-              alignItems: 'center',
-              gap: '8px',
-              flexShrink: 0,
-              borderRadius: '12px',
-              background: '#FEE500',
-              cursor: 'pointer',
-              marginBottom: '20px',
-              marginLeft: 'auto',
-              marginRight: 'auto',
-            }}
-            onClick={handleKakaoLogin}
-          >
-            <img
-              src="/kakao.svg"
-              alt="Kakao Icon"
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'center',  
+            alignItems: 'center',      
+            width: '100%',             
+          }}>
+            {/* 카카오 로그인 버튼 */}
+            <div
+              className="kakao_button"
               style={{
-                width: '20px',
-                height: '20px',
+                display: 'flex',
+                width: '300px',
+                height: '45px',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: '8px',
+                flexShrink: 0,
+                borderRadius: '12px',
+                background: '#FEE500',
+                cursor: 'pointer',
+                marginBottom: '20px',
               }}
-            />
-            <span
-              style={{
-                color: '#000',
-                fontSize: '16px',
-                fontFamily: 'AppleSDGothicNeoM00',
-                fontWeight: 400,
-              }}
+              onClick={handleKakaoLogin}
             >
-              카카오 로그인
-            </span>
+              <img
+                src="/kakao.svg"
+                alt="Kakao Icon"
+                style={{
+                  width: '20px',
+                  height: '20px',
+                }}
+              />
+              <span
+                style={{
+                  color: '#000',
+                  fontSize: '16px',
+                  fontFamily: 'AppleSDGothicNeoM00',
+                  fontWeight: 400,
+                }}
+              >
+                카카오 로그인
+              </span>
+            </div>
           </div>
         </div>
       </div>
