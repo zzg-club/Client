@@ -6,13 +6,14 @@ import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import { useGroupStore } from '@/store/groupStore'
+import { useLocationStore } from '@/store/locationsStore'
 
 export interface LocationModalProps {
   isVisible: boolean
   onClose: () => void
   onClickRight: () => void
   initialTitle: string
-  selectedLocation?: { place: string; lat: number; lng: number }
+  onTitleChange?: (title: string) => void
 }
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
@@ -22,7 +23,6 @@ export default function LocationModal({
   onClose,
   onClickRight,
   initialTitle,
-  selectedLocation,
 }: LocationModalProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -32,8 +32,8 @@ export default function LocationModal({
   const [title, setTitle] = useState(initialTitle)
   const [loading, setLoading] = useState(false)
   const [nearestTransit, setNearestTransit] = useState<string | null>(null)
-
-  const { setSelectedGroupId } = useGroupStore()
+  const { selectedGroupId } = useGroupStore()
+  const { selectedLocation } = useLocationStore()
 
   // URL에서 `transitName`이 존재하면 상태 업데이트
   useEffect(() => {
@@ -42,27 +42,11 @@ export default function LocationModal({
     }
   }, [transitParam])
 
-  const handleSearchNavigation = async () => {
+  const handleSearchNavigation = async (groupId: number) => {
     try {
       setIsDirectModal(true)
 
-      // 그룹 생성 API 호출
-      const groupResponse = await fetch(`${API_BASE_URL}/api/members`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-      })
-
-      if (!groupResponse.ok) throw new Error('❌ 그룹 생성 실패')
-
-      const groupData = await groupResponse.json()
-      const groupId = groupData.data.groupId
-      console.log(`그룹 생성 완료: groupId = ${groupId}`)
-
-      // Zustand에 groupId 저장
-      setSelectedGroupId(groupId)
-
-      // 2️. **위치 ID 생성 API 호출**
+      //  위치 ID 생성 API 호출
       const locationCreateResponse = await fetch(
         `${API_BASE_URL}/api/location/create`,
         {
@@ -73,7 +57,7 @@ export default function LocationModal({
         },
       )
 
-      if (!locationCreateResponse.ok) throw new Error('❌ 위치 ID 생성 실패')
+      if (!locationCreateResponse.ok) throw new Error('위치 ID 생성 실패')
 
       const locationCreateData = await locationCreateResponse.json()
       console.log(
@@ -83,8 +67,8 @@ export default function LocationModal({
       // 검색 페이지로 이동
       router.push(`/search?from=/letsmeet&direct=true`)
     } catch (error) {
-      console.error('그룹 생성 오류:', error)
-      alert('그룹 생성에 실패했습니다. 다시 시도해주세요.')
+      console.error('위치 생성 오류:', error)
+      alert('위치 생성에 실패했습니다. 다시 시도해주세요.')
     }
   }
 
@@ -106,7 +90,7 @@ export default function LocationModal({
       const groupId = useGroupStore.getState().selectedGroupId
       if (!groupId) throw new Error('groupId가 존재하지 않습니다.')
 
-      // 3️. **중앙 위치 확정 API 호출**
+      // 중앙 위치 확정 API 호출
       const locationResponse = await fetch(
         `${API_BASE_URL}/api/location/direct`,
         {
@@ -115,18 +99,18 @@ export default function LocationModal({
           credentials: 'include',
           body: JSON.stringify({
             groupId,
-            midAddress: nearestTransit, // 🔹 가장 가까운 지하철역 전달
+            midAddress: nearestTransit, // 가장 가까운 지하철역 전달
             latitude: selectedLocation.lat,
             longitude: selectedLocation.lng,
           }),
         },
       )
 
-      if (!locationResponse.ok) throw new Error('❌ 중앙 위치 확정 실패')
+      if (!locationResponse.ok) throw new Error('중앙 위치 확정 실패')
 
       console.log(`중앙 위치 확정 완료: ${nearestTransit}`)
 
-      // 4️. **제목 생성 API 호출**
+      // 제목 생성 API 호출
       const updateTitleResponse = await fetch(`${API_BASE_URL}/api/members`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -137,15 +121,22 @@ export default function LocationModal({
         }),
       })
 
-      if (!updateTitleResponse.ok) throw new Error('❌ 약속 제목 생성 실패')
+      if (!updateTitleResponse.ok) throw new Error('약속 제목 생성 실패')
 
       console.log('약속 제목 생성 완료')
 
       onClickRight()
+      setIsDirectModal(false) // 모달 상태 직접 변경
+
+      // **setTimeout을 사용하여 모달을 확실히 닫기**
+      setTimeout(() => {
+        onClose() // 모달 닫기 추가
+      }, 100) // 약간의 지연 추가
 
       alert('중앙 위치가 확정되었습니다!')
 
       // `/letsmeet` 페이지 이동
+
       router.replace('/letsmeet')
     } catch (error) {
       console.error('오류 발생:', error)
@@ -184,7 +175,13 @@ export default function LocationModal({
           {/* 중간 버튼 영역 */}
           <div className="flex justify-center items-center">
             <button
-              onClick={handleSearchNavigation}
+              onClick={() => {
+                if (selectedGroupId !== null) {
+                  handleSearchNavigation(selectedGroupId) // groupId가 있을 때만 실행
+                } else {
+                  console.error('selectedGroupId가 null입니다.')
+                }
+              }}
               className="flex w-[228px] px-3 py-1.5 items-center gap-[10px] rounded-[24px] border border-[var(--NavBarColor,#AFAFAF)] bg-[var(--Grays-White,#FFF)] cursor-pointer"
             >
               {/* 텍스트를 버튼 정중앙에 위치 */}

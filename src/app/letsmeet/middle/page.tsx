@@ -272,8 +272,7 @@ export default function Middle() {
   const createMeetingLocation = async () => {
     if (!selectedGroupId || !isCreator) return
 
-    if (!destination) {
-      console.error('확정할 목적지가 없습니다.')
+    if (destination) {
       return
     }
 
@@ -318,8 +317,8 @@ export default function Middle() {
 
       console.log('약속 장소 및 제목 변경 완료')
 
-      // 3️. **성공하면 `/letsmeet`으로 리디렉션**
-      router.push('/letsmeet')
+      // 3️. **성공하면 `/schedule`으로 리디렉션**
+      router.push('/schedule')
     } catch (error) {
       console.error('확정 실패:', error)
     }
