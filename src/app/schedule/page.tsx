@@ -101,12 +101,9 @@ export default function ScheduleLanding() {
           .filter(
             (schedule: Schedule) =>
               !(
-                (schedule.startDate === '' &&
-                  schedule.endDate === '' &&
-                  schedule.location === '') ||
-                (schedule.startDate === '' &&
-                  schedule.endDate === '' &&
-                  schedule.location === '미확정')
+                schedule.location === '미확정' &&
+                schedule.startDate === '' &&
+                schedule.endDate === ''
               ),
           )
 
