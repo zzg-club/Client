@@ -79,8 +79,8 @@ export default function MembersDefault({
               <Image
                 src={member.image}
                 alt={member.name}
-                width={48}
-                height={48}
+                fill
+                sizes="48px"
                 style={{ objectFit: 'cover' }} // 비율 유지하며 채우기
                 unoptimized={true}
               />
