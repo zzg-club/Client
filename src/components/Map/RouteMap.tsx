@@ -63,14 +63,22 @@ const RouteMap: React.FC<RouteMapProps> = ({
               locationComplete: 'true',
               scheduleComplete: 'true',
             },
-            ...data.data.membersLocation.map((member: any) => ({
-              id: member.userId,
-              name: member.username,
-              image: member.userProfile,
-              type: 'participant',
-              locationComplete: 'true',
-              scheduleComplete: 'true',
-            })),
+            ...data.data.membersLocation.map(
+              (member: {
+                userId: number
+                username: string
+                userProfile?: string
+                latitude: number
+                longitude: number
+              }) => ({
+                id: member.userId,
+                name: member.username,
+                image: member.userProfile,
+                type: 'participant',
+                locationComplete: 'true',
+                scheduleComplete: 'true',
+              }),
+            ),
           ]
 
           const transformedLocations = {
@@ -79,10 +87,18 @@ const RouteMap: React.FC<RouteMapProps> = ({
               longitude: data.data.myLocation.longitude,
             },
             ...Object.fromEntries(
-              data.data.membersLocation.map((member: any) => [
-                member.userId,
-                { latitude: member.latitude, longitude: member.longitude },
-              ]),
+              data.data.membersLocation.map(
+                (member: {
+                  userId: number
+                  username: string
+                  userProfile?: string
+                  latitude: number
+                  longitude: number
+                }) => [
+                  member.userId,
+                  { latitude: member.latitude, longitude: member.longitude },
+                ],
+              ),
             ),
           }
 

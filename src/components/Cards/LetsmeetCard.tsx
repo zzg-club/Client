@@ -57,16 +57,11 @@ export function LetsmeetCard({
 
   const resetDateTime = useDateTimeStore((state) => state.resetDateTime)
   const router = useRouter()
-  const { setSelectedGroupId, selectedGroupId } = useGroupStore()
+  const { setSelectedGroupId } = useGroupStore()
 
-  const [selectedLocation, setSelectedLocation] = useState(location || '')
-  const [isEditingLocation, setIsEditingLocation] = useState(false)
+  const [selectedLocation] = useState(location || '')
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
-
-  const handleLocationClick = () => {
-    setIsEditingLocation(true)
-  }
 
   // membersVariant 모달 핸들
   const handleMembersModalOpen = () => {
@@ -203,10 +198,7 @@ export function LetsmeetCard({
 
             {/* 약속 장소 */}
             <div className="flex flex-col justify-center items-end gap-3">
-              <span
-                className="text-xl font-medium text-[#9562fa] group-hover:text-[#fff] cursor-pointer"
-                onClick={handleLocationClick}
-              >
+              <span className="text-xl font-medium text-[#9562fa] group-hover:text-[#fff] cursor-pointer">
                 {selectedLocation}
               </span>
 

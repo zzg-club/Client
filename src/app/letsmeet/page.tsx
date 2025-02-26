@@ -296,7 +296,9 @@ export default function LetsMeetPage() {
       console.log(`${type} 삭제 성공:`, response.data.data)
 
       // 모달 닫기 & 관련 데이터 갱신
-      setIsMembersModalOpen(false)
+      if (isMembersModalOpen) {
+        setIsMembersModalOpen(false)
+      }
       getSchedule()
       fetchNotification()
 

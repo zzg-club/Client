@@ -5,7 +5,6 @@ import MiddleFooter2Right from '@/components/Buttons/Middle/Bottom/MiddleFooter2
 import MiddleFooter2Left from '@/components/Buttons/Middle/Bottom/MiddleFooter2Left'
 import styles from './BottomSheet.module.css'
 import Image from 'next/image'
-import { useGroupStore } from '@/store/groupStore'
 
 interface Participant {
   userId: number
@@ -18,6 +17,7 @@ interface Participant {
 interface Time {
   userId: number
   time: number
+  locations?: { userId: number; time: number }[]
 }
 
 interface BottomSheetProps {
@@ -36,7 +36,6 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
   time,
   onSlideChange,
 }) => {
-  const { selectedGroupId } = useGroupStore()
   const [isExpanded, setIsExpanded] = useState(false)
   const [translateY, setTranslateY] = useState(0)
   const [maxHeight, setMaxHeight] = useState(400)
@@ -142,16 +141,13 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
   }
 
   const getUserTime = (userId: number) => {
-    let foundTime = null
-
-    time.forEach((location) => {
-      const userTime = location.locations.find((l: any) => l.userId === userId)
-      if (userTime) {
-        foundTime = userTime.time
+    for (const location of time) {
+      if (location.locations) {
+        const userTime = location.locations.find((l) => l.userId === userId)
+        if (userTime) return userTime.time
       }
-    })
-
-    return foundTime
+    }
+    return null
   }
 
   return (

@@ -29,7 +29,7 @@ const useWebSocket = (groupId: number | null) => {
       },
     })
 
-    stompClient.onConnect = (frame) => {
+    stompClient.onConnect = () => {
       //console.log('WebSocket 연결 성공:', frame)
 
       stompClient.subscribe(`/topic/location/${groupId}`, (message) => {

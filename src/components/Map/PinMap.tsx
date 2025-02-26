@@ -78,7 +78,13 @@ const PinMap: React.FC<PinMapProps> = ({
 
         // 멤버 위치 저장
         const members: MemberLocation[] = data.data.membersLocation.map(
-          (member: any) => ({
+          (member: {
+            userId: number
+            username: string
+            userProfile?: string
+            latitude: number
+            longitude: number
+          }) => ({
             userId: member.userId,
             username: member.username,
             userProfile: member.userProfile || '',
@@ -153,20 +159,28 @@ const PinMap: React.FC<PinMapProps> = ({
 
         // 멤버 위치 transitName 업데이트
         const members: MemberLocation[] = await Promise.all(
-          data.data.membersLocation.map(async (member: any) => {
-            const transitName = await fetchTransitName(
-              member.latitude,
-              member.longitude,
-            )
-            return {
-              userId: member.userId,
-              username: member.username,
-              userProfile: member.userProfile || '',
-              latitude: member.latitude,
-              longitude: member.longitude,
-              transitName,
-            }
-          }),
+          data.data.membersLocation.map(
+            async (member: {
+              userId: number
+              username: string
+              userProfile?: string
+              latitude: number
+              longitude: number
+            }) => {
+              const transitName = await fetchTransitName(
+                member.latitude,
+                member.longitude,
+              )
+              return {
+                userId: member.userId,
+                username: member.username,
+                userProfile: member.userProfile || '',
+                latitude: member.latitude,
+                longitude: member.longitude,
+                transitName,
+              }
+            },
+          ),
         )
 
         setMembersLocation(members)

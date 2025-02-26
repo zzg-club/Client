@@ -106,15 +106,23 @@ export default function Middle() {
           }
 
           // 다른 참여자 위치 추가
-          data.data.membersLocation.forEach((member: any) => {
-            initialParticipants.push({
-              userId: member.userId,
-              userName: member.username,
-              userProfile: member.userProfile || '',
-              latitude: member.latitude,
-              longitude: member.longitude,
-            })
-          })
+          data.data.membersLocation.forEach(
+            (member: {
+              userId: number
+              username: string
+              userProfile?: string
+              latitude: number
+              longitude: number
+            }) => {
+              initialParticipants.push({
+                userId: member.userId,
+                userName: member.username,
+                userProfile: member.userProfile || '',
+                latitude: member.latitude,
+                longitude: member.longitude,
+              })
+            },
+          )
 
           setParticipants(initialParticipants)
         }
@@ -263,6 +271,12 @@ export default function Middle() {
   // 5. 약속 장소 확정 (모임장만 가능)
   const createMeetingLocation = async () => {
     if (!selectedGroupId || !isCreator) return
+
+    if (!destination) {
+      console.error('확정할 목적지가 없습니다.')
+      return
+    }
+
     const selectedDestination = recommendedLocations[currentDestinationIndex]
 
     if (!selectedDestination) {
