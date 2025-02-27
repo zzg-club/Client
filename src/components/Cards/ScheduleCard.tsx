@@ -169,12 +169,41 @@ export function ScheduleCard({
 
   const handleSearchNavigation = () => {
     // setIsDirectModalOpen(true) // `direct` 모달 활성화
-    router.push(`/search?from=/letsmeet&direct=true`)
+    router.push(`/search?from=/schedule&direct=true`)
   }
 
   const handleDirectComplete = () => {
     setIsDirectModalOpen(false)
     alert('입력완료 클릭시 선정한 장소 api 연동')
+  }
+
+  const handleFindMidpoint = async (groupId: number) => {
+    try {
+      if (!groupId) {
+        console.error('groupId가 없습니다.')
+        return
+      }
+
+      // 렛츠밋 약속(위치) 생성
+      const locationResponse = await fetch(
+        `${API_BASE_URL}/api/location/create`,
+        {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ groupId }), // groupId를 API에 전달
+        },
+      )
+
+      if (!locationResponse.ok) throw new Error('위치 생성 실패')
+
+      const locationData = await locationResponse.json()
+      console.log('위치 생성 완료, location_id:', locationData.data.location_id)
+
+      router.push(`/search?from=/schedule`)
+    } catch (error) {
+      console.error('위치 생성 오류:', error)
+    }
   }
 
   return (
@@ -249,7 +278,7 @@ export function ScheduleCard({
         leftText={'직접 입력'}
         rightText={'장소선정'}
         onClickLeft={handleDirectLetsmeet}
-        onClickRight={() => router.push('/search?from=schedule')}
+        onClickRight={() => handleFindMidpoint(id)}
       >
         <div className="flex item-center justify-center text-[#1e1e1e] text-xl font-medium leading-snug py-4 mt-3">
           장소를

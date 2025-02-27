@@ -7,16 +7,25 @@ import styles from './BottomSheet.module.css'
 import Image from 'next/image'
 
 interface Participant {
-  name: string
-  time: string
-  image: string
-  transportIcon: string
+  userId: number
+  userName: string
+  userProfile: string
+  latitude: number
+  longitude: number
+}
+
+interface Time {
+  userId: number
+  time: number
+  locations?: { userId: number; time: number }[]
 }
 
 interface BottomSheetProps {
   placeName: string
   participants: Participant[]
   totalParticipants: number
+  time: Time[]
+  onConfirm: () => void
   onSlideChange: (direction: 'left' | 'right') => void
 }
 
@@ -24,6 +33,7 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
   placeName,
   participants,
   totalParticipants,
+  time,
   onSlideChange,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false)
@@ -130,6 +140,16 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
     setMaxHeight(highestMaxHeight) // 슬라이드 변경 시 최고 높이를 유지
   }
 
+  const getUserTime = (userId: number) => {
+    for (const location of time) {
+      if (location.locations) {
+        const userTime = location.locations.find((l) => l.userId === userId)
+        if (userTime) return userTime.time
+      }
+    }
+    return null
+  }
+
   return (
     <div
       ref={sheetRef}
@@ -159,10 +179,8 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
               <Image
                 src="/arrow_back_mirrored.svg"
                 alt="Arrow Icon"
-                layout="intrinsic"
                 width={6}
                 height={10}
-                style={{ width: 'auto', height: 'auto' }}
               />
             </div>
           </div>
@@ -178,42 +196,45 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
 
         <div ref={listRef} className={styles.participantList}>
           <div className={styles.participantGrid}>
-            {participants.map((participant, index) => (
-              <div key={index} className={styles.participantItem}>
-                <Image
-                  src={participant.image}
-                  alt={`${participant.name} 아이콘`}
-                  width={36}
-                  height={36}
-                  className={`${styles.participantIcon} `}
-                  style={{
-                    borderColor:
-                      index === 0
-                        ? 'var(--MainColor, #9562FB)'
-                        : 'var(--subway_time, #AFAFAF)',
-                  }}
-                />
+            {participants.map((participant, index) => {
+              const userTime = getUserTime(participant.userId)
+              return (
+                <div key={index} className={styles.participantItem}>
+                  <Image
+                    src={participant.userProfile}
+                    alt={`프로필 아이콘`}
+                    width={36}
+                    height={36}
+                    className={`${styles.participantIcon} `}
+                    style={{
+                      borderColor:
+                        index === 0
+                          ? 'var(--MainColor, #9562FB)'
+                          : 'var(--subway_time, #AFAFAF)',
+                    }}
+                  />
 
-                <p
-                  className={styles.participantText}
-                  style={{
-                    color:
-                      index === 0
-                        ? 'var(--MainColor, #9562FB)'
-                        : 'var(--subway_time, #AFAFAF)',
-                  }}
-                >
-                  {participant.time}
-                </p>
-                <Image
-                  src={participant.transportIcon}
-                  alt="Transport Icon"
-                  width={28}
-                  height={28}
-                  className={`${styles.transportIcon} ${index === 0 ? styles.mainTransportIcon : ''}`}
-                />
-              </div>
-            ))}
+                  <p
+                    className={styles.participantText}
+                    style={{
+                      color:
+                        index === 0
+                          ? 'var(--MainColor, #9562FB)'
+                          : 'var(--subway_time, #AFAFAF)',
+                    }}
+                  >
+                    {userTime !== undefined ? `${userTime}분` : ''}
+                  </p>
+                  <Image
+                    src={'/train.svg'}
+                    alt="Transport Icon"
+                    width={28}
+                    height={28}
+                    className={`${styles.transportIcon} ${index === 0 ? styles.mainTransportIcon : ''}`}
+                  />
+                </div>
+              )
+            })}
           </div>
         </div>
 

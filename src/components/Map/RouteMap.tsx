@@ -1,127 +1,155 @@
-import { useEffect, useRef } from 'react'
+'use client'
+
+import { useEffect, useRef, useState } from 'react'
+import { useGroupStore } from '@/store/groupStore'
 
 interface Participant {
+  id: number
   name: string
-  lat: number
-  lng: number
+  image: string
+  type: string
+  locationComplete: string
+  scheduleComplete: string
 }
 
 interface Location {
-  lat: number
-  lng: number
+  stationName: string
+  latitude: number
+  longitude: number
 }
 
 interface RouteMapProps {
   kakaoMap: kakao.maps.Map
-  destination: Location
-  participants: Participant[]
+  destinations: Location[]
+  currentDestinationIndex: number // 현재 선택된 목적지 인덱스 추가
 }
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
 
 const RouteMap: React.FC<RouteMapProps> = ({
   kakaoMap,
-  destination,
-  participants,
+  destinations,
+  currentDestinationIndex,
 }) => {
   const polylineRefs = useRef<kakao.maps.Polyline[]>([])
+  const [participants, setParticipants] = useState<Participant[]>([])
+  const [participantLocations, setParticipantLocations] = useState<
+    Record<number, { latitude: number; longitude: number }>
+  >({})
+  const { selectedGroupId } = useGroupStore()
 
   useEffect(() => {
-    if (!kakaoMap || participants.length === 0) {
+    if (!kakaoMap || !selectedGroupId) return
+
+    const fetchParticipants = async () => {
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/api/location/${selectedGroupId}`,
+          {
+            method: 'GET',
+            credentials: 'include',
+          },
+        )
+        if (!response.ok) throw new Error('Failed to fetch locations')
+
+        const data = await response.json()
+        if (data.success) {
+          const transformedParticipants: Participant[] = [
+            {
+              id: data.data.myLocation.userId,
+              name: data.data.myLocation.username,
+              image: data.data.myLocation.userProfile,
+              type: 'self',
+              locationComplete: 'true',
+              scheduleComplete: 'true',
+            },
+            ...data.data.membersLocation.map(
+              (member: {
+                userId: number
+                username: string
+                userProfile?: string
+                latitude: number
+                longitude: number
+              }) => ({
+                id: member.userId,
+                name: member.username,
+                image: member.userProfile,
+                type: 'participant',
+                locationComplete: 'true',
+                scheduleComplete: 'true',
+              }),
+            ),
+          ]
+
+          const transformedLocations = {
+            [data.data.myLocation.userId]: {
+              latitude: data.data.myLocation.latitude,
+              longitude: data.data.myLocation.longitude,
+            },
+            ...Object.fromEntries(
+              data.data.membersLocation.map(
+                (member: {
+                  userId: number
+                  username: string
+                  userProfile?: string
+                  latitude: number
+                  longitude: number
+                }) => [
+                  member.userId,
+                  { latitude: member.latitude, longitude: member.longitude },
+                ],
+              ),
+            ),
+          }
+
+          setParticipants(transformedParticipants)
+          setParticipantLocations(transformedLocations)
+        }
+      } catch (error) {
+        console.error('Failed to load participant locations:', error)
+      }
+    }
+
+    fetchParticipants()
+  }, [selectedGroupId, kakaoMap])
+
+  useEffect(() => {
+    if (!kakaoMap || participants.length === 0 || destinations.length === 0)
+      return
+
+    // 기존 폴리라인 제거
+    polylineRefs.current.forEach((polyline) => polyline.setMap(null))
+    polylineRefs.current = []
+
+    // **모든 출발지와 목적지를 포함할 Bounds 객체 생성**
+    const bounds = new window.kakao.maps.LatLngBounds()
+
+    // 현재 선택된 목적지 좌표 가져오기
+    const selectedDestination = destinations[currentDestinationIndex]
+
+    if (!selectedDestination) {
+      console.error('목적지 정보가 없습니다.')
       return
     }
 
-    // 이전 `Polyline` 제거
-    polylineRefs.current.forEach((polyline) => {
-      polyline.setMap(null)
-    })
-    polylineRefs.current = [] // 참조 초기화
+    console.log('경로를 생성할 목적지:', selectedDestination)
 
     const fetchAndDisplayRoutes = async () => {
-      const nonSelfParticipants = participants.filter(
-        (participant) => participant.name !== '내 위치',
-      )
-      const selfParticipant = participants.find(
-        (participant) => participant.name === '내 위치',
-      )
-      // 내 경로 표시 (마지막에 추가)
-      if (selfParticipant) {
+      for (const participant of participants) {
+        const location = participantLocations[participant.id]
+        if (!location) continue
+
         try {
-          const res = await fetch(
-            'https://api.moim.team/api/location/get/route',
-            {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                accept: '*/*',
-              },
-              body: JSON.stringify({
-                startX: selfParticipant.lng,
-                startY: selfParticipant.lat,
-                endX: destination.lng,
-                endY: destination.lat,
-              }),
-            },
-          )
-
-          if (!res.ok) {
-            console.error(
-              '내 경로 데이터를 가져오는 중 오류 발생:',
-              res.statusText,
-            )
-            return
-          }
-
-          const data = await res.json()
-          const routeSegments = data.data.route
-
-          if (!routeSegments || !Array.isArray(routeSegments)) {
-            console.error('유효하지 않은 내 경로 데이터:', data)
-            return
-          }
-
-          const routePath = routeSegments.flatMap((segment: string) =>
-            segment.split(' ').map((point) => {
-              const [lng, lat] = point.split(',').map(Number)
-              return new window.kakao.maps.LatLng(lat, lng)
+          const res = await fetch(`${API_BASE_URL}/api/location/get/route`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', accept: '*/*' },
+            body: JSON.stringify({
+              startX: location.longitude, // 출발지 X 좌표 (경도)
+              startY: location.latitude, // 출발지 Y 좌표 (위도)
+              endX: selectedDestination.longitude, // 목적지 X 좌표 (경도)
+              endY: selectedDestination.latitude, // 목적지 Y 좌표 (위도)
             }),
-          )
-
-          const polyline = new window.kakao.maps.Polyline({
-            path: routePath,
-            strokeWeight: 4, // 내 경로를 강조
-            strokeColor: '#9562FB', // 내 경로 색상
-            strokeOpacity: 0.64,
-            strokeStyle: 'solid',
           })
-
-          polyline.setMap(kakaoMap)
-          polylineRefs.current.push(polyline) // Polyline 참조 저장
-        } catch (error) {
-          console.error(
-            '내 경로 데이터를 가져오거나 표시하는 중 오류 발생:',
-            error,
-          )
-        }
-      }
-
-      // 참여자 경로 표시 (내 위치 제외)
-      for (const participant of nonSelfParticipants) {
-        try {
-          const res = await fetch(
-            'https://api.moim.team/api/location/get/route',
-            {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                accept: '*/*',
-              },
-              body: JSON.stringify({
-                startX: participant.lng,
-                startY: participant.lat,
-                endX: destination.lng,
-                endY: destination.lat,
-              }),
-            },
-          )
 
           if (!res.ok) {
             console.error(
@@ -139,6 +167,8 @@ const RouteMap: React.FC<RouteMapProps> = ({
             continue
           }
 
+          console.log(`${participant.name}님의 경로 데이터:`, routeSegments)
+
           const routePath = routeSegments.flatMap((segment: string) =>
             segment.split(' ').map((point) => {
               const [lng, lat] = point.split(',').map(Number)
@@ -146,16 +176,27 @@ const RouteMap: React.FC<RouteMapProps> = ({
             }),
           )
 
+          // **출발지 & 목적지를 지도 범위에 추가**
+          bounds.extend(
+            new window.kakao.maps.LatLng(location.latitude, location.longitude),
+          )
+          bounds.extend(
+            new window.kakao.maps.LatLng(
+              selectedDestination.latitude,
+              selectedDestination.longitude,
+            ),
+          )
+
           const polyline = new window.kakao.maps.Polyline({
             path: routePath,
             strokeWeight: 4,
-            strokeColor: '#AFAFAF', // 참여자 경로 색상
+            strokeColor: participant.type === 'self' ? '#9562FB' : '#AFAFAF',
             strokeOpacity: 0.64,
             strokeStyle: 'solid',
           })
 
           polyline.setMap(kakaoMap)
-          polylineRefs.current.push(polyline) // Polyline 참조 저장
+          polylineRefs.current.push(polyline)
         } catch (error) {
           console.error(
             '경로 데이터를 가져오거나 표시하는 중 오류 발생:',
@@ -163,15 +204,26 @@ const RouteMap: React.FC<RouteMapProps> = ({
           )
         }
       }
+
+      // **경로가 모두 포함되도록 지도 조정**
+      if (!bounds.isEmpty()) {
+        kakaoMap.setBounds(bounds, 50) // 50px 여백 추가
+      }
     }
+
     fetchAndDisplayRoutes()
 
     return () => {
-      // 컴포넌트 언마운트 시 기존 Polyline 제거
       polylineRefs.current.forEach((polyline) => polyline.setMap(null))
       polylineRefs.current = []
     }
-  }, [kakaoMap, destination, participants])
+  }, [
+    kakaoMap,
+    participants,
+    participantLocations,
+    destinations,
+    currentDestinationIndex,
+  ])
 
   return null
 }
