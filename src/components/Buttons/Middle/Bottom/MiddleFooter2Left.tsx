@@ -17,6 +17,8 @@ const MiddleFooter2Right: React.FC<MiddleFooter2RightProps> = ({ onClick }) => {
         width={24}
         height={24}
         style={{
+          width: 'auto',
+          height: 'auto',
           objectFit: 'contain',
         }}
       />

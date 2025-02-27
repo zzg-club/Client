@@ -5,68 +5,79 @@ import { X } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
+import { useGroupStore } from '@/store/groupStore'
+import { useLocationStore } from '@/store/locationsStore'
 
 export interface LocationModalProps {
   isVisible: boolean
   onClose: () => void
   onClickRight: () => void
   initialTitle: string
-  onTitleChange: (newTitle: string) => void
-  selectedLocation?: { place: string; lat: number; lng: number } // 선택된 위치
-  scheduleId?: number // 수정할 스케줄 ID 추가
+  onTitleChange?: (title: string) => void
 }
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
 
 export default function LocationModal({
   isVisible,
   onClose,
   onClickRight,
   initialTitle,
-  selectedLocation,
-  scheduleId,
 }: LocationModalProps) {
   const router = useRouter()
-  const [loading, setLoading] = useState(false)
   const searchParams = useSearchParams()
-  const directParam = searchParams.get('direct') // URL에서 `direct` 가져오기
-
+  const directParam = searchParams.get('direct')
+  const transitParam = searchParams.get('transitName')
   const [isDirectModal, setIsDirectModal] = useState(directParam === 'true')
   const [title, setTitle] = useState(initialTitle)
+  const [loading, setLoading] = useState(false)
+  const [nearestTransit, setNearestTransit] = useState<string | null>(null)
+  const { selectedGroupId } = useGroupStore()
+  const { selectedLocation } = useLocationStore()
 
-  const handleSearchNavigation = () => {
-    setIsDirectModal(true) // `direct` 모달 활성화
-    router.push(`/search?from=/letsmeet&direct=true`)
-  }
+  // URL에서 `transitName`이 존재하면 상태 업데이트
+  useEffect(() => {
+    if (transitParam) {
+      setNearestTransit(decodeURIComponent(transitParam))
+    }
+  }, [transitParam])
 
-  // 제목 변경 API 요청
-  const handleUpdateTitle = async (newTitle: string) => {
-    setTitle(newTitle) // UI 업데이트
-
+  const handleSearchNavigation = async (groupId: number) => {
     try {
-      const response = await fetch(`/api/schedule/${scheduleId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
+      setIsDirectModal(true)
+
+      //  위치 ID 생성 API 호출
+      const locationCreateResponse = await fetch(
+        `${API_BASE_URL}/api/location/create`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ groupId }),
         },
-        body: JSON.stringify({
-          title: newTitle, // 새로운 제목 업데이트
-          startDate: new Date().toISOString(),
-          endDate: new Date().toISOString(),
-        }),
-        credentials: 'include',
-      })
+      )
 
-      if (!response.ok) {
-        throw new Error(`제목 변경 실패: ${response.status}`)
-      }
+      if (!locationCreateResponse.ok) throw new Error('위치 ID 생성 실패')
 
-      const data = await response.json()
-      console.log('스케줄 제목 변경 성공:', data)
+      const locationCreateData = await locationCreateResponse.json()
+      console.log(
+        `위치 ID 생성 완료: locationId = ${locationCreateData.data.location_id}`,
+      )
+
+      // 검색 페이지로 이동
+      router.push(`/search?from=/letsmeet&direct=true`)
     } catch (error) {
-      console.error('제목 변경 오류:', error)
+      console.error('위치 생성 오류:', error)
+      alert('위치 생성에 실패했습니다. 다시 시도해주세요.')
     }
   }
 
-  // 중앙 위치 직접 선택 API 호출
+  /* 제목 입력 시 UI 업데이트 */
+  const handleUpdateTitle = async (newTitle: string) => {
+    setTitle(newTitle)
+  }
+
+  /* 입력 완료: 그룹 생성 → 위치 확정 → 제목 생성 */
   const handleDirectLocation = async () => {
     if (!selectedLocation) {
       alert('선택된 위치가 없습니다.')
@@ -76,53 +87,60 @@ export default function LocationModal({
     try {
       setLoading(true)
 
-      // 1. 그룹 생성 API 호출
-      const groupResponse = await fetch('https://api.moim.team/api/members', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include', // 쿠키 포함 요청
-      })
+      const groupId = useGroupStore.getState().selectedGroupId
+      if (!groupId) throw new Error('groupId가 존재하지 않습니다.')
 
-      if (!groupResponse.ok) {
-        throw new Error(`그룹 생성 실패: ${groupResponse.status}`)
-      }
-
-      const groupData = await groupResponse.json()
-      const groupId = groupData.data.groupId // 그룹 ID 받아오기
-
-      console.log(`그룹 생성 완료, groupId: ${groupId}`)
-
-      // 2. 중앙 위치 확정 API 호출
+      // 중앙 위치 확정 API 호출
       const locationResponse = await fetch(
-        'https://api.moim.team/api/location/direct',
+        `${API_BASE_URL}/api/location/direct`,
         {
           method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify({
-            groupId: groupId, // 생성된 그룹 ID 사용
-            groupName: title,
-            midAddress: selectedLocation.place,
+            groupId,
+            midAddress: nearestTransit, // 가장 가까운 지하철역 전달
             latitude: selectedLocation.lat,
             longitude: selectedLocation.lng,
           }),
         },
       )
 
-      if (!locationResponse.ok) {
-        throw new Error(`중앙 위치 확정 실패: ${locationResponse.status}`)
-      }
+      if (!locationResponse.ok) throw new Error('중앙 위치 확정 실패')
 
-      const locationData = await locationResponse.json()
-      console.log(`중앙 위치 확정 완료: ${locationData.data.midAddress}`)
+      console.log(`중앙 위치 확정 완료: ${nearestTransit}`)
+
+      // 제목 생성 API 호출
+      const updateTitleResponse = await fetch(`${API_BASE_URL}/api/members`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          groupId,
+          groupName: title, // 사용자 입력 제목 전달
+        }),
+      })
+
+      if (!updateTitleResponse.ok) throw new Error('약속 제목 생성 실패')
+
+      console.log('약속 제목 생성 완료')
+
+      onClickRight()
+      setIsDirectModal(false) // 모달 상태 직접 변경
+
+      // **setTimeout을 사용하여 모달을 확실히 닫기**
+      setTimeout(() => {
+        onClose() // 모달 닫기 추가
+      }, 100) // 약간의 지연 추가
 
       alert('중앙 위치가 확정되었습니다!')
-      onClickRight()
+
+      // `/letsmeet` 페이지 이동
+
+      router.replace('/letsmeet')
     } catch (error) {
       console.error('오류 발생:', error)
+      alert('오류가 발생했습니다. 다시 시도해주세요.')
     } finally {
       setLoading(false)
     }
@@ -157,27 +175,38 @@ export default function LocationModal({
           {/* 중간 버튼 영역 */}
           <div className="flex justify-center items-center">
             <button
-              onClick={handleSearchNavigation}
-              className="flex w-[228px] px-3 py-1.5 justify-end items-center gap-[10px] rounded-[24px] border border-[var(--NavBarColor,#AFAFAF)] bg-[var(--Grays-White,#FFF)] cursor-pointer"
+              onClick={() => {
+                if (selectedGroupId !== null) {
+                  handleSearchNavigation(selectedGroupId) // groupId가 있을 때만 실행
+                } else {
+                  console.error('selectedGroupId가 null입니다.')
+                }
+              }}
+              className="flex w-[228px] px-3 py-1.5 items-center gap-[10px] rounded-[24px] border border-[var(--NavBarColor,#AFAFAF)] bg-[var(--Grays-White,#FFF)] cursor-pointer"
             >
-              {/* 선택된 위치가 있으면 표시, 없으면 기본 텍스트 */}
-              <span className="ml-4 text-[14px] font-medium text-[#1e1e1e] truncate">
-                {selectedLocation ? selectedLocation.place : ''}
+              {/* 텍스트를 버튼 정중앙에 위치 */}
+              <span className="absolute left-1/2 transform -translate-x-1/2 text-[14px] font-medium text-[#666666] truncate">
+                {nearestTransit || ''}
               </span>
-              <Image
-                src="/vector.svg"
-                alt="위치 아이콘"
-                width={20}
-                height={20}
-              />
+
+              {/* 아이콘을 오른쪽에 고정 */}
+              <div className="ml-auto">
+                <Image
+                  src="/vector.svg"
+                  alt="위치 아이콘"
+                  width={20}
+                  height={20}
+                />
+              </div>
             </button>
           </div>
         </div>
+
         {/* 하단 버튼 영역 */}
         <div className="flex justify-center items-center border-t border-[#afafaf] p-4">
           <button
             onClick={handleDirectLocation}
-            className="text-center text-[18px] font-medium leading-[22px] tracking-tight text-[var(--MainColor,#9562FB)] font-['Pretendard']"
+            className="text-center text-[18px] font-medium text-[var(--MainColor,#9562FB)]"
           >
             입력 완료
           </button>

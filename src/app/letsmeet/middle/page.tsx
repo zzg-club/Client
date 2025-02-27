@@ -6,21 +6,28 @@ import PinMap from '@/components/Map/PinMap'
 import RouteMap from '@/components/Map/RouteMap'
 import Title from '@/components/Header/Middle/TitleMiddle'
 import BottomSheet from './BottomSheet'
-import dummyDataArray from '@/data/dummyDataArray.json'
 import { loadKakaoMaps } from '@/utils/kakaoLoader'
-import { getCurrentLocation } from '@/components/Map/getCurrentLocation'
 import BackButton from '@/components/Buttons/Middle/BackButton'
+import { useGroupStore } from '@/store/groupStore'
+import useWebSocket from '@/hooks/useWebSocket'
 
 interface Participant {
-  id: number
-  name: string
-  time: string
-  image: string
-  lat: number
-  lng: number
-  transport: string
-  transportIcon: string
-  depart: string
+  userId: number
+  userName: string
+  userProfile: string
+  latitude: number
+  longitude: number
+}
+
+interface Time {
+  userId: number
+  time: number
+}
+
+interface RecommendedLocation {
+  stationName: string
+  latitude: number
+  longitude: number
 }
 
 // 검색 파라미터를 별도 컴포넌트로 분리 (Suspense 내부에서 실행)
@@ -38,99 +45,292 @@ const SearchParamsComponent = ({
 }
 
 export default function Middle() {
-  const [kakaoMap, setKakaoMap] = useState<kakao.maps.Map | null>(null)
-  const [currentIndex, setCurrentIndex] = useState(0) // 현재 인덱스
-  const [participants, setParticipants] = useState<Participant[]>([])
-  const [destination, setDestination] = useState(dummyDataArray[0].destination)
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
   const [from, setFrom] = useState('/schedule')
+
+  const [kakaoMap, setKakaoMap] = useState<kakao.maps.Map | null>(null)
+  const [participants, setParticipants] = useState<Participant[]>([])
+  const [destination, setDestination] = useState<RecommendedLocation | null>(
+    null,
+  )
+  const [groupTitle, setGroupTitle] = useState<string>('제목 없는 일정')
+  const [time, setTime] = useState<Time[]>([])
+  const [isCreator, setIsCreator] = useState<boolean>(false)
+  const [recommendedLocations, setRecommendedLocations] = useState<
+    RecommendedLocation[]
+  >([])
+  const [currentDestinationIndex, setCurrentDestinationIndex] = useState(0)
+
+  const { selectedGroupId } = useGroupStore()
+  const { locations } = useWebSocket(selectedGroupId)
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
   const router = useRouter()
 
+  const handleTitleChange = (newTitle: string) => {
+    setGroupTitle(newTitle) // 🔹 제목 변경 상태 저장
+  }
+
+  /* 참여자 정보 */
+  // 기존 참여자 위치 데이터를 API에서 불러오기
+  useEffect(() => {
+    if (!selectedGroupId) return
+    console.log('미들 그룹 :', selectedGroupId)
+
+    const fetchParticipants = async () => {
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/api/location/${selectedGroupId}`,
+          {
+            method: 'GET',
+            credentials: 'include',
+          },
+        )
+
+        if (!response.ok) throw new Error('참여자 위치 데이터 가져오기 실패')
+
+        const data = await response.json()
+        console.log('초기 참여자 위치 데이터:', data)
+
+        if (data.success) {
+          const initialParticipants: Participant[] = []
+
+          // 내 위치 추가
+          if (data.data.myLocation) {
+            initialParticipants.push({
+              userId: data.data.myLocation.userId,
+              userName: data.data.myLocation.username,
+              userProfile: data.data.myLocation.userProfile || '',
+              latitude: data.data.myLocation.latitude,
+              longitude: data.data.myLocation.longitude,
+            })
+          }
+
+          // 다른 참여자 위치 추가
+          data.data.membersLocation.forEach(
+            (member: {
+              userId: number
+              username: string
+              userProfile?: string
+              latitude: number
+              longitude: number
+            }) => {
+              initialParticipants.push({
+                userId: member.userId,
+                userName: member.username,
+                userProfile: member.userProfile || '',
+                latitude: member.latitude,
+                longitude: member.longitude,
+              })
+            },
+          )
+
+          setParticipants(initialParticipants)
+        }
+      } catch (error) {
+        console.error('초기 참여자 위치 데이터 가져오기 실패:', error)
+      }
+    }
+
+    fetchParticipants()
+  }, [selectedGroupId, API_BASE_URL])
+
+  // 웹소켓에서 받아온 데이터 반영
+  useEffect(() => {
+    if (!locations.length) return
+
+    console.log('실시간 참여자 위치 업데이트:', locations)
+
+    setParticipants((prevParticipants) => {
+      const updatedParticipants = [...prevParticipants]
+
+      locations.forEach((loc) => {
+        const existingIndex = updatedParticipants.findIndex(
+          (p) => p.userId === loc.userId,
+        )
+        if (existingIndex !== -1) {
+          // 기존 참여자 위치 업데이트
+          updatedParticipants[existingIndex] = {
+            ...updatedParticipants[existingIndex],
+            latitude: loc.latitude,
+            longitude: loc.longitude,
+          }
+        } else {
+          // 새로운 참여자 추가
+          updatedParticipants.push({
+            userId: loc.userId,
+            userName: loc.userName,
+            userProfile: loc.userProfile || '',
+            latitude: loc.latitude,
+            longitude: loc.longitude,
+          })
+        }
+      })
+
+      return updatedParticipants
+    })
+  }, [locations])
+
+  //  1. 카카오 맵 초기화 (추천 장소 및 참여자 위치 표시)
   useEffect(() => {
     const initializeMap = async () => {
       try {
         await loadKakaoMaps()
-        const mapContainer = mapContainerRef.current
-        if (!mapContainer) return
+        if (!mapContainerRef.current) return
 
-        const kakaoMapInstance = new window.kakao.maps.Map(mapContainer, {
-          center: new window.kakao.maps.LatLng(
-            destination.lat,
-            destination.lng,
-          ),
-          level: 3,
-        })
-
+        const kakaoMapInstance = new window.kakao.maps.Map(
+          mapContainerRef.current,
+          {
+            center: new window.kakao.maps.LatLng(37.5665, 126.978),
+            level: 3,
+          },
+        )
         setKakaoMap(kakaoMapInstance)
-        setDestination(dummyDataArray[currentIndex].destination)
       } catch (error) {
         console.error('Error initializing Kakao Maps:', error)
       }
     }
+    initializeMap()
+  }, [])
 
-    const updateParticipants = async () => {
+  // 2. 추천 중간 지점 가져오기
+  useEffect(() => {
+    if (!selectedGroupId) return
+
+    const fetchRecommendedLocations = async () => {
       try {
-        const location = await getCurrentLocation()
-        const myInfo = {
-          id: 0,
-          name: '내 위치',
-          time: '50분',
-          image: '/sampleProfile.png',
-          lat: location.lat,
-          lng: location.lng,
-          transport: 'subway',
-          transportIcon: '/train.svg',
-          depart: '죽전역',
+        const response = await fetch(
+          `${API_BASE_URL}/api/location/threeLocation/${selectedGroupId}`,
+          {
+            method: 'GET',
+            credentials: 'include',
+          },
+        )
+
+        if (!response.ok) throw new Error('추천 장소 가져오기 실패')
+
+        const data = await response.json()
+        console.log('추천 중간 지점:', data)
+
+        if (data.success && data.data.length > 0) {
+          setRecommendedLocations(data.data)
+          setDestination(data.data.stationName) // 첫 번째 추천 장소를 기본값으로 설정
+          setTime(data.data)
         }
-
-        const updatedParticipants = [
-          myInfo,
-          ...dummyDataArray[currentIndex].participants.map((participant) => ({
-            ...participant,
-            transportIcon: '/subwayGray.svg',
-          })),
-        ]
-
-        setParticipants(updatedParticipants)
       } catch (error) {
-        console.error('현재 위치를 가져오지 못했습니다:', error)
-        const fallbackInfo = {
-          id: 0,
-          name: '기본 위치',
-          time: '기본 시간',
-          image: '/sampleProfile.png',
-          lat: 37.5665,
-          lng: 126.978,
-          transport: 'subway',
-          transportIcon: '/train.svg',
-          depart: '서울역',
-        }
-
-        const updatedParticipants = [
-          fallbackInfo,
-          ...dummyDataArray[currentIndex].participants.map((participant) => ({
-            ...participant,
-            transportIcon: '/subwayGray.svg',
-          })),
-        ]
-
-        setParticipants(updatedParticipants)
+        console.error('추천 장소 가져오기 실패:', error)
       }
     }
 
-    initializeMap()
-    updateParticipants()
-  }, [currentIndex, destination.lat, destination.lng])
+    fetchRecommendedLocations()
+  }, [selectedGroupId, API_BASE_URL])
 
+  // 3. 추천 장소 변경 (슬라이드 이동)
   const handleSlideChange = (direction: 'left' | 'right') => {
-    setCurrentIndex((prevIndex) => {
-      if (direction === 'left') {
-        return prevIndex > 0 ? prevIndex - 1 : dummyDataArray.length - 1
-      } else {
-        return prevIndex < dummyDataArray.length - 1 ? prevIndex + 1 : 0
-      }
+    if (!recommendedLocations.length) return
+
+    setCurrentDestinationIndex((prevIndex) => {
+      const newIndex =
+        direction === 'left'
+          ? prevIndex > 0
+            ? prevIndex - 1
+            : recommendedLocations.length - 1
+          : prevIndex < recommendedLocations.length - 1
+            ? prevIndex + 1
+            : 0
+
+      return newIndex
     })
   }
+
+  // 4. 모임장 판별
+  useEffect(() => {
+    if (!selectedGroupId) return
+
+    const checkCreator = async () => {
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/api/members/creator/check/${selectedGroupId}`,
+          {
+            method: 'GET',
+            credentials: 'include',
+          },
+        )
+
+        if (!response.ok) throw new Error('Failed to check creator status')
+
+        const data = await response.json()
+        setIsCreator(data.data) // true이면 모임장, false이면 일반 참여자
+      } catch (error) {
+        console.error('모임장 확인 실패:', error)
+      }
+    }
+
+    checkCreator()
+  }, [selectedGroupId, API_BASE_URL])
+
+  // 5. 약속 장소 확정 (모임장만 가능)
+  const createMeetingLocation = async () => {
+    if (!selectedGroupId || !isCreator) return
+
+    if (destination) {
+      return
+    }
+
+    const selectedDestination = recommendedLocations[currentDestinationIndex]
+
+    if (!selectedDestination) {
+      console.error('확정할 목적지가 없습니다.')
+      return
+    }
+
+    try {
+      // 1️. **목적지 확정 API 호출**
+      const response1 = await fetch(
+        `${API_BASE_URL}/api/location/threeLocation`,
+        {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            groupId: selectedGroupId,
+            midAddress: selectedDestination.stationName,
+            latitude: selectedDestination.latitude,
+            longitude: selectedDestination.longitude,
+          }),
+        },
+      )
+
+      if (!response1.ok) throw new Error('약속 장소 확정 실패')
+
+      // 2️. **제목 변경 API 호출**
+      const response2 = await fetch(`${API_BASE_URL}/api/members`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          groupId: selectedGroupId,
+          groupName: groupTitle,
+        }),
+      })
+
+      if (!response2.ok) throw new Error('약속 이름 수정 실패')
+
+      console.log('약속 장소 및 제목 변경 완료')
+
+      // 3️. **성공하면 `/schedule`으로 리디렉션**
+      router.push('/schedule')
+    } catch (error) {
+      console.error('확정 실패:', error)
+    }
+  }
+
+  useEffect(() => {
+    console.log('현재 선택된 목적지 인덱스:', currentDestinationIndex)
+    console.log(
+      '현재 선택된 목적지:',
+      recommendedLocations[currentDestinationIndex],
+    )
+  }, [currentDestinationIndex, recommendedLocations])
 
   return (
     <Suspense fallback={<div>로딩 중...</div>}>
@@ -142,17 +342,18 @@ export default function Middle() {
           ref={mapContainerRef}
         ></div>
 
-        {kakaoMap && destination && participants.length > 0 && (
+        {kakaoMap && recommendedLocations && participants.length > 0 && (
           <>
             <PinMap
               kakaoMap={kakaoMap}
-              participants={participants}
-              destination={destination}
+              destinations={recommendedLocations} // 현재 선택된 목적지만 전달
+              currentDestinationIndex={currentDestinationIndex}
             />
+
             <RouteMap
               kakaoMap={kakaoMap}
-              participants={participants}
-              destination={destination}
+              destinations={recommendedLocations}
+              currentDestinationIndex={currentDestinationIndex}
             />
           </>
         )}
@@ -162,9 +363,10 @@ export default function Middle() {
             buttonText="확정"
             buttonLink="#"
             initialTitle="제목 없는 일정"
-            onTitleChange={(newTitle) => console.log('새 제목:', newTitle)}
+            onTitleChange={handleTitleChange}
             isPurple
-            isDisabled={participants.length <= 1}
+            isDisabled={!isCreator || participants.length < 1}
+            onConfirm={createMeetingLocation}
           />
         </header>
 
@@ -179,10 +381,14 @@ export default function Middle() {
         />
 
         <BottomSheet
-          placeName={destination.name}
+          placeName={
+            recommendedLocations[currentDestinationIndex]?.stationName || ''
+          }
           participants={participants}
           totalParticipants={participants.length}
+          time={time}
           onSlideChange={handleSlideChange}
+          onConfirm={createMeetingLocation}
         />
       </div>
     </Suspense>
