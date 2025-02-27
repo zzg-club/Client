@@ -1,0 +1,15 @@
+HTTP/1.1 403 
+Date: Sun, 23 Feb 2025 06:47:00 GMT
+Content-Length: 0
+Connection: keep-alive
+Vary: Origin
+Vary: Access-Control-Request-Method
+Vary: Access-Control-Request-Headers
+Set-Cookie: JSESSIONID=1ACCF0C0D3F8A5F8A5E9CED7AC10D4D2; Path=/; HttpOnly
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 0
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: 0
+X-Frame-Options: DENY
+

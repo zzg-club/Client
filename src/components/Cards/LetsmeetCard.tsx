@@ -4,12 +4,20 @@ import React, { useState } from 'react'
 import CustomModal from '@/components/Modals/CustomModal'
 import MembersVariant from '../Modals/MembersVariant'
 import DateTimeModal from '@/components/Modals/DirectSelect/DateTimeModal'
-import EditTitle from '@/components/Header/EditTitle'
+import DirectEditTitle from '@/components/Header/DirectEditTitle'
 import CustomCalendar from '@/components/Calendars/CustomCalendar'
+import { useGroupStore } from '@/store/groupStore'
 import { useHandleSelect } from '@/hooks/useHandleSelect'
 import { useDateTimeStore } from '@/store/dateTimeStore'
 import { useRouter } from 'next/navigation'
-import { ScheduleOptions } from '@/components/Buttons/Floating/Options'
+import SelectModal from '../Modals/SelectModal'
+
+export type Participant = {
+  id: number
+  name: string
+  image: string
+  type: string
+}
 
 export interface LetsmeetCardProps {
   id: number
@@ -18,19 +26,25 @@ export interface LetsmeetCardProps {
   startTime: string
   endTime: string
   location?: string
-  participants: { id: number; name: string; image: string; type: string }[]
+  participants: Participant[]
+  surveyId?: number
+  locationId: number
+  getSchedule: () => void
+  onRemoveMember: (userId: number, type: string) => void
 }
 
 export function LetsmeetCard({
   id,
   startTime,
   endTime,
+  title,
   location,
   participants,
+  onRemoveMember,
 }: LetsmeetCardProps) {
   const [isOpen, setIsOpen] = useState(false)
 
-  const [title, setTitle] = useState('제목 없는 일정') // 제목 상태 관리
+  const [directTitle, setDirectTitle] = useState('제목 없는 일정') // 제목 상태 관리
 
   const [isMembersModalOpen, setIsMembersModalOpen] = useState(false)
   const [isCdialogOpen, setIsCdialogOpen] = useState(false) // 일정 조율하기 모달 상태 C: Coordinate
@@ -43,54 +57,37 @@ export function LetsmeetCard({
 
   const resetDateTime = useDateTimeStore((state) => state.resetDateTime)
   const router = useRouter()
+  const { setSelectedGroupId } = useGroupStore()
 
-  const [selectedLocation, setSelectedLocation] = useState(location || '')
-  const [isEditingLocation, setIsEditingLocation] = useState(false)
+  const [selectedLocation] = useState(location || '')
 
-  const handleLocationClick = () => {
-    setIsEditingLocation(true)
-  }
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
 
-  const handleLocationBlur = () => {
-    setIsEditingLocation(false)
-  }
-
-  const handleLocationKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      setIsEditingLocation(false)
-    }
-  }
-
-  //참가자
   // membersVariant 모달 핸들
   const handleMembersModalOpen = () => {
+    setSelectedGroupId(id)
     setIsMembersModalOpen(!isMembersModalOpen)
-  }
-
-  // 선택된 멤버의 id값 전달을 위한 상태추적
-  const [selectedMember, setSelectedMember] = useState(participants)
-
-  // 실제 삭제 api 여기에 연동
-  const handleRemoveMember = (id: number) => {
-    setSelectedMember((prev) => prev.filter((member) => member.id !== id))
   }
 
   //제목 수정
   const handleTitleChange = async (newTitle: string) => {
-    setTitle(newTitle) // UI 업데이트
+    setDirectTitle(newTitle) // UI 업데이트
 
     try {
-      const response = await fetch(`/api/members?groupId=${id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        `${API_BASE_URL}/api/members?groupId=${id}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            groupName: newTitle,
+            location: selectedLocation,
+          }),
+          credentials: 'include',
         },
-        body: JSON.stringify({
-          groupName: newTitle,
-          location: selectedLocation,
-        }),
-        credentials: 'include', // 인증 정보 포함
-      })
+      )
 
       if (!response.ok) {
         throw new Error(`서버 오류: ${response.status}`)
@@ -103,41 +100,14 @@ export function LetsmeetCard({
     }
   }
 
-  /// 장소 수정 API 요청
-  const handleLocationChange = async (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const newLocation = e.target.value
-    setSelectedLocation(newLocation)
-
-    try {
-      const response = await fetch(`/api/members?groupId=${id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          groupName: title,
-          location: newLocation, // 입력된 장소 업데이트
-        }),
-        credentials: 'include',
-      })
-
-      if (!response.ok) {
-        throw new Error(`서버 오류: ${response.status}`)
-      }
-
-      const data = await response.json()
-      console.log('장소 정보 수정 성공:', data)
-    } catch (error) {
-      console.error('장소 정보 수정 실패:', error)
-    }
-  }
-
   //일정 정하기 모달
   const handleOpenScheduleModal = (e: React.MouseEvent) => {
     e.stopPropagation()
     setIsOpen(true)
+  }
+
+  const handleCloseScheduleModal = () => {
+    setIsOpen(false)
   }
 
   const handleOpenCdialog = () => {
@@ -147,9 +117,10 @@ export function LetsmeetCard({
     setIsCdialogOpen(!isCdialogOpen)
   }
 
-  const handleOpenDdialg = async () => {
+  const handleOpenDdialog = async () => {
     if (isDdialogOpen) {
       resetDateTime()
+      setDirectTitle('제목 없는 일정')
     }
     setIsDdialogOpen(!isDdialogOpen)
   }
@@ -172,28 +143,15 @@ export function LetsmeetCard({
     console.log('endDate', endDate)
 
     try {
-      // 1. 그룹 생성 API
-      const test = await fetch('https://api.moim.team/api/members', {
+      // 1. 약속(일정) 생성
+      const response = await fetch(`${API_BASE_URL}/api/schedule`, {
         method: 'POST',
         credentials: 'include',
-      })
-
-      if (!test.ok) {
-        throw new Error(`서버 에러: ${test.status}`)
-      }
-
-      const check = await test.json()
-      const groupId = check.data.groupId
-
-      // 2. 약속 생성 API
-      const response = await fetch('https://api.moim.team/api/schedule', {
-        method: 'POST',
-        credentials: 'include', // 인증 정보 포함
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          groupId: groupId,
+          groupId: id,
           name: title,
           location: selectedLocation,
           startDate: startDate,
@@ -240,24 +198,10 @@ export function LetsmeetCard({
 
             {/* 약속 장소 */}
             <div className="flex flex-col justify-center items-end gap-3">
-              {isEditingLocation ? (
-                <input
-                  type="text"
-                  value={selectedLocation}
-                  onChange={handleLocationChange}
-                  onBlur={handleLocationBlur} // 입력창이 비활성화되면 변경 완료
-                  onKeyDown={handleLocationKeyDown} // Enter 키를 누르면 변경 완료
-                  autoFocus
-                  className="text-xl font-medium text-[#9562fa] group-hover:text-[#fff] bg-transparent border-b border-[#9562fa] focus:outline-none"
-                />
-              ) : (
-                <span
-                  className="text-xl font-medium text-[#9562fa] group-hover:text-[#fff] cursor-pointer"
-                  onClick={handleLocationClick}
-                >
-                  {selectedLocation}
-                </span>
-              )}
+              <span className="text-xl font-medium text-[#9562fa] group-hover:text-[#fff] cursor-pointer">
+                {selectedLocation}
+              </span>
+
               {(!startTime || !endTime) && (
                 <WhiteButton
                   text="일정 정하기"
@@ -279,23 +223,31 @@ export function LetsmeetCard({
         isFooter={false}
       >
         <MembersVariant
-          onClickX={handleRemoveMember}
+          onClickX={(userId: number, type: string) =>
+            onRemoveMember(userId, type)
+          }
           startDate={startDate}
           location={location}
           startTime={startTime}
           endTime={endTime}
-          members={selectedMember}
+          members={participants}
         />
       </CustomModal>
-      <ScheduleOptions
-        isOpen={isOpen}
-        onClose={() => setIsOpen(false)}
-        optionStringUp="일정 조율하기"
-        optionStringDown="직접 입력하기"
-        onClickUp={handleOpenCdialog}
-        onClickDown={handleOpenDdialg}
-      />
-
+      <SelectModal
+        open={isOpen}
+        onOpenChange={handleCloseScheduleModal}
+        leftText={'직접 입력'}
+        rightText={'선정하기'}
+        onClickLeft={handleOpenDdialog}
+        onClickRight={handleOpenCdialog}
+      >
+        {' '}
+        <div className="flex item-center justify-center text-[#1e1e1e] text-xl font-medium leading-snug py-4 mt-3">
+          일정을
+          <br />
+          조율할까요?
+        </div>
+      </SelectModal>
       {/* 일정 조율하기 모달 */}
       <CustomModal
         open={isCdialogOpen}
@@ -315,12 +267,15 @@ export function LetsmeetCard({
       {/* 직접 입력하기 모달 - 날짜, 시간 */}
       <CustomModal
         open={isDdialogOpen}
-        onOpenChange={handleOpenDdialg}
+        onOpenChange={handleOpenDdialog}
         onNext={handlePostDirectSchedule}
         isFooter={true}
         footerText={'입력완료'}
       >
-        <EditTitle initialTitle={title} onTitleChange={handleTitleChange} />
+        <DirectEditTitle
+          initialTitle={directTitle}
+          onTitleChange={handleTitleChange}
+        />
         <DateTimeModal onDateChange={handleDateChange} />
       </CustomModal>
     </div>

@@ -23,7 +23,6 @@ export default function Title({
   initialTitle,
   isPurple,
   onTitleChange,
-
   isDisabled = false,
   onConfirm,
 }: TitleProps) {

@@ -8,6 +8,7 @@ import CarouselNotification from '@/components/Notification/CarouselNotification
 import { LetsmeetCard } from '@/components/Cards/LetsmeetCard'
 import { useRouter } from 'next/navigation'
 import LocationModal from '@/components/Modals/DirectSelect/LocationModal'
+import { useGroupStore } from '@/store/groupStore'
 
 type Schedule = {
   id: number
@@ -49,6 +50,8 @@ export default function LetsMeetPage() {
   const [scheduleList, setScheduleList] = useState<Schedule[]>([])
   const [notifications, setNotifications] = useState<Notification[]>([])
 
+  const { setSelectedGroupId } = useGroupStore()
+
   const [selectedLocation, setSelectedLocation] = useState<{
     place: string
     lat: number
@@ -64,7 +67,7 @@ export default function LetsMeetPage() {
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
 
-  // ✅ URL에서 받아온 값으로 상태 업데이트
+  // URL에서 받아온 값으로 상태 업데이트
   useEffect(() => {
     if (isDirectModal && place && lat && lng) {
       setSelectedLocation({ place, lat, lng })
@@ -93,7 +96,23 @@ export default function LetsMeetPage() {
     router.push('/search?from=/letsmeet')
   }
 
-  const handleDirectInput = () => {
+  const handleDirectInput = async () => {
+    // 그룹 생성 API 호출
+    const groupResponse = await fetch(`${API_BASE_URL}/api/members`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+    })
+
+    if (!groupResponse.ok) throw new Error('그룹 생성 실패')
+
+    const groupData = await groupResponse.json()
+    const groupId = groupData.data.groupId
+    console.log(`그룹 생성 완료: groupId = ${groupId}`)
+
+    // Zustand에 groupId 저장
+    setSelectedGroupId(groupId)
+
     setTitle('제목 없는 일정')
     setSelectedLocation(null)
     setIsDirectModalOpen(true)
@@ -165,7 +184,7 @@ export default function LetsMeetPage() {
             location: schedule.location || '',
             participants: schedule.participants || [],
           }))
-          setScheduleList(formattedSchedules)
+          setScheduleList(formattedSchedules.reverse())
         } else {
           console.error('데이터 구조 에러:', data.data)
         }
@@ -216,7 +235,19 @@ export default function LetsMeetPage() {
           </div>
           <div className="flex-1 overflow-y-auto pb-[120px]">
             {scheduleList.map((schedule) => (
-              <LetsmeetCard key={schedule.id} {...schedule} />
+              <LetsmeetCard
+                key={schedule.id}
+                id={schedule.id}
+                startDate={schedule.startDate}
+                title={schedule.title}
+                startTime={schedule.startTime}
+                endTime={schedule.endTime}
+                location={schedule.location}
+                participants={schedule.participants}
+                locationId={schedule.id}
+                getSchedule={() => {}}
+                onRemoveMember={() => {}}
+              />
             ))}
           </div>
         </>
@@ -255,8 +286,6 @@ export default function LetsMeetPage() {
           onClickRight={handleComplete}
           initialTitle={title}
           onTitleChange={setTitle}
-          selectedLocation={selectedLocation ?? undefined} // `null` 대신 `undefined` 전달
-          scheduleId={selectedLocation ? scheduleList.length + 1 : 0} // scheduleId 추가
         />
       )}
     </div>
