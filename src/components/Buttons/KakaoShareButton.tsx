@@ -42,8 +42,7 @@ const KakaoShareButton = ({ inviteUrl }: KakaoShareProps) => {
       content: {
         title: 'MOIM',
         description: '모임에 초대되었어요!',
-        imageUrl:
-          'http://k.kakaocdn.net/dn/Q2iNx/btqgeRgV54P/VLdBs9cvyn8BJXB3o7N8UK/kakaolink40_original.png',
+        imageUrl: 'https://i.postimg.cc/T1ypCfY8/image.png',
         link: {
           mobileWebUrl: 'https://moim.team/',
           webUrl: 'https://moim.team/',
