@@ -57,6 +57,8 @@ interface PlaceAPIResponse {
 }
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
+const REFERER_URL =
+  process.env.NEXT_PUBLIC_FRONT_BASE_URL || 'https://localhost:3000'
 
 const LocationPage: React.FC<LocationPageProps> = ({
   onLocationClick,
@@ -92,7 +94,7 @@ const LocationPage: React.FC<LocationPageProps> = ({
           {
             headers: {
               Authorization: `KakaoAK ${KAKAO_API_KEY}`,
-              Referer: 'https://localhost:3000',
+              Referer: REFERER_URL,
             },
           },
         )
@@ -104,7 +106,7 @@ const LocationPage: React.FC<LocationPageProps> = ({
           {
             headers: {
               Authorization: `KakaoAK ${KAKAO_API_KEY}`,
-              Referer: 'https://localhost:3000',
+              Referer: REFERER_URL,
             },
           },
         )
@@ -156,7 +158,7 @@ const LocationPage: React.FC<LocationPageProps> = ({
             {
               headers: {
                 Authorization: `KakaoAK ${KAKAO_API_KEY}`,
-                Referer: 'https://localhost:3000',
+                Referer: REFERER_URL,
               },
             },
           )

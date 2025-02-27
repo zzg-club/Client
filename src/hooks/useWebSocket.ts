@@ -9,7 +9,7 @@ type LocationData = {
   longitude: number
 }
 
-const WEBSOCKET_URL = 'wss://api.moim.team/location'
+const WEBSOCKET_URL = process.env.NEXT_PUBLIC_WEBSOCKET_URL
 
 const useWebSocket = (groupId: number | null) => {
   const [locations, setLocations] = useState<LocationData[]>([])
