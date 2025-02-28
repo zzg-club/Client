@@ -9,6 +9,7 @@ import { LetsmeetCard } from '@/components/Cards/LetsmeetCard'
 import { useRouter } from 'next/navigation'
 import LocationModal from '@/components/Modals/DirectSelect/LocationModal'
 import { useGroupStore } from '@/store/groupStore'
+import { useSurveyStore } from '@/store/surveyStore'
 
 type Schedule = {
   id: number
@@ -50,8 +51,8 @@ export default function LetsMeetPage() {
   const [scheduleList, setScheduleList] = useState<Schedule[]>([])
   const [notifications, setNotifications] = useState<Notification[]>([])
 
-  const { setSelectedGroupId } = useGroupStore()
-
+  const { selectedGroupId, setSelectedGroupId } = useGroupStore()
+  const { setSelectedSurveyId } = useSurveyStore()
   const [selectedLocation, setSelectedLocation] = useState<{
     place: string
     lat: number
@@ -198,13 +199,21 @@ export default function LetsMeetPage() {
     getSchedule()
   }, [fetchNotification])
 
-  // 캐러셀 알림 버튼 클릭 이벤트
-  const handleLeftBtn = () => {
-    alert('왼쪽 버튼 클릭')
+  // // 캐러셀 알림 버튼 클릭 이벤트
+  const handleLeftBtn = (id: number) => {
+    const currentNotification = notifications.find((n) => n.id === id)
+    if (currentNotification?.notiMessage?.includes('일정')) {
+      setSelectedSurveyId(currentNotification.surveyId)
+      router.push('schedule/select')
+    } else {
+      if (selectedGroupId) setSelectedGroupId(selectedGroupId)
+      router.push('letsmeet/middle')
+    }
   }
 
-  const handleRightBtn = () => {
-    alert('오른쪽 버튼 클릭')
+  const handleRightBtn = (id: number) => {
+    const filter = notifications.filter((n) => n.id !== id)
+    setNotifications(filter)
   }
 
   return (
