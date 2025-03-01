@@ -314,7 +314,7 @@ export default function Home() {
     if (handleElement) {
       const handleRect = handleElement.getBoundingClientRect()
       if (handleRect.bottom >= window.innerHeight) {
-        console.log('📌 드래그 핸들이 화면 아래 닿음!')
+        console.log('드래그 핸들이 화면 아래 닿음!')
         // 필요한 동작 수행 (예: 특정 이벤트 트리거)
       }
     }
