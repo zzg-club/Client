@@ -702,7 +702,7 @@ export default function Page() {
         </div>
       </CustomModal>
 
-      <div className="z-[1000]">
+      <div className="z-[10000]">
         <DecideBottom
           isOpen={decideBottomOpen}
           onClose={() => setDecideBottomOpen(false)}
