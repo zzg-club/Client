@@ -1,10 +1,10 @@
 import { create } from 'zustand'
 
 interface LocationState {
-  selectedLocation: { place: string; lat: number; lng: number } | null
+  selectedLocation: { placeName: string; place: string; lat: number | null; lng: number | null; } | null
   nearestTransit: string | null
   setSelectedLocation: (
-    location: { place: string; lat: number; lng: number } | null,
+    location: { placeName:string; place: string; lat: number | null; lng: number | null;} | null,
   ) => void // null 허용
   setNearestTransit: (transit: string) => void
   clearSelectedLocation: () => void

@@ -13,4 +13,6 @@ export interface Place {
   likes: number
   pictures: string[]
   englishName?: string | null
+  lat:number
+  lng:number
 }

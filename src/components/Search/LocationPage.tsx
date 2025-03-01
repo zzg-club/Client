@@ -70,7 +70,8 @@ const LocationPage: React.FC<LocationPageProps> = ({
     const from = searchParams.get('from')
     const queryParam = searchParams.get('query') || ''
     const { selectedGroupId } = useGroupStore()
-    const { sendLocation } = useWebSocket(selectedGroupId)
+    const safeSelectedGroupId = selectedGroupId ?? -1 // selectedGroupId가 undefined면 -1로 설정
+    const { sendLocation } = useWebSocket(safeSelectedGroupId)
     const { selectedLocation } = useLocationStore()
     const [locations, setLocations] = useState<
       { place: string; jibun: string; road: string; lat: number; lng: number }[]
@@ -186,6 +187,9 @@ const LocationPage: React.FC<LocationPageProps> = ({
     )
 
     useEffect(() => {
+    }, [safeSelectedGroupId]);
+
+    useEffect(() => {
       const fetchCurrentLocationAndUpdate = async () => {
         try {
           const { lat, lng } = await getCurrentLocation()
@@ -206,11 +210,6 @@ const LocationPage: React.FC<LocationPageProps> = ({
     const handleLocationSelect = useCallback(
       async (location: { place: string; lat: number; lng: number }) => {
         //console.log('handleLocationSelect 실행됨')
-
-        if (!selectedGroupId) {
-          console.error('groupId 없음')
-          return
-        }
 
         if (!sendLocation) {
           console.error('sendLocation 함수가 정의되지 않았습니다.')
@@ -242,6 +241,7 @@ const LocationPage: React.FC<LocationPageProps> = ({
           //console.log('Zustand 상태 업데이트 실행')
 
           useLocationStore.getState().setSelectedLocation({
+            placeName :location.place,
             place: transitName,
             lat: location.lat,
             lng: location.lng,
@@ -268,7 +268,7 @@ const LocationPage: React.FC<LocationPageProps> = ({
           console.error('사용자 위치 저장 오류:', error)
         }
       },
-      [selectedGroupId, sendLocation, router, from, isDirectModal],
+      [safeSelectedGroupId, sendLocation, router, from, isDirectModal],
     )
 
     const handleBackClick = () => {

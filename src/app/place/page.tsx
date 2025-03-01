@@ -10,11 +10,12 @@ import { fetchUserInformation } from '@/services/place'
 import { toggleLike } from '@/services/place'
 import { fetchLikeCount } from '@/services/place'
 import { CardData } from '@/types/card'
-import { Place } from '@/types/place'
 import { CategoryPerData } from '@/types/categoryPerData'
 import { fetchCategoryData } from '@/services/place'
 import { fetchFilteredCategoryData } from '@/services/place'
 import { fetchFilters } from '@/services/place'
+import { useLocationStore } from '@/store/locationsStore'
+import { getCurrentLocation } from '@/components/Map/getCurrentLocation'
 
 const tabs = [
   { id: 'food', label: '음식점' },
@@ -24,23 +25,31 @@ const tabs = [
 ]
 
 export default function Home() {
-  const [selectedPlace] = useState<Place | undefined>(undefined)
   const [bottomSheetState, setBottomSheetState] = useState<
     'collapsed' | 'middle' | 'expanded'
   >('collapsed')
-  const [filters, setFilters] = useState<CategoryPerData[]>([]) // 필터 데이터를 저장
+  const [filters, setFilters] = useState<CategoryPerData[]>([]) 
   const [selectedTab, setSelectedTab] = useState<string>(tabs[0].id)
   const startY = useRef<number | null>(null)
   const threshold = 50
   const router = useRouter()
   const mapRef = useRef<() => void | null>(null)
   const [selectedFilters, setSelectedFilters] = useState<string[]>([])
-  const [cardData, setCardData] = useState<CardData[]>([]) // 카드 데이터를 저장
+  const [cardData, setCardData] = useState<CardData[]>([]) 
   const [userName, setUserName] = useState('')
   const isDraggingRef = useRef<boolean>(false)
   const [page, setPage] = useState(0)
   const [loading, setLoading] = useState(false)
   const bottomSheetRef = useRef<HTMLDivElement | null>(null)
+  const { selectedLocation } = useLocationStore()
+  const [searchText, setSearchText] = useState('') 
+
+
+  useEffect(() => {
+    if (selectedLocation?.place) {
+      setSearchText(selectedLocation.placeName) 
+    }
+  }, [selectedLocation])
 
   const loadMoreData = async (forcePage?: number) => {
     if (loading) return
@@ -274,11 +283,31 @@ export default function Home() {
     handleTabClick(selectedTab)
   }, [selectedTab])
 
-  const handleVectorButtonClick = () => {
-    if (mapRef.current) {
-      mapRef.current()
+
+  const handleVectorButtonClick = async () => {
+    try {
+
+      const { lat, lng } = await getCurrentLocation();
+  
+      useLocationStore.setState({
+        selectedLocation: {
+          placeName: '원하는 곳을 검색해봐요!',
+          place: '현재 위치',
+          lat,
+          lng,
+        },
+      });
+  
+      setSearchText('원하는 곳을 검색해봐요!');
+  
+      if (mapRef.current) {
+        mapRef.current(); 
+      }
+  
+    } catch (error) {
+      console.error('현재 위치 가져오기 실패:', error);
     }
-  }
+  };
 
   const handleSearchClick = () => {
     router.push('/search?from=/place')
@@ -395,7 +424,7 @@ export default function Home() {
             alt="search"
             className={styles['search-icon']}
           />
-          <input type="text" placeholder="원하는 곳을 검색해봐요!" readOnly />
+          <input type="text" value={searchText} placeholder="원하는 곳을 검색해봐요!" readOnly />
         </div>
         <button
           className={styles['vector-button']}
@@ -408,12 +437,34 @@ export default function Home() {
           />
         </button>
       </div>
+
+
       <KakaoMap
-        selectedPlace={selectedPlace ?? undefined}
-        onMoveToCurrentLocation={(moveToCurrentLocation) =>
-          (mapRef.current = moveToCurrentLocation)
-        }
-      />
+  selectedPlace={
+    selectedLocation?.lat && selectedLocation?.lng
+      ? (() => {
+
+          return {
+            id: 0, // 기본값 (필요 시 수정)
+            category: 0, // 기본값 (필요 시 수정)
+            name: selectedLocation.place,
+            address: selectedLocation.place,
+            word: '',
+            pictures: [],
+            time: '',
+            likes: 0,
+            phoneNumber: '',
+            lat: selectedLocation.lat, 
+            lng: selectedLocation.lng,
+          }
+        })()
+      : undefined
+  }
+  
+  onMoveToCurrentLocation={(moveToCurrentLocation) =>
+    (mapRef.current = moveToCurrentLocation)
+  }
+/>
 
       {/* Tabs */}
       <div className={`${styles.tabs} ${styles[bottomSheetState]}`}>
