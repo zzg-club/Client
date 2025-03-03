@@ -72,9 +72,12 @@ export default function Middle() {
 
   /* 참여자 정보 */
   // 기존 참여자 위치 데이터를 API에서 불러오기
+  const participantsRef = useRef<Participant[]>([])
+
   useEffect(() => {
     if (!selectedGroupId) return
-    console.log('미들 그룹 :', selectedGroupId)
+
+    console.log('fetchParticipants 실행됨 (selectedGroupId):', selectedGroupId)
 
     const fetchParticipants = async () => {
       try {
@@ -94,7 +97,6 @@ export default function Middle() {
         if (data.success) {
           const initialParticipants: Participant[] = []
 
-          // 내 위치 추가
           if (data.data.myLocation) {
             initialParticipants.push({
               userId: data.data.myLocation.userId,
@@ -105,26 +107,26 @@ export default function Middle() {
             })
           }
 
-          // 다른 참여자 위치 추가
-          data.data.membersLocation.forEach(
-            (member: {
-              userId: number
-              username: string
-              userProfile?: string
-              latitude: number
-              longitude: number
-            }) => {
-              initialParticipants.push({
-                userId: member.userId,
-                userName: member.username,
-                userProfile: member.userProfile || '',
-                latitude: member.latitude,
-                longitude: member.longitude,
-              })
-            },
-          )
+          data.data.membersLocation.forEach((member: Participant) => {
+            initialParticipants.push({
+              userId: member.userId,
+              userName: member.userName,
+              userProfile: member.userProfile || '',
+              latitude: member.latitude,
+              longitude: member.longitude,
+            })
+          })
 
-          setParticipants(initialParticipants)
+          console.log('`setParticipants()` 실행:', initialParticipants)
+
+          // 이전 데이터와 비교하여 다를 때만 업데이트
+          if (
+            JSON.stringify(participantsRef.current) !==
+            JSON.stringify(initialParticipants)
+          ) {
+            setParticipants(initialParticipants)
+            participantsRef.current = initialParticipants // 🔥 최신 데이터 저장
+          }
         }
       } catch (error) {
         console.error('초기 참여자 위치 데이터 가져오기 실패:', error)
@@ -132,7 +134,7 @@ export default function Middle() {
     }
 
     fetchParticipants()
-  }, [selectedGroupId, API_BASE_URL])
+  }, [selectedGroupId, API_BASE_URL]) // `participants` 제거
 
   // 웹소켓에서 받아온 데이터 반영
   useEffect(() => {
@@ -341,7 +343,6 @@ export default function Middle() {
           className="absolute inset-0 z-0 w-full h-full"
           ref={mapContainerRef}
         ></div>
-
         {kakaoMap && recommendedLocations && participants.length > 0 && (
           <>
             <PinMap
@@ -357,7 +358,6 @@ export default function Middle() {
             />
           </>
         )}
-
         <header className="absolute top-0 left-0 right-0 shadow-md rounded-b-[24px]">
           <Title
             buttonText="확정"
@@ -369,7 +369,6 @@ export default function Middle() {
             onConfirm={createMeetingLocation}
           />
         </header>
-
         <BackButton
           onClick={() => router.push(`/search?from=${from}`)}
           style={{
