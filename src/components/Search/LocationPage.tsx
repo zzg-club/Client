@@ -58,7 +58,7 @@ interface PlaceAPIResponse {
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
 const REFERER_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || 'https://localhost:3000'
+  process.env.NEXT_PUBLIC_REFERER_URL || 'http://localhost:3000'
 
 const LocationPage: React.FC<LocationPageProps> = ({
   onLocationClick,
