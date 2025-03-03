@@ -14,11 +14,18 @@ import { useSurveyStore } from '@/store/surveyStore'
 type Schedule = {
   id: number
   startDate: string
+  endDate: string
   title: string
   startTime: string
   endTime: string
   location?: string
-  participants: { id: number; name: string; image: string; type: string }[]
+  participants: {
+    id: number
+    name: string
+    image: string
+    type: string
+    locationComplete: string
+  }[]
 }
 
 type Notification = {
@@ -145,6 +152,7 @@ export default function LetsMeetPage() {
     const newSchedule = {
       id: scheduleList.length + 1,
       startDate: '',
+      endDate: '',
       title: title,
       startTime: '',
       endTime: '',
@@ -191,6 +199,7 @@ export default function LetsMeetPage() {
           const formattedSchedules = data.data.map((schedule: Schedule) => ({
             id: schedule.id,
             startDate: schedule.startDate || '',
+            endDate: schedule.endDate || '',
             title: schedule.title,
             startTime: schedule.startTime || '',
             endTime: schedule.endTime || '',
@@ -259,7 +268,8 @@ export default function LetsMeetPage() {
               <LetsmeetCard
                 key={schedule.id}
                 id={schedule.id}
-                startDate={schedule.startDate}
+                startDate={schedule.startDate || ''}
+                endDate={schedule.endDate || ''}
                 title={schedule.title}
                 startTime={schedule.startTime}
                 endTime={schedule.endTime}
