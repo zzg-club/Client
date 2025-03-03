@@ -67,13 +67,11 @@ export default function Middle() {
   const router = useRouter()
 
   const handleTitleChange = (newTitle: string) => {
-    setGroupTitle(newTitle) // 🔹 제목 변경 상태 저장
+    setGroupTitle(newTitle) // 제목 변경 상태 저장
   }
 
   /* 참여자 정보 */
   // 기존 참여자 위치 데이터를 API에서 불러오기
-  const participantsRef = useRef<Participant[]>([])
-
   useEffect(() => {
     if (!selectedGroupId) return
 
@@ -95,10 +93,11 @@ export default function Middle() {
         console.log('초기 참여자 위치 데이터:', data)
 
         if (data.success) {
-          const initialParticipants: Participant[] = []
+          const newParticipants: Participant[] = []
 
+          // API 데이터 최신화
           if (data.data.myLocation) {
-            initialParticipants.push({
+            newParticipants.push({
               userId: data.data.myLocation.userId,
               userName: data.data.myLocation.username,
               userProfile: data.data.myLocation.userProfile || '',
@@ -108,7 +107,7 @@ export default function Middle() {
           }
 
           data.data.membersLocation.forEach((member: Participant) => {
-            initialParticipants.push({
+            newParticipants.push({
               userId: member.userId,
               userName: member.userName,
               userProfile: member.userProfile || '',
@@ -117,16 +116,13 @@ export default function Middle() {
             })
           })
 
-          console.log('`setParticipants()` 실행:', initialParticipants)
+          console.log(
+            '`setParticipants()` 실행 (새로운 참여자):',
+            newParticipants,
+          )
 
-          // 이전 데이터와 비교하여 다를 때만 업데이트
-          if (
-            JSON.stringify(participantsRef.current) !==
-            JSON.stringify(initialParticipants)
-          ) {
-            setParticipants(initialParticipants)
-            participantsRef.current = initialParticipants // 🔥 최신 데이터 저장
-          }
+          // 기존 데이터와 다를 때만 업데이트
+          setParticipants(newParticipants)
         }
       } catch (error) {
         console.error('초기 참여자 위치 데이터 가져오기 실패:', error)
@@ -134,43 +130,32 @@ export default function Middle() {
     }
 
     fetchParticipants()
-  }, [selectedGroupId, API_BASE_URL]) // `participants` 제거
+  }, [selectedGroupId, API_BASE_URL]) // participants 제거
 
-  // 웹소켓에서 받아온 데이터 반영
+  useEffect(() => {
+    setParticipants((prevParticipants) =>
+      prevParticipants.map((p) => ({
+        ...p,
+        userProfile: p.userProfile.replace('http://', 'https://'), // HTTP -> HTTPS 변환
+      })),
+    )
+  }, [])
+
   useEffect(() => {
     if (!locations.length) return
 
     console.log('실시간 참여자 위치 업데이트:', locations)
 
-    setParticipants((prevParticipants) => {
-      const updatedParticipants = [...prevParticipants]
-
-      locations.forEach((loc) => {
-        const existingIndex = updatedParticipants.findIndex(
-          (p) => p.userId === loc.userId,
-        )
-        if (existingIndex !== -1) {
-          // 기존 참여자 위치 업데이트
-          updatedParticipants[existingIndex] = {
-            ...updatedParticipants[existingIndex],
-            latitude: loc.latitude,
-            longitude: loc.longitude,
-          }
-        } else {
-          // 새로운 참여자 추가
-          updatedParticipants.push({
-            userId: loc.userId,
-            userName: loc.userName,
-            userProfile: loc.userProfile || '',
-            latitude: loc.latitude,
-            longitude: loc.longitude,
-          })
-        }
-      })
-
-      return updatedParticipants
-    })
-  }, [locations])
+    setParticipants(
+      locations.map((loc) => ({
+        userId: loc.userId,
+        userName: loc.userName,
+        userProfile: loc.userProfile?.replace('http://', 'https://') || '',
+        latitude: loc.latitude,
+        longitude: loc.longitude,
+      })),
+    )
+  }, [locations]) // prevParticipants 제거
 
   //  1. 카카오 맵 초기화 (추천 장소 및 참여자 위치 표시)
   useEffect(() => {
