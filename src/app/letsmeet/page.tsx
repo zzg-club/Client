@@ -28,6 +28,8 @@ type Notification = {
   notiMessage?: string
 }
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
+
 export default function LetsMeetPage() {
   const router = useRouter()
   const [searchParams, setSearchParams] = useState<URLSearchParams | null>(null)
@@ -66,8 +68,6 @@ export default function LetsMeetPage() {
     }
   }, [isDirectModal])
 
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
-
   // URL에서 받아온 값으로 상태 업데이트
   useEffect(() => {
     if (isDirectModal && place && lat && lng) {
@@ -91,9 +91,24 @@ export default function LetsMeetPage() {
     } catch (error) {
       console.error('알림 정보 불러오기 실패:', error)
     }
-  }, [API_BASE_URL])
+  }, [])
 
-  const handleFindMidpoint = () => {
+  const handleFindMidpoint = async () => {
+    const groupResponse = await fetch(`${API_BASE_URL}/api/members`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+    })
+
+    if (!groupResponse.ok) throw new Error('그룹 생성 실패')
+
+    const groupData = await groupResponse.json()
+    const groupId = groupData.data.groupId
+    console.log(`그룹 생성 완료: groupId = ${groupId}`)
+
+    // Zustand에 groupId 저장
+    setSelectedGroupId(groupId)
+
     router.push('/search?from=/letsmeet')
   }
 
@@ -146,13 +161,10 @@ export default function LetsMeetPage() {
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
-        const response = await fetch(
-          'https://api.moim.team/api/user/information',
-          {
-            method: 'GET',
-            credentials: 'include',
-          },
-        )
+        const response = await fetch(`${API_BASE_URL}/api/user/information`, {
+          method: 'GET',
+          credentials: 'include',
+        })
         if (!response.ok) {
           throw new Error(`서버 에러: ${response.status}`)
         }
@@ -166,7 +178,7 @@ export default function LetsMeetPage() {
     // 스케줄 정보 리스트
     const getSchedule = async () => {
       try {
-        const response = await fetch('https://api.moim.team/api/members/List', {
+        const response = await fetch(`${API_BASE_URL}/api/members/List`, {
           method: 'GET',
           credentials: 'include',
         })
