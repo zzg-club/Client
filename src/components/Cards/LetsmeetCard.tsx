@@ -7,6 +7,7 @@ import DateTimeModal from '@/components/Modals/DirectSelect/DateTimeModal'
 import DirectEditTitle from '@/components/Header/DirectEditTitle'
 import CustomCalendar from '@/components/Calendars/CustomCalendar'
 import { useGroupStore } from '@/store/groupStore'
+import { useLocationIdStore } from '@/store/locationIdStore'
 import { useHandleSelect } from '@/hooks/useHandleSelect'
 import { useDateTimeStore } from '@/store/dateTimeStore'
 import { useRouter } from 'next/navigation'
@@ -17,11 +18,13 @@ export type Participant = {
   name: string
   image: string
   type: string
+  locationComplete: string
 }
 
 export interface LetsmeetCardProps {
   id: number
   startDate: string
+  endDate?: string
   title: string
   startTime: string
   endTime: string
@@ -35,11 +38,14 @@ export interface LetsmeetCardProps {
 
 export function LetsmeetCard({
   id,
+  startDate,
+  endDate,
   startTime,
   endTime,
   title,
   location,
   participants,
+  locationId,
   onRemoveMember,
 }: LetsmeetCardProps) {
   const [isOpen, setIsOpen] = useState(false)
@@ -52,16 +58,27 @@ export function LetsmeetCard({
 
   const { selectedDates, stringDates, handleSelect, mode, selected } =
     useHandleSelect() // 커스텀 훅으로 날짜 선택 기능 가져오기 (백에 보낼때 stringDates 가져오면 됨)
-  const [startDate, setStartDate] = useState<string>('') // 직접입력하기-시작날짜,시간
-  const [endDate, setEndDate] = useState<string | null>(null) // 직접입력하기-끝날짜,시간
+  const [directStartDate, setDirectStartDate] = useState<string>('') // 직접입력하기-시작날짜,시간
+  const [directEndDate, setDirectEndDate] = useState<string | null>(null) // 직접입력하기-끝날짜,시간
 
   const resetDateTime = useDateTimeStore((state) => state.resetDateTime)
   const router = useRouter()
   const { setSelectedGroupId } = useGroupStore()
-
-  const [selectedLocation] = useState(location || '')
+  const { setSelectedLocationId } = useLocationIdStore()
+  const [selectedLocation] = useState(location || '미확정')
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
+
+  const myCompleteIndex = participants.findIndex(
+    (p) => p.type === '&my' || p.type === 'creator&my',
+  )
+
+  const dateText =
+    startDate === '' && endDate === ''
+      ? '날짜 미정'
+      : endDate === ''
+        ? startDate
+        : `${startDate} - ${endDate}`
 
   // membersVariant 모달 핸들
   const handleMembersModalOpen = () => {
@@ -100,10 +117,29 @@ export function LetsmeetCard({
     }
   }
 
-  //일정 정하기 모달
+  const buttonText =
+    myCompleteIndex !== -1 &&
+    participants[myCompleteIndex]?.locationComplete === 'COMPLETED'
+      ? participants[myCompleteIndex]?.type === 'creator&my'
+        ? '+ 장소 확정하기'
+        : '내 장소 수정'
+      : selectedLocation === '미확정'
+        ? '+ 이어서 하기'
+        : '+ 일정 정하기'
+
   const handleOpenScheduleModal = (e: React.MouseEvent) => {
     e.stopPropagation()
-    setIsOpen(true)
+    if (buttonText === '+ 장소 확정하기' || buttonText === '+ 이어서 하기') {
+      setSelectedLocationId(locationId)
+      setSelectedGroupId(id)
+      router.push('letsmeet/middle')
+    } else if (location === '미확정') {
+      setSelectedLocationId(locationId)
+      setSelectedGroupId(id)
+      router.push('/search?from=/letsmeet')
+    } else {
+      setIsOpen(true)
+    }
   }
 
   const handleCloseScheduleModal = () => {
@@ -126,8 +162,9 @@ export function LetsmeetCard({
   }
 
   const handleDateChange = (startDateState: string, endDate: string) => {
-    setStartDate(startDateState)
-    setEndDate(endDate)
+    setDirectStartDate(startDateState)
+    setDirectEndDate(endDate)
+    console.log(directStartDate, directEndDate)
   }
 
   const handlePostSchedule = () => {
@@ -178,7 +215,7 @@ export function LetsmeetCard({
   return (
     <div className="px-4 mb-5">
       <div className="text-[#1e1e1e] text-xs font-medium leading-[17px] ml-[12px]">
-        {startDate}
+        {dateText}
       </div>
       <div
         className="group w-full h-full rounded-3xl border-2 border-[#9562fa] px-6 py-[18px] cursor-pointer bg-white border-[#9562fa] hover:bg-[#9562fa] hover:text-[#fff]"
@@ -204,7 +241,7 @@ export function LetsmeetCard({
 
               {(!startTime || !endTime) && (
                 <WhiteButton
-                  text="일정 정하기"
+                  text={buttonText}
                   className={
                     'border-[#9562fa] text-[#9562fa] group-hover:border-white group-hover:text-white'
                   }
