@@ -43,6 +43,7 @@ export default function Home() {
   const bottomSheetRef = useRef<HTMLDivElement | null>(null)
   const { selectedLocation } = useLocationStore()
   const [searchText, setSearchText] = useState('') 
+  const filtersRef = useRef<string[]>([]);
 
 
   useEffect(() => {
@@ -51,37 +52,37 @@ export default function Home() {
     }
   }, [selectedLocation])
 
-  const loadMoreData = async (forcePage?: number) => {
-    if (loading) return
-    setLoading(true)
-
+  const loadMoreData = async (pageNumber = page + 1, filters = filtersRef.current) => {
+    if (loading) return;
+    setLoading(true);
+  
     try {
-      const categoryIndex = tabs.findIndex((tab) => tab.id === selectedTab)
-      if (categoryIndex === -1) return
-
-      const newPage = forcePage !== undefined ? forcePage : page + 1
-
-      const newData = await fetchCategoryData(categoryIndex, newPage)
-
-      if (!newData || newData.length === 0) {
-        return
+      const categoryIndex = tabs.findIndex((tab) => tab.id === selectedTab);
+      if (categoryIndex === -1) return;
+  
+      let newData: CardData[] = [];
+  
+      if (filters.length > 0) {
+        newData = await fetchCategoryDataWithFilters(categoryIndex, filters, pageNumber);
+      } else {
+        newData = await fetchCategoryData(categoryIndex, pageNumber);
       }
-
+  
+      if (!newData || newData.length === 0) return;
+  
       setCardData((prev) => {
-        const existingIds = new Set(prev.map((card) => card.id))
-        const filteredNewData = newData.filter(
-          (card) => !existingIds.has(card.id),
-        )
-        return [...prev, ...filteredNewData]
-      })
-
-      setPage(newPage)
+        const existingIds = new Set(prev.map((card) => card.id));
+        const filteredNewData = newData.filter((card) => !existingIds.has(card.id));
+        return [...prev, ...filteredNewData];
+      });
+  
+      setPage(pageNumber);
     } catch (error) {
-      console.error('Error fetching more data:', error)
+      console.error("Error fetching more data:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
     if (page === 0) return
@@ -255,29 +256,21 @@ export default function Home() {
     setSelectedFilters((prevSelected) => {
       const updatedFilters = prevSelected.includes(filter)
         ? prevSelected.filter((item) => item !== filter)
-        : [...prevSelected, filter]
+        : [...prevSelected, filter];
+  
+      filtersRef.current = updatedFilters; 
+      
+      return updatedFilters; 
+    });
+  };
 
-      const categoryIndex = tabs.findIndex((tab) => tab.id === selectedTab)
-      if (categoryIndex !== -1) {
-        setPage(0)
-        setCardData([])
-
-        if (updatedFilters.length > 0) {
-          fetchCategoryDataWithFilters(categoryIndex, updatedFilters, 0).then(
-            (data) => {
-              updateCardData(data).then(setCardData)
-            },
-          )
-        } else {
-          fetchCategoryData(categoryIndex, 0).then((data) => {
-            updateCardData(data).then(setCardData)
-          })
-        }
-      }
-
-      return updatedFilters
-    })
-  }
+  useEffect(() => {
+  
+    setPage(0); 
+    setCardData([]); 
+    loadMoreData(0, filtersRef.current);
+  }, [selectedFilters]); 
+  
 
   useEffect(() => {
     handleTabClick(selectedTab)
