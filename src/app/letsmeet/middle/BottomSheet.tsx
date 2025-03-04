@@ -150,6 +150,12 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
     return null
   }
 
+  const cleanImageUrl = (url: string) => {
+    // fname= 이후의 URL만 추출
+    const match = url.match(/fname=(http.+)$/)
+    return match ? decodeURIComponent(match[1]) : url
+  }
+
   return (
     <div
       ref={sheetRef}
@@ -201,7 +207,7 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
               return (
                 <div key={index} className={styles.participantItem}>
                   <Image
-                    src={participant.userProfile}
+                    src={cleanImageUrl(participant.userProfile)}
                     alt={`프로필 아이콘`}
                     width={36}
                     height={36}
