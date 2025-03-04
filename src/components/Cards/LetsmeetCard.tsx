@@ -129,13 +129,30 @@ export function LetsmeetCard({
 
   const handleOpenScheduleModal = (e: React.MouseEvent) => {
     e.stopPropagation()
-    if (buttonText === '+ 장소 확정하기' || buttonText === '+ 이어서 하기') {
-      setSelectedLocationId(locationId)
-      setSelectedGroupId(id)
-      router.push('letsmeet/middle')
-    } else if (location === '미확정') {
-      setSelectedLocationId(locationId)
-      setSelectedGroupId(id)
+
+    //console.log('클릭된 그룹 ID:', id)
+    //console.log('클릭된 로케이션 ID:', locationId)
+
+    const finalLocationId =
+      locationId !== -1
+        ? locationId
+        : useLocationIdStore.getState().selectedLocationId
+
+    if (finalLocationId === -1 || finalLocationId === undefined) {
+      console.error(
+        '오류: 유효하지 않은 locationId입니다. 장소를 다시 추가하세요.',
+      )
+      return // locationId가 없으면 함수 실행을 멈춤
+    }
+
+    setSelectedLocationId(locationId)
+    setSelectedGroupId(id)
+
+    if (buttonText === '+ 장소 확정하기') {
+      console.log("'/letsmeet/middle'로 이동")
+      router.push('/letsmeet/middle')
+    } else if (buttonText === '+ 이어서 하기' || location === '미확정') {
+      console.log("'/search?from=/letsmeet'로 이동")
       router.push('/search?from=/letsmeet')
     } else {
       setIsOpen(true)
