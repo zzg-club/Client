@@ -28,61 +28,69 @@ export default function Home() {
   const [bottomSheetState, setBottomSheetState] = useState<
     'collapsed' | 'middle' | 'expanded'
   >('collapsed')
-  const [filters, setFilters] = useState<CategoryPerData[]>([]) 
+  const [filters, setFilters] = useState<CategoryPerData[]>([])
   const [selectedTab, setSelectedTab] = useState<string>(tabs[0].id)
   const startY = useRef<number | null>(null)
   const threshold = 50
   const router = useRouter()
   const mapRef = useRef<() => void | null>(null)
   const [selectedFilters, setSelectedFilters] = useState<string[]>([])
-  const [cardData, setCardData] = useState<CardData[]>([]) 
+  const [cardData, setCardData] = useState<CardData[]>([])
   const [userName, setUserName] = useState('')
   const isDraggingRef = useRef<boolean>(false)
   const [page, setPage] = useState(0)
   const [loading, setLoading] = useState(false)
   const bottomSheetRef = useRef<HTMLDivElement | null>(null)
   const { selectedLocation } = useLocationStore()
-  const [searchText, setSearchText] = useState('') 
-  const filtersRef = useRef<string[]>([]);
-
+  const [searchText, setSearchText] = useState('')
+  const filtersRef = useRef<string[]>([])
 
   useEffect(() => {
     if (selectedLocation?.place) {
-      setSearchText(selectedLocation.placeName) 
+      setSearchText(selectedLocation.placeName)
     }
   }, [selectedLocation])
 
-  const loadMoreData = async (pageNumber = page + 1, filters = filtersRef.current) => {
-    if (loading) return;
-    setLoading(true);
-  
+  const loadMoreData = async (
+    pageNumber = page + 1,
+    filters = filtersRef.current,
+  ) => {
+    if (loading) return
+    setLoading(true)
+
     try {
-      const categoryIndex = tabs.findIndex((tab) => tab.id === selectedTab);
-      if (categoryIndex === -1) return;
-  
-      let newData: CardData[] = [];
-  
+      const categoryIndex = tabs.findIndex((tab) => tab.id === selectedTab)
+      if (categoryIndex === -1) return
+
+      let newData: CardData[] = []
+
       if (filters.length > 0) {
-        newData = await fetchCategoryDataWithFilters(categoryIndex, filters, pageNumber);
+        newData = await fetchCategoryDataWithFilters(
+          categoryIndex,
+          filters,
+          pageNumber,
+        )
       } else {
-        newData = await fetchCategoryData(categoryIndex, pageNumber);
+        newData = await fetchCategoryData(categoryIndex, pageNumber)
       }
-  
-      if (!newData || newData.length === 0) return;
-  
+
+      if (!newData || newData.length === 0) return
+
       setCardData((prev) => {
-        const existingIds = new Set(prev.map((card) => card.id));
-        const filteredNewData = newData.filter((card) => !existingIds.has(card.id));
-        return [...prev, ...filteredNewData];
-      });
-  
-      setPage(pageNumber);
+        const existingIds = new Set(prev.map((card) => card.id))
+        const filteredNewData = newData.filter(
+          (card) => !existingIds.has(card.id),
+        )
+        return [...prev, ...filteredNewData]
+      })
+
+      setPage(pageNumber)
     } catch (error) {
-      console.error("Error fetching more data:", error);
+      console.error('Error fetching more data:', error)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   useEffect(() => {
     if (page === 0) return
@@ -256,32 +264,28 @@ export default function Home() {
     setSelectedFilters((prevSelected) => {
       const updatedFilters = prevSelected.includes(filter)
         ? prevSelected.filter((item) => item !== filter)
-        : [...prevSelected, filter];
-  
-      filtersRef.current = updatedFilters; 
-      
-      return updatedFilters; 
-    });
-  };
+        : [...prevSelected, filter]
+
+      filtersRef.current = updatedFilters
+
+      return updatedFilters
+    })
+  }
 
   useEffect(() => {
-  
-    setPage(0); 
-    setCardData([]); 
-    loadMoreData(0, filtersRef.current);
-  }, [selectedFilters]); 
-  
+    setPage(0)
+    setCardData([])
+    loadMoreData(0, filtersRef.current)
+  }, [selectedFilters])
 
   useEffect(() => {
     handleTabClick(selectedTab)
   }, [selectedTab])
 
-
   const handleVectorButtonClick = async () => {
     try {
+      const { lat, lng } = await getCurrentLocation()
 
-      const { lat, lng } = await getCurrentLocation();
-  
       useLocationStore.setState({
         selectedLocation: {
           placeName: '원하는 곳을 검색해봐요!',
@@ -289,18 +293,17 @@ export default function Home() {
           lat,
           lng,
         },
-      });
-  
-      setSearchText('원하는 곳을 검색해봐요!');
-  
+      })
+
+      setSearchText('원하는 곳을 검색해봐요!')
+
       if (mapRef.current) {
-        mapRef.current(); 
+        mapRef.current()
       }
-  
     } catch (error) {
-      console.error('현재 위치 가져오기 실패:', error);
+      console.error('현재 위치 가져오기 실패:', error)
     }
-  };
+  }
 
   const handleSearchClick = () => {
     router.push('/search?from=/place')
@@ -417,7 +420,12 @@ export default function Home() {
             alt="search"
             className={styles['search-icon']}
           />
-          <input type="text" value={searchText} placeholder="원하는 곳을 검색해봐요!" readOnly />
+          <input
+            type="text"
+            value={searchText}
+            placeholder="원하는 곳을 검색해봐요!"
+            readOnly
+          />
         </div>
         <button
           className={styles['vector-button']}
@@ -431,33 +439,30 @@ export default function Home() {
         </button>
       </div>
 
-
       <KakaoMap
-  selectedPlace={
-    selectedLocation?.lat && selectedLocation?.lng
-      ? (() => {
-
-          return {
-            id: 0, // 기본값 (필요 시 수정)
-            category: 0, // 기본값 (필요 시 수정)
-            name: selectedLocation.place,
-            address: selectedLocation.place,
-            word: '',
-            pictures: [],
-            time: '',
-            likes: 0,
-            phoneNumber: '',
-            lat: selectedLocation.lat, 
-            lng: selectedLocation.lng,
-          }
-        })()
-      : undefined
-  }
-  
-  onMoveToCurrentLocation={(moveToCurrentLocation) =>
-    (mapRef.current = moveToCurrentLocation)
-  }
-/>
+        selectedPlace={
+          selectedLocation?.lat && selectedLocation?.lng
+            ? (() => {
+                return {
+                  id: 0, // 기본값 (필요 시 수정)
+                  category: 0, // 기본값 (필요 시 수정)
+                  name: selectedLocation.place,
+                  address: selectedLocation.place,
+                  word: '',
+                  pictures: [],
+                  time: '',
+                  likes: 0,
+                  phoneNumber: '',
+                  lat: selectedLocation.lat,
+                  lng: selectedLocation.lng,
+                }
+              })()
+            : undefined
+        }
+        onMoveToCurrentLocation={(moveToCurrentLocation) =>
+          (mapRef.current = moveToCurrentLocation)
+        }
+      />
 
       {/* Tabs */}
       <div className={`${styles.tabs} ${styles[bottomSheetState]}`}>

@@ -186,8 +186,7 @@ const LocationPage: React.FC<LocationPageProps> = ({
       [],
     )
 
-    useEffect(() => {
-    }, [safeSelectedGroupId]);
+    useEffect(() => {}, [safeSelectedGroupId])
 
     useEffect(() => {
       const fetchCurrentLocationAndUpdate = async () => {
@@ -241,7 +240,7 @@ const LocationPage: React.FC<LocationPageProps> = ({
           //console.log('Zustand 상태 업데이트 실행')
 
           useLocationStore.getState().setSelectedLocation({
-            placeName :location.place,
+            placeName: location.place,
             place: transitName,
             lat: location.lat,
             lng: location.lng,
