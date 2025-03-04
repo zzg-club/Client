@@ -45,6 +45,27 @@ const PinMap: React.FC<PinMapProps> = ({
   const [myLocation, setMyLocation] = useState<MyLocation | null>(null)
   const [membersLocation, setMembersLocation] = useState<MemberLocation[]>([])
 
+  const fixProfileUrl = (url: string | undefined) => {
+    if (!url || url.includes('default_profile.jpeg')) {
+      return 'https://t1.kakaocdn.net/account_images/default_profile.jpeg' // HTTPS 기본 프로필
+    }
+
+    console.log(`원본 프로필 URL: ${url}`)
+
+    // 강제 변환: `img1.kakaocdn.net` → `t1.kakaocdn.net`
+    let fixedUrl = url
+      .replace(/^http:/, 'https:') // HTTP → HTTPS
+      .replace('img1.kakaocdn.net', 't1.kakaocdn.net') // 서브도메인 강제 변경
+
+    // `?fname=`가 있는 경우, 뒤의 URL만 사용
+    if (fixedUrl.includes('?fname=')) {
+      fixedUrl = fixedUrl.split('?fname=')[1]
+    }
+
+    console.log(`변환된 프로필 URL: ${fixedUrl}`)
+    return fixedUrl
+  }
+
   useEffect(() => {
     if (!selectedGroupId) return
 
@@ -61,7 +82,6 @@ const PinMap: React.FC<PinMapProps> = ({
         if (!response.ok) throw new Error('Failed to fetch location data')
 
         const data = await response.json()
-        console.log('참여자 위치 데이터:', data)
 
         if (!data.success) return
 
@@ -70,7 +90,7 @@ const PinMap: React.FC<PinMapProps> = ({
           setMyLocation({
             userId: data.data.myLocation.userId,
             username: data.data.myLocation.username,
-            userProfile: data.data.myLocation.userProfile || '',
+            userProfile: fixProfileUrl(data.data.myLocation.userProfile) || '',
             latitude: data.data.myLocation.latitude,
             longitude: data.data.myLocation.longitude,
           })
@@ -87,13 +107,19 @@ const PinMap: React.FC<PinMapProps> = ({
           }) => ({
             userId: member.userId,
             username: member.username,
-            userProfile: member.userProfile || '',
+            userProfile: fixProfileUrl(member.userProfile) || '',
             latitude: member.latitude,
             longitude: member.longitude,
           }),
         )
 
         setMembersLocation(members)
+        console.log(
+          '나 데이터',
+          myLocation,
+          '참여자 위치 데이터:',
+          membersLocation,
+        )
       } catch (error) {
         console.error('참여자 위치 데이터 조회 실패:', error)
       }
@@ -150,7 +176,7 @@ const PinMap: React.FC<PinMapProps> = ({
           setMyLocation({
             userId: data.data.myLocation.userId,
             username: data.data.myLocation.username,
-            userProfile: data.data.myLocation.userProfile || '',
+            userProfile: fixProfileUrl(data.data.myLocation.userProfile) || '',
             latitude: data.data.myLocation.latitude,
             longitude: data.data.myLocation.longitude,
             transitName,
@@ -174,7 +200,7 @@ const PinMap: React.FC<PinMapProps> = ({
               return {
                 userId: member.userId,
                 username: member.username,
-                userProfile: member.userProfile || '',
+                userProfile: fixProfileUrl(member.userProfile) || '',
                 latitude: member.latitude,
                 longitude: member.longitude,
                 transitName,
@@ -208,7 +234,7 @@ const PinMap: React.FC<PinMapProps> = ({
           longitude={myLocation.longitude}
           transitName={myLocation.transitName || 'OO역'}
           isMine={true}
-          userProfile={myLocation.userProfile}
+          userProfile={fixProfileUrl(myLocation.userProfile)}
         />,
       )
 
@@ -236,7 +262,7 @@ const PinMap: React.FC<PinMapProps> = ({
           longitude={member.longitude}
           transitName={member.transitName || '출발지 미정'}
           isMine={false}
-          userProfile={member.userProfile}
+          userProfile={fixProfileUrl(member.userProfile)}
         />,
       )
 
