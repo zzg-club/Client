@@ -10,6 +10,7 @@ import { loadKakaoMaps } from '@/utils/kakaoLoader'
 import BackButton from '@/components/Buttons/Middle/BackButton'
 import { useGroupStore } from '@/store/groupStore'
 import useWebSocket from '@/hooks/useWebSocket'
+import Image from 'next/image'
 
 interface Participant {
   userId: number
@@ -175,7 +176,7 @@ export default function Middle() {
     }
 
     fetchParticipants()
-  }, [selectedGroupId, API_BASE_URL]) // participants 제거
+  }, [selectedGroupId, API_BASE_URL])
 
   useEffect(() => {
     if (!locations.length) return
@@ -356,8 +357,18 @@ export default function Middle() {
   }, [currentDestinationIndex, recommendedLocations])
 
   return (
-    <Suspense fallback={<div>로딩 중...</div>}>
-      {/* Suspense 내부에서 검색 파라미터 처리 */}
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center h-screen">
+          <Image
+            src="/loadingspinner.gif"
+            alt="로딩 중..."
+            width={100}
+            height={100}
+          />
+        </div>
+      }
+    >
       <SearchParamsComponent setFrom={setFrom} />
       <div className="flex flex-col h-screen relative">
         <div
