@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import { useGroupStore } from '@/store/groupStore'
 import { useLocationStore } from '@/store/locationsStore'
+import { useLocationIdStore } from '@/store/locationIdStore'
 
 export interface LocationModalProps {
   isVisible: boolean
@@ -34,6 +35,7 @@ export default function LocationModal({
   const [nearestTransit, setNearestTransit] = useState<string | null>(null)
   const { selectedGroupId } = useGroupStore()
   const { selectedLocation } = useLocationStore()
+  const { setSelectedLocationId } = useLocationIdStore()
 
   // URL에서 `transitName`이 존재하면 상태 업데이트
   useEffect(() => {
@@ -64,6 +66,7 @@ export default function LocationModal({
         `위치 ID 생성 완료: locationId = ${locationCreateData.data.location_id}`,
       )
 
+      setSelectedLocationId(locationCreateData.data.location_id)
       // 검색 페이지로 이동
       router.push(`/search?from=/letsmeet&direct=true`)
     } catch (error) {

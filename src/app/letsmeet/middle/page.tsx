@@ -66,8 +66,52 @@ export default function Middle() {
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
   const router = useRouter()
 
-  const handleTitleChange = (newTitle: string) => {
+  const handleTitleChange = async (newTitle: string) => {
     setGroupTitle(newTitle) // 제목 변경 상태 저장
+
+    const requestBody = {
+      groupId: selectedGroupId, // "selectedGroupId" → "groupId"로 변경
+      groupName: newTitle, // 사용자 입력 제목 전달
+    }
+
+    console.log('보낼 요청 바디:', JSON.stringify(requestBody)) // 콘솔에서 확인
+
+    // 제목 생성 API 호출
+    const updateTitleResponse = await fetch(`${API_BASE_URL}/api/members`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(requestBody),
+    })
+
+    if (!updateTitleResponse.ok) {
+      const errorResponse = await updateTitleResponse.json().catch(() => null)
+      console.error('API 응답 오류:', errorResponse)
+      throw new Error('약속 제목 생성 실패')
+    }
+
+    console.log('제목 업데이트 성공!')
+  }
+
+  const fixProfileUrl = (url: string | undefined) => {
+    if (!url || url.includes('default_profile.jpeg')) {
+      return 'https://t1.kakaocdn.net/account_images/default_profile.jpeg' // ✅ HTTPS 기본 프로필
+    }
+
+    console.log(`원본 프로필 URL: ${url}`)
+
+    // 강제 변환: `img1.kakaocdn.net` → `t1.kakaocdn.net`
+    let fixedUrl = url
+      .replace(/^http:/, 'https:') // HTTP → HTTPS
+      .replace('img1.kakaocdn.net', 't1.kakaocdn.net') // ✅ 서브도메인 강제 변경
+
+    // `?fname=`가 있는 경우, 뒤의 URL만 사용
+    if (fixedUrl.includes('?fname=')) {
+      fixedUrl = fixedUrl.split('?fname=')[1]
+    }
+
+    console.log(`변환된 프로필 URL: ${fixedUrl}`)
+    return fixedUrl
   }
 
   /* 참여자 정보 */
@@ -100,7 +144,8 @@ export default function Middle() {
             newParticipants.push({
               userId: data.data.myLocation.userId,
               userName: data.data.myLocation.username,
-              userProfile: data.data.myLocation.userProfile || '',
+              userProfile:
+                fixProfileUrl(data.data.myLocation.userProfile) || '',
               latitude: data.data.myLocation.latitude,
               longitude: data.data.myLocation.longitude,
             })
@@ -110,7 +155,7 @@ export default function Middle() {
             newParticipants.push({
               userId: member.userId,
               userName: member.userName,
-              userProfile: member.userProfile || '',
+              userProfile: fixProfileUrl(member.userProfile) || '',
               latitude: member.latitude,
               longitude: member.longitude,
             })
@@ -131,15 +176,6 @@ export default function Middle() {
 
     fetchParticipants()
   }, [selectedGroupId, API_BASE_URL]) // participants 제거
-
-  useEffect(() => {
-    setParticipants((prevParticipants) =>
-      prevParticipants.map((p) => ({
-        ...p,
-        userProfile: p.userProfile.replace('http://', 'https://'), // HTTP -> HTTPS 변환
-      })),
-    )
-  }, [])
 
   useEffect(() => {
     if (!locations.length) return
