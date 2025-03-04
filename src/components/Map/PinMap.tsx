@@ -66,6 +66,9 @@ const PinMap: React.FC<PinMapProps> = ({
     return fixedUrl
   }
 
+  const prevMyLocation = useRef<MyLocation | null>(null)
+  const prevMembersLocation = useRef<MemberLocation[]>([])
+
   useEffect(() => {
     if (!selectedGroupId) return
 
@@ -82,51 +85,59 @@ const PinMap: React.FC<PinMapProps> = ({
         if (!response.ok) throw new Error('Failed to fetch location data')
 
         const data = await response.json()
-
         if (!data.success) return
 
-        // 내 위치 저장
-        if (data.data.myLocation) {
-          setMyLocation({
-            userId: data.data.myLocation.userId,
-            username: data.data.myLocation.username,
-            userProfile: fixProfileUrl(data.data.myLocation.userProfile) || '',
-            latitude: data.data.myLocation.latitude,
-            longitude: data.data.myLocation.longitude,
-          })
+        const newMyLocation: MyLocation | null = data.data.myLocation
+          ? {
+              userId: data.data.myLocation.userId,
+              username: data.data.myLocation.username,
+              userProfile:
+                fixProfileUrl(data.data.myLocation.userProfile) || '',
+              latitude: data.data.myLocation.latitude,
+              longitude: data.data.myLocation.longitude,
+            }
+          : null
+
+        const newMembersLocation: MemberLocation[] =
+          data.data.membersLocation.map(
+            (member: {
+              userId: number
+              username: string
+              userProfile?: string
+              latitude: number
+              longitude: number
+            }) => ({
+              userId: member.userId,
+              username: member.username,
+              userProfile: fixProfileUrl(member.userProfile) || '',
+              latitude: member.latitude,
+              longitude: member.longitude,
+            }),
+          )
+
+        // **이전 상태와 비교하여 변경된 경우에만 상태 업데이트**
+        if (
+          JSON.stringify(prevMyLocation.current) !==
+          JSON.stringify(newMyLocation)
+        ) {
+          setMyLocation(newMyLocation)
+          prevMyLocation.current = newMyLocation
         }
 
-        // 멤버 위치 저장
-        const members: MemberLocation[] = data.data.membersLocation.map(
-          (member: {
-            userId: number
-            username: string
-            userProfile?: string
-            latitude: number
-            longitude: number
-          }) => ({
-            userId: member.userId,
-            username: member.username,
-            userProfile: fixProfileUrl(member.userProfile) || '',
-            latitude: member.latitude,
-            longitude: member.longitude,
-          }),
-        )
-
-        setMembersLocation(members)
-        console.log(
-          '나 데이터',
-          myLocation,
-          '참여자 위치 데이터:',
-          membersLocation,
-        )
+        if (
+          JSON.stringify(prevMembersLocation.current) !==
+          JSON.stringify(newMembersLocation)
+        ) {
+          setMembersLocation(newMembersLocation)
+          prevMembersLocation.current = newMembersLocation
+        }
       } catch (error) {
         console.error('참여자 위치 데이터 조회 실패:', error)
       }
     }
 
     fetchLocationData()
-  }, [selectedGroupId])
+  }, [selectedGroupId]) // `myLocation`, `membersLocation` 제거하여 무한 루프 방지 ✅
 
   const fetchTransitName = async (latitude: number, longitude: number) => {
     try {
