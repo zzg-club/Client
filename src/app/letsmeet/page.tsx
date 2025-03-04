@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation'
 import LocationModal from '@/components/Modals/DirectSelect/LocationModal'
 import { useGroupStore } from '@/store/groupStore'
 import { useSurveyStore } from '@/store/surveyStore'
+import { useLocationIdStore } from '@/store/locationIdStore'
 
 type Schedule = {
   id: number
@@ -19,6 +20,7 @@ type Schedule = {
   startTime: string
   endTime: string
   location?: string
+  locationId?: number
   participants: {
     id: number
     name: string
@@ -60,6 +62,7 @@ export default function LetsMeetPage() {
   const [scheduleList, setScheduleList] = useState<Schedule[]>([])
   const [notifications, setNotifications] = useState<Notification[]>([])
 
+  const { setSelectedLocationId } = useLocationIdStore()
   const { selectedGroupId, setSelectedGroupId } = useGroupStore()
   const { setSelectedSurveyId } = useSurveyStore()
   const [selectedLocation, setSelectedLocation] = useState<{
@@ -113,7 +116,25 @@ export default function LetsMeetPage() {
     const groupId = groupData.data.groupId
     console.log(`그룹 생성 완료: groupId = ${groupId}`)
 
-    // Zustand에 groupId 저장
+    //  위치 ID 생성 API 호출
+    const locationCreateResponse = await fetch(
+      `${API_BASE_URL}/api/location/create`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ groupId }),
+      },
+    )
+
+    if (!locationCreateResponse.ok) throw new Error('위치 ID 생성 실패')
+
+    const locationCreateData = await locationCreateResponse.json()
+    const locationId = locationCreateData.data.location_id
+
+    console.log(`위치 ID 생성 완료: locationId = ${locationId}}`)
+
+    setSelectedLocationId(locationId)
     setSelectedGroupId(groupId)
 
     router.push('/search?from=/letsmeet')
@@ -204,6 +225,7 @@ export default function LetsMeetPage() {
             startTime: schedule.startTime || '',
             endTime: schedule.endTime || '',
             location: schedule.location || '',
+            locationId: useLocationIdStore.getState().selectedLocationId || -1,
             participants: schedule.participants || [],
           }))
           setScheduleList(formattedSchedules.reverse())
@@ -275,7 +297,11 @@ export default function LetsMeetPage() {
                 endTime={schedule.endTime}
                 location={schedule.location}
                 participants={schedule.participants}
-                locationId={schedule.id}
+                locationId={
+                  schedule.locationId ??
+                  useLocationIdStore.getState().selectedLocationId ??
+                  -1
+                }
                 getSchedule={() => {}}
                 onRemoveMember={() => {}}
               />

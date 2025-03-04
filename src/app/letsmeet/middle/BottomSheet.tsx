@@ -71,7 +71,6 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
     }
   }, [isExpanded, highestMaxHeight])
 
-  
   useEffect(() => {
     window.addEventListener('resize', updateHeight)
     updateHeight()
