@@ -150,12 +150,6 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
     return null
   }
 
-  const cleanImageUrl = (url: string) => {
-    // fname= 이후의 URL만 추출
-    const match = url.match(/fname=(http.+)$/)
-    return match ? decodeURIComponent(match[1]) : url
-  }
-
   return (
     <div
       ref={sheetRef}
@@ -206,17 +200,19 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
               const userTime = getUserTime(participant.userId)
               return (
                 <div key={index} className={styles.participantItem}>
-                  <Image
-                    src={cleanImageUrl(participant.userProfile)}
-                    alt={`프로필 아이콘`}
+                  <img
+                    src={participant.userProfile}
+                    alt="프로필 아이콘"
                     width={36}
                     height={36}
-                    className={`${styles.participantIcon} `}
+                    className={styles.participantIcon}
                     style={{
                       borderColor:
                         index === 0
                           ? 'var(--MainColor, #9562FB)'
                           : 'var(--subway_time, #AFAFAF)',
+                      borderRadius: '50%', // 원형 프로필 유지 (필요 시 추가)
+                      objectFit: 'cover', // 이미지 비율 유지 (필요 시 추가)
                     }}
                   />
 
