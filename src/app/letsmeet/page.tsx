@@ -186,6 +186,38 @@ export default function LetsMeetPage() {
     router.replace('/letsmeet')
   }
 
+  const getSchedule = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/members/List`, {
+        method: 'GET',
+        credentials: 'include',
+      })
+      if (!response.ok) {
+        throw new Error(`서버 에러: ${response.status}`)
+      }
+      const data = await response.json()
+      console.log('스케줄 정보:', data.data)
+      if (Array.isArray(data.data)) {
+        const formattedSchedules = data.data.map((schedule: Schedule) => ({
+          id: schedule.id,
+          startDate: schedule.startDate || '',
+          endDate: schedule.endDate || '',
+          title: schedule.title,
+          startTime: schedule.startTime || '',
+          endTime: schedule.endTime || '',
+          location: schedule.location || '',
+          locationId: useLocationIdStore.getState().selectedLocationId || -1,
+          participants: schedule.participants || [],
+        }))
+        setScheduleList(formattedSchedules.reverse())
+      } else {
+        console.error('데이터 구조 에러:', data.data)
+      }
+    } catch (error) {
+      console.error('스케줄 정보 불러오기 실패:', error)
+    }
+  }
+
   //유저 정보
   useEffect(() => {
     const fetchUserInfo = async () => {
@@ -205,37 +237,6 @@ export default function LetsMeetPage() {
     }
 
     // 스케줄 정보 리스트
-    const getSchedule = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/members/List`, {
-          method: 'GET',
-          credentials: 'include',
-        })
-        if (!response.ok) {
-          throw new Error(`서버 에러: ${response.status}`)
-        }
-        const data = await response.json()
-        console.log('스케줄 정보:', data.data)
-        if (Array.isArray(data.data)) {
-          const formattedSchedules = data.data.map((schedule: Schedule) => ({
-            id: schedule.id,
-            startDate: schedule.startDate || '',
-            endDate: schedule.endDate || '',
-            title: schedule.title,
-            startTime: schedule.startTime || '',
-            endTime: schedule.endTime || '',
-            location: schedule.location || '',
-            locationId: useLocationIdStore.getState().selectedLocationId || -1,
-            participants: schedule.participants || [],
-          }))
-          setScheduleList(formattedSchedules.reverse())
-        } else {
-          console.error('데이터 구조 에러:', data.data)
-        }
-      } catch (error) {
-        console.error('스케줄 정보 불러오기 실패:', error)
-      }
-    }
 
     fetchUserInfo()
     fetchNotification()
@@ -302,8 +303,8 @@ export default function LetsMeetPage() {
                   useLocationIdStore.getState().selectedLocationId ??
                   -1
                 }
-                getSchedule={() => {}}
-                onRemoveMember={() => {}}
+                getSchedule={getSchedule}
+                fetchNotification={fetchNotification}
               />
             ))}
           </div>
