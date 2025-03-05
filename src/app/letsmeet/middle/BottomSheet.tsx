@@ -1,8 +1,9 @@
 'use client'
 
-import { useEffect, useState, useRef, useCallback } from 'react'
+import { useEffect, useRef } from 'react'
 import MiddleFooter2Right from '@/components/Buttons/Middle/Bottom/MiddleFooter2Right'
 import MiddleFooter2Left from '@/components/Buttons/Middle/Bottom/MiddleFooter2Left'
+import { useBottomSheet } from '@/hooks/useMiddleBottomsheet'
 import styles from './BottomSheet.module.css'
 import Image from 'next/image'
 
@@ -12,6 +13,7 @@ interface Participant {
   userProfile: string
   latitude: number
   longitude: number
+  type: string
 }
 
 interface Time {
@@ -36,108 +38,39 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
   time,
   onSlideChange,
 }) => {
-  const [isExpanded, setIsExpanded] = useState(false)
-  const [translateY, setTranslateY] = useState(0)
-  const [maxHeight, setMaxHeight] = useState(400)
-  const [highestMaxHeight, setHighestMaxHeight] = useState(400) // 최고 높이
-  const [arrowHeight, setArrowHeight] = useState(110)
-  const minHeight = 229
-  const paddingBottom = 42
-
   const sheetRef = useRef<HTMLDivElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
-  const startXRef = useRef<number | null>(null)
-  const startYRef = useRef<number | null>(null)
 
-  const updateHeight = useCallback(() => {
-    if (sheetRef.current) {
-      const contentHeight = sheetRef.current.scrollHeight
-      const calculatedMaxHeight = contentHeight
-
-      // 현재 높이와 비교하여 최대 높이 추적
-      if (calculatedMaxHeight > highestMaxHeight) {
-        setHighestMaxHeight(calculatedMaxHeight) // 최고 높이 갱신
-      }
-
-      // 현재 높이를 최고 높이로 고정
-      setMaxHeight(highestMaxHeight)
-
-      // arrowHeight 업데이트
-      if (isExpanded) {
-        setArrowHeight(highestMaxHeight / 2.3) // 최대 높이의 절반
-      } else {
-        setArrowHeight(110) // 기본 높이
-      }
-    }
-  }, [isExpanded, highestMaxHeight])
+  const {
+    bottomSheetState,
+    setBottomSheetState,
+    handleStart,
+    handleMove,
+    handleEnd,
+  } = useBottomSheet()
 
   useEffect(() => {
-    window.addEventListener('resize', updateHeight)
-    updateHeight()
-
-    return () => {
-      window.removeEventListener('resize', updateHeight)
+    if (participants.length < 4) {
+      setBottomSheetState('collapsed')
     }
-  }, [isExpanded, participants.length, updateHeight])
+  }, [participants.length, setBottomSheetState])
 
-  const handleTouchStart = (event: React.TouchEvent) => {
-    startXRef.current = event.touches[0].clientX
-    startYRef.current = event.touches[0].clientY
-  }
-
-  const handleTouchMove = (event: React.TouchEvent) => {
-    if (startYRef.current === null) return
-    const currentY = event.touches[0].clientY
-    const deltaY = currentY - startYRef.current
-
-    if (isExpanded) {
-      setTranslateY(Math.min(deltaY, maxHeight - minHeight))
-    } else {
-      setTranslateY(Math.max(deltaY, minHeight - maxHeight))
+  // 바텀시트 높이 설정 (4명 이상일 때만 middle 이상 가능)
+  const getHeight = () => {
+    switch (bottomSheetState) {
+      case 'collapsed':
+        return '229px'
+      case 'middle':
+        return participants.length >= 4 ? '400px' : '229px' // 4명 이상만 middle 가능
+      case 'expanded':
+        return participants.length >= 4 ? '80vh' : '400px' // 4명 이상만 expanded 가능
+      default:
+        return '229px'
     }
-  }
-
-  const handleTouchEnd = (event: React.TouchEvent) => {
-    const endX = event.changedTouches[0].clientX
-
-    // 캐러셀 슬라이드 감지
-    const deltaX = (startXRef.current ?? 0) - endX
-    const deltaY = translateY
-
-    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
-      // 가로 슬라이드
-      if (deltaX > 0) {
-        onSlideChange('right') // 오른쪽 슬라이드
-      } else {
-        onSlideChange('left') // 왼쪽 슬라이드
-      }
-    } else if (Math.abs(deltaY) > 50) {
-      // 위로 당겨질 경우
-      if (deltaY < -50 && totalParticipants > 4) {
-        setIsExpanded(true)
-        setTranslateY(0)
-      } else if (deltaY > 50) {
-        // 아래로 당겨질 경우
-        setIsExpanded(false)
-        setTranslateY(0)
-      } else {
-        // 변화 없을 경우 원위치로
-        setTranslateY(0)
-      }
-    }
-
-    setTranslateY(0)
-    startXRef.current = null
-    startYRef.current = null
   }
 
   const handleSlideChange = (direction: 'left' | 'right') => {
-    if (direction === 'left') {
-      onSlideChange('left')
-    } else {
-      onSlideChange('right')
-    }
-    setMaxHeight(highestMaxHeight) // 슬라이드 변경 시 최고 높이를 유지
+    onSlideChange(direction)
   }
 
   const getUserTime = (userId: number) => {
@@ -147,7 +80,11 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
         if (userTime) return userTime.time
       }
     }
-    return null
+    return 0
+  }
+
+  const getUserImage = (type: string) => {
+    return type === '&my' ? '/subwayPurple.svg' : '/subwayGray.svg'
   }
 
   return (
@@ -155,13 +92,12 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
       ref={sheetRef}
       className={styles.bottomSheet}
       style={{
-        height: isExpanded ? `${maxHeight}px` : `${minHeight}px`,
-        transform: `translateY(${translateY}px)`,
-        padding: `10px 0px ${paddingBottom}px 0px`,
+        height: getHeight(),
+        transition: 'height 0.3s ease-in-out',
       }}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
+      onTouchStart={(e) => handleStart(e.touches[0].clientY)}
+      onTouchMove={(e) => handleMove(e.touches[0].clientY, participants.length)}
+      onTouchEnd={handleEnd}
     >
       <div className={styles.handleBar}></div>
 
@@ -188,7 +124,7 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
 
         <div
           className={`${styles.arrow} ${styles.arrowLeft}`}
-          style={{ top: `${arrowHeight}px` }}
+          style={{ top: 110 }}
           onClick={() => handleSlideChange('left')}
         >
           <MiddleFooter2Left />
@@ -208,7 +144,7 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
                     className={styles.participantIcon}
                     style={{
                       borderColor:
-                        index === 0
+                        participant.type === '&my'
                           ? 'var(--MainColor, #9562FB)'
                           : 'var(--subway_time, #AFAFAF)',
                       borderRadius: '50%', // 원형 프로필 유지 (필요 시 추가)
@@ -220,19 +156,19 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
                     className={styles.participantText}
                     style={{
                       color:
-                        index === 0
+                        participant.type === '&my'
                           ? 'var(--MainColor, #9562FB)'
                           : 'var(--subway_time, #AFAFAF)',
                     }}
                   >
-                    {userTime !== undefined ? `${userTime}분` : ''}
+                    {userTime}분
                   </p>
                   <Image
-                    src={'/train.svg'}
+                    src={getUserImage(participant.type)}
                     alt="Transport Icon"
                     width={28}
                     height={28}
-                    className={`${styles.transportIcon} ${index === 0 ? styles.mainTransportIcon : ''}`}
+                    className="w-[28px] h-[28px] object-contain aspect-square"
                   />
                 </div>
               )
@@ -242,7 +178,7 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
 
         <div
           className={`${styles.arrow} ${styles.arrowRight}`}
-          style={{ top: `${arrowHeight}px` }}
+          style={{ top: 110 }}
           onClick={() => handleSlideChange('right')}
         >
           <MiddleFooter2Right />

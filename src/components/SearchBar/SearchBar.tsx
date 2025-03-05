@@ -8,14 +8,16 @@ interface SearchBarProps {
   placeholder?: string
   onSearch?: (value: string) => void
   onCancel?: () => void
-  onChange?: (value: string) => void // ✅ 입력값 변경 시 호출할 함수 추가
+  onChange?: (value: string) => void // 입력값 변경 시 호출할 함수 추가
+  onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({
   placeholder = '원하는 곳을 검색해봐요!',
   onSearch,
   onCancel,
-  onChange, // ✅ 입력값 변경 시 부모 컴포넌트로 전달
+  onChange,
+  onKeyDown,
 }) => {
   const [showCancel, setShowCancel] = useState(false) // 취소 버튼 표시 여부
   const inputRef = useRef<HTMLInputElement>(null)
@@ -26,7 +28,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
       setShowCancel(value.length > 0) // 입력값이 있을 때만 버튼 표시
 
       if (onChange) {
-        onChange(value) // ✅ 부모 컴포넌트로 입력값 전달
+        onChange(value) // 부모 컴포넌트로 입력값 전달
       }
     }
   }
@@ -45,7 +47,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
       inputRef.current.value = '' // 입력값 초기화
       setShowCancel(false) // 버튼 숨기기
       if (onChange) {
-        onChange('') // ✅ 빈 값 전달하여 부모 상태도 초기화
+        onChange('') // 빈 값 전달하여 부모 상태도 초기화
       }
     }
   }
@@ -67,7 +69,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
         type="text"
         placeholder={placeholder}
         className={styles.searchInput}
-        onChange={handleInputChange} // ✅ 입력값 변화 감지하여 부모 컴포넌트로 전달
+        onChange={handleInputChange}
+        onKeyDown={onKeyDown}
       />
       {/* 취소 버튼 */}
       {showCancel && (
