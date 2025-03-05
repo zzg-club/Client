@@ -97,6 +97,11 @@ export default function Home() {
     loadMoreData(page)
   }, [page])
 
+  const handleBottomSheetScroll = (event: React.UIEvent<HTMLDivElement>) => {
+    event.stopPropagation() // 이벤트 전파 차단
+    handleScroll()
+  }
+
   const handleScroll = () => {
     if (loading) return
 
@@ -487,6 +492,7 @@ export default function Home() {
         onTouchMove={(e) => handleMove(e.touches[0].clientY)}
         onTouchEnd={handleEnd}
         onMouseDown={(e) => handleStart(e.clientY)}
+        onScroll={handleBottomSheetScroll}
       >
         <div className={styles.dragHandle}></div>
         <div className={styles.content}>
