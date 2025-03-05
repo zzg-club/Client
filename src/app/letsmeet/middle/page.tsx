@@ -55,7 +55,9 @@ export default function Middle() {
   const [destination, setDestination] = useState<RecommendedLocation | null>(
     null,
   )
-  const [groupTitle, setGroupTitle] = useState<string>('제목 없는 일정')
+  const searchParams = useSearchParams()
+  const initialTitle = searchParams.get('title') || '제목 없는 일정'
+  const [groupTitle, setGroupTitle] = useState(initialTitle)
   const [time, setTime] = useState<Time[]>([])
   const [isCreator, setIsCreator] = useState<boolean>(false)
   const [recommendedLocations, setRecommendedLocations] = useState<
@@ -422,7 +424,7 @@ export default function Middle() {
           <Title
             buttonText="확정"
             buttonLink="#"
-            initialTitle="제목 없는 일정"
+            initialTitle={groupTitle}
             onTitleChange={handleTitleChange}
             isPurple
             isDisabled={!isCreator || participants.length < 1}

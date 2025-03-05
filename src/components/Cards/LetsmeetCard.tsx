@@ -7,7 +7,6 @@ import DateTimeModal from '@/components/Modals/DirectSelect/DateTimeModal'
 import DirectEditTitle from '@/components/Header/DirectEditTitle'
 import CustomCalendar from '@/components/Calendars/CustomCalendar'
 import { useGroupStore } from '@/store/groupStore'
-import { useLocationIdStore } from '@/store/locationIdStore'
 import { useHandleSelect } from '@/hooks/useHandleSelect'
 import { useDateTimeStore } from '@/store/dateTimeStore'
 import { useRouter } from 'next/navigation'
@@ -33,7 +32,6 @@ export interface LetsmeetCardProps {
   location?: string
   participants: Participant[]
   surveyId?: number
-  locationId: number
   getSchedule: () => void
   fetchNotification: () => void
 }
@@ -47,7 +45,6 @@ export function LetsmeetCard({
   title,
   location,
   participants,
-  locationId,
   getSchedule,
   fetchNotification,
 }: LetsmeetCardProps) {
@@ -67,7 +64,6 @@ export function LetsmeetCard({
   const resetDateTime = useDateTimeStore((state) => state.resetDateTime)
   const router = useRouter()
   const { setSelectedGroupId } = useGroupStore()
-  const { setSelectedLocationId } = useLocationIdStore()
   const [selectedLocation] = useState(
     location === '미확정' ? '장소 선정 중' : location,
   )
@@ -138,35 +134,21 @@ export function LetsmeetCard({
   const handleOpenScheduleModal = (e: React.MouseEvent) => {
     e.stopPropagation()
 
-    //console.log('클릭된 그룹 ID:', id)
-    //console.log('클릭된 로케이션 ID:', locationId)
-
-    const finalLocationId =
-      locationId !== -1
-        ? locationId
-        : useLocationIdStore.getState().selectedLocationId
-
-    if (finalLocationId === -1 || finalLocationId === undefined) {
-      console.error(
-        '오류: 유효하지 않은 locationId입니다. 장소를 다시 추가하세요.',
-      )
-      return // locationId가 없으면 함수 실행을 멈춤
-    }
-
-    setSelectedLocationId(locationId)
     setSelectedGroupId(id)
 
     if (buttonText === '+ 출발지 수정') {
       // 모임장이면 중간 지점 찾기 페이지로 이동
       if (participants.some((p) => p.type === 'creator&my')) {
-        router.push('/letsmeet/middle')
+        router.push(`/letsmeet/middle?title=${encodeURIComponent(title)}`)
       } else {
-        router.push(`/search?from=/letsmeet&other=true`)
+        router.push(
+          `/search?from=/letsmeet&other=true&title=${encodeURIComponent(title)}`,
+        )
       }
     } else if (buttonText === '+ 장소 확정하기') {
-      router.push('/letsmeet/middle')
+      router.push(`/letsmeet/middle?title=${encodeURIComponent(title)}`)
     } else if (selectedLocation === '장소 선정 중') {
-      router.push('/search?from=/letsmeet')
+      router.push(`/search?from=/letsmeet?title=${encodeURIComponent(title)}`)
     } else {
       setIsOpen(true)
     }
