@@ -10,7 +10,6 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import LocationModal from '@/components/Modals/DirectSelect/LocationModal'
 import { useGroupStore } from '@/store/groupStore'
 import { useSurveyStore } from '@/store/surveyStore'
-import { useLocationIdStore } from '@/store/locationIdStore'
 import { useNotificationStore } from '@/store/notificationStore'
 
 type Schedule = {
@@ -59,7 +58,6 @@ export default function LetsMeetPage() {
   const [scheduleList, setScheduleList] = useState<Schedule[]>([])
   const [notifications, setNotifications] = useState<Notification[]>([])
 
-  const { setSelectedLocationId } = useLocationIdStore()
   const { selectedGroupId, setSelectedGroupId } = useGroupStore()
   const { setSelectedSurveyId } = useSurveyStore()
   const [selectedLocation, setSelectedLocation] = useState<{
@@ -151,12 +149,6 @@ export default function LetsMeetPage() {
 
     if (!locationCreateResponse.ok) throw new Error('위치 ID 생성 실패')
 
-    const locationCreateData = await locationCreateResponse.json()
-    const locationId = locationCreateData.data.location_id
-
-    console.log(`위치 ID 생성 완료: locationId = ${locationId}}`)
-
-    setSelectedLocationId(locationId)
     setSelectedGroupId(groupId)
 
     router.push('/search?from=/letsmeet')
@@ -228,7 +220,6 @@ export default function LetsMeetPage() {
           startTime: schedule.startTime || '',
           endTime: schedule.endTime || '',
           location: schedule.location || '',
-          locationId: useLocationIdStore.getState().selectedLocationId || -1,
           participants: schedule.participants || [],
         }))
         setScheduleList(formattedSchedules.reverse())
@@ -320,11 +311,6 @@ export default function LetsMeetPage() {
                 endTime={schedule.endTime}
                 location={schedule.location}
                 participants={schedule.participants}
-                locationId={
-                  schedule.locationId ??
-                  useLocationIdStore.getState().selectedLocationId ??
-                  -1
-                }
                 getSchedule={getSchedule}
                 fetchNotification={fetchNotification}
               />

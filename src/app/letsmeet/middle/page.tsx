@@ -92,7 +92,7 @@ export default function Middle() {
     }
 
     fetchUserInfo()
-  }, [])
+  }, [API_BASE_URL])
 
   const handleTitleChange = async (newTitle: string) => {
     setGroupTitle(newTitle) // 제목 변경 상태 저장
@@ -102,7 +102,7 @@ export default function Middle() {
       groupName: newTitle, // 사용자 입력 제목 전달
     }
 
-    console.log('보낼 요청 바디:', JSON.stringify(requestBody)) // 콘솔에서 확인
+    //console.log('보낼 요청 바디:', JSON.stringify(requestBody)) // 콘솔에서 확인
 
     // 제목 생성 API 호출
     const updateTitleResponse = await fetch(`${API_BASE_URL}/api/members`, {
@@ -222,7 +222,7 @@ export default function Middle() {
         type: loc.userId === currentUserId ? '&my' : '&other',
       })),
     )
-  }, [locations]) // prevParticipants 제거
+  }, [locations, currentUserId]) // prevParticipants 제거
 
   //  1. 카카오 맵 초기화 (추천 장소 및 참여자 위치 표시)
   useEffect(() => {

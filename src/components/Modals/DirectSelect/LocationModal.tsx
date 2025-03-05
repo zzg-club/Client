@@ -7,7 +7,6 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import { useGroupStore } from '@/store/groupStore'
 import { useLocationStore } from '@/store/locationsStore'
-import { useLocationIdStore } from '@/store/locationIdStore'
 
 export interface LocationModalProps {
   isVisible: boolean
