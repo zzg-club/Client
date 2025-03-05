@@ -13,6 +13,7 @@ export default function SearchPage() {
   const isDirectModal = searchParams.get('direct') === 'true'
   const { selectedGroupId } = useGroupStore()
   const [searchQuery, setSearchQuery] = useState('')
+  const isOther = searchParams.get('other') === 'true'
 
   useEffect(() => {
     if (!selectedGroupId) {
@@ -22,21 +23,22 @@ export default function SearchPage() {
     }
   }, [selectedGroupId])
 
-  const handleSearchClick = () => {
-    if (!searchQuery.trim()) {
+  // 검색 실행 함수
+  const handleSearch = () => {
+    const trimmedQuery = searchQuery.trim()
+    if (!trimmedQuery) {
       alert('검색어를 입력해주세요.')
       return
     }
 
-    // 검색어를 URL에 담아 `LocationPage`로 전달
     router.push(
-      `/search/location?from=${from}&query=${encodeURIComponent(searchQuery)}&direct=${isDirectModal}`,
+      `/search/location?from=${from}&query=${encodeURIComponent(trimmedQuery)}&direct=${isDirectModal}&other=${isOther}`,
     )
   }
 
   const handleLocationClick = () => {
     router.push(
-      `/search/location?from=${from}&query=current&direct=${isDirectModal}&direct=${isDirectModal}`,
+      `/search/location?from=${from}&query=current&direct=${isDirectModal}&other=${isOther}`,
     )
   }
 
@@ -60,13 +62,15 @@ export default function SearchPage() {
         {/* 검색바 (입력값 상태 관리) */}
         <SearchBar
           placeholder="출발지를 입력해주세요!"
-          onChange={setSearchQuery}
+          onChange={(value) => setSearchQuery(value.trim())} // 불필요한 공백 제거
+          onKeyDown={(event) => event.key === 'Enter' && handleSearch()} // 엔터 키 입력 시 검색 실행
         />
 
         {/* 검색 버튼 */}
         <button
           className="text-xl text-center font-pretendard font-medium leading-[17px] tracking-[-0.5px] text-[#9562fb] cursor-pointer"
-          onClick={handleSearchClick}
+          onClick={handleSearch} // 클릭 시 검색 실행
+          onTouchStart={handleSearch} // 모바일 터치 대응
         >
           검색
         </button>
@@ -75,7 +79,7 @@ export default function SearchPage() {
       {/* 내 위치 불러오기 버튼 */}
       <button
         className="flex items-center justify-center mx-auto w-[356px] h-[42px] border border-[#9562fb] rounded-[24px] text-[#9562fb] text-[14px] font-medium leading-[17px] tracking-[-0.5px] cursor-pointer gap-2 p-0 mt-4"
-        onClick={handleLocationClick}
+        onMouseDown={handleLocationClick}
       >
         <Image
           src="/vector.svg"

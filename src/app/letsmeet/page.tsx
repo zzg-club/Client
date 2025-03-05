@@ -6,11 +6,11 @@ import Button from '@/components/Buttons/Floating/Button'
 import { ScheduleOptions } from '@/components/Buttons/Floating/Options'
 import CarouselNotification from '@/components/Notification/CarouselNotification'
 import { LetsmeetCard } from '@/components/Cards/LetsmeetCard'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import LocationModal from '@/components/Modals/DirectSelect/LocationModal'
 import { useGroupStore } from '@/store/groupStore'
 import { useSurveyStore } from '@/store/surveyStore'
-import { useLocationIdStore } from '@/store/locationIdStore'
+import { useNotificationStore } from '@/store/notificationStore'
 
 type Schedule = {
   id: number
@@ -41,11 +41,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
 
 export default function LetsMeetPage() {
   const router = useRouter()
-  const [searchParams, setSearchParams] = useState<URLSearchParams | null>(null)
-  useEffect(() => {
-    setSearchParams(new URLSearchParams(window.location.search))
-  }, [])
-
+  const searchParams = useSearchParams()
   const isDirectModal = searchParams?.get('direct') === 'true'
   const place = searchParams?.get('place') || ''
   const lat = searchParams?.get('lat')
@@ -62,7 +58,6 @@ export default function LetsMeetPage() {
   const [scheduleList, setScheduleList] = useState<Schedule[]>([])
   const [notifications, setNotifications] = useState<Notification[]>([])
 
-  const { setSelectedLocationId } = useLocationIdStore()
   const { selectedGroupId, setSelectedGroupId } = useGroupStore()
   const { setSelectedSurveyId } = useSurveyStore()
   const [selectedLocation, setSelectedLocation] = useState<{
@@ -70,6 +65,9 @@ export default function LetsMeetPage() {
     lat: number
     lng: number
   } | null>(null)
+  const showNotification = useNotificationStore(
+    (state) => state.showNotification,
+  )
 
   //`direct=true`이면 모달 자동으로 열기
   useEffect(() => {
@@ -77,6 +75,28 @@ export default function LetsMeetPage() {
       setIsDirectModalOpen(true)
     }
   }, [isDirectModal])
+
+  useEffect(() => {
+    if (searchParams?.get('toast') === 'true') {
+      showNotification('출발지 입력 완료!')
+
+      const newSearchParams = new URLSearchParams(window.location.search)
+      newSearchParams.delete('toast')
+      const newUrl = `${window.location.pathname}?${newSearchParams.toString()}`
+      window.history.replaceState(null, '', newUrl)
+    }
+  }, [searchParams, showNotification])
+
+  useEffect(() => {
+    if (searchParams?.get('middle') === 'direct') {
+      showNotification('위치가 확정되었습니다!')
+
+      const newSearchParams = new URLSearchParams(window.location.search)
+      newSearchParams.delete('middle')
+      const newUrl = `${window.location.pathname}?${newSearchParams.toString()}`
+      window.history.replaceState(null, '', newUrl)
+    }
+  }, [searchParams, showNotification])
 
   // URL에서 받아온 값으로 상태 업데이트
   useEffect(() => {
@@ -129,12 +149,6 @@ export default function LetsMeetPage() {
 
     if (!locationCreateResponse.ok) throw new Error('위치 ID 생성 실패')
 
-    const locationCreateData = await locationCreateResponse.json()
-    const locationId = locationCreateData.data.location_id
-
-    console.log(`위치 ID 생성 완료: locationId = ${locationId}}`)
-
-    setSelectedLocationId(locationId)
     setSelectedGroupId(groupId)
 
     router.push('/search?from=/letsmeet')
@@ -186,6 +200,37 @@ export default function LetsMeetPage() {
     router.replace('/letsmeet')
   }
 
+  const getSchedule = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/members/List`, {
+        method: 'GET',
+        credentials: 'include',
+      })
+      if (!response.ok) {
+        throw new Error(`서버 에러: ${response.status}`)
+      }
+      const data = await response.json()
+      console.log('스케줄 정보:', data.data)
+      if (Array.isArray(data.data)) {
+        const formattedSchedules = data.data.map((schedule: Schedule) => ({
+          id: schedule.id,
+          startDate: schedule.startDate || '',
+          endDate: schedule.endDate || '',
+          title: schedule.title,
+          startTime: schedule.startTime || '',
+          endTime: schedule.endTime || '',
+          location: schedule.location || '',
+          participants: schedule.participants || [],
+        }))
+        setScheduleList(formattedSchedules.reverse())
+      } else {
+        console.error('데이터 구조 에러:', data.data)
+      }
+    } catch (error) {
+      console.error('스케줄 정보 불러오기 실패:', error)
+    }
+  }
+
   //유저 정보
   useEffect(() => {
     const fetchUserInfo = async () => {
@@ -205,37 +250,6 @@ export default function LetsMeetPage() {
     }
 
     // 스케줄 정보 리스트
-    const getSchedule = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/members/List`, {
-          method: 'GET',
-          credentials: 'include',
-        })
-        if (!response.ok) {
-          throw new Error(`서버 에러: ${response.status}`)
-        }
-        const data = await response.json()
-        console.log('스케줄 정보:', data.data)
-        if (Array.isArray(data.data)) {
-          const formattedSchedules = data.data.map((schedule: Schedule) => ({
-            id: schedule.id,
-            startDate: schedule.startDate || '',
-            endDate: schedule.endDate || '',
-            title: schedule.title,
-            startTime: schedule.startTime || '',
-            endTime: schedule.endTime || '',
-            location: schedule.location || '',
-            locationId: useLocationIdStore.getState().selectedLocationId || -1,
-            participants: schedule.participants || [],
-          }))
-          setScheduleList(formattedSchedules.reverse())
-        } else {
-          console.error('데이터 구조 에러:', data.data)
-        }
-      } catch (error) {
-        console.error('스케줄 정보 불러오기 실패:', error)
-      }
-    }
 
     fetchUserInfo()
     fetchNotification()
@@ -297,13 +311,8 @@ export default function LetsMeetPage() {
                 endTime={schedule.endTime}
                 location={schedule.location}
                 participants={schedule.participants}
-                locationId={
-                  schedule.locationId ??
-                  useLocationIdStore.getState().selectedLocationId ??
-                  -1
-                }
-                getSchedule={() => {}}
-                onRemoveMember={() => {}}
+                getSchedule={getSchedule}
+                fetchNotification={fetchNotification}
               />
             ))}
           </div>

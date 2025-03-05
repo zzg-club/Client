@@ -17,6 +17,18 @@ export const metadata: Metadata = {
   icons: {
     icon: '/logo.ico',
   },
+  openGraph: {
+    title: '모임 MOIM',
+    description: '캠퍼스 라이프 필수템',
+    images: [
+      {
+        url: 'https://moimbucket.s3.ap-northeast-2.amazonaws.com/kakao+openGraph+(1600x800).png',
+        width: 1600,
+        height: 800,
+        alt: '모임 MOIM Open Graph Image',
+      },
+    ],
+  },
 }
 
 export default function RootLayout({

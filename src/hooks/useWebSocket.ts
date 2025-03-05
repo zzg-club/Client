@@ -77,7 +77,7 @@ const useWebSocket = (groupId: number | null) => {
 
   /** 위치 정보 전송 함수 */
   const sendLocation = (latitude: number, longitude: number) => {
-    if (!groupId) {
+    if (!groupId && groupId !== -1) {
       console.error('groupId 없음 - 위치 전송 불가')
       return
     }

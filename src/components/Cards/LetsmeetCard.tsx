@@ -7,11 +7,12 @@ import DateTimeModal from '@/components/Modals/DirectSelect/DateTimeModal'
 import DirectEditTitle from '@/components/Header/DirectEditTitle'
 import CustomCalendar from '@/components/Calendars/CustomCalendar'
 import { useGroupStore } from '@/store/groupStore'
-import { useLocationIdStore } from '@/store/locationIdStore'
 import { useHandleSelect } from '@/hooks/useHandleSelect'
 import { useDateTimeStore } from '@/store/dateTimeStore'
 import { useRouter } from 'next/navigation'
+import { useNotificationStore } from '@/store/notificationStore'
 import SelectModal from '../Modals/SelectModal'
+import axios from 'axios'
 
 export type Participant = {
   id: number
@@ -31,9 +32,8 @@ export interface LetsmeetCardProps {
   location?: string
   participants: Participant[]
   surveyId?: number
-  locationId: number
   getSchedule: () => void
-  onRemoveMember: (userId: number, type: string) => void
+  fetchNotification: () => void
 }
 
 export function LetsmeetCard({
@@ -45,8 +45,8 @@ export function LetsmeetCard({
   title,
   location,
   participants,
-  locationId,
-  onRemoveMember,
+  getSchedule,
+  fetchNotification,
 }: LetsmeetCardProps) {
   const [isOpen, setIsOpen] = useState(false)
 
@@ -64,8 +64,12 @@ export function LetsmeetCard({
   const resetDateTime = useDateTimeStore((state) => state.resetDateTime)
   const router = useRouter()
   const { setSelectedGroupId } = useGroupStore()
-  const { setSelectedLocationId } = useLocationIdStore()
-  const [selectedLocation] = useState(location || '미확정')
+  const [selectedLocation] = useState(
+    location === '미확정' ? '장소 선정 중' : location,
+  )
+  const showNotification = useNotificationStore(
+    (state) => state.showNotification,
+  )
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
 
@@ -123,39 +127,76 @@ export function LetsmeetCard({
       ? participants[myCompleteIndex]?.type === 'creator&my'
         ? '+ 장소 확정하기'
         : '내 장소 수정'
-      : selectedLocation === '미확정'
-        ? '+ 이어서 하기'
+      : selectedLocation === '장소 선정 중'
+        ? '+ 출발지 수정'
         : '+ 일정 정하기'
 
   const handleOpenScheduleModal = (e: React.MouseEvent) => {
     e.stopPropagation()
 
-    //console.log('클릭된 그룹 ID:', id)
-    //console.log('클릭된 로케이션 ID:', locationId)
-
-    const finalLocationId =
-      locationId !== -1
-        ? locationId
-        : useLocationIdStore.getState().selectedLocationId
-
-    if (finalLocationId === -1 || finalLocationId === undefined) {
-      console.error(
-        '오류: 유효하지 않은 locationId입니다. 장소를 다시 추가하세요.',
-      )
-      return // locationId가 없으면 함수 실행을 멈춤
-    }
-
-    setSelectedLocationId(locationId)
     setSelectedGroupId(id)
 
-    if (buttonText === '+ 장소 확정하기') {
-      console.log("'/letsmeet/middle'로 이동")
-      router.push('/letsmeet/middle')
-    } else if (buttonText === '+ 이어서 하기' || location === '미확정') {
-      console.log("'/search?from=/letsmeet'로 이동")
-      router.push('/search?from=/letsmeet')
+    if (buttonText === '+ 출발지 수정') {
+      // 모임장이면 중간 지점 찾기 페이지로 이동
+      if (participants.some((p) => p.type === 'creator&my')) {
+        router.push(`/letsmeet/middle?title=${encodeURIComponent(title)}`)
+      } else {
+        router.push(
+          `/search?from=/letsmeet&other=true&title=${encodeURIComponent(title)}`,
+        )
+      }
+    } else if (buttonText === '+ 장소 확정하기') {
+      router.push(`/letsmeet/middle?title=${encodeURIComponent(title)}`)
+    } else if (selectedLocation === '장소 선정 중') {
+      router.push(`/search?from=/letsmeet?title=${encodeURIComponent(title)}`)
     } else {
       setIsOpen(true)
+    }
+  }
+
+  const handleNotification = (type: string) => {
+    if (type == 'creator&my') {
+      showNotification('모임 나가기 완료!')
+    } else if (type == '&other') {
+      showNotification('내보내기 완료!')
+    } else if (type == '&my') {
+      showNotification('모임 나가기 완료!')
+    } else {
+      showNotification('삭제 실패')
+    }
+  }
+
+  const handleRemoveMember = async (userId: number, type: string) => {
+    try {
+      const urls: Record<string, string> = {
+        'creator&my': `${API_BASE_URL}/api/members/creator/${id}`,
+        '&other': `${API_BASE_URL}/api/group-members/delete/${id}`,
+        '&my': `${API_BASE_URL}/api/group-members/delete/self/${id}`,
+      }
+
+      if (!urls[type]) {
+        console.error('잘못된 타입:', type)
+        return
+      }
+
+      const requestData = type === 'creator&my' ? undefined : { userId }
+
+      const response = await axios.delete(urls[type], {
+        withCredentials: true,
+        data: requestData,
+      })
+
+      console.log(`${type} 삭제 성공:`, response.data.data)
+
+      setIsMembersModalOpen(false)
+      await Promise.all([getSchedule(), fetchNotification()])
+      handleNotification(type)
+
+      return response
+    } catch (error) {
+      console.error(`${type} 삭제 실패:`, error)
+      handleNotification('error')
+      throw error
     }
   }
 
@@ -277,9 +318,7 @@ export function LetsmeetCard({
         isFooter={false}
       >
         <MembersVariant
-          onClickX={(userId: number, type: string) =>
-            onRemoveMember(userId, type)
-          }
+          onClickX={handleRemoveMember}
           startDate={startDate}
           location={location}
           startTime={startTime}

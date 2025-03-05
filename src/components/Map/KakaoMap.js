@@ -74,50 +74,72 @@ const KakaoMap = ({
 
   // 선택된 장소의 주소를 지도에 표시
   useEffect(() => {
-    if (!map || !selectedPlace?.address) return
+    if (!map || !selectedPlace) return
 
-    const geocoder = new window.kakao.maps.services.Geocoder()
+    if (selectedPlace.lat && selectedPlace.lng) {
+      const coords = new window.kakao.maps.LatLng(
+        selectedPlace.lat,
+        selectedPlace.lng,
+      )
 
-    geocoder.addressSearch(selectedPlace.address, (result, status) => {
-      if (status === window.kakao.maps.services.Status.OK) {
-        const coords = new window.kakao.maps.LatLng(result[0].y, result[0].x)
+      map.setCenter(coords)
 
-        // 지도 중심 이동
-        map.setCenter(coords)
+      if (placeMarker) placeMarker.setMap(null)
 
-        // 기존 장소 마커 제거
-        if (placeMarker) placeMarker.setMap(null)
+      const markerImage = new window.kakao.maps.MarkerImage(
+        '/myLocation.svg',
+        new window.kakao.maps.Size(32, 60),
+        { offset: new window.kakao.maps.Point(16, 60) },
+      )
 
-        // 장소 타입에 따른 마커 이미지 설정
-        const markerImageSrc =
-          selectedPlace.category === 0
-            ? '/food_location.svg'
-            : selectedPlace.category === 1
-              ? '/cafe_location.svg'
-              : selectedPlace.category === 2
-                ? '/game_location.svg'
-                : '/campus_location.svg'
+      const newMarker = new window.kakao.maps.Marker({
+        position: coords,
+        image: markerImage,
+      })
+      newMarker.setMap(map)
+      setPlaceMarker(newMarker)
+      setOriginalPosition(coords)
+      return
+    }
 
-        const markerImage = new window.kakao.maps.MarkerImage(
-          markerImageSrc,
-          new window.kakao.maps.Size(32, 60),
-          { offset: new window.kakao.maps.Point(13, 30) },
-        )
+    if (selectedPlace.address) {
+      const geocoder = new window.kakao.maps.services.Geocoder()
 
-        // 새 장소 마커 추가
-        const newMarker = new window.kakao.maps.Marker({
-          position: coords,
-          image: markerImage,
-        })
-        newMarker.setMap(map)
-        setPlaceMarker(newMarker)
+      geocoder.addressSearch(selectedPlace.address, (result, status) => {
+        if (status === window.kakao.maps.services.Status.OK) {
+          const coords = new window.kakao.maps.LatLng(result[0].y, result[0].x)
 
-        // 마커의 원래 위치 저장
-        setOriginalPosition(coords)
-      } else {
-        console.error('주소 검색 실패:', selectedPlace.address)
-      }
-    })
+          map.setCenter(coords)
+
+          if (placeMarker) placeMarker.setMap(null)
+
+          const markerImageSrc =
+            selectedPlace.category === 0
+              ? '/food_location.svg'
+              : selectedPlace.category === 1
+                ? '/cafe_location.svg'
+                : selectedPlace.category === 2
+                  ? '/game_location.svg'
+                  : '/campus_location.svg'
+
+          const markerImage = new window.kakao.maps.MarkerImage(
+            markerImageSrc,
+            new window.kakao.maps.Size(32, 60),
+            { offset: new window.kakao.maps.Point(13, 30) },
+          )
+
+          const newMarker = new window.kakao.maps.Marker({
+            position: coords,
+            image: markerImage,
+          })
+          newMarker.setMap(map)
+          setPlaceMarker(newMarker)
+          setOriginalPosition(coords)
+        } else {
+          console.error('주소 검색 실패:', selectedPlace.address)
+        }
+      })
+    }
   }, [map, selectedPlace])
 
   // Bottom Sheet 상태 변경에 따른 지도 중심 및 마커 위치 조정
@@ -165,21 +187,21 @@ const KakaoMap = ({
       map.setCenter(newLocation)
 
       if (currentMarker) {
-        currentMarker.setPosition(newLocation)
-      } else {
-        const markerImage = new window.kakao.maps.MarkerImage(
-          '/myLocation.svg',
-          new window.kakao.maps.Size(32, 60),
-          { offset: new window.kakao.maps.Point(16, 60) },
-        )
-
-        const newMarker = new window.kakao.maps.Marker({
-          position: newLocation,
-          image: markerImage,
-        })
-        newMarker.setMap(map)
-        setCurrentMarker(newMarker)
+        currentMarker.setMap(null) // 기존 마커 제거
       }
+
+      const markerImage = new window.kakao.maps.MarkerImage(
+        '/myLocation.svg',
+        new window.kakao.maps.Size(32, 60),
+        { offset: new window.kakao.maps.Point(16, 60) },
+      )
+
+      const newMarker = new window.kakao.maps.Marker({
+        position: newLocation,
+        image: markerImage,
+      })
+      newMarker.setMap(map)
+      setCurrentMarker(newMarker)
     } catch (error) {
       console.error('현재 위치로 이동 중 오류:', error)
     }

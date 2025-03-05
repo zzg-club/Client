@@ -7,7 +7,6 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import { useGroupStore } from '@/store/groupStore'
 import { useLocationStore } from '@/store/locationsStore'
-import { useLocationIdStore } from '@/store/locationIdStore'
 
 export interface LocationModalProps {
   isVisible: boolean
@@ -35,7 +34,6 @@ export default function LocationModal({
   const [nearestTransit, setNearestTransit] = useState<string | null>(null)
   const { selectedGroupId } = useGroupStore()
   const { selectedLocation } = useLocationStore()
-  const { setSelectedLocationId } = useLocationIdStore()
 
   // URL에서 `transitName`이 존재하면 상태 업데이트
   useEffect(() => {
@@ -66,8 +64,7 @@ export default function LocationModal({
         `위치 ID 생성 완료: locationId = ${locationCreateData.data.location_id}`,
       )
 
-      setSelectedLocationId(locationCreateData.data.location_id)
-      // 검색 페이지로 이동
+          // 검색 페이지로 이동
       router.push(`/search?from=/letsmeet&direct=true`)
     } catch (error) {
       console.error('위치 생성 오류:', error)
@@ -136,11 +133,8 @@ export default function LocationModal({
         onClose() // 모달 닫기 추가
       }, 100) // 약간의 지연 추가
 
-      alert('중앙 위치가 확정되었습니다!')
+      router.replace('/letsmeet?middle=direct')
 
-      // `/letsmeet` 페이지 이동
-
-      router.replace('/letsmeet')
     } catch (error) {
       console.error('오류 발생:', error)
       alert('오류가 발생했습니다. 다시 시도해주세요.')
