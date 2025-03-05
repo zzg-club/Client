@@ -65,7 +65,9 @@ export function LetsmeetCard({
   const router = useRouter()
   const { setSelectedGroupId } = useGroupStore()
   const { setSelectedLocationId } = useLocationIdStore()
-  const [selectedLocation] = useState(location || '미확정')
+  const [selectedLocation] = useState(
+    location === '미확정' ? '장소 선정 중' : location,
+  )
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
 
@@ -123,8 +125,8 @@ export function LetsmeetCard({
       ? participants[myCompleteIndex]?.type === 'creator&my'
         ? '+ 장소 확정하기'
         : '내 장소 수정'
-      : selectedLocation === '미확정'
-        ? '+ 이어서 하기'
+      : selectedLocation === '장소 선정 중'
+        ? '+ 출발지 수정'
         : '+ 일정 정하기'
 
   const handleOpenScheduleModal = (e: React.MouseEvent) => {
@@ -148,11 +150,16 @@ export function LetsmeetCard({
     setSelectedLocationId(locationId)
     setSelectedGroupId(id)
 
-    if (buttonText === '+ 장소 확정하기') {
-      console.log("'/letsmeet/middle'로 이동")
+    if (buttonText === '+ 출발지 수정') {
+      // 모임장이면 중간 지점 찾기 페이지로 이동
+      if (participants.some((p) => p.type === 'creator&my')) {
+        router.push('/letsmeet/middle')
+      } else {
+        router.push('/search?from=/letsmeet')
+      }
+    } else if (buttonText === '+ 장소 확정하기') {
       router.push('/letsmeet/middle')
-    } else if (buttonText === '+ 이어서 하기' || location === '미확정') {
-      console.log("'/search?from=/letsmeet'로 이동")
+    } else if (selectedLocation === '장소 선정 중') {
       router.push('/search?from=/letsmeet')
     } else {
       setIsOpen(true)
