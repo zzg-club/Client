@@ -6,12 +6,12 @@ import Button from '@/components/Buttons/Floating/Button'
 import { ScheduleOptions } from '@/components/Buttons/Floating/Options'
 import CarouselNotification from '@/components/Notification/CarouselNotification'
 import { LetsmeetCard } from '@/components/Cards/LetsmeetCard'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import LocationModal from '@/components/Modals/DirectSelect/LocationModal'
 import { useGroupStore } from '@/store/groupStore'
 import { useSurveyStore } from '@/store/surveyStore'
 import { useLocationIdStore } from '@/store/locationIdStore'
-
+import { useNotificationStore } from '@/store/notificationStore'
 type Schedule = {
   id: number
   startDate: string
@@ -41,11 +41,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
 
 export default function LetsMeetPage() {
   const router = useRouter()
-  const [searchParams, setSearchParams] = useState<URLSearchParams | null>(null)
-  useEffect(() => {
-    setSearchParams(new URLSearchParams(window.location.search))
-  }, [])
-
+  const searchParams = useSearchParams()
   const isDirectModal = searchParams?.get('direct') === 'true'
   const place = searchParams?.get('place') || ''
   const lat = searchParams?.get('lat')
@@ -70,6 +66,9 @@ export default function LetsMeetPage() {
     lat: number
     lng: number
   } | null>(null)
+  const showNotification = useNotificationStore(
+    (state) => state.showNotification,
+  )
 
   //`direct=true`이면 모달 자동으로 열기
   useEffect(() => {
@@ -77,6 +76,19 @@ export default function LetsMeetPage() {
       setIsDirectModalOpen(true)
     }
   }, [isDirectModal])
+
+  useEffect(() => {
+    // 렛츠밋 페이지에 들어올 때 `toast=true`가 있으면 토스트 띄우기
+    if (searchParams?.get('toast') === 'true') {
+      showNotification('출발지 입력 완료!')
+
+      // URL에서 `toast=true`를 제거하여 새로고침 시 중복 방지
+      const newSearchParams = new URLSearchParams(window.location.search)
+      newSearchParams.delete('toast')
+      const newUrl = `${window.location.pathname}?${newSearchParams.toString()}`
+      window.history.replaceState(null, '', newUrl)
+    }
+  }, [searchParams, showNotification])
 
   // URL에서 받아온 값으로 상태 업데이트
   useEffect(() => {

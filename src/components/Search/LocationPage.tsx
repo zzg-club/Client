@@ -79,6 +79,8 @@ const LocationPage: React.FC<LocationPageProps> = ({
 
     const [isModalVisible, setIsModalVisible] = useState(isDirectModal)
 
+    const isOther = searchParams.get('other') === 'true'
+
     const fetchAddressByQuery = useCallback(async (query: string) => {
       if (!query.trim()) {
         setLocations([])
@@ -250,18 +252,22 @@ const LocationPage: React.FC<LocationPageProps> = ({
           useLocationStore.getState().setNearestTransit(transitName)
 
           sendLocation(location.lat, location.lng)
-          console.log('location page->websocket 위치 전송 완료:', location)
+          //console.log('location page->websocket 위치 전송 완료:', location)
 
           // 이동할 때 transitName을 URL에 추가
-          if (from == '/place') {
-            router.push(`/place`)
+          if (isOther) {
+            router.push(`/letsmeet?toast=true`)
           } else {
-            if (!isDirectModal) {
-              router.push(`/letsmeet/middle?from=${from}`)
+            if (from == '/place') {
+              router.push(`/place`)
             } else {
-              router.push(
-                `/letsmeet/?from=${from}&direct=${isDirectModal}&transitName=${encodeURIComponent(transitName)}`,
-              )
+              if (!isDirectModal) {
+                router.push(`/letsmeet/middle?from=${from}`)
+              } else {
+                router.push(
+                  `/letsmeet/?from=${from}&direct=${isDirectModal}&transitName=${encodeURIComponent(transitName)}`,
+                )
+              }
             }
           }
         } catch (error) {

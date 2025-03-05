@@ -13,6 +13,7 @@ export default function SearchPage() {
   const isDirectModal = searchParams.get('direct') === 'true'
   const { selectedGroupId } = useGroupStore()
   const [searchQuery, setSearchQuery] = useState('')
+  const isOther = searchParams.get('other') === 'true'
 
   useEffect(() => {
     if (!selectedGroupId) {
@@ -31,13 +32,13 @@ export default function SearchPage() {
     }
 
     router.push(
-      `/search/location?from=${from}&query=${encodeURIComponent(trimmedQuery)}&direct=${isDirectModal}`,
+      `/search/location?from=${from}&query=${encodeURIComponent(trimmedQuery)}&direct=${isDirectModal}&other=${isOther}`,
     )
   }
 
   const handleLocationClick = () => {
     router.push(
-      `/search/location?from=${from}&query=current&direct=${isDirectModal}`,
+      `/search/location?from=${from}&query=current&direct=${isDirectModal}&other=${isOther}`,
     )
   }
 

@@ -161,7 +161,7 @@ export function LetsmeetCard({
       if (participants.some((p) => p.type === 'creator&my')) {
         router.push('/letsmeet/middle')
       } else {
-        router.push('/search?from=/letsmeet')
+        router.push(`/search?from=/letsmeet&other=true`)
       }
     } else if (buttonText === '+ 장소 확정하기') {
       router.push('/letsmeet/middle')
