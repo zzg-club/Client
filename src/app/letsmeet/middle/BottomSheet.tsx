@@ -12,6 +12,7 @@ interface Participant {
   userProfile: string
   latitude: number
   longitude: number
+  type: string
 }
 
 interface Time {
@@ -147,7 +148,11 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
         if (userTime) return userTime.time
       }
     }
-    return null
+    return 0
+  }
+
+  const getUserImage = (type: string) => {
+    return type === '&my' ? '/subwayPurple.svg' : '/subwayGray.svg'
   }
 
   return (
@@ -208,7 +213,7 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
                     className={styles.participantIcon}
                     style={{
                       borderColor:
-                        index === 0
+                        participant.type === '&my'
                           ? 'var(--MainColor, #9562FB)'
                           : 'var(--subway_time, #AFAFAF)',
                       borderRadius: '50%', // 원형 프로필 유지 (필요 시 추가)
@@ -220,19 +225,19 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
                     className={styles.participantText}
                     style={{
                       color:
-                        index === 0
+                        participant.type === '&my'
                           ? 'var(--MainColor, #9562FB)'
                           : 'var(--subway_time, #AFAFAF)',
                     }}
                   >
-                    {userTime !== undefined ? `${userTime}분` : ''}
+                    {userTime}분
                   </p>
                   <Image
-                    src={'/train.svg'}
+                    src={getUserImage(participant.type)}
                     alt="Transport Icon"
                     width={28}
                     height={28}
-                    className={`${styles.transportIcon} ${index === 0 ? styles.mainTransportIcon : ''}`}
+                    className="w-[28px] h-[28px] object-contain aspect-square"
                   />
                 </div>
               )

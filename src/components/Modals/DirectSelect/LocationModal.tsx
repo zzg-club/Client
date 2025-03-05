@@ -136,11 +136,8 @@ export default function LocationModal({
         onClose() // 모달 닫기 추가
       }, 100) // 약간의 지연 추가
 
-      alert('중앙 위치가 확정되었습니다!')
+      router.replace('/letsmeet?middle=direct')
 
-      // `/letsmeet` 페이지 이동
-
-      router.replace('/letsmeet')
     } catch (error) {
       console.error('오류 발생:', error)
       alert('오류가 발생했습니다. 다시 시도해주세요.')

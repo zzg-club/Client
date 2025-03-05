@@ -274,7 +274,7 @@ const LocationPage: React.FC<LocationPageProps> = ({
           console.error('사용자 위치 저장 오류:', error)
         }
       },
-      [selectedGroupId, sendLocation, router, from, isDirectModal],
+      [selectedGroupId, sendLocation, router, from, isDirectModal,isOther],
     )
 
     const handleBackClick = () => {

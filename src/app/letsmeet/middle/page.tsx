@@ -18,6 +18,7 @@ interface Participant {
   userProfile: string
   latitude: number
   longitude: number
+  type: string
 }
 
 interface Time {
@@ -67,6 +68,30 @@ export default function Middle() {
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
   const router = useRouter()
 
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null)
+
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/user/information`, {
+          method: 'GET',
+          credentials: 'include',
+        })
+
+        if (!response.ok) throw new Error('유저 정보 불러오기 실패')
+
+        const data = await response.json()
+        //console.log('유저 정보:', data);
+
+        setCurrentUserId(data.data.userId) // 현재 로그인한 유저의 ID 저장
+      } catch (error) {
+        console.error('유저 정보 가져오기 실패:', error)
+      }
+    }
+
+    fetchUserInfo()
+  }, [])
+
   const handleTitleChange = async (newTitle: string) => {
     setGroupTitle(newTitle) // 제목 변경 상태 저장
 
@@ -99,7 +124,7 @@ export default function Middle() {
       return 'https://t1.kakaocdn.net/account_images/default_profile.jpeg' // ✅ HTTPS 기본 프로필
     }
 
-    console.log(`원본 프로필 URL: ${url}`)
+    //console.log(`원본 프로필 URL: ${url}`)
 
     // 강제 변환: `img1.kakaocdn.net` → `t1.kakaocdn.net`
     let fixedUrl = url
@@ -111,7 +136,7 @@ export default function Middle() {
       fixedUrl = fixedUrl.split('?fname=')[1]
     }
 
-    console.log(`변환된 프로필 URL: ${fixedUrl}`)
+    //console.log(`변환된 프로필 URL: ${fixedUrl}`)
     return fixedUrl
   }
 
@@ -149,6 +174,7 @@ export default function Middle() {
                 fixProfileUrl(data.data.myLocation.userProfile) || '',
               latitude: data.data.myLocation.latitude,
               longitude: data.data.myLocation.longitude,
+              type: '&my',
             })
           }
 
@@ -159,6 +185,7 @@ export default function Middle() {
               userProfile: fixProfileUrl(member.userProfile) || '',
               latitude: member.latitude,
               longitude: member.longitude,
+              type: '&other',
             })
           })
 
@@ -190,6 +217,7 @@ export default function Middle() {
         userProfile: loc.userProfile?.replace('http://', 'https://') || '',
         latitude: loc.latitude,
         longitude: loc.longitude,
+        type: loc.userId === currentUserId ? '&my' : '&other',
       })),
     )
   }, [locations]) // prevParticipants 제거

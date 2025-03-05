@@ -12,6 +12,7 @@ import { useGroupStore } from '@/store/groupStore'
 import { useSurveyStore } from '@/store/surveyStore'
 import { useLocationIdStore } from '@/store/locationIdStore'
 import { useNotificationStore } from '@/store/notificationStore'
+
 type Schedule = {
   id: number
   startDate: string
@@ -78,13 +79,22 @@ export default function LetsMeetPage() {
   }, [isDirectModal])
 
   useEffect(() => {
-    // 렛츠밋 페이지에 들어올 때 `toast=true`가 있으면 토스트 띄우기
     if (searchParams?.get('toast') === 'true') {
       showNotification('출발지 입력 완료!')
 
-      // URL에서 `toast=true`를 제거하여 새로고침 시 중복 방지
       const newSearchParams = new URLSearchParams(window.location.search)
       newSearchParams.delete('toast')
+      const newUrl = `${window.location.pathname}?${newSearchParams.toString()}`
+      window.history.replaceState(null, '', newUrl)
+    }
+  }, [searchParams, showNotification])
+
+  useEffect(() => {
+    if (searchParams?.get('middle') === 'direct') {
+      showNotification('위치가 확정되었습니다!')
+
+      const newSearchParams = new URLSearchParams(window.location.search)
+      newSearchParams.delete('middle')
       const newUrl = `${window.location.pathname}?${newSearchParams.toString()}`
       window.history.replaceState(null, '', newUrl)
     }
