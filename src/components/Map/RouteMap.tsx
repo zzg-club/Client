@@ -132,7 +132,7 @@ const RouteMap: React.FC<RouteMapProps> = ({
       return
     }
 
-    console.log('경로를 생성할 목적지:', selectedDestination)
+    //console.log('경로를 생성할 목적지:', selectedDestination)
 
     const fetchAndDisplayRoutes = async () => {
       for (const participant of participants) {
@@ -167,7 +167,7 @@ const RouteMap: React.FC<RouteMapProps> = ({
             continue
           }
 
-          console.log(`${participant.name}님의 경로 데이터:`, routeSegments)
+          //console.log(`${participant.name}님의 경로 데이터:`, routeSegments)
 
           const routePath = routeSegments.flatMap((segment: string) =>
             segment.split(' ').map((point) => {

@@ -50,7 +50,7 @@ const PinMap: React.FC<PinMapProps> = ({
       return 'https://t1.kakaocdn.net/account_images/default_profile.jpeg' // HTTPS 기본 프로필
     }
 
-    console.log(`원본 프로필 URL: ${url}`)
+    //console.log(`원본 프로필 URL: ${url}`)
 
     // 강제 변환: `img1.kakaocdn.net` → `t1.kakaocdn.net`
     let fixedUrl = url
@@ -62,7 +62,7 @@ const PinMap: React.FC<PinMapProps> = ({
       fixedUrl = fixedUrl.split('?fname=')[1]
     }
 
-    console.log(`변환된 프로필 URL: ${fixedUrl}`)
+    //console.log(`변환된 프로필 URL: ${fixedUrl}`)
     return fixedUrl
   }
 
@@ -174,7 +174,7 @@ const PinMap: React.FC<PinMapProps> = ({
         if (!response.ok) throw new Error('Failed to fetch location data')
 
         const data = await response.json()
-        console.log('참여자 위치 데이터:', data)
+        //console.log('참여자 위치 데이터:', data)
 
         if (!data.success) return
 
@@ -299,7 +299,7 @@ const PinMap: React.FC<PinMapProps> = ({
       currentDestinationIndex < destinations.length
     ) {
       const destination = destinations[currentDestinationIndex]
-      console.log('추가할 목적지:', destination)
+      //console.log('추가할 목적지:', destination)
 
       const destinationPinHtml = ReactDOMServer.renderToString(
         <DestinationPin stationName={`${destination.stationName}`} />,
