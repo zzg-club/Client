@@ -10,11 +10,12 @@ import { fetchUserInformation } from '@/services/place'
 import { toggleLike } from '@/services/place'
 import { fetchLikeCount } from '@/services/place'
 import { CardData } from '@/types/card'
-import { Place } from '@/types/place'
 import { CategoryPerData } from '@/types/categoryPerData'
 import { fetchCategoryData } from '@/services/place'
 import { fetchFilteredCategoryData } from '@/services/place'
 import { fetchFilters } from '@/services/place'
+import { useLocationStore } from '@/store/locationsStore'
+import { getCurrentLocation } from '@/components/Map/getCurrentLocation'
 
 const tabs = [
   { id: 'food', label: '음식점' },
@@ -24,25 +25,36 @@ const tabs = [
 ]
 
 export default function Home() {
-  const [selectedPlace] = useState<Place | undefined>(undefined)
   const [bottomSheetState, setBottomSheetState] = useState<
     'collapsed' | 'middle' | 'expanded'
   >('collapsed')
-  const [filters, setFilters] = useState<CategoryPerData[]>([]) // 필터 데이터를 저장
+  const [filters, setFilters] = useState<CategoryPerData[]>([])
   const [selectedTab, setSelectedTab] = useState<string>(tabs[0].id)
   const startY = useRef<number | null>(null)
   const threshold = 50
   const router = useRouter()
   const mapRef = useRef<() => void | null>(null)
   const [selectedFilters, setSelectedFilters] = useState<string[]>([])
-  const [cardData, setCardData] = useState<CardData[]>([]) // 카드 데이터를 저장
+  const [cardData, setCardData] = useState<CardData[]>([])
   const [userName, setUserName] = useState('')
   const isDraggingRef = useRef<boolean>(false)
   const [page, setPage] = useState(0)
   const [loading, setLoading] = useState(false)
   const bottomSheetRef = useRef<HTMLDivElement | null>(null)
+  const { selectedLocation } = useLocationStore()
+  const [searchText, setSearchText] = useState('')
+  const filtersRef = useRef<string[]>([])
 
-  const loadMoreData = async (forcePage?: number) => {
+  useEffect(() => {
+    if (selectedLocation?.place) {
+      setSearchText(selectedLocation.placeName)
+    }
+  }, [selectedLocation])
+
+  const loadMoreData = async (
+    pageNumber = page + 1,
+    filters = filtersRef.current,
+  ) => {
     if (loading) return
     setLoading(true)
 
@@ -50,13 +62,19 @@ export default function Home() {
       const categoryIndex = tabs.findIndex((tab) => tab.id === selectedTab)
       if (categoryIndex === -1) return
 
-      const newPage = forcePage !== undefined ? forcePage : page + 1
+      let newData: CardData[] = []
 
-      const newData = await fetchCategoryData(categoryIndex, newPage)
-
-      if (!newData || newData.length === 0) {
-        return
+      if (filters.length > 0) {
+        newData = await fetchCategoryDataWithFilters(
+          categoryIndex,
+          filters,
+          pageNumber,
+        )
+      } else {
+        newData = await fetchCategoryData(categoryIndex, pageNumber)
       }
+
+      if (!newData || newData.length === 0) return
 
       setCardData((prev) => {
         const existingIds = new Set(prev.map((card) => card.id))
@@ -66,7 +84,7 @@ export default function Home() {
         return [...prev, ...filteredNewData]
       })
 
-      setPage(newPage)
+      setPage(pageNumber)
     } catch (error) {
       console.error('Error fetching more data:', error)
     } finally {
@@ -78,6 +96,11 @@ export default function Home() {
     if (page === 0) return
     loadMoreData(page)
   }, [page])
+
+  const handleBottomSheetScroll = (event: React.UIEvent<HTMLDivElement>) => {
+    event.stopPropagation() // 이벤트 전파 차단
+    handleScroll()
+  }
 
   const handleScroll = () => {
     if (loading) return
@@ -248,35 +271,42 @@ export default function Home() {
         ? prevSelected.filter((item) => item !== filter)
         : [...prevSelected, filter]
 
-      const categoryIndex = tabs.findIndex((tab) => tab.id === selectedTab)
-      if (categoryIndex !== -1) {
-        setPage(0)
-        setCardData([])
-
-        if (updatedFilters.length > 0) {
-          fetchCategoryDataWithFilters(categoryIndex, updatedFilters, 0).then(
-            (data) => {
-              updateCardData(data).then(setCardData)
-            },
-          )
-        } else {
-          fetchCategoryData(categoryIndex, 0).then((data) => {
-            updateCardData(data).then(setCardData)
-          })
-        }
-      }
+      filtersRef.current = updatedFilters
 
       return updatedFilters
     })
   }
 
   useEffect(() => {
+    setPage(0)
+    setCardData([])
+    loadMoreData(0, filtersRef.current)
+  }, [selectedFilters])
+
+  useEffect(() => {
     handleTabClick(selectedTab)
   }, [selectedTab])
 
-  const handleVectorButtonClick = () => {
-    if (mapRef.current) {
-      mapRef.current()
+  const handleVectorButtonClick = async () => {
+    try {
+      const { lat, lng } = await getCurrentLocation()
+
+      useLocationStore.setState({
+        selectedLocation: {
+          placeName: '원하는 곳을 검색해봐요!',
+          place: '현재 위치',
+          lat,
+          lng,
+        },
+      })
+
+      setSearchText('원하는 곳을 검색해봐요!')
+
+      if (mapRef.current) {
+        mapRef.current()
+      }
+    } catch (error) {
+      console.error('현재 위치 가져오기 실패:', error)
     }
   }
 
@@ -314,7 +344,7 @@ export default function Home() {
     if (handleElement) {
       const handleRect = handleElement.getBoundingClientRect()
       if (handleRect.bottom >= window.innerHeight) {
-        console.log('📌 드래그 핸들이 화면 아래 닿음!')
+        console.log('드래그 핸들이 화면 아래 닿음!')
         // 필요한 동작 수행 (예: 특정 이벤트 트리거)
       }
     }
@@ -395,7 +425,12 @@ export default function Home() {
             alt="search"
             className={styles['search-icon']}
           />
-          <input type="text" placeholder="원하는 곳을 검색해봐요!" readOnly />
+          <input
+            type="text"
+            value={searchText}
+            placeholder="원하는 곳을 검색해봐요!"
+            readOnly
+          />
         </div>
         <button
           className={styles['vector-button']}
@@ -408,8 +443,27 @@ export default function Home() {
           />
         </button>
       </div>
+
       <KakaoMap
-        selectedPlace={selectedPlace ?? undefined}
+        selectedPlace={
+          selectedLocation?.lat && selectedLocation?.lng
+            ? (() => {
+                return {
+                  id: 0, // 기본값 (필요 시 수정)
+                  category: 0, // 기본값 (필요 시 수정)
+                  name: selectedLocation.place,
+                  address: selectedLocation.place,
+                  word: '',
+                  pictures: [],
+                  time: '',
+                  likes: 0,
+                  phoneNumber: '',
+                  lat: selectedLocation.lat,
+                  lng: selectedLocation.lng,
+                }
+              })()
+            : undefined
+        }
         onMoveToCurrentLocation={(moveToCurrentLocation) =>
           (mapRef.current = moveToCurrentLocation)
         }
@@ -438,6 +492,7 @@ export default function Home() {
         onTouchMove={(e) => handleMove(e.touches[0].clientY)}
         onTouchEnd={handleEnd}
         onMouseDown={(e) => handleStart(e.clientY)}
+        onScroll={handleBottomSheetScroll}
       >
         <div className={styles.dragHandle}></div>
         <div className={styles.content}>
