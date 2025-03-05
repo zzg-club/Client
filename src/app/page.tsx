@@ -4,12 +4,12 @@ import { useState, useRef, useEffect } from 'react'
 import { fetchKakaoLoginUrl } from '@/services/place'
 
 export default function Home() {
-  const [isSheetExpanded, setIsSheetExpanded] = useState(false) 
+  const [isSheetExpanded, setIsSheetExpanded] = useState(false)
   const startYRef = useRef<number | null>(null)
   const isDraggingRef = useRef<boolean>(false)
 
   useEffect(() => {
-    setTimeout(() => setIsSheetExpanded(true), 0) 
+    setTimeout(() => setIsSheetExpanded(true), 0)
   }, [])
 
   const handleKakaoLogin = async () => {
@@ -19,7 +19,7 @@ export default function Home() {
 
       // 반환된 URL로 이동
       if (kakaoLoginUrl.startsWith('http')) {
-        window.location.href = kakaoLoginUrl 
+        window.location.href = kakaoLoginUrl
       } else {
         console.error('잘못된 로그인 URL:', kakaoLoginUrl)
         alert('로그인 URL이 유효하지 않습니다.')
@@ -199,18 +199,20 @@ export default function Home() {
             {/* 오른쪽 실선 */}
             <div
               style={{
-                flex: 1, 
+                flex: 1,
                 height: '0.5px',
                 backgroundColor: 'var(--NavBarColor, #AFAFAF)',
               }}
             ></div>
           </div>
-          <div style={{ 
-            display: 'flex', 
-            justifyContent: 'center',  
-            alignItems: 'center',      
-            width: '100%',             
-          }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              width: '100%',
+            }}
+          >
             {/* 카카오 로그인 버튼 */}
             <div
               className="kakao_button"

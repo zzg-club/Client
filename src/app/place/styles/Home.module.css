@@ -52,6 +52,7 @@
   font-size: 18px;
   padding: 0 0 0 8px;
   overflow: hidden;
+  color: #afafaf;
 }
 
 /* 오른쪽 버튼 스타일 */
@@ -146,7 +147,7 @@
   position: fixed;
   left: 50.2%;
   width: 100%;
-  max-width: 600px; 
+  max-width: 600px;
   transform: translateX(-50%);
   display: flex;
   transition: bottom 0.3s ease-in-out;
@@ -189,7 +190,6 @@
 .tabs.collapsed {
   bottom: 52px;
 }
-
 
 .tabs.middle {
   bottom: 212px; /* Bottom Sheet가 middle일 때 */
