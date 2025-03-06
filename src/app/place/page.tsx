@@ -92,11 +92,6 @@ export default function Home() {
     }
   }
 
-  useEffect(() => {
-    if (page === 0) return
-    loadMoreData(page)
-  }, [page])
-
   const handleBottomSheetScroll = (event: React.UIEvent<HTMLDivElement>) => {
     event.stopPropagation() // 이벤트 전파 차단
     handleScroll()
@@ -114,7 +109,7 @@ export default function Home() {
       (bottomSheetState === 'expanded' || bottomSheetState === 'middle') &&
       scrollTop + clientHeight >= scrollHeight * 0.9
     ) {
-      setPage((prev) => prev + 1)
+      loadMoreData(page + 1) // ✅ 여기서 바로 데이터 로드 실행 (setPage() 사용 X)
     }
   }
 
