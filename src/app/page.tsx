@@ -31,7 +31,7 @@ export default function Home() {
       } catch (error) {
         console.error('유저 정보 불러오기 실패:', error)
       } finally {
-        setLoading(false) 
+        setLoading(false)
       }
     }
 
@@ -42,7 +42,6 @@ export default function Home() {
     setTimeout(() => setIsSheetExpanded(true), 0)
   }, [])
 
-  
   if (loading) return null
 
   const handleKakaoLogin = async () => {

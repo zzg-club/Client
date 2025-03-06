@@ -99,12 +99,12 @@ export default function Home() {
 
   const handleScroll = () => {
     if (loading) return
-  
+
     const bottomSheet = bottomSheetRef.current
     if (!bottomSheet) return
-  
+
     const { scrollTop, scrollHeight, clientHeight } = bottomSheet
-  
+
     if (
       (bottomSheetState === 'expanded' || bottomSheetState === 'middle') &&
       scrollTop + clientHeight >= scrollHeight * 0.9
@@ -112,7 +112,6 @@ export default function Home() {
       loadMoreData(page + 1) // ✅ 여기서 바로 데이터 로드 실행 (setPage() 사용 X)
     }
   }
-  
 
   useEffect(() => {
     const bottomSheet = bottomSheetRef.current
