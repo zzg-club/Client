@@ -2,15 +2,47 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { fetchKakaoLoginUrl } from '@/services/place'
+import { useRouter } from 'next/navigation'
 
 export default function Home() {
   const [isSheetExpanded, setIsSheetExpanded] = useState(false)
   const startYRef = useRef<number | null>(null)
   const isDraggingRef = useRef<boolean>(false)
+  const router = useRouter()
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
+  const [loading, setLoading] = useState(true) // 로딩 상태 추가
+
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/user/information`, {
+          method: 'GET',
+          credentials: 'include', // 쿠키 포함 요청
+        })
+
+        if (!response.ok) {
+          return
+        }
+
+        const data = await response.json()
+        console.log('유저 정보:', data)
+
+        router.replace('/schedule')
+      } catch (error) {
+        console.error('유저 정보 불러오기 실패:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchUserInfo()
+  }, [router])
 
   useEffect(() => {
     setTimeout(() => setIsSheetExpanded(true), 0)
   }, [])
+
+  if (loading) return null
 
   const handleKakaoLogin = async () => {
     try {
