@@ -93,11 +93,11 @@ export default function SearchPage() {
         {/* 검색 버튼 */}
         <button
           className="text-xl text-center font-pretendard font-medium leading-[17px] tracking-[-0.5px] text-[#9562fb] cursor-pointer pointer-events-auto"
-          onClick={handleSearch} // 클릭 시 검색 실행
-          onTouchEnd={(event) => {
-            event.preventDefault() // 기본 터치 동작 방지
-            handleSearch()
-          }} // 모바일에서는 onTouchEnd 사용
+          onTouchEnd={() => {
+            setTimeout(() => {
+              handleSearch()
+            }, 100) // 100ms 딜레이
+          }}
         >
           검색
         </button>
