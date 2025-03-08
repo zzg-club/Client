@@ -29,14 +29,14 @@ export default function SearchPage() {
 
   useEffect(() => {
     const handleTouchStart = (event: TouchEvent) => {
-      if (event.cancelable) {
-        event.preventDefault() // 기본 동작 방지
-      }
+      // 기존: 모든 터치 이벤트를 막음 -> 일부 요소에서 터치 이벤트가 차단될 수 있음
+      // if (event.cancelable) {
+      //   event.preventDefault();
+      // }
+      console.log('터치 이벤트 감지됨:', event)
     }
 
-    document.addEventListener('touchstart', handleTouchStart, {
-      passive: false,
-    })
+    document.addEventListener('touchstart', handleTouchStart)
 
     return () => {
       document.removeEventListener('touchstart', handleTouchStart)
@@ -83,14 +83,17 @@ export default function SearchPage() {
         <SearchBar
           placeholder="출발지를 입력해주세요!"
           onChange={(value) => setSearchQuery(value.trim())} // 불필요한 공백 제거
-          onKeyDown={(event) => event.key === 'Enter' && handleSearch()} // 엔터 키 입력 시 검색 실행
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') {
+              event.preventDefault() // 기본 동작 방지 (폼 제출 방지)
+              handleSearch() // 검색 실행
+            }
+          }}
         />
-
         {/* 검색 버튼 */}
         <button
-          className="text-xl text-center font-pretendard font-medium leading-[17px] tracking-[-0.5px] text-[#9562fb] cursor-pointer"
+          className="text-xl text-center font-pretendard font-medium leading-[17px] tracking-[-0.5px] text-[#9562fb] cursor-pointer pointer-events-auto"
           onClick={handleSearch} // 클릭 시 검색 실행
-          onTouchEnd={handleSearch} // 모바일 터치 대응
         >
           검색
         </button>
