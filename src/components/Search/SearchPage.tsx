@@ -29,14 +29,14 @@ export default function SearchPage() {
 
   useEffect(() => {
     const handleTouchStart = (event: TouchEvent) => {
-      // 기존: 모든 터치 이벤트를 막음 -> 일부 요소에서 터치 이벤트가 차단될 수 있음
-      // if (event.cancelable) {
-      //   event.preventDefault();
-      // }
-      console.log('터치 이벤트 감지됨:', event)
+      if (event.cancelable) {
+        event.preventDefault() // 기본 터치 동작 방지
+      }
     }
 
-    document.addEventListener('touchstart', handleTouchStart)
+    document.addEventListener('touchstart', handleTouchStart, {
+      passive: false,
+    })
 
     return () => {
       document.removeEventListener('touchstart', handleTouchStart)
@@ -94,6 +94,10 @@ export default function SearchPage() {
         <button
           className="text-xl text-center font-pretendard font-medium leading-[17px] tracking-[-0.5px] text-[#9562fb] cursor-pointer pointer-events-auto"
           onClick={handleSearch} // 클릭 시 검색 실행
+          onTouchEnd={(event) => {
+            event.preventDefault() // 기본 터치 동작 방지
+            handleSearch()
+          }} // 모바일에서는 onTouchEnd 사용
         >
           검색
         </button>
