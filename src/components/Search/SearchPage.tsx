@@ -29,9 +29,7 @@ export default function SearchPage() {
 
   useEffect(() => {
     const handleTouchStart = (event: TouchEvent) => {
-      if (event.cancelable) {
-        event.preventDefault() // 기본 터치 동작 방지
-      }
+      console.log('터치 이벤트 감지됨:', event)
     }
 
     document.addEventListener('touchstart', handleTouchStart, {
@@ -92,11 +90,11 @@ export default function SearchPage() {
         />
         {/* 검색 버튼 */}
         <button
-          className="text-xl text-center font-pretendard font-medium leading-[17px] tracking-[-0.5px] text-[#9562fb] cursor-pointer pointer-events-auto"
+          className=" z-[9999] text-xl text-center font-pretendard font-medium leading-[17px] tracking-[-0.5px] text-[#9562fb] cursor-pointer pointer-events-auto"
           onTouchEnd={() => {
             setTimeout(() => {
               handleSearch()
-            }, 100) // 100ms 딜레이
+            }, 100)
           }}
         >
           검색
