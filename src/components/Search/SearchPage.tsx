@@ -70,7 +70,7 @@ export default function SearchPage() {
         <button
           className="text-xl text-center font-pretendard font-medium leading-[17px] tracking-[-0.5px] text-[#9562fb] cursor-pointer"
           onClick={handleSearch} // 클릭 시 검색 실행
-          onTouchStart={handleSearch} // 모바일 터치 대응
+          onTouchEnd={handleSearch} // 모바일 터치 대응
         >
           검색
         </button>
