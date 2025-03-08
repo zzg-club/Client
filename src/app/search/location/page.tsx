@@ -3,6 +3,7 @@
 import React, { Suspense, useEffect, useState } from 'react'
 import LocationPage from '@/components/Search/LocationPage'
 import { useSearchParams, useRouter } from 'next/navigation'
+import Image from 'next/image'
 
 const LocationComponent = () => {
   const router = useRouter()
@@ -47,11 +48,31 @@ const Location = () => {
   }, [])
 
   if (!isClient) {
-    return <div>Loading...</div>
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Image
+          src="/loadingspinner.gif"
+          alt="로딩 중..."
+          width={100}
+          height={100}
+        />
+      </div>
+    )
   }
 
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center h-screen">
+          <Image
+            src="/loadingspinner.gif"
+            alt="로딩 중..."
+            width={100}
+            height={100}
+          />
+        </div>
+      }
+    >
       <LocationComponent />
     </Suspense>
   )
