@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import SearchBar from '@/components/SearchBar/SearchBar'
 import Image from 'next/image'
 import { useGroupStore } from '@/store/groupStore'
+import { useNotificationStore } from '@/store/notificationStore'
 
 export default function SearchPage() {
   const router = useRouter()
@@ -14,6 +15,9 @@ export default function SearchPage() {
   const { selectedGroupId } = useGroupStore()
   const [searchQuery, setSearchQuery] = useState('')
   const isOther = searchParams.get('other') === 'true'
+  const showNotification = useNotificationStore(
+    (state) => state.showNotification,
+  )
 
   useEffect(() => {
     if (!selectedGroupId) {
@@ -23,11 +27,27 @@ export default function SearchPage() {
     }
   }, [selectedGroupId])
 
+  useEffect(() => {
+    const handleTouchStart = (event: TouchEvent) => {
+      if (event.cancelable) {
+        event.preventDefault() // 기본 동작 방지
+      }
+    }
+
+    document.addEventListener('touchstart', handleTouchStart, {
+      passive: false,
+    })
+
+    return () => {
+      document.removeEventListener('touchstart', handleTouchStart)
+    }
+  }, [])
+
   // 검색 실행 함수
   const handleSearch = () => {
     const trimmedQuery = searchQuery.trim()
     if (!trimmedQuery) {
-      alert('검색어를 입력해주세요.')
+      showNotification('검색어를 입력해주세요!')
       return
     }
 
