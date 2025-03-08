@@ -9,6 +9,7 @@ import LocationModal from '@/components/Modals/DirectSelect/LocationModal'
 import useWebSocket from '@/hooks/useWebSocket'
 import { useLocationStore } from '@/store/locationsStore'
 import { useGroupStore } from '@/store/groupStore'
+import { useNotificationStore } from '@/store/notificationStore'
 
 const KAKAO_API_KEY = process.env.NEXT_PUBLIC_KAKAO_REST_API_KEY
 
@@ -81,6 +82,10 @@ const LocationPage: React.FC<LocationPageProps> = ({
     const [isModalVisible, setIsModalVisible] = useState(isDirectModal)
 
     const isOther = searchParams.get('other') === 'true'
+
+    const showNotification = useNotificationStore(
+      (state) => state.showNotification,
+    )
 
     const fetchAddressByQuery = useCallback(async (query: string) => {
       if (!query.trim()) {
@@ -299,7 +304,7 @@ const LocationPage: React.FC<LocationPageProps> = ({
               if (searchQuery.trim()) {
                 fetchAddressByQuery(searchQuery)
               } else {
-                alert('검색어를 입력해주세요.')
+                showNotification('검색어를 입력해주세요!')
               }
             }}
             onChange={(value) => setSearchQuery(value)} // 🔹 SearchBar 입력값을 searchQuery 상태에 저장
@@ -311,7 +316,7 @@ const LocationPage: React.FC<LocationPageProps> = ({
               if (searchQuery.trim()) {
                 fetchAddressByQuery(searchQuery) // 버튼 클릭 시 입력값을 함수로 전달
               } else {
-                alert('검색어를 입력해주세요.')
+                showNotification('검색어를 입력해주세요!')
               }
             }}
             className="text-xl text-center font-pretendard font-medium leading-[17px] tracking-[-0.5px] text-[#9562fb] cursor-pointer"
